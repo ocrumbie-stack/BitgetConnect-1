@@ -255,6 +255,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/screeners/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const screenerData = insertScreenerSchema.parse(req.body);
+      const screener = await storage.updateScreener(id, screenerData);
+      res.json(screener);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to update screener' 
+      });
+    }
+  });
+
   app.delete('/api/screeners/:id', async (req, res) => {
     try {
       const { id } = req.params;
