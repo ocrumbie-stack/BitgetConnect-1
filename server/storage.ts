@@ -8,7 +8,9 @@ import {
   type UserPosition,
   type InsertUserPosition,
   type AccountInfo,
-  type InsertAccountInfo
+  type InsertAccountInfo,
+  type Screener,
+  type InsertScreener
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -29,6 +31,10 @@ export interface IStorage {
   
   getAccountInfo(userId: string): Promise<AccountInfo | undefined>;
   updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo>;
+  
+  getUserScreeners(userId: string): Promise<Screener[]>;
+  createScreener(screener: InsertScreener): Promise<Screener>;
+  deleteScreener(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -37,6 +43,7 @@ export class MemStorage implements IStorage {
   private futuresData: Map<string, FuturesData>;
   private userPositions: Map<string, UserPosition[]>;
   private accountInfo: Map<string, AccountInfo>;
+  private screeners: Map<string, Screener>;
 
   constructor() {
     this.users = new Map();
@@ -44,6 +51,7 @@ export class MemStorage implements IStorage {
     this.futuresData = new Map();
     this.userPositions = new Map();
     this.accountInfo = new Map();
+    this.screeners = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -143,6 +151,28 @@ export class MemStorage implements IStorage {
     };
     this.accountInfo.set(userId, accountData);
     return accountData;
+  }
+
+  async getUserScreeners(userId: string): Promise<Screener[]> {
+    return Array.from(this.screeners.values()).filter(
+      screener => screener.userId === userId
+    );
+  }
+
+  async createScreener(screener: InsertScreener): Promise<Screener> {
+    const id = randomUUID();
+    const savedScreener: Screener = {
+      ...screener,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.screeners.set(id, savedScreener);
+    return savedScreener;
+  }
+
+  async deleteScreener(id: string): Promise<void> {
+    this.screeners.delete(id);
   }
 }
 
