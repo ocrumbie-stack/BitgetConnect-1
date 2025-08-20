@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 export function Markets() {
   const { data, isLoading } = useBitgetData();
@@ -16,12 +17,17 @@ export function Markets() {
   const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
   const [selectedScreener, setSelectedScreener] = useState<string>('all');
   
-  // Mock screeners data - in real implementation, this would come from API
-  const userScreeners = [
-    { id: '1', name: 'High Volume Gainers', userId: 'user1' },
-    { id: '2', name: 'Low Cap Gems', userId: 'user1' },
-    { id: '3', name: 'Volatile Pairs', userId: 'user1' },
-  ];
+  // Fetch user screeners from API
+  const { data: userScreeners = [] } = useQuery({
+    queryKey: ['/api/screeners', 'user1'],
+    queryFn: async () => {
+      const response = await fetch('/api/screeners/user1');
+      if (!response.ok) {
+        throw new Error('Failed to fetch screeners');
+      }
+      return response.json();
+    }
+  });
 
   const handleScreenerChange = (value: string) => {
     if (value === 'create-new') {
@@ -157,7 +163,7 @@ export function Markets() {
                     Create New Screener
                   </div>
                 </SelectItem>
-                {userScreeners.map((screener) => (
+                {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
                   <SelectItem key={screener.id} value={screener.id}>
                     {screener.name}
                   </SelectItem>

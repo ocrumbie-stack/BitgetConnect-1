@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const screenerFormSchema = z.object({
   name: z.string().min(1, 'Screener name is required'),
@@ -26,7 +27,7 @@ type ScreenerFormData = z.infer<typeof screenerFormSchema>;
 
 export function CreateScreener() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<ScreenerFormData>({
     resolver: zodResolver(screenerFormSchema),
@@ -42,9 +43,8 @@ export function CreateScreener() {
     },
   });
 
-  const onSubmit = async (data: ScreenerFormData) => {
-    setIsLoading(true);
-    try {
+  const createScreenerMutation = useMutation({
+    mutationFn: async (data: ScreenerFormData) => {
       // Create criteria object
       const criteria = {
         minPrice: data.minPrice ? parseFloat(data.minPrice) : undefined,
@@ -70,14 +70,21 @@ export function CreateScreener() {
         body: JSON.stringify(screenerData),
       });
 
-      if (response.ok) {
-        setLocation('/markets');
+      if (!response.ok) {
+        throw new Error('Failed to create screener');
       }
-    } catch (error) {
-      console.error('Failed to create screener:', error);
-    } finally {
-      setIsLoading(false);
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate screeners cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/screeners', 'user1'] });
+      setLocation('/markets');
     }
+  });
+
+  const onSubmit = (data: ScreenerFormData) => {
+    createScreenerMutation.mutate(data);
   };
 
   return (
@@ -277,11 +284,11 @@ export function CreateScreener() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={createScreenerMutation.isPending}
                   data-testid="button-save-screener"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Saving...' : 'Save Screener'}
+                  {createScreenerMutation.isPending ? 'Saving...' : 'Save Screener'}
                 </Button>
               </form>
             </Form>
