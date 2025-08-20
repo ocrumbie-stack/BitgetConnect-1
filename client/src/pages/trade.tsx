@@ -221,21 +221,7 @@ export function Trade() {
               <span className="text-sm text-gray-400">TP/SL</span>
             </div>
 
-            {/* Account Info */}
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Available</span>
-                <span>0.00 USDT 📋</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Max open</span>
-                <span>0.00 USDT</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Est. liq. price</span>
-                <span>-- USDT</span>
-              </div>
-            </div>
+
 
             {/* Long Button */}
             <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium py-4 flex flex-col">
@@ -243,17 +229,7 @@ export function Trade() {
               <span className="text-xs opacity-70">0.00 USDT</span>
             </Button>
 
-            {/* Account Info (Bottom) */}
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Max open</span>
-                <span>0.00 USDT</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Est. liq. price</span>
-                <span>-- USDT</span>
-              </div>
-            </div>
+
 
             {/* Short Button */}
             <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
@@ -267,21 +243,15 @@ export function Trade() {
       {/* Bottom Tabs */}
       <div className="border-t border-gray-800">
         <Tabs defaultValue="positions" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-transparent border-none">
+          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
             <TabsTrigger value="positions" className="text-xs text-gray-400 data-[state=active]:text-white">
               Positions(0)
             </TabsTrigger>
             <TabsTrigger value="orders" className="text-xs text-gray-400 data-[state=active]:text-white">
               Orders(0)
             </TabsTrigger>
-            <TabsTrigger value="copy" className="text-xs text-gray-400 data-[state=active]:text-white">
-              Copy
-            </TabsTrigger>
             <TabsTrigger value="bots" className="text-xs text-gray-400 data-[state=active]:text-white">
               Bots (1)
-            </TabsTrigger>
-            <TabsTrigger value="assets" className="text-xs text-gray-400 data-[state=active]:text-white">
-              Assets
             </TabsTrigger>
           </TabsList>
           
