@@ -74,6 +74,46 @@ export function BotPage() {
       winRate: '80%',
       avgReturn: '18-28%/month',
     },
+    {
+      id: 'rsi_advanced',
+      name: 'Advanced RSI Bot',
+      description: 'Multi-timeframe RSI with divergence detection and oversold/overbought zones',
+      risk: 'Medium',
+      profitPotential: 'Very High',
+      features: ['RSI divergence detection', 'Multi-timeframe analysis', 'Dynamic thresholds', 'Volume confirmation'],
+      winRate: '86%',
+      avgReturn: '22-35%/month',
+    },
+    {
+      id: 'macd_pro',
+      name: 'MACD Master',
+      description: 'Advanced MACD with histogram analysis, signal line crossovers, and trend confirmation',
+      risk: 'Medium-High',
+      profitPotential: 'Very High',
+      features: ['MACD histogram analysis', 'Signal line crossovers', 'Zero-line bounces', 'Trend momentum'],
+      winRate: '83%',
+      avgReturn: '28-42%/month',
+    },
+    {
+      id: 'ma_crossover',
+      name: 'Moving Average Master',
+      description: 'Multiple MA crossover system with EMA, SMA, and adaptive moving averages',
+      risk: 'Low-Medium',
+      profitPotential: 'High',
+      features: ['EMA/SMA crossovers', 'Adaptive MA', 'Golden/Death crosses', 'Trend strength filter'],
+      winRate: '79%',
+      avgReturn: '16-26%/month',
+    },
+    {
+      id: 'triple_indicator',
+      name: 'Triple Indicator Fusion',
+      description: 'Combined RSI + MACD + MA analysis with advanced signal filtering',
+      risk: 'Medium',
+      profitPotential: 'Extremely High',
+      features: ['RSI+MACD+MA fusion', 'Signal confirmation', 'False signal filtering', 'Multi-layer analysis'],
+      winRate: '89%',
+      avgReturn: '35-55%/month',
+    },
   ];
 
   const activeBots = [
@@ -101,13 +141,35 @@ export function BotPage() {
     },
     {
       id: '3',
-      strategy: 'Smart DCA',
-      pair: 'XRPUSDT',
-      status: 'paused',
-      profit: '+$198.45',
-      runtime: '15d 3h',
-      roi: '+9.9%',
-      trades: 156,
+      strategy: 'Advanced RSI Bot',
+      pair: 'ADAUSDT',
+      status: 'active',
+      profit: '+$1,134.67',
+      runtime: '18d 11h',
+      roi: '+22.7%',
+      trades: 298,
+      winRate: '88%',
+    },
+    {
+      id: '4',
+      strategy: 'MACD Master',
+      pair: 'SOLUSDT',
+      status: 'active',
+      profit: '+$892.33',
+      runtime: '10d 8h',
+      roi: '+17.8%',
+      trades: 127,
+      winRate: '84%',
+    },
+    {
+      id: '5',
+      strategy: 'Triple Indicator Fusion',
+      pair: 'DOTUSDT',
+      status: 'active',
+      profit: '+$2,156.89',
+      runtime: '25d 14h',
+      roi: '+43.1%',
+      trades: 189,
       winRate: '91%',
     },
   ];
@@ -441,19 +503,19 @@ export function BotPage() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-500">+$1,247.89</div>
+                <div className="text-2xl font-bold text-green-500">+$5,847.23</div>
                 <div className="text-sm text-muted-foreground">Total Profit (30d)</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">84.2%</div>
+                <div className="text-2xl font-bold">87.4%</div>
                 <div className="text-sm text-muted-foreground">Win Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-500">23.7%</div>
+                <div className="text-2xl font-bold text-blue-500">31.8%</div>
                 <div className="text-sm text-muted-foreground">Monthly ROI</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold">1.85</div>
+                <div className="text-2xl font-bold">2.14</div>
                 <div className="text-sm text-muted-foreground">Sharpe Ratio</div>
               </div>
             </div>
@@ -461,19 +523,19 @@ export function BotPage() {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Max Drawdown</span>
-                <span className="text-red-500">-4.2%</span>
+                <span className="text-red-500">-3.1%</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Avg Trade Duration</span>
-                <span>2h 14m</span>
+                <span>1h 47m</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Best Performing Bot</span>
-                <span className="text-green-500">Grid Trading Pro (+18.4%)</span>
+                <span className="text-green-500">Triple Indicator Fusion (+43.1%)</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Trades</span>
-                <span>1,847</span>
+                <span>2,354</span>
               </div>
             </div>
           </CardContent>
@@ -489,27 +551,31 @@ export function BotPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {strategies.slice(0, 3).map((strategy, index) => (
-                <div key={strategy.id} className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      index === 0 ? 'bg-yellow-500 text-black' :
-                      index === 1 ? 'bg-gray-400 text-white' :
-                      'bg-orange-500 text-white'
-                    }`}>
-                      {index + 1}
+              {strategies
+                .sort((a, b) => parseFloat(b.winRate) - parseFloat(a.winRate))
+                .slice(0, 5)
+                .map((strategy, index) => (
+                  <div key={strategy.id} className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        index === 0 ? 'bg-yellow-500 text-black' :
+                        index === 1 ? 'bg-gray-400 text-white' :
+                        index === 2 ? 'bg-orange-500 text-white' :
+                        'bg-blue-500 text-white'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">{strategy.name}</div>
+                        <div className="text-xs text-muted-foreground">Win Rate: {strategy.winRate}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium text-sm">{strategy.name}</div>
-                      <div className="text-xs text-muted-foreground">Win Rate: {strategy.winRate}</div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-green-500">{strategy.avgReturn}</div>
+                      <div className="text-xs text-muted-foreground">Monthly</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-green-500">{strategy.avgReturn}</div>
-                    <div className="text-xs text-muted-foreground">Monthly</div>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
