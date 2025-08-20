@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { BitgetAPI } from "./services/bitgetApi";
-import { insertBitgetCredentialsSchema, insertFuturesDataSchema } from "@shared/schema";
+import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertScreenerSchema } from "@shared/schema";
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
@@ -226,6 +226,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         apiConnected: false,
         lastUpdate: new Date().toISOString()
+      });
+    }
+  });
+
+  // Screener API routes
+  app.get('/api/screeners/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const screeners = await storage.getUserScreeners(userId);
+      res.json(screeners);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch screeners' 
+      });
+    }
+  });
+
+  app.post('/api/screeners', async (req, res) => {
+    try {
+      const screenerData = insertScreenerSchema.parse(req.body);
+      const screener = await storage.createScreener(screenerData);
+      res.json(screener);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to create screener' 
+      });
+    }
+  });
+
+  app.delete('/api/screeners/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteScreener(id);
+      res.json({ message: 'Screener deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to delete screener' 
       });
     }
   });
