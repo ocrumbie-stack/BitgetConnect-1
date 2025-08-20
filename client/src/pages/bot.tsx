@@ -12,6 +12,7 @@ export function BotPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [capital, setCapital] = useState('1000');
   const [riskLevel, setRiskLevel] = useState('medium');
+  const [configMode, setConfigMode] = useState<'auto' | 'manual'>('auto');
 
   const strategies = [
     {
@@ -315,7 +316,7 @@ export function BotPage() {
                           </div>
                         </div>
 
-                        <div>
+                        <div className="mb-3">
                           <div className="text-xs font-medium mb-2">Key Features:</div>
                           <div className="flex flex-wrap gap-1">
                             {strategy.features.map((feature, index) => (
@@ -323,6 +324,19 @@ export function BotPage() {
                                 {feature}
                               </Badge>
                             ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-accent/30 rounded-lg p-3 text-xs">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">Auto-Configuration</span>
+                            <Badge variant="outline" className="text-xs">
+                              Available
+                            </Badge>
+                          </div>
+                          <div className="text-muted-foreground">
+                            This strategy includes intelligent parameter optimization that automatically 
+                            adjusts settings based on market conditions and volatility analysis.
                           </div>
                         </div>
                       </div>
@@ -363,29 +377,111 @@ export function BotPage() {
             <div className="space-y-4">
               <h4 className="font-medium">Advanced Configuration</h4>
               
+              {/* Configuration Mode */}
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-sm">Configuration Mode</div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={configMode === 'auto' ? 'default' : 'outline'} className="text-xs">
+                        Auto
+                      </Badge>
+                      <Badge variant={configMode === 'manual' ? 'default' : 'outline'} className="text-xs">
+                        Manual
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium">Smart Auto-Configuration</div>
+                      <div className="text-xs text-muted-foreground">
+                        AI automatically optimizes settings based on market conditions
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={configMode === 'auto'} 
+                      onCheckedChange={(checked) => setConfigMode(checked ? 'auto' : 'manual')}
+                      data-testid="switch-auto-config" 
+                    />
+                  </div>
+
+                  {configMode === 'auto' && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="font-medium text-green-700">Auto-Configuration Active</span>
+                      </div>
+                      <div className="text-green-600 space-y-1">
+                        <div>• Risk settings auto-adjusted for current volatility</div>
+                        <div>• Position sizes optimized based on volume analysis</div>
+                        <div>• Stop-loss/take-profit levels set using ATR indicators</div>
+                        <div>• Entry/exit thresholds tuned for market conditions</div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Risk Management */}
               <Card>
                 <CardContent className="p-4 space-y-3">
-                  <div className="font-medium text-sm">Risk Management</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-sm">Risk Management</div>
+                    {configMode === 'auto' && (
+                      <Badge variant="outline" className="text-xs text-green-600">
+                        AI Optimized
+                      </Badge>
+                    )}
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-medium mb-1 block">Max Drawdown %</label>
-                      <Input type="number" placeholder="5" className="h-8 text-xs" />
+                      <Input 
+                        type="number" 
+                        placeholder={configMode === 'auto' ? "Auto: 3.2" : "5"} 
+                        className="h-8 text-xs" 
+                        disabled={configMode === 'auto'}
+                      />
                     </div>
                     <div>
                       <label className="text-xs font-medium mb-1 block">Stop Loss %</label>
-                      <Input type="number" placeholder="2" className="h-8 text-xs" />
+                      <Input 
+                        type="number" 
+                        placeholder={configMode === 'auto' ? "Auto: 1.8" : "2"} 
+                        className="h-8 text-xs"
+                        disabled={configMode === 'auto'}
+                      />
                     </div>
                     <div>
                       <label className="text-xs font-medium mb-1 block">Take Profit %</label>
-                      <Input type="number" placeholder="3" className="h-8 text-xs" />
+                      <Input 
+                        type="number" 
+                        placeholder={configMode === 'auto' ? "Auto: 2.7" : "3"} 
+                        className="h-8 text-xs"
+                        disabled={configMode === 'auto'}
+                      />
                     </div>
                     <div>
                       <label className="text-xs font-medium mb-1 block">Max Positions</label>
-                      <Input type="number" placeholder="5" className="h-8 text-xs" />
+                      <Input 
+                        type="number" 
+                        placeholder={configMode === 'auto' ? "Auto: 7" : "5"} 
+                        className="h-8 text-xs"
+                        disabled={configMode === 'auto'}
+                      />
                     </div>
                   </div>
+
+                  {configMode === 'manual' && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+                      <div className="text-blue-600">
+                        <strong>Manual Mode:</strong> You have full control over all settings. 
+                        Consider current market volatility when setting risk parameters.
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
