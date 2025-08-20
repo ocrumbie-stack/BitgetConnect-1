@@ -166,7 +166,8 @@ export class MemStorage implements IStorage {
       ...screener,
       id,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      criteria: screener.criteria as any
     };
     this.screeners.set(id, savedScreener);
     return savedScreener;
@@ -182,7 +183,8 @@ export class MemStorage implements IStorage {
       ...existingScreener,
       ...screenerData,
       id,
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      criteria: screenerData.criteria as any
     };
     
     this.screeners.set(id, updatedScreener);

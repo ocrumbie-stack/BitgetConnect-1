@@ -61,7 +61,58 @@ export const screeners = pgTable("screeners", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
-  criteria: jsonb("criteria").notNull(), // Contains filter criteria like minPrice, maxPrice, minVolume, etc.
+  criteria: jsonb("criteria").$type<{
+    // Basic filters
+    minPrice?: number;
+    maxPrice?: number;
+    minVolume?: number;
+    maxVolume?: number;
+    minChange?: number;
+    maxChange?: number;
+    symbols?: string[];
+    
+    // Technical indicators
+    rsi?: {
+      period: number;
+      operator: 'above' | 'below' | 'between';
+      value: number;
+      valueMax?: number; // for between operator
+    };
+    macd?: {
+      fastPeriod: number;
+      slowPeriod: number;
+      signalPeriod: number;
+      operator: 'bullish_crossover' | 'bearish_crossover' | 'above_signal' | 'below_signal' | 'above_zero' | 'below_zero';
+    };
+    movingAverage?: {
+      type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA';
+      period: number;
+      operator: 'above' | 'below' | 'crossing_up' | 'crossing_down';
+      comparison: 'price' | 'another_ma';
+      comparisonMa?: {
+        type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA';
+        period: number;
+      };
+    };
+    bollinger?: {
+      period: number;
+      stdDev: number;
+      operator: 'above_upper' | 'below_lower' | 'between_bands' | 'touching_upper' | 'touching_lower';
+    };
+    stochastic?: {
+      kPeriod: number;
+      dPeriod: number;
+      operator: 'above' | 'below' | 'between' | 'bullish_crossover' | 'bearish_crossover';
+      value: number;
+      valueMax?: number;
+    };
+    williams?: {
+      period: number;
+      operator: 'above' | 'below' | 'between';
+      value: number;
+      valueMax?: number;
+    };
+  }>().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
