@@ -10,6 +10,7 @@ import { Home } from "@/pages/home";
 import { Markets } from "@/pages/markets";
 import { Trade } from "@/pages/trade";
 import { BotPage } from "@/pages/bot";
+import { CreateScreener } from "@/pages/create-screener";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
         <Route path="/markets" component={Markets} />
         <Route path="/trade" component={Trade} />
         <Route path="/bot" component={BotPage} />
+        <Route path="/create-screener" component={CreateScreener} />
         <Route path="/advanced" component={Screener} />
         <Route component={NotFound} />
       </Switch>

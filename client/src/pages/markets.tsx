@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLocation } from 'wouter';
 
 export function Markets() {
   const { data, isLoading } = useBitgetData();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -20,6 +22,14 @@ export function Markets() {
     { id: '2', name: 'Low Cap Gems', userId: 'user1' },
     { id: '3', name: 'Volatile Pairs', userId: 'user1' },
   ];
+
+  const handleScreenerChange = (value: string) => {
+    if (value === 'create-new') {
+      setLocation('/create-screener');
+    } else {
+      setSelectedScreener(value);
+    }
+  };
 
   const filteredAndSortedData = data
     ?.filter((item) => {
@@ -135,7 +145,7 @@ export function Markets() {
 
           {/* Screener Dropdown */}
           <div className="w-48">
-            <Select value={selectedScreener} onValueChange={setSelectedScreener}>
+            <Select value={selectedScreener} onValueChange={handleScreenerChange}>
               <SelectTrigger className="w-full" data-testid="screener-select">
                 <SelectValue placeholder="Select screener" />
               </SelectTrigger>
