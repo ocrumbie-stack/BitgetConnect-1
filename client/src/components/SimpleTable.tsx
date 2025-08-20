@@ -1,4 +1,5 @@
 import { FuturesData } from '@shared/schema';
+import { useLocation } from 'wouter';
 
 interface SimpleTableProps {
   data: FuturesData[];
@@ -6,6 +7,7 @@ interface SimpleTableProps {
 }
 
 export function SimpleTable({ data, isLoading }: SimpleTableProps) {
+  const [, setLocation] = useLocation();
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -74,7 +76,12 @@ export function SimpleTable({ data, isLoading }: SimpleTableProps) {
       {/* Data Rows */}
       <div className="divide-y divide-border">
         {data.map((item) => (
-          <div key={item.symbol} className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors" data-testid={`row-${item.symbol}`}>
+          <div 
+            key={item.symbol} 
+            className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
+            data-testid={`row-${item.symbol}`}
+            onClick={() => setLocation('/trade')}
+          >
             {/* Coin/Volume Column */}
             <div>
               <div className="font-semibold text-foreground text-base" data-testid={`symbol-${item.symbol}`}>
