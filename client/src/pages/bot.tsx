@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Play, Pause, Settings, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Bot, Play, Pause, Settings, TrendingUp, TrendingDown, AlertTriangle, X } from 'lucide-react';
 
 export function BotPage() {
   const [selectedStrategy, setSelectedStrategy] = useState('');
@@ -13,6 +14,8 @@ export function BotPage() {
   const [capital, setCapital] = useState('1000');
   const [riskLevel, setRiskLevel] = useState('medium');
   const [configMode, setConfigMode] = useState<'auto' | 'manual'>('auto');
+  const [selectedBotForSettings, setSelectedBotForSettings] = useState<string | null>(null);
+  const [activeBotStates, setActiveBotStates] = useState<Record<string, { status: 'active' | 'paused' }>>({});
 
   const strategies = [
     {
@@ -184,6 +187,23 @@ export function BotPage() {
     }
   };
 
+  const handlePauseBot = (botId: string) => {
+    setActiveBotStates(prev => ({
+      ...prev,
+      [botId]: {
+        status: prev[botId]?.status === 'paused' ? 'active' : 'paused'
+      }
+    }));
+  };
+
+  const handleBotSettings = (botId: string) => {
+    setSelectedBotForSettings(botId);
+  };
+
+  const getBotStatus = (botId: string, originalStatus: string) => {
+    return activeBotStates[botId]?.status || originalStatus;
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -215,15 +235,29 @@ export function BotPage() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="font-medium">{bot.strategy}</div>
-                        <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
-                          {bot.status}
+                        <Badge variant={getBotStatus(bot.id, bot.status) === 'active' ? 'default' : 'secondary'}>
+                          {getBotStatus(bot.id, bot.status)}
                         </Badge>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" data-testid={`button-pause-${bot.id}`}>
-                          <Pause className="h-3 w-3" />
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handlePauseBot(bot.id)}
+                          data-testid={`button-pause-${bot.id}`}
+                        >
+                          {getBotStatus(bot.id, bot.status) === 'active' ? (
+                            <Pause className="h-3 w-3" />
+                          ) : (
+                            <Play className="h-3 w-3" />
+                          )}
                         </Button>
-                        <Button size="sm" variant="outline" data-testid={`button-settings-${bot.id}`}>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleBotSettings(bot.id)}
+                          data-testid={`button-settings-${bot.id}`}
+                        >
                           <Settings className="h-3 w-3" />
                         </Button>
                       </div>
@@ -258,6 +292,96 @@ export function BotPage() {
             </div>
           )}
         </div>
+
+        {/* Bot Settings Modal */}
+        <Dialog open={selectedBotForSettings !== null} onOpenChange={() => setSelectedBotForSettings(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                Bot Settings
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedBotForSettings(null)}
+                  data-testid="button-close-settings"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedBotForSettings && (
+              <div className="space-y-4">
+                {(() => {
+                  const bot = activeBots.find(b => b.id === selectedBotForSettings);
+                  if (!bot) return null;
+                  
+                  return (
+                    <>
+                      <div className="space-y-3">
+                        <div className="text-sm">
+                          <div className="font-medium mb-1">Strategy: {bot.strategy}</div>
+                          <div className="text-muted-foreground">Pair: {bot.pair}</div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-xs font-medium mb-1 block">Position Size ($)</label>
+                            <Input type="number" placeholder="1000" className="h-8 text-xs" />
+                          </div>
+                          
+                          <div>
+                            <label className="text-xs font-medium mb-1 block">Stop Loss (%)</label>
+                            <Input type="number" placeholder="2.5" className="h-8 text-xs" />
+                          </div>
+                          
+                          <div>
+                            <label className="text-xs font-medium mb-1 block">Take Profit (%)</label>
+                            <Input type="number" placeholder="5.0" className="h-8 text-xs" />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium">Auto-restart</div>
+                              <div className="text-xs text-muted-foreground">Restart if stopped</div>
+                            </div>
+                            <Switch data-testid="switch-bot-auto-restart" />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm font-medium">Email notifications</div>
+                              <div className="text-xs text-muted-foreground">Get notified on events</div>
+                            </div>
+                            <Switch data-testid="switch-bot-notifications" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-4 border-t">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1" 
+                          onClick={() => setSelectedBotForSettings(null)}
+                          data-testid="button-cancel-settings"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          className="flex-1"
+                          onClick={() => setSelectedBotForSettings(null)}
+                          data-testid="button-save-settings"
+                        >
+                          Save Changes
+                        </Button>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Create New Bot */}
         <Card>
