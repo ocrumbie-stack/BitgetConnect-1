@@ -67,8 +67,12 @@ export const screeners = pgTable("screeners", {
     maxPrice?: number;
     minVolume?: number;
     maxVolume?: number;
+    minVolumeUsd?: number;
+    maxVolumeUsd?: number;
     minChange?: number;
     maxChange?: number;
+    minMarketCap?: number;
+    maxMarketCap?: number;
     symbols?: string[];
     
     // Technical indicators
@@ -76,7 +80,7 @@ export const screeners = pgTable("screeners", {
       period: number;
       operator: 'above' | 'below' | 'between';
       value: number;
-      valueMax?: number; // for between operator
+      valueMax?: number;
     };
     macd?: {
       fastPeriod: number;
@@ -84,33 +88,61 @@ export const screeners = pgTable("screeners", {
       signalPeriod: number;
       operator: 'bullish_crossover' | 'bearish_crossover' | 'above_signal' | 'below_signal' | 'above_zero' | 'below_zero';
     };
-    movingAverage?: {
-      type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA';
+    movingAverage1?: {
+      type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA' | 'HMA' | 'VWMA';
       period: number;
       operator: 'above' | 'below' | 'crossing_up' | 'crossing_down';
       comparison: 'price' | 'another_ma';
       comparisonMa?: {
-        type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA';
+        type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA' | 'HMA' | 'VWMA';
+        period: number;
+      };
+    };
+    movingAverage2?: {
+      type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA' | 'HMA' | 'VWMA';
+      period: number;
+      operator: 'above' | 'below' | 'crossing_up' | 'crossing_down';
+      comparison: 'price' | 'another_ma';
+      comparisonMa?: {
+        type: 'SMA' | 'EMA' | 'WMA' | 'DEMA' | 'TEMA' | 'HMA' | 'VWMA';
         period: number;
       };
     };
     bollinger?: {
       period: number;
       stdDev: number;
-      operator: 'above_upper' | 'below_lower' | 'between_bands' | 'touching_upper' | 'touching_lower';
+      operator: 'above_upper' | 'below_lower' | 'between_bands' | 'touching_upper' | 'touching_lower' | 'squeeze';
     };
     stochastic?: {
       kPeriod: number;
       dPeriod: number;
-      operator: 'above' | 'below' | 'between' | 'bullish_crossover' | 'bearish_crossover';
+      smoothK: number;
+      operator: 'above' | 'below' | 'between' | 'bullish_crossover' | 'bearish_crossover' | 'oversold' | 'overbought';
       value: number;
       valueMax?: number;
     };
     williams?: {
       period: number;
+      operator: 'above' | 'below' | 'between' | 'oversold' | 'overbought';
+      value: number;
+      valueMax?: number;
+    };
+    atr?: {
+      period: number;
       operator: 'above' | 'below' | 'between';
       value: number;
       valueMax?: number;
+    };
+    cci?: {
+      period: number;
+      operator: 'above' | 'below' | 'between' | 'oversold' | 'overbought';
+      value: number;
+      valueMax?: number;
+    };
+    momentum?: {
+      period: number;
+      operator: 'above' | 'below' | 'positive' | 'negative';
+      value?: number;
     };
   }>().notNull(),
   createdAt: timestamp("created_at").defaultNow(),
