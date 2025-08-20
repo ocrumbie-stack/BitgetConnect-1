@@ -5,11 +5,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Screener from "@/pages/screener";
+import { SimpleScreener } from "@/pages/simple-screener";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Screener} />
+      <Route path="/" component={SimpleScreener} />
+      <Route path="/advanced" component={Screener} />
       <Route component={NotFound} />
     </Switch>
   );
