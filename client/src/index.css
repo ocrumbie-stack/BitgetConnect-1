@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 7.1%);
+  --foreground: hsl(0 0% 100%);
+  --card: hsl(0 0% 11.8%);
+  --card-foreground: hsl(0 0% 100%);
+  --popover: hsl(0 0% 11.8%);
+  --popover-foreground: hsl(0 0% 100%);
+  --primary: hsl(210 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 11.8%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 14.9%);
+  --muted-foreground: hsl(0 0% 69%);
+  --accent: hsl(0 0% 14.9%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 14.9%);
+  --ring: hsl(210 83% 53%);
+  --chart-1: hsl(210 83% 53%);
+  --chart-2: hsl(120 100% 36%);
+  --chart-3: hsl(42 93% 56%);
+  --chart-4: hsl(147 78% 42%);
+  --chart-5: hsl(341 75% 51%);
+  --success: hsl(120 100% 36%);
+  --error: hsl(0 84% 60%);
+  --warning: hsl(42 93% 56%);
+  --text-secondary: hsl(0 0% 69%);
+  --surface: hsl(0 0% 11.8%);
+  --border-color: hsl(0 0% 20%);
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(0 0% 7.1%);
+  --foreground: hsl(0 0% 100%);
+  --card: hsl(0 0% 11.8%);
+  --card-foreground: hsl(0 0% 100%);
+  --popover: hsl(0 0% 11.8%);
+  --popover-foreground: hsl(0 0% 100%);
+  --primary: hsl(210 83% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(0 0% 11.8%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 14.9%);
+  --muted-foreground: hsl(0 0% 69%);
+  --accent: hsl(0 0% 14.9%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 14.9%);
+  --ring: hsl(210 83% 53%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--font-sans);
+  }
+
+  .animate-pulse-dot {
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer utilities {
+  .text-success {
+    color: hsl(120 100% 36%);
+  }
+  
+  .text-error {
+    color: hsl(0 84% 60%);
+  }
+  
+  .text-warning {
+    color: hsl(42 93% 56%);
+  }
+  
+  .bg-success {
+    background-color: hsl(120 100% 36%);
+  }
+  
+  .bg-error {
+    background-color: hsl(0 84% 60%);
+  }
+  
+  .bg-warning {
+    background-color: hsl(42 93% 56%);
+  }
+  
+  .bg-surface {
+    background-color: hsl(0 0% 11.8%);
+  }
+  
+  .border-color {
+    border-color: hsl(0 0% 20%);
+  }
+
+  .text-text-secondary {
+    color: hsl(0 0% 69%);
+  }
+}
