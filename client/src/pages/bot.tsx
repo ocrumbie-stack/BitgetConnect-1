@@ -485,6 +485,274 @@ export function BotPage() {
                 </CardContent>
               </Card>
 
+              {/* Moving Average Settings */}
+              {(selectedStrategy === 'ma_crossover' || selectedStrategy === 'triple_indicator') && (
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-sm">Moving Average Settings</div>
+                      {configMode === 'auto' && (
+                        <Badge variant="outline" className="text-xs text-green-600">
+                          AI Optimized
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Fast MA Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 9" : "9"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Slow MA Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 21" : "21"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Fast MA Type</label>
+                        <Select disabled={configMode === 'auto'}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder={configMode === 'auto' ? "Auto: EMA" : "Select"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ema">EMA (Exponential)</SelectItem>
+                            <SelectItem value="sma">SMA (Simple)</SelectItem>
+                            <SelectItem value="wma">WMA (Weighted)</SelectItem>
+                            <SelectItem value="hull">Hull MA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Slow MA Type</label>
+                        <Select disabled={configMode === 'auto'}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder={configMode === 'auto' ? "Auto: SMA" : "Select"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ema">EMA (Exponential)</SelectItem>
+                            <SelectItem value="sma">SMA (Simple)</SelectItem>
+                            <SelectItem value="wma">WMA (Weighted)</SelectItem>
+                            <SelectItem value="hull">Hull MA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {selectedStrategy === 'triple_indicator' && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Signal MA Period</label>
+                          <Input 
+                            type="number" 
+                            placeholder={configMode === 'auto' ? "Auto: 50" : "50"} 
+                            className="h-8 text-xs"
+                            disabled={configMode === 'auto'}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium mb-1 block">Signal MA Type</label>
+                          <Select disabled={configMode === 'auto'}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder={configMode === 'auto' ? "Auto: SMA" : "Select"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ema">EMA (Exponential)</SelectItem>
+                              <SelectItem value="sma">SMA (Simple)</SelectItem>
+                              <SelectItem value="wma">WMA (Weighted)</SelectItem>
+                              <SelectItem value="hull">Hull MA</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-3 border-t pt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Crossover Confirmation</div>
+                          <div className="text-xs text-muted-foreground">Wait for confirmation candles</div>
+                        </div>
+                        <Switch data-testid="switch-ma-confirmation" disabled={configMode === 'auto'} />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Price Above/Below Filter</div>
+                          <div className="text-xs text-muted-foreground">Only trade when price is above/below MA</div>
+                        </div>
+                        <Switch data-testid="switch-ma-price-filter" disabled={configMode === 'auto'} />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Golden/Death Cross Detection</div>
+                          <div className="text-xs text-muted-foreground">Detect major trend reversals</div>
+                        </div>
+                        <Switch data-testid="switch-ma-golden-cross" disabled={configMode === 'auto'} />
+                      </div>
+                    </div>
+
+                    {configMode === 'auto' && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
+                        <div className="text-green-600 space-y-1">
+                          <div><strong>Auto-Optimized MA Settings:</strong></div>
+                          <div>• MA periods adjusted based on market volatility and timeframe</div>
+                          <div>• MA types selected for optimal signal quality (noise reduction)</div>
+                          <div>• Crossover confirmation enabled during high volatility</div>
+                          <div>• Golden/Death cross detection active for major trends</div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* RSI Settings */}
+              {(selectedStrategy === 'rsi_advanced' || selectedStrategy === 'triple_indicator') && (
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-sm">RSI Settings</div>
+                      {configMode === 'auto' && (
+                        <Badge variant="outline" className="text-xs text-green-600">
+                          AI Optimized
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">RSI Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 14" : "14"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Smoothing Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 3" : "3"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Overbought Level</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 68" : "70"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Oversold Level</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 32" : "30"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 border-t pt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Divergence Detection</div>
+                          <div className="text-xs text-muted-foreground">Detect bullish/bearish divergences</div>
+                        </div>
+                        <Switch data-testid="switch-rsi-divergence" disabled={configMode === 'auto'} />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Multi-timeframe RSI</div>
+                          <div className="text-xs text-muted-foreground">Use multiple timeframes for confirmation</div>
+                        </div>
+                        <Switch data-testid="switch-rsi-multi-timeframe" disabled={configMode === 'auto'} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* MACD Settings */}
+              {(selectedStrategy === 'macd_pro' || selectedStrategy === 'triple_indicator') && (
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-sm">MACD Settings</div>
+                      {configMode === 'auto' && (
+                        <Badge variant="outline" className="text-xs text-green-600">
+                          AI Optimized
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Fast Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 12" : "12"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Slow Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 26" : "26"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium mb-1 block">Signal Period</label>
+                        <Input 
+                          type="number" 
+                          placeholder={configMode === 'auto' ? "Auto: 9" : "9"} 
+                          className="h-8 text-xs"
+                          disabled={configMode === 'auto'}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 border-t pt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Histogram Analysis</div>
+                          <div className="text-xs text-muted-foreground">Use histogram for momentum signals</div>
+                        </div>
+                        <Switch data-testid="switch-macd-histogram" disabled={configMode === 'auto'} />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-medium">Zero Line Bounces</div>
+                          <div className="text-xs text-muted-foreground">Trade on zero line bounces</div>
+                        </div>
+                        <Switch data-testid="switch-macd-zero-line" disabled={configMode === 'auto'} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Performance Optimization */}
               <Card>
                 <CardContent className="p-4 space-y-3">
