@@ -57,6 +57,15 @@ export const accountInfo = pgTable("account_info", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+export const screeners = pgTable("screeners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  name: text("name").notNull(),
+  criteria: jsonb("criteria").notNull(), // Contains filter criteria like minPrice, maxPrice, minVolume, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -86,6 +95,12 @@ export const insertAccountInfoSchema = createInsertSchema(accountInfo).omit({
   lastUpdated: true,
 });
 
+export const insertScreenerSchema = createInsertSchema(screeners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -101,3 +116,6 @@ export type UserPosition = typeof userPositions.$inferSelect;
 
 export type InsertAccountInfo = z.infer<typeof insertAccountInfoSchema>;
 export type AccountInfo = typeof accountInfo.$inferSelect;
+
+export type InsertScreener = z.infer<typeof insertScreenerSchema>;
+export type Screener = typeof screeners.$inferSelect;

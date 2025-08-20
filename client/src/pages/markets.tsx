@@ -3,7 +3,8 @@ import { useBitgetData } from '@/hooks/useBitgetData';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, TrendingUp, TrendingDown, Filter } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Markets() {
   const { data, isLoading } = useBitgetData();
@@ -11,6 +12,14 @@ export function Markets() {
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
+  const [selectedScreener, setSelectedScreener] = useState<string>('all');
+  
+  // Mock screeners data - in real implementation, this would come from API
+  const userScreeners = [
+    { id: '1', name: 'High Volume Gainers', userId: 'user1' },
+    { id: '2', name: 'Low Cap Gems', userId: 'user1' },
+    { id: '3', name: 'Volatile Pairs', userId: 'user1' },
+  ];
 
   const filteredAndSortedData = data
     ?.filter((item) => {
@@ -124,34 +133,27 @@ export function Markets() {
             </Button>
           </div>
 
-          {/* Sort Controls */}
-          <div className="flex gap-2">
-            <Button
-              variant={sortBy === 'change' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSort('change')}
-              data-testid="button-sort-change"
-              className="flex items-center gap-1"
-            >
-              {sortBy === 'change' && sortDirection === 'desc' ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
-              Change
-            </Button>
-            <Button
-              variant={sortBy === 'volume' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSort('volume')}
-              data-testid="button-sort-volume"
-            >
-              Volume
-            </Button>
-            <Button
-              variant={sortBy === 'price' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleSort('price')}
-              data-testid="button-sort-price"
-            >
-              Price
-            </Button>
+          {/* Screener Dropdown */}
+          <div className="w-48">
+            <Select value={selectedScreener} onValueChange={setSelectedScreener}>
+              <SelectTrigger className="w-full" data-testid="screener-select">
+                <SelectValue placeholder="Select screener" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Markets</SelectItem>
+                <SelectItem value="create-new">
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create New Screener
+                  </div>
+                </SelectItem>
+                {userScreeners.map((screener) => (
+                  <SelectItem key={screener.id} value={screener.id}>
+                    {screener.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
