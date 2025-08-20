@@ -159,15 +159,7 @@ export function Markets() {
       {/* Market Data */}
       <SimpleTable data={filteredAndSortedData} isLoading={isLoading} />
 
-      {/* Footer Stats */}
-      {data && data.length > 0 && (
-        <div className="sticky bottom-16 bg-background/95 backdrop-blur-sm border-t border-border p-4">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Showing: {filteredAndSortedData.length} pairs</span>
-            <span>Total: {data.length} markets</span>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
