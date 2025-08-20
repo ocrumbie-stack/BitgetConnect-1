@@ -56,10 +56,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const futuresData = tickers.map(ticker => ({
           symbol: ticker.symbol,
           price: ticker.lastPr,
-          change24h: ticker.chg24h,
-          volume24h: ticker.volume24h,
+          change24h: ticker.change24h,
+          volume24h: ticker.quoteVolume,
           fundingRate: ticker.fundingRate,
-          openInterest: ticker.openInterest,
+          openInterest: ticker.holdingAmount,
           contractType: 'Perpetual'
         }));
 

@@ -88,6 +88,11 @@ export class MemStorage implements IStorage {
       const futuresItem: FuturesData = {
         ...item,
         id,
+        change24h: item.change24h || null,
+        volume24h: item.volume24h || null,
+        fundingRate: item.fundingRate || null,
+        openInterest: item.openInterest || null,
+        contractType: item.contractType || null,
         lastUpdated: new Date()
       };
       this.futuresData.set(item.symbol, futuresItem);
@@ -106,6 +111,12 @@ export class MemStorage implements IStorage {
     const userPositionsList = positions.map(pos => ({
       ...pos,
       id: randomUUID(),
+      userId,
+      entryPrice: pos.entryPrice || null,
+      markPrice: pos.markPrice || null,
+      pnl: pos.pnl || null,
+      margin: pos.margin || null,
+      leverage: pos.leverage || null,
       createdAt: new Date(),
       updatedAt: new Date()
     }));
@@ -121,6 +132,13 @@ export class MemStorage implements IStorage {
     const accountData: AccountInfo = {
       ...info,
       id,
+      userId,
+      availableBalance: info.availableBalance || null,
+      marginUsed: info.marginUsed || null,
+      unrealizedPnl: info.unrealizedPnl || null,
+      totalEquity: info.totalEquity || null,
+      marginRatio: info.marginRatio || null,
+      maintenanceMargin: info.maintenanceMargin || null,
       lastUpdated: new Date()
     };
     this.accountInfo.set(userId, accountData);
