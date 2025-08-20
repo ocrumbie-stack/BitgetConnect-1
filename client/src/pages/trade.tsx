@@ -69,10 +69,7 @@ export function Trade() {
           </div>
         </div>
         
-        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-          <span>Funding rate / Countdown</span>
-          <span>0.0035% / 02:58:08</span>
-        </div>
+
       </div>
 
       <div className="flex">
@@ -308,21 +305,7 @@ export function Trade() {
         </Tabs>
       </div>
 
-      {/* Bottom Bot Navigation */}
-      <div className="fixed bottom-16 left-0 right-0 bg-black border-t border-gray-800 p-2">
-        <div className="flex gap-2 text-xs">
-          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures grid</button>
-          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures position grid</button>
-          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures DCA</button>
-          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures CTA</button>
-        </div>
-        
-        <div className="flex justify-end mt-2">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6">
-            Create a bot
-          </Button>
-        </div>
-      </div>
+
     </div>
   );
 }
