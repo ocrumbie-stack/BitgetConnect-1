@@ -21,8 +21,12 @@ const screenerFormSchema = z.object({
   maxPrice: z.string().optional(),
   minVolume: z.string().optional(),
   maxVolume: z.string().optional(),
+  minVolumeUsd: z.string().optional(),
+  maxVolumeUsd: z.string().optional(),
   minChange: z.string().optional(),
   maxChange: z.string().optional(),
+  minMarketCap: z.string().optional(),
+  maxMarketCap: z.string().optional(),
   symbols: z.string().optional(),
   
   // Technical indicators
@@ -38,31 +42,57 @@ const screenerFormSchema = z.object({
   macdSignalPeriod: z.string().optional(),
   macdOperator: z.enum(['bullish_crossover', 'bearish_crossover', 'above_signal', 'below_signal', 'above_zero', 'below_zero']).optional(),
   
-  maEnabled: z.boolean().optional(),
-  maType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA']).optional(),
-  maPeriod: z.string().optional(),
-  maOperator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
-  maComparison: z.enum(['price', 'another_ma']).optional(),
-  maComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA']).optional(),
-  maComparisonPeriod: z.string().optional(),
+  ma1Enabled: z.boolean().optional(),
+  ma1Type: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
+  ma1Period: z.string().optional(),
+  ma1Operator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
+  ma1Comparison: z.enum(['price', 'another_ma']).optional(),
+  ma1ComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
+  ma1ComparisonPeriod: z.string().optional(),
+  
+  ma2Enabled: z.boolean().optional(),
+  ma2Type: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
+  ma2Period: z.string().optional(),
+  ma2Operator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
+  ma2Comparison: z.enum(['price', 'another_ma']).optional(),
+  ma2ComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
+  ma2ComparisonPeriod: z.string().optional(),
   
   bollingerEnabled: z.boolean().optional(),
   bollingerPeriod: z.string().optional(),
   bollingerStdDev: z.string().optional(),
-  bollingerOperator: z.enum(['above_upper', 'below_lower', 'between_bands', 'touching_upper', 'touching_lower']).optional(),
+  bollingerOperator: z.enum(['above_upper', 'below_lower', 'between_bands', 'touching_upper', 'touching_lower', 'squeeze']).optional(),
   
   stochasticEnabled: z.boolean().optional(),
   stochasticKPeriod: z.string().optional(),
   stochasticDPeriod: z.string().optional(),
-  stochasticOperator: z.enum(['above', 'below', 'between', 'bullish_crossover', 'bearish_crossover']).optional(),
+  stochasticSmoothK: z.string().optional(),
+  stochasticOperator: z.enum(['above', 'below', 'between', 'bullish_crossover', 'bearish_crossover', 'oversold', 'overbought']).optional(),
   stochasticValue: z.string().optional(),
   stochasticValueMax: z.string().optional(),
   
   williamsEnabled: z.boolean().optional(),
   williamsPeriod: z.string().optional(),
-  williamsOperator: z.enum(['above', 'below', 'between']).optional(),
+  williamsOperator: z.enum(['above', 'below', 'between', 'oversold', 'overbought']).optional(),
   williamsValue: z.string().optional(),
   williamsValueMax: z.string().optional(),
+  
+  atrEnabled: z.boolean().optional(),
+  atrPeriod: z.string().optional(),
+  atrOperator: z.enum(['above', 'below', 'between']).optional(),
+  atrValue: z.string().optional(),
+  atrValueMax: z.string().optional(),
+  
+  cciEnabled: z.boolean().optional(),
+  cciPeriod: z.string().optional(),
+  cciOperator: z.enum(['above', 'below', 'between', 'oversold', 'overbought']).optional(),
+  cciValue: z.string().optional(),
+  cciValueMax: z.string().optional(),
+  
+  momentumEnabled: z.boolean().optional(),
+  momentumPeriod: z.string().optional(),
+  momentumOperator: z.enum(['above', 'below', 'positive', 'negative']).optional(),
+  momentumValue: z.string().optional(),
 });
 
 type ScreenerFormData = z.infer<typeof screenerFormSchema>;
@@ -79,8 +109,12 @@ export function CreateScreener() {
       maxPrice: '',
       minVolume: '',
       maxVolume: '',
+      minVolumeUsd: '',
+      maxVolumeUsd: '',
       minChange: '',
       maxChange: '',
+      minMarketCap: '',
+      maxMarketCap: '',
       symbols: '',
       // Technical indicators
       rsiEnabled: false,
@@ -93,13 +127,20 @@ export function CreateScreener() {
       macdSlowPeriod: '26',
       macdSignalPeriod: '9',
       macdOperator: 'bullish_crossover',
-      maEnabled: false,
-      maType: 'SMA',
-      maPeriod: '20',
-      maOperator: 'above',
-      maComparison: 'price',
-      maComparisonType: 'SMA',
-      maComparisonPeriod: '50',
+      ma1Enabled: false,
+      ma1Type: 'SMA',
+      ma1Period: '20',
+      ma1Operator: 'above',
+      ma1Comparison: 'price',
+      ma1ComparisonType: 'SMA',
+      ma1ComparisonPeriod: '50',
+      ma2Enabled: false,
+      ma2Type: 'EMA',
+      ma2Period: '50',
+      ma2Operator: 'above',
+      ma2Comparison: 'price',
+      ma2ComparisonType: 'SMA',
+      ma2ComparisonPeriod: '200',
       bollingerEnabled: false,
       bollingerPeriod: '20',
       bollingerStdDev: '2',
@@ -107,6 +148,7 @@ export function CreateScreener() {
       stochasticEnabled: false,
       stochasticKPeriod: '14',
       stochasticDPeriod: '3',
+      stochasticSmoothK: '3',
       stochasticOperator: 'above',
       stochasticValue: '80',
       stochasticValueMax: '',
@@ -115,6 +157,20 @@ export function CreateScreener() {
       williamsOperator: 'above',
       williamsValue: '-20',
       williamsValueMax: '',
+      atrEnabled: false,
+      atrPeriod: '14',
+      atrOperator: 'above',
+      atrValue: '1',
+      atrValueMax: '',
+      cciEnabled: false,
+      cciPeriod: '20',
+      cciOperator: 'above',
+      cciValue: '100',
+      cciValueMax: '',
+      momentumEnabled: false,
+      momentumPeriod: '10',
+      momentumOperator: 'positive',
+      momentumValue: '0',
     },
   });
 
@@ -127,8 +183,12 @@ export function CreateScreener() {
         maxPrice: data.maxPrice ? parseFloat(data.maxPrice) : undefined,
         minVolume: data.minVolume ? parseFloat(data.minVolume) : undefined,
         maxVolume: data.maxVolume ? parseFloat(data.maxVolume) : undefined,
+        minVolumeUsd: data.minVolumeUsd ? parseFloat(data.minVolumeUsd) : undefined,
+        maxVolumeUsd: data.maxVolumeUsd ? parseFloat(data.maxVolumeUsd) : undefined,
         minChange: data.minChange ? parseFloat(data.minChange) : undefined,
         maxChange: data.maxChange ? parseFloat(data.maxChange) : undefined,
+        minMarketCap: data.minMarketCap ? parseFloat(data.minMarketCap) : undefined,
+        maxMarketCap: data.maxMarketCap ? parseFloat(data.maxMarketCap) : undefined,
         symbols: data.symbols ? data.symbols.split(',').map(s => s.trim()) : undefined,
       };
 
@@ -151,15 +211,28 @@ export function CreateScreener() {
         };
       }
 
-      if (data.maEnabled) {
-        criteria.movingAverage = {
-          type: data.maType || 'SMA',
-          period: parseInt(data.maPeriod || '20'),
-          operator: data.maOperator || 'above',
-          comparison: data.maComparison || 'price',
-          comparisonMa: data.maComparison === 'another_ma' ? {
-            type: data.maComparisonType || 'SMA',
-            period: parseInt(data.maComparisonPeriod || '50'),
+      if (data.ma1Enabled) {
+        criteria.movingAverage1 = {
+          type: data.ma1Type || 'SMA',
+          period: parseInt(data.ma1Period || '20'),
+          operator: data.ma1Operator || 'above',
+          comparison: data.ma1Comparison || 'price',
+          comparisonMa: data.ma1Comparison === 'another_ma' ? {
+            type: data.ma1ComparisonType || 'SMA',
+            period: parseInt(data.ma1ComparisonPeriod || '50'),
+          } : undefined,
+        };
+      }
+
+      if (data.ma2Enabled) {
+        criteria.movingAverage2 = {
+          type: data.ma2Type || 'EMA',
+          period: parseInt(data.ma2Period || '50'),
+          operator: data.ma2Operator || 'above',
+          comparison: data.ma2Comparison || 'price',
+          comparisonMa: data.ma2Comparison === 'another_ma' ? {
+            type: data.ma2ComparisonType || 'SMA',
+            period: parseInt(data.ma2ComparisonPeriod || '200'),
           } : undefined,
         };
       }
@@ -176,6 +249,7 @@ export function CreateScreener() {
         criteria.stochastic = {
           kPeriod: parseInt(data.stochasticKPeriod || '14'),
           dPeriod: parseInt(data.stochasticDPeriod || '3'),
+          smoothK: parseInt(data.stochasticSmoothK || '3'),
           operator: data.stochasticOperator || 'above',
           value: parseFloat(data.stochasticValue || '80'),
           valueMax: data.stochasticValueMax ? parseFloat(data.stochasticValueMax) : undefined,
@@ -188,6 +262,32 @@ export function CreateScreener() {
           operator: data.williamsOperator || 'above',
           value: parseFloat(data.williamsValue || '-20'),
           valueMax: data.williamsValueMax ? parseFloat(data.williamsValueMax) : undefined,
+        };
+      }
+
+      if (data.atrEnabled) {
+        criteria.atr = {
+          period: parseInt(data.atrPeriod || '14'),
+          operator: data.atrOperator || 'above',
+          value: parseFloat(data.atrValue || '1'),
+          valueMax: data.atrValueMax ? parseFloat(data.atrValueMax) : undefined,
+        };
+      }
+
+      if (data.cciEnabled) {
+        criteria.cci = {
+          period: parseInt(data.cciPeriod || '20'),
+          operator: data.cciOperator || 'above',
+          value: parseFloat(data.cciValue || '100'),
+          valueMax: data.cciValueMax ? parseFloat(data.cciValueMax) : undefined,
+        };
+      }
+
+      if (data.momentumEnabled) {
+        criteria.momentum = {
+          period: parseInt(data.momentumPeriod || '10'),
+          operator: data.momentumOperator || 'positive',
+          value: data.momentumValue ? parseFloat(data.momentumValue) : undefined,
         };
       }
 
@@ -285,6 +385,234 @@ export function CreateScreener() {
                   </TabsList>
 
                   <TabsContent value="basic" className="space-y-4 mt-4">
+                    {/* Price Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="minPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Min Price ($)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                {...field}
+                                data-testid="input-min-price"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Price ($)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="100000.00"
+                                {...field}
+                                data-testid="input-max-price"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Volume Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="minVolume"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Min Volume</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="1000"
+                                {...field}
+                                data-testid="input-min-volume"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxVolume"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Volume</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="1000000"
+                                {...field}
+                                data-testid="input-max-volume"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Volume USD Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="minVolumeUsd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Min Volume USD</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="100000"
+                                {...field}
+                                data-testid="input-min-volume-usd"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxVolumeUsd"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Volume USD</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="10000000"
+                                {...field}
+                                data-testid="input-max-volume-usd"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Change Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="minChange"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Min 24h Change (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="-10"
+                                {...field}
+                                data-testid="input-min-change"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxChange"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max 24h Change (%)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="50"
+                                {...field}
+                                data-testid="input-max-change"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Market Cap Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="minMarketCap"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Min Market Cap ($)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="1000000"
+                                {...field}
+                                data-testid="input-min-market-cap"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="maxMarketCap"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Max Market Cap ($)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="1000000000"
+                                {...field}
+                                data-testid="input-max-market-cap"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Symbols */}
+                    <FormField
+                      control={form.control}
+                      name="symbols"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Specific Symbols (optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="BTC, ETH, SOL (comma-separated)"
+                              {...field}
+                              data-testid="input-symbols"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                 {/* Price Range */}
                 <div className="grid grid-cols-2 gap-4">
@@ -547,24 +875,24 @@ export function CreateScreener() {
                       )}
                     </div>
 
-                    {/* Moving Average Indicator */}
+                    {/* Moving Average 1 Indicator */}
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
                         <FormField
                           control={form.control}
-                          name="maEnabled"
+                          name="ma1Enabled"
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                               <FormControl>
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  data-testid="checkbox-ma-enabled"
+                                  data-testid="checkbox-ma1-enabled"
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="text-sm font-medium">
-                                  Moving Average
+                                  Moving Average 1
                                 </FormLabel>
                               </div>
                             </FormItem>
@@ -572,18 +900,18 @@ export function CreateScreener() {
                         />
                       </div>
 
-                      {form.watch('maEnabled') && (
+                      {form.watch('ma1Enabled') && (
                         <div className="ml-6 space-y-4 p-4 border rounded-lg bg-muted/50">
                           <div className="grid grid-cols-3 gap-4">
                             <FormField
                               control={form.control}
-                              name="maType"
+                              name="ma1Type"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>MA Type</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-ma-type">
+                                      <SelectTrigger data-testid="select-ma1-type">
                                         <SelectValue placeholder="Select type" />
                                       </SelectTrigger>
                                     </FormControl>
@@ -593,6 +921,8 @@ export function CreateScreener() {
                                       <SelectItem value="WMA">WMA</SelectItem>
                                       <SelectItem value="DEMA">DEMA</SelectItem>
                                       <SelectItem value="TEMA">TEMA</SelectItem>
+                                      <SelectItem value="HMA">HMA</SelectItem>
+                                      <SelectItem value="VWMA">VWMA</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -601,7 +931,7 @@ export function CreateScreener() {
                             />
                             <FormField
                               control={form.control}
-                              name="maPeriod"
+                              name="ma1Period"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
@@ -610,7 +940,7 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="20"
                                       {...field}
-                                      data-testid="input-ma-period"
+                                      data-testid="input-ma1-period"
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -619,13 +949,13 @@ export function CreateScreener() {
                             />
                             <FormField
                               control={form.control}
-                              name="maOperator"
+                              name="ma1Operator"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Condition</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-ma-operator">
+                                      <SelectTrigger data-testid="select-ma1-operator">
                                         <SelectValue placeholder="Select condition" />
                                       </SelectTrigger>
                                     </FormControl>
@@ -644,13 +974,13 @@ export function CreateScreener() {
                           <div className="grid grid-cols-3 gap-4">
                             <FormField
                               control={form.control}
-                              name="maComparison"
+                              name="ma1Comparison"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Comparison</FormLabel>
                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-ma-comparison">
+                                      <SelectTrigger data-testid="select-ma1-comparison">
                                         <SelectValue placeholder="Compare to" />
                                       </SelectTrigger>
                                     </FormControl>
@@ -663,17 +993,17 @@ export function CreateScreener() {
                                 </FormItem>
                               )}
                             />
-                            {form.watch('maComparison') === 'another_ma' && (
+                            {form.watch('ma1Comparison') === 'another_ma' && (
                               <>
                                 <FormField
                                   control={form.control}
-                                  name="maComparisonType"
+                                  name="ma1ComparisonType"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>Comparison MA Type</FormLabel>
                                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                          <SelectTrigger data-testid="select-ma-comparison-type">
+                                          <SelectTrigger data-testid="select-ma1-comparison-type">
                                             <SelectValue placeholder="Select type" />
                                           </SelectTrigger>
                                         </FormControl>
@@ -683,6 +1013,8 @@ export function CreateScreener() {
                                           <SelectItem value="WMA">WMA</SelectItem>
                                           <SelectItem value="DEMA">DEMA</SelectItem>
                                           <SelectItem value="TEMA">TEMA</SelectItem>
+                                          <SelectItem value="HMA">HMA</SelectItem>
+                                          <SelectItem value="VWMA">VWMA</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
@@ -691,7 +1023,7 @@ export function CreateScreener() {
                                 />
                                 <FormField
                                   control={form.control}
-                                  name="maComparisonPeriod"
+                                  name="ma1ComparisonPeriod"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
@@ -700,7 +1032,178 @@ export function CreateScreener() {
                                           type="number"
                                           placeholder="50"
                                           {...field}
-                                          data-testid="input-ma-comparison-period"
+                                          data-testid="input-ma1-comparison-period"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Moving Average 2 Indicator */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <FormField
+                          control={form.control}
+                          name="ma2Enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-ma2-enabled"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">
+                                  Moving Average 2
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {form.watch('ma2Enabled') && (
+                        <div className="ml-6 space-y-4 p-4 border rounded-lg bg-muted/50">
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma2Type"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>MA Type</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-type">
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="SMA">SMA</SelectItem>
+                                      <SelectItem value="EMA">EMA</SelectItem>
+                                      <SelectItem value="WMA">WMA</SelectItem>
+                                      <SelectItem value="DEMA">DEMA</SelectItem>
+                                      <SelectItem value="TEMA">TEMA</SelectItem>
+                                      <SelectItem value="HMA">HMA</SelectItem>
+                                      <SelectItem value="VWMA">VWMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma2Period"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Period</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="50"
+                                      {...field}
+                                      data-testid="input-ma2-period"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma2Operator"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Condition</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-operator">
+                                        <SelectValue placeholder="Select condition" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                      <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma2Comparison"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Comparison</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-comparison">
+                                        <SelectValue placeholder="Compare to" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="another_ma">Another MA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            {form.watch('ma2Comparison') === 'another_ma' && (
+                              <>
+                                <FormField
+                                  control={form.control}
+                                  name="ma2ComparisonType"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison MA Type</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger data-testid="select-ma2-comparison-type">
+                                            <SelectValue placeholder="Select type" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="SMA">SMA</SelectItem>
+                                          <SelectItem value="EMA">EMA</SelectItem>
+                                          <SelectItem value="WMA">WMA</SelectItem>
+                                          <SelectItem value="DEMA">DEMA</SelectItem>
+                                          <SelectItem value="TEMA">TEMA</SelectItem>
+                                          <SelectItem value="HMA">HMA</SelectItem>
+                                          <SelectItem value="VWMA">VWMA</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="ma2ComparisonPeriod"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison Period</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          placeholder="200"
+                                          {...field}
+                                          data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
                                       <FormMessage />
