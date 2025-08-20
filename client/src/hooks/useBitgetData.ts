@@ -4,8 +4,10 @@ import type { FuturesData } from '@shared/schema';
 export function useBitgetData() {
   return useQuery<FuturesData[]>({
     queryKey: ['/api/futures'],
-    refetchInterval: 10000, // Refetch every 10 seconds as backup to WebSocket
-    staleTime: 5000, // Consider data stale after 5 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time data
+    staleTime: 0, // Always fetch fresh data for trading
+    refetchOnWindowFocus: true,
+    retry: 3,
   });
 }
 

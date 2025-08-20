@@ -11,12 +11,15 @@ export interface BitgetConfig {
 export interface FuturesTickerData {
   symbol: string;
   lastPr: string;
-  chgUTC: string;
-  chg24h: string;
-  volume24h: string;
-  openInterest: string;
+  change24h: string;
+  quoteVolume: string;
+  holdingAmount: string;
   fundingRate: string;
-  nextFundingTime: string;
+  high24h: string;
+  low24h: string;
+  baseVolume: string;
+  markPrice: string;
+  indexPrice: string;
 }
 
 export interface AccountData {

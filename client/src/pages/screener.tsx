@@ -83,8 +83,8 @@ export default function Screener() {
       return true;
     })
     ?.sort((a, b) => {
-      const aValue = parseFloat(a[sortField as keyof typeof a] || '0');
-      const bValue = parseFloat(b[sortField as keyof typeof b] || '0');
+      const aValue = parseFloat(String(a[sortField as keyof typeof a] || '0'));
+      const bValue = parseFloat(String(b[sortField as keyof typeof b] || '0'));
       
       if (sortDirection === 'asc') {
         return aValue - bValue;
