@@ -34,6 +34,7 @@ export interface IStorage {
   
   getUserScreeners(userId: string): Promise<Screener[]>;
   createScreener(screener: InsertScreener): Promise<Screener>;
+  updateScreener(id: string, screener: InsertScreener): Promise<Screener>;
   deleteScreener(id: string): Promise<void>;
 }
 
@@ -169,6 +170,23 @@ export class MemStorage implements IStorage {
     };
     this.screeners.set(id, savedScreener);
     return savedScreener;
+  }
+
+  async updateScreener(id: string, screenerData: InsertScreener): Promise<Screener> {
+    const existingScreener = this.screeners.get(id);
+    if (!existingScreener) {
+      throw new Error('Screener not found');
+    }
+    
+    const updatedScreener: Screener = {
+      ...existingScreener,
+      ...screenerData,
+      id,
+      updatedAt: new Date()
+    };
+    
+    this.screeners.set(id, updatedScreener);
+    return updatedScreener;
   }
 
   async deleteScreener(id: string): Promise<void> {

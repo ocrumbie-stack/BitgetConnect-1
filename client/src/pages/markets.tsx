@@ -3,14 +3,18 @@ import { useBitgetData } from '@/hooks/useBitgetData';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 export function Markets() {
   const { data, isLoading } = useBitgetData();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -29,12 +33,47 @@ export function Markets() {
     }
   });
 
+  const deleteScreenerMutation = useMutation({
+    mutationFn: async (screenerId: string) => {
+      const response = await fetch(`/api/screeners/${screenerId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete screener');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/screeners', 'user1'] });
+      setSelectedScreener('all');
+      toast({
+        title: "Screener deleted",
+        description: "The screener has been successfully deleted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete screener. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleScreenerChange = (value: string) => {
     if (value === 'create-new') {
       setLocation('/create-screener');
     } else {
       setSelectedScreener(value);
     }
+  };
+
+  const handleEditScreener = (screenerId: string) => {
+    setLocation(`/edit-screener/${screenerId}`);
+  };
+
+  const handleDeleteScreener = (screenerId: string) => {
+    deleteScreenerMutation.mutate(screenerId);
   };
 
   const filteredAndSortedData = data
@@ -165,7 +204,45 @@ export function Markets() {
                 </SelectItem>
                 {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
                   <SelectItem key={screener.id} value={screener.id}>
-                    {screener.name}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{screener.name}</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 ml-2"
+                            onClick={(e) => e.stopPropagation()}
+                            data-testid={`screener-menu-${screener.id}`}
+                          >
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditScreener(screener.id);
+                            }}
+                            data-testid={`edit-screener-${screener.id}`}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteScreener(screener.id);
+                            }}
+                            className="text-red-600"
+                            data-testid={`delete-screener-${screener.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
