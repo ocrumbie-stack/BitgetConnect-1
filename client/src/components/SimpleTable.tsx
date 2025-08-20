@@ -77,7 +77,7 @@ export function SimpleTable({ data, isLoading }: SimpleTableProps) {
           <div key={item.symbol} className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors" data-testid={`row-${item.symbol}`}>
             {/* Coin/Volume Column */}
             <div>
-              <div className="font-semibold text-foreground text-lg" data-testid={`symbol-${item.symbol}`}>
+              <div className="font-semibold text-foreground text-base" data-testid={`symbol-${item.symbol}`}>
                 {item.symbol}
               </div>
               <div className="text-sm text-muted-foreground" data-testid={`volume-${item.symbol}`}>
@@ -87,7 +87,7 @@ export function SimpleTable({ data, isLoading }: SimpleTableProps) {
 
             {/* Price Column */}
             <div className="text-center">
-              <div className="font-medium text-foreground text-lg" data-testid={`price-${item.symbol}`}>
+              <div className="font-medium text-foreground text-base" data-testid={`price-${item.symbol}`}>
                 {formatPrice(item.price)}
               </div>
               <div className="text-sm text-muted-foreground">
