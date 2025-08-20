@@ -1,271 +1,327 @@
 import { useState } from 'react';
 import { useBitgetData } from '@/hooks/useBitgetData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal } from 'lucide-react';
 
 export function Trade() {
-  const { data, isLoading } = useBitgetData();
-  const [selectedPair, setSelectedPair] = useState('BTCUSDT');
-  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
-  const [side, setSide] = useState<'buy' | 'sell'>('buy');
+  const { data } = useBitgetData();
+  const [leverage, setLeverage] = useState('10');
   const [amount, setAmount] = useState('');
-  const [price, setPrice] = useState('');
-  const [leverage, setLeverage] = useState('1');
+  const [activeTab, setActiveTab] = useState('open');
+  const [orderType, setOrderType] = useState('market');
 
-  const selectedMarket = data?.find(item => item.symbol === selectedPair);
-  
-  const formatPrice = (price: string) => {
-    const num = parseFloat(price);
-    if (num >= 1) return num.toFixed(4);
-    if (num >= 0.01) return num.toFixed(6);
-    return num.toFixed(8);
+  // Get current BTCUSDT data
+  const currentMarket = data?.find(item => item.symbol === 'BTCUSDT');
+  const currentPrice = currentMarket ? parseFloat(currentMarket.price).toLocaleString('en-US', { 
+    minimumFractionDigits: 1, 
+    maximumFractionDigits: 1 
+  }) : '113,554.2';
+  const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
+
+  // Mock order book data based on current price
+  const basePrice = currentMarket ? parseFloat(currentMarket.price) : 113554;
+  const orderBook = {
+    asks: [
+      { price: (basePrice + 2).toFixed(1), quantity: '24.03K' },
+      { price: (basePrice + 1.5).toFixed(1), quantity: '39.57K' },
+      { price: (basePrice + 1).toFixed(1), quantity: '260.01K' },
+      { price: (basePrice + 0.5).toFixed(1), quantity: '795.0000' },
+      { price: (basePrice + 0.3).toFixed(1), quantity: '245.83K' },
+      { price: (basePrice + 0.1).toFixed(1), quantity: '455.0000' },
+      { price: (basePrice - 0.1).toFixed(1), quantity: '3.75M' },
+    ],
+    bids: [
+      { price: (basePrice - 0.3).toFixed(1), quantity: '978.30K' },
+      { price: (basePrice - 0.5).toFixed(1), quantity: '1.14K' },
+      { price: (basePrice - 1).toFixed(1), quantity: '262.27K' },
+      { price: (basePrice - 1.5).toFixed(1), quantity: '2.96K' },
+      { price: (basePrice - 2).toFixed(1), quantity: '511.39K' },
+      { price: (basePrice - 2.5).toFixed(1), quantity: '245.83K' },
+      { price: (basePrice - 3).toFixed(1), quantity: '455.0000' },
+    ]
   };
-
-  const formatChange = (change: string | null) => {
-    if (!change) return '0.00%';
-    const num = parseFloat(change) * 100;
-    return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
-  };
-
-  const popularPairs = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'ADAUSDT', 'SOLUSDT'];
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-black text-white pb-20">
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
-        <h1 className="text-xl font-bold text-foreground mb-2">Trade</h1>
-        <p className="text-muted-foreground text-sm">Place orders and manage positions</p>
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-medium">BTCUSDT</span>
+              <ChevronDown className="h-4 w-4" />
+            </div>
+            <div className="text-sm text-gray-400">
+              Perpetual <span className="text-red-500">{change24h}%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className="text-xs text-gray-400">0.00%</div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-6 h-6 bg-gray-800 rounded"></div>
+              <MoreHorizontal className="h-5 w-5" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+          <span>Funding rate / Countdown</span>
+          <span>0.0035% / 02:58:08</span>
+        </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Market Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Select Market</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select value={selectedPair} onValueChange={setSelectedPair}>
-              <SelectTrigger data-testid="select-trading-pair">
-                <SelectValue placeholder="Select trading pair" />
-              </SelectTrigger>
-              <SelectContent>
-                {data?.slice(0, 20).map((item) => (
-                  <SelectItem key={item.symbol} value={item.symbol}>
-                    {item.symbol}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="flex">
+        {/* Left Side - Order Book */}
+        <div className="flex-1 border-r border-gray-800">
+          {/* Order Book Header */}
+          <div className="flex items-center justify-between p-3 text-xs text-gray-400 border-b border-gray-800">
+            <span>Price (USDT)</span>
+            <span>Quantity (USDT)</span>
+          </div>
 
-            <div className="flex gap-2 flex-wrap">
-              {popularPairs.map((pair) => (
-                <Button
-                  key={pair}
-                  variant={selectedPair === pair ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedPair(pair)}
-                  data-testid={`button-pair-${pair}`}
-                >
-                  {pair}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Market Info */}
-        {selectedMarket && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-bold">{selectedMarket.symbol}</h3>
-                <Badge variant={parseFloat(selectedMarket.change24h || '0') >= 0 ? 'default' : 'destructive'}>
-                  {formatChange(selectedMarket.change24h)}
-                </Badge>
+          {/* Asks (Red) */}
+          <div className="space-y-0">
+            {orderBook.asks.reverse().map((ask, index) => (
+              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
+                <span className="text-red-500">{ask.price}</span>
+                <span className="text-gray-400">{ask.quantity}</span>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-muted-foreground">Price</div>
-                  <div className="font-bold text-lg" data-testid={`price-${selectedMarket.symbol}`}>
-                    ${formatPrice(selectedMarket.price)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">24h Volume</div>
-                  <div className="font-bold">
-                    ${parseFloat(selectedMarket.volume24h || '0').toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Funding Rate</div>
-                  <div className="font-bold">
-                    {parseFloat(selectedMarket.fundingRate || '0').toFixed(6)}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground">Open Interest</div>
-                  <div className="font-bold">
-                    {parseFloat(selectedMarket.openInterest || '0').toLocaleString()}
-                  </div>
-                </div>
+            ))}
+          </div>
+
+          {/* Current Price */}
+          <div className="flex items-center justify-center py-2 border-y border-gray-800">
+            <div className="text-lg font-bold text-green-500">{currentPrice}</div>
+            <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
+          </div>
+
+          {/* Bids (Green) */}
+          <div className="space-y-0">
+            {orderBook.bids.map((bid, index) => (
+              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
+                <span className="text-green-500">{bid.price}</span>
+                <span className="text-gray-400">{bid.quantity}</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ))}
+          </div>
 
-        {/* Order Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Place Order</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Order Type */}
-            <div className="flex gap-2">
-              <Button
-                variant={orderType === 'market' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setOrderType('market')}
-                data-testid="button-market-order"
-                className="flex-1"
-              >
-                Market
-              </Button>
-              <Button
-                variant={orderType === 'limit' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setOrderType('limit')}
-                data-testid="button-limit-order"
-                className="flex-1"
-              >
-                Limit
-              </Button>
+          {/* Volume Indicator */}
+          <div className="p-3 border-t border-gray-800">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-blue-400">B 29%</span>
+              <div className="flex-1 mx-2 h-1 bg-gray-800 rounded">
+                <div className="w-3/10 h-full bg-blue-500 rounded"></div>
+              </div>
+              <span className="text-red-400">71% S</span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <div className="w-2 h-2 bg-blue-500 rounded"></div>
+              <span className="text-lg font-bold">0.1</span>
+              <ChevronDown className="h-4 w-4" />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Trading Form */}
+        <div className="w-80">
+          {/* Trading Tabs */}
+          <div className="flex border-b border-gray-800">
+            <button className="flex-1 px-4 py-3 text-sm bg-gray-900 text-white border-b-2 border-blue-500">
+              Cross
+            </button>
+            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
+              {leverage}x
+            </button>
+            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
+              S
+            </button>
+          </div>
+
+          {/* Order Type Tabs */}
+          <div className="flex border-b border-gray-800">
+            <button 
+              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'open' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('open')}
+            >
+              Open
+            </button>
+            <button 
+              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'close' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('close')}
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Order Form */}
+          <div className="p-4 space-y-4">
+            {/* Order Type Selector */}
+            <div className="relative">
+              <button className="w-full flex items-center justify-between p-3 bg-gray-900 rounded text-left">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                  <span>Market</span>
+                </div>
+                <ChevronDown className="h-4 w-4" />
+              </button>
             </div>
 
-            {/* Side Selection */}
-            <div className="flex gap-2">
-              <Button
-                variant={side === 'buy' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSide('buy')}
-                data-testid="button-buy"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Buy / Long
-              </Button>
-              <Button
-                variant={side === 'sell' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSide('sell')}
-                data-testid="button-sell"
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-              >
-                <TrendingDown className="h-4 w-4 mr-1" />
-                Sell / Short
-              </Button>
-            </div>
-
-            {/* Leverage */}
+            {/* Price Input (for limit orders) */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Leverage</label>
-              <Select value={leverage} onValueChange={setLeverage}>
-                <SelectTrigger data-testid="select-leverage">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {['1', '2', '5', '10', '20', '50', '100'].map((lev) => (
-                    <SelectItem key={lev} value={lev}>
-                      {lev}x
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Price (for limit orders) */}
-            {orderType === 'limit' && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">Price</label>
-                <Input
-                  type="number"
-                  placeholder="Enter price"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  data-testid="input-price"
-                />
-              </div>
-            )}
-
-            {/* Amount */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Amount (USDT)</label>
               <Input
-                type="number"
-                placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                data-testid="input-amount"
+                placeholder="Fill at market price"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                disabled
               />
             </div>
 
-            {/* Quick Amount Buttons */}
+            {/* Cost Input */}
+            <div>
+              <div className="text-xs text-gray-400 mb-1">Cost (USDT)</div>
+              <div className="relative">
+                <Input
+                  placeholder="25%"
+                  className="bg-gray-900 border-gray-700 text-white"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+                  ≈0.00 / 0.00 BTC
+                </div>
+              </div>
+            </div>
+
+            {/* Percentage Buttons */}
             <div className="flex gap-2">
               {['25%', '50%', '75%', '100%'].map((percent) => (
                 <Button
                   key={percent}
                   variant="outline"
                   size="sm"
+                  className={`flex-1 border-gray-700 text-gray-400 hover:bg-gray-800 ${
+                    percent === '25%' ? 'bg-gray-800 text-white' : ''
+                  }`}
                   onClick={() => {
-                    // This would calculate based on available balance
+                    // Mock calculation based on percentage
                     const mockBalance = 1000;
                     const percentage = parseFloat(percent) / 100;
                     setAmount((mockBalance * percentage).toString());
                   }}
-                  data-testid={`button-amount-${percent}`}
-                  className="flex-1"
                 >
                   {percent}
                 </Button>
               ))}
             </div>
 
-            {/* Submit Button */}
-            <Button
-              className={`w-full ${
-                side === 'buy' 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-red-600 hover:bg-red-700'
-              } text-white`}
-              disabled={!amount || (orderType === 'limit' && !price)}
-              data-testid="button-place-order"
-            >
-              {side === 'buy' ? 'Place Buy Order' : 'Place Sell Order'}
+            {/* TP/SL Toggle */}
+            <div className="flex items-center gap-2">
+              <Switch />
+              <span className="text-sm text-gray-400">TP/SL</span>
+            </div>
+
+            {/* Account Info */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Available</span>
+                <span>0.00 USDT 📋</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Max open</span>
+                <span>0.00 USDT</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Est. liq. price</span>
+                <span>-- USDT</span>
+              </div>
+            </div>
+
+            {/* Long Button */}
+            <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium py-4 flex flex-col">
+              <span>Open long</span>
+              <span className="text-xs opacity-70">0.00 USDT</span>
             </Button>
 
-            {/* Disclaimer */}
-            <div className="text-xs text-muted-foreground text-center">
-              ⚠️ This is a demo interface. No real orders will be placed.
+            {/* Account Info (Bottom) */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Max open</span>
+                <span>0.00 USDT</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Est. liq. price</span>
+                <span>-- USDT</span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Position Info (Mock) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Open Positions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6 text-muted-foreground">
-              <div className="text-lg mb-2">No open positions</div>
-              <div className="text-sm">Your positions will appear here after placing orders</div>
+            {/* Short Button */}
+            <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
+              <span>Open short</span>
+              <span className="text-xs opacity-70">0.00 USDT</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Tabs */}
+      <div className="border-t border-gray-800">
+        <Tabs defaultValue="positions" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-transparent border-none">
+            <TabsTrigger value="positions" className="text-xs text-gray-400 data-[state=active]:text-white">
+              Positions(0)
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="text-xs text-gray-400 data-[state=active]:text-white">
+              Orders(0)
+            </TabsTrigger>
+            <TabsTrigger value="copy" className="text-xs text-gray-400 data-[state=active]:text-white">
+              Copy
+            </TabsTrigger>
+            <TabsTrigger value="bots" className="text-xs text-gray-400 data-[state=active]:text-white">
+              Bots (1)
+            </TabsTrigger>
+            <TabsTrigger value="assets" className="text-xs text-gray-400 data-[state=active]:text-white">
+              Assets
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="positions" className="p-4">
+            <div className="text-center text-gray-400 py-8">
+              <div>No open positions</div>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+          
+          <TabsContent value="orders" className="p-4">
+            <div className="text-center text-gray-400 py-8">
+              <div>No open orders</div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="bots" className="p-4">
+            <div className="text-center text-gray-400 py-8">
+              <div>1 active bot</div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Bottom Bot Navigation */}
+      <div className="fixed bottom-16 left-0 right-0 bg-black border-t border-gray-800 p-2">
+        <div className="flex gap-2 text-xs">
+          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures grid</button>
+          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures position grid</button>
+          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures DCA</button>
+          <button className="px-3 py-1 bg-gray-800 text-gray-400 rounded">Futures CTA</button>
+        </div>
+        
+        <div className="flex justify-end mt-2">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-6">
+            Create a bot
+          </Button>
+        </div>
       </div>
     </div>
   );
