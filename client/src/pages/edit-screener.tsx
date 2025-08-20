@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLocation, useParams } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const screenerFormSchema = z.object({
   name: z.string().min(1, 'Screener name is required'),
+  // Basic filters
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
   minVolume: z.string().optional(),
@@ -22,6 +25,27 @@ const screenerFormSchema = z.object({
   minChange: z.string().optional(),
   maxChange: z.string().optional(),
   symbols: z.string().optional(),
+  
+  // Technical indicators
+  rsiEnabled: z.boolean().optional(),
+  rsiPeriod: z.string().optional(),
+  rsiOperator: z.enum(['above', 'below', 'between']).optional(),
+  rsiValue: z.string().optional(),
+  rsiValueMax: z.string().optional(),
+  
+  macdEnabled: z.boolean().optional(),
+  macdFastPeriod: z.string().optional(),
+  macdSlowPeriod: z.string().optional(),
+  macdSignalPeriod: z.string().optional(),
+  macdOperator: z.enum(['bullish_crossover', 'bearish_crossover', 'above_signal', 'below_signal', 'above_zero', 'below_zero']).optional(),
+  
+  maEnabled: z.boolean().optional(),
+  maType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA']).optional(),
+  maPeriod: z.string().optional(),
+  maOperator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
+  maComparison: z.enum(['price', 'another_ma']).optional(),
+  maComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA']).optional(),
+  maComparisonPeriod: z.string().optional(),
 });
 
 type ScreenerFormData = z.infer<typeof screenerFormSchema>;
