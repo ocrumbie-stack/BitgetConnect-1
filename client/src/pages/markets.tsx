@@ -192,7 +192,7 @@ export function Markets() {
           <div className="w-48">
             <Select value={selectedScreener} onValueChange={handleScreenerChange}>
               <SelectTrigger className="w-full" data-testid="screener-select">
-                <SelectValue placeholder="Select screener" />
+                <SelectValue placeholder="Screener" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Markets</SelectItem>
@@ -252,7 +252,13 @@ export function Markets() {
       </div>
 
       {/* Market Data */}
-      <SimpleTable data={filteredAndSortedData} isLoading={isLoading} />
+      <SimpleTable 
+        data={filteredAndSortedData} 
+        isLoading={isLoading}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+      />
 
 
     </div>
