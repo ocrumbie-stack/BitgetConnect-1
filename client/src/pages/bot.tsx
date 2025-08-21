@@ -22,7 +22,7 @@ export function BotPage() {
   const [activeTab, setActiveTab] = useState('ai');
 
   // Fetch user bots
-  const { data: userBots = [], isLoading } = useQuery({
+  const { data: userBots = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/bots'],
     staleTime: 5000
   });
@@ -30,16 +30,26 @@ export function BotPage() {
   // Create bot mutation
   const createBotMutation = useMutation({
     mutationFn: async (botData: any) => {
+      console.log('Creating bot with data:', botData);
       const response = await fetch('/api/bots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(botData)
       });
-      if (!response.ok) throw new Error('Failed to create bot');
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to create bot: ${error}`);
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Bot created successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/bots'] });
+      // Switch to Manual tab to show the created bot
+      setActiveTab('manual');
+    },
+    onError: (error) => {
+      console.error('Failed to create bot:', error);
     }
   });
 
@@ -262,20 +272,25 @@ export function BotPage() {
 
   const handleCreateAIBot = async (strategyId: string) => {
     const strategy = strategies.find(s => s.id === strategyId);
-    if (!strategy) return;
+    if (!strategy) {
+      console.error('Strategy not found:', strategyId);
+      return;
+    }
 
     const botData = {
       name: strategy.name,
       strategy: 'ai',
       tradingPair: 'BTCUSDT',
-      capital: capital,
+      capital: capital || '1000',
       riskLevel,
+      userId: 'demo-user', // Demo user for now
       config: {
         aiStrategy: strategyId,
         autoConfig: configMode === 'auto'
       }
     };
 
+    console.log('Creating AI bot:', botData);
     createBotMutation.mutate(botData);
   };
 
@@ -339,7 +354,7 @@ export function BotPage() {
                           data-testid={`button-create-${strategy.id}`}
                         >
                           <Plus className="h-3 w-3 mr-1" />
-                          Create
+                          {createBotMutation.isPending ? 'Creating...' : 'Create'}
                         </Button>
                       </div>
                       
