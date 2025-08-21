@@ -14,7 +14,11 @@ import {
   type BotExecution,
   type InsertBotExecution,
   type Screener,
-  type InsertScreener
+  type InsertScreener,
+  type AlertSetting,
+  type InsertAlertSetting,
+  type Alert,
+  type InsertAlert
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -50,6 +54,18 @@ export interface IStorage {
   createScreener(screener: InsertScreener): Promise<Screener>;
   updateScreener(id: string, screener: InsertScreener): Promise<Screener>;
   deleteScreener(id: string): Promise<void>;
+  
+  // Alert System
+  getUserAlertSettings(userId: string): Promise<AlertSetting[]>;
+  createAlertSetting(setting: InsertAlertSetting): Promise<AlertSetting>;
+  updateAlertSetting(id: string, setting: Partial<InsertAlertSetting>): Promise<AlertSetting>;
+  deleteAlertSetting(id: string): Promise<void>;
+  
+  getUserAlerts(userId: string): Promise<Alert[]>;
+  createAlert(alert: InsertAlert): Promise<Alert>;
+  markAlertAsRead(id: string): Promise<void>;
+  markAllAlertsAsRead(userId: string): Promise<void>;
+  deleteAlert(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -61,6 +77,8 @@ export class MemStorage implements IStorage {
   private botStrategies: Map<string, BotStrategy>;
   private botExecutions: Map<string, BotExecution>;
   private screeners: Map<string, Screener>;
+  private alertSettings: Map<string, AlertSetting>;
+  private alerts: Map<string, Alert>;
 
   constructor() {
     this.users = new Map();
@@ -71,6 +89,8 @@ export class MemStorage implements IStorage {
     this.botStrategies = new Map();
     this.botExecutions = new Map();
     this.screeners = new Map();
+    this.alertSettings = new Map();
+    this.alerts = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -296,6 +316,115 @@ export class MemStorage implements IStorage {
 
   async deleteBotExecution(id: string): Promise<void> {
     this.botExecutions.delete(id);
+  }
+
+  async getUserScreeners(userId: string): Promise<Screener[]> {
+    return Array.from(this.screeners.values()).filter(screener => screener.userId === userId);
+  }
+
+  async createScreener(insertScreener: InsertScreener): Promise<Screener> {
+    const id = randomUUID();
+    const now = new Date();
+    const screener: Screener = { 
+      ...insertScreener,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.screeners.set(id, screener);
+    return screener;
+  }
+
+  async updateScreener(id: string, insertScreener: InsertScreener): Promise<Screener> {
+    const existingScreener = this.screeners.get(id);
+    if (!existingScreener) {
+      throw new Error('Screener not found');
+    }
+    const updatedScreener: Screener = { 
+      ...existingScreener,
+      ...insertScreener,
+      updatedAt: new Date()
+    };
+    this.screeners.set(id, updatedScreener);
+    return updatedScreener;
+  }
+
+  async deleteScreener(id: string): Promise<void> {
+    this.screeners.delete(id);
+  }
+
+  // Alert Settings
+  async getUserAlertSettings(userId: string): Promise<AlertSetting[]> {
+    return Array.from(this.alertSettings.values()).filter(setting => setting.userId === userId);
+  }
+
+  async createAlertSetting(setting: InsertAlertSetting): Promise<AlertSetting> {
+    const id = randomUUID();
+    const newSetting: AlertSetting = {
+      id,
+      ...setting,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.alertSettings.set(id, newSetting);
+    return newSetting;
+  }
+
+  async updateAlertSetting(id: string, setting: Partial<InsertAlertSetting>): Promise<AlertSetting> {
+    const existing = this.alertSettings.get(id);
+    if (!existing) {
+      throw new Error('Alert setting not found');
+    }
+    const updated: AlertSetting = {
+      ...existing,
+      ...setting,
+      updatedAt: new Date(),
+    };
+    this.alertSettings.set(id, updated);
+    return updated;
+  }
+
+  async deleteAlertSetting(id: string): Promise<void> {
+    this.alertSettings.delete(id);
+  }
+
+  // Alerts
+  async getUserAlerts(userId: string): Promise<Alert[]> {
+    return Array.from(this.alerts.values())
+      .filter(alert => alert.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createAlert(alert: InsertAlert): Promise<Alert> {
+    const id = randomUUID();
+    const newAlert: Alert = {
+      id,
+      ...alert,
+      createdAt: new Date(),
+    };
+    this.alerts.set(id, newAlert);
+    return newAlert;
+  }
+
+  async markAlertAsRead(id: string): Promise<void> {
+    const alert = this.alerts.get(id);
+    if (alert) {
+      alert.isRead = true;
+      this.alerts.set(id, alert);
+    }
+  }
+
+  async markAllAlertsAsRead(userId: string): Promise<void> {
+    for (const [id, alert] of this.alerts) {
+      if (alert.userId === userId && !alert.isRead) {
+        alert.isRead = true;
+        this.alerts.set(id, alert);
+      }
+    }
+  }
+
+  async deleteAlert(id: string): Promise<void> {
+    this.alerts.delete(id);
   }
 }
 

@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell } from 'lucide-react';
+import { AlertCenter } from '@/components/AlertCenter';
 
 export default function BotPage() {
   const [activeTab, setActiveTab] = useState('ai');
@@ -45,6 +46,7 @@ export default function BotPage() {
   const [pairSearch, setPairSearch] = useState('');
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [showAlertCenter, setShowAlertCenter] = useState(false);
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -352,13 +354,26 @@ export default function BotPage() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
-        <h1 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Bot className="h-6 w-6" />
-          Trading Bots
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Create reusable trading strategies and run them on any trading pair
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <Bot className="h-6 w-6" />
+              Trading Bots
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Create reusable trading strategies and run them on any trading pair
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAlertCenter(true)}
+            className="flex items-center gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Alerts
+          </Button>
+        </div>
       </div>
 
       <div className="p-4">
@@ -1321,6 +1336,12 @@ export default function BotPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Alert Center */}
+      <AlertCenter 
+        open={showAlertCenter} 
+        onOpenChange={setShowAlertCenter} 
+      />
     </div>
   );
 }

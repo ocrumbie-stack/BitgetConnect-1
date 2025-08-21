@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -214,6 +214,47 @@ export const screeners = pgTable("screeners", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Trading Bot Alert System
+export const alertSettings = pgTable("alert_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  alertType: text("alert_type").notNull(), // 'pnl_gain', 'pnl_loss', 'entry_signal', 'exit_signal', 'bot_error', 'performance_milestone'
+  isEnabled: boolean("is_enabled").default(true),
+  threshold: text("threshold"), // For PnL thresholds, performance metrics
+  method: text("method").notNull().default('in_app'), // 'in_app', 'email', 'webhook', 'browser_notification'
+  config: jsonb("config").$type<{
+    email?: string;
+    webhookUrl?: string;
+    discordWebhook?: string;
+    sound?: boolean;
+    priority?: 'low' | 'medium' | 'high';
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const alerts = pgTable("alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  botExecutionId: varchar("bot_execution_id").references(() => botExecutions.id),
+  alertType: text("alert_type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  severity: text("severity").notNull().default('info'), // 'info', 'warning', 'error', 'success'
+  isRead: boolean("is_read").default(false),
+  isPinned: boolean("is_pinned").default(false),
+  data: jsonb("data").$type<{
+    pnl?: string;
+    tradingPair?: string;
+    price?: string;
+    change?: string;
+    profit?: string;
+    winRate?: string;
+    actionRequired?: boolean;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -263,6 +304,17 @@ export const insertScreenerSchema = createInsertSchema(screeners).omit({
   updatedAt: true,
 });
 
+export const insertAlertSettingSchema = createInsertSchema(alertSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAlertSchema = createInsertSchema(alerts).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -283,6 +335,16 @@ export type InsertBotStrategy = z.infer<typeof insertBotStrategySchema>;
 export type BotStrategy = typeof botStrategies.$inferSelect;
 
 export type InsertBotExecution = z.infer<typeof insertBotExecutionSchema>;
+export type BotExecution = typeof botExecutions.$inferSelect;
+
+export type InsertScreener = z.infer<typeof insertScreenerSchema>;
+export type Screener = typeof screeners.$inferSelect;
+
+export type InsertAlertSetting = z.infer<typeof insertAlertSettingSchema>;
+export type AlertSetting = typeof alertSettings.$inferSelect;
+
+export type InsertAlert = z.infer<typeof insertAlertSchema>;
+export type Alert = typeof alerts.$inferSelect;
 export type BotExecution = typeof botExecutions.$inferSelect;
 
 export type InsertScreener = z.infer<typeof insertScreenerSchema>;
