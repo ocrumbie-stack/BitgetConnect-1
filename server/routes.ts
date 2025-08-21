@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { BitgetAPI } from "./services/bitgetApi";
-import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotSchema, insertScreenerSchema } from "@shared/schema";
+import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrategySchema, insertBotExecutionSchema, insertScreenerSchema } from "@shared/schema";
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
@@ -280,56 +280,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Bot management routes
-  app.get('/api/bots', async (req, res) => {
+  // Bot strategy management routes
+  app.get('/api/bot-strategies', async (req, res) => {
     try {
       const userId = 'default-user'; // In a real app, get from authentication
-      const bots = await storage.getUserBots(userId);
-      res.json(bots);
+      const strategies = await storage.getBotStrategies(userId);
+      res.json(strategies);
     } catch (error) {
-      console.error('Error fetching bots:', error);
-      res.status(500).json({ error: 'Failed to fetch bots' });
+      console.error('Error fetching bot strategies:', error);
+      res.status(500).json({ error: 'Failed to fetch bot strategies' });
     }
   });
 
-  app.post('/api/bots', async (req, res) => {
+  app.post('/api/bot-strategies', async (req, res) => {
     try {
-      const validatedData = insertBotSchema.parse(req.body);
+      const validatedData = insertBotStrategySchema.parse(req.body);
       const userId = 'default-user'; // In a real app, get from authentication
       
-      const bot = await storage.createBot({
+      const strategy = await storage.createBotStrategy({
         ...validatedData,
         userId
       });
       
-      res.json(bot);
+      res.json(strategy);
     } catch (error) {
-      console.error('Error creating bot:', error);
-      res.status(400).json({ error: 'Failed to create bot' });
+      console.error('Error creating bot strategy:', error);
+      res.status(400).json({ error: 'Failed to create bot strategy' });
     }
   });
 
-  app.put('/api/bots/:id', async (req, res) => {
+  app.put('/api/bot-strategies/:id', async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
       
-      const bot = await storage.updateBot(id, updates);
-      res.json(bot);
+      const strategy = await storage.updateBotStrategy(id, updates);
+      res.json(strategy);
     } catch (error) {
-      console.error('Error updating bot:', error);
-      res.status(400).json({ error: 'Failed to update bot' });
+      console.error('Error updating bot strategy:', error);
+      res.status(400).json({ error: 'Failed to update bot strategy' });
     }
   });
 
-  app.delete('/api/bots/:id', async (req, res) => {
+  app.delete('/api/bot-strategies/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteBot(id);
+      await storage.deleteBotStrategy(id);
       res.json({ success: true });
     } catch (error) {
-      console.error('Error deleting bot:', error);
-      res.status(400).json({ error: 'Failed to delete bot' });
+      console.error('Error deleting bot strategy:', error);
+      res.status(400).json({ error: 'Failed to delete bot strategy' });
+    }
+  });
+
+  // Bot execution management routes
+  app.get('/api/bot-executions', async (req, res) => {
+    try {
+      const userId = 'default-user'; // In a real app, get from authentication
+      const executions = await storage.getBotExecutions(userId);
+      res.json(executions);
+    } catch (error) {
+      console.error('Error fetching bot executions:', error);
+      res.status(500).json({ error: 'Failed to fetch bot executions' });
+    }
+  });
+
+  app.post('/api/bot-executions', async (req, res) => {
+    try {
+      const validatedData = insertBotExecutionSchema.parse(req.body);
+      const userId = 'default-user'; // In a real app, get from authentication
+      
+      const execution = await storage.createBotExecution({
+        ...validatedData,
+        userId
+      });
+      
+      res.json(execution);
+    } catch (error) {
+      console.error('Error creating bot execution:', error);
+      res.status(400).json({ error: 'Failed to create bot execution' });
+    }
+  });
+
+  app.put('/api/bot-executions/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const execution = await storage.updateBotExecution(id, updates);
+      res.json(execution);
+    } catch (error) {
+      console.error('Error updating bot execution:', error);
+      res.status(400).json({ error: 'Failed to update bot execution' });
+    }
+  });
+
+  app.delete('/api/bot-executions/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteBotExecution(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting bot execution:', error);
+      res.status(400).json({ error: 'Failed to delete bot execution' });
     }
   });
 

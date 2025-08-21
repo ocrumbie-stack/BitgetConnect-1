@@ -57,41 +57,67 @@ export const accountInfo = pgTable("account_info", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
-export const bots = pgTable("bots", {
+// Bot Strategy Templates (reusable strategies)
+export const botStrategies = pgTable("bot_strategies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
+  description: text("description"),
   strategy: text("strategy").notNull(), // 'ai' or 'manual'
+  riskLevel: text("risk_level").notNull().default('medium'), // 'low', 'medium', 'high'
+  config: jsonb("config").$type<{
+    // Manual Strategy config 
+    positionDirection: 'long' | 'short';
+    timeframe: string;
+    entryConditions: Array<{
+      indicator: string;
+      operator: string;
+      value: number;
+      secondValue?: number;
+    }>;
+    exitConditions: Array<{
+      indicator: string;
+      operator: string;
+      value: number;
+      secondValue?: number;
+    }>;
+    indicators: {
+      rsi?: { period: number; oversold: number; overbought: number; };
+      macd?: { fastPeriod: number; slowPeriod: number; signalPeriod: number; };
+      ma?: Array<{ type: string; period: number; }>;
+      bollinger?: { period: number; stdDev: number; };
+      stochastic?: { kPeriod: number; dPeriod: number; smoothK: number; };
+      williams?: { period: number; };
+      atr?: { period: number; };
+      cci?: { period: number; };
+      momentum?: { period: number; };
+    };
+    riskManagement: {
+      stopLoss?: number; // percentage
+      takeProfit?: number; // percentage
+      maxPositionSize?: number; // percentage of capital
+    };
+  }>().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Bot Executions (active bot runs with specific trading pairs)
+export const botExecutions = pgTable("bot_executions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  strategyId: varchar("strategy_id").notNull().references(() => botStrategies.id, { onDelete: 'cascade' }),
   tradingPair: text("trading_pair").notNull(),
   status: text("status").notNull().default('inactive'), // 'active', 'inactive', 'paused'
   capital: decimal("capital", { precision: 20, scale: 8 }).notNull(),
-  riskLevel: text("risk_level").notNull().default('medium'), // 'low', 'medium', 'high'
+  leverage: varchar("leverage").default('1'),
   profit: decimal("profit", { precision: 20, scale: 8 }).default('0'),
   trades: varchar("trades").default('0'),
   winRate: decimal("win_rate", { precision: 5, scale: 2 }).default('0'),
   roi: decimal("roi", { precision: 10, scale: 4 }).default('0'),
   runtime: varchar("runtime").default('0'),
-  config: jsonb("config").$type<{
-    // AI Bot config
-    aiStrategy?: string;
-    autoConfig?: boolean;
-    
-    // Manual Bot config 
-    positionDirection: 'long' | 'short';
-    indicators?: {
-      rsi?: { period: number; oversold: number; overbought: number; };
-      macd?: { fastPeriod: number; slowPeriod: number; signalPeriod: number; };
-      ma?: { type: string; period: number; };
-      bollinger?: { period: number; stdDev: number; };
-      stochastic?: { kPeriod: number; dPeriod: number; smoothK: number; };
-    };
-    entryConditions?: string[];
-    exitConditions?: string[];
-    stopLoss?: number;
-    takeProfit?: number;
-    maxPositionSize?: number;
-    leverage?: number;
-  }>().notNull(),
+  startedAt: timestamp("started_at"),
+  pausedAt: timestamp("paused_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -217,8 +243,16 @@ export const insertAccountInfoSchema = createInsertSchema(accountInfo).omit({
   lastUpdated: true,
 });
 
-export const insertBotSchema = createInsertSchema(bots).omit({
+export const insertBotStrategySchema = createInsertSchema(botStrategies).omit({
   id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBotExecutionSchema = createInsertSchema(botExecutions).omit({
+  id: true,
+  startedAt: true,
+  pausedAt: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -245,8 +279,11 @@ export type UserPosition = typeof userPositions.$inferSelect;
 export type InsertAccountInfo = z.infer<typeof insertAccountInfoSchema>;
 export type AccountInfo = typeof accountInfo.$inferSelect;
 
-export type InsertBot = z.infer<typeof insertBotSchema>;
-export type Bot = typeof bots.$inferSelect;
+export type InsertBotStrategy = z.infer<typeof insertBotStrategySchema>;
+export type BotStrategy = typeof botStrategies.$inferSelect;
+
+export type InsertBotExecution = z.infer<typeof insertBotExecutionSchema>;
+export type BotExecution = typeof botExecutions.$inferSelect;
 
 export type InsertScreener = z.infer<typeof insertScreenerSchema>;
 export type Screener = typeof screeners.$inferSelect;

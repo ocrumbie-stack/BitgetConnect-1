@@ -9,7 +9,7 @@ import Screener from "@/pages/screener";
 import { Home } from "@/pages/home";
 import { Markets } from "@/pages/markets";
 import { Trade } from "@/pages/trade";
-import { BotPage } from "@/pages/bot";
+import BotPage from "@/pages/bot";
 import { CreateScreener } from "@/pages/create-screener";
 import { EditScreener } from "@/pages/edit-screener";
 
