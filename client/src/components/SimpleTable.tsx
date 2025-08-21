@@ -111,7 +111,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: 
             key={item.symbol} 
             className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
             data-testid={`row-${item.symbol}`}
-            onClick={() => setLocation('/trade')}
+            onClick={() => setLocation(`/trade?pair=${item.symbol}`)}
           >
             {/* Coin/Volume Column */}
             <div>

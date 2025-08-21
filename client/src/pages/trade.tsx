@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,19 @@ export function Trade() {
   const [amount, setAmount] = useState('');
   const [activeTab, setActiveTab] = useState('open');
   const [orderType, setOrderType] = useState('market');
-  
-  // Current trading pair
-  const currentPair = 'BTCUSDT';
+  const [currentPair, setCurrentPair] = useState('BTCUSDT');
 
-  // Get current BTCUSDT data
-  const currentMarket = data?.find(item => item.symbol === 'BTCUSDT');
+  // Get trading pair from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pair = urlParams.get('pair');
+    if (pair) {
+      setCurrentPair(pair);
+    }
+  }, []);
+
+  // Get current market data for selected pair
+  const currentMarket = data?.find(item => item.symbol === currentPair);
   const currentPrice = currentMarket ? parseFloat(currentMarket.price).toLocaleString('en-US', { 
     minimumFractionDigits: 1, 
     maximumFractionDigits: 1 
@@ -56,7 +63,7 @@ export function Trade() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">BTCUSDT</span>
+              <span className="text-lg font-medium">{currentPair}</span>
               <ChevronDown className="h-4 w-4" />
             </div>
             <div className="text-sm text-gray-400">
