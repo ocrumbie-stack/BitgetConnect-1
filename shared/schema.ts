@@ -77,6 +77,7 @@ export const bots = pgTable("bots", {
     autoConfig?: boolean;
     
     // Manual Bot config 
+    positionDirection: 'long' | 'short';
     indicators?: {
       rsi?: { period: number; oversold: number; overbought: number; };
       macd?: { fastPeriod: number; slowPeriod: number; signalPeriod: number; };

@@ -22,6 +22,7 @@ export function BotPage() {
   const [activeTab, setActiveTab] = useState('ai');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [tradingPair, setTradingPair] = useState('');
+  const [positionDirection, setPositionDirection] = useState<'long' | 'short'>('long');
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -506,6 +507,28 @@ export function BotPage() {
                           <Badge variant="outline" className="text-xs">
                             {bot.strategy}
                           </Badge>
+                          {bot.config?.positionDirection && (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                bot.config.positionDirection === 'long' 
+                                  ? 'border-green-500 text-green-600 dark:text-green-400' 
+                                  : 'border-red-500 text-red-600 dark:text-red-400'
+                              }`}
+                            >
+                              {bot.config.positionDirection === 'long' ? (
+                                <>
+                                  <TrendingUp className="h-3 w-3 mr-1" />
+                                  Long
+                                </>
+                              ) : (
+                                <>
+                                  <TrendingDown className="h-3 w-3 mr-1" />
+                                  Short
+                                </>
+                              )}
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex gap-1">
                           <Button 
@@ -629,6 +652,47 @@ export function BotPage() {
                               <SelectItem value="high">High Risk</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+                      </div>
+                      
+                      {/* Position Direction */}
+                      <div>
+                        <label className="text-sm font-medium mb-3 block">Position Direction</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div 
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              positionDirection === 'long' 
+                                ? 'border-green-500 bg-green-500/10' 
+                                : 'border-gray-300 dark:border-gray-600 hover:border-green-400'
+                            }`}
+                            onClick={() => setPositionDirection('long')}
+                            data-testid="position-long"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-medium text-green-600 dark:text-green-400">Long Position</div>
+                              <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              Buy when conditions are met. Profit when price goes up.
+                            </div>
+                          </div>
+                          <div 
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              positionDirection === 'short' 
+                                ? 'border-red-500 bg-red-500/10' 
+                                : 'border-gray-300 dark:border-gray-600 hover:border-red-400'
+                            }`}
+                            onClick={() => setPositionDirection('short')}
+                            data-testid="position-short"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-medium text-red-600 dark:text-red-400">Short Position</div>
+                              <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              Sell when conditions are met. Profit when price goes down.
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
