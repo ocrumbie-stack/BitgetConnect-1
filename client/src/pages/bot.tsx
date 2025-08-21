@@ -28,10 +28,10 @@ export default function BotPage() {
   // Technical Indicators state
   const [indicators, setIndicators] = useState({
     rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
-    macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_cross' },
-    ma1: { enabled: false, type: 'sma', period: 20, condition: 'price_above' },
-    ma2: { enabled: false, type: 'ema', period: 50, condition: 'price_above' },
-    ma3: { enabled: false, type: 'sma', period: 200, condition: 'price_above' },
+    macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50 },
+    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200 },
+    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20 },
     bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
     stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
     williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -126,10 +126,10 @@ export default function BotPage() {
     setShowAdvancedIndicators(false);
     setIndicators({
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
-      macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_cross' },
-      ma1: { enabled: false, type: 'sma', period: 20, condition: 'price_above' },
-      ma2: { enabled: false, type: 'ema', period: 50, condition: 'price_above' },
-      ma3: { enabled: false, type: 'sma', period: 200, condition: 'price_above' },
+      macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50 },
+      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200 },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20 },
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -705,30 +705,66 @@ export default function BotPage() {
                       <label htmlFor="macd" className="text-sm font-medium">MACD</label>
                     </div>
                     {indicators.macd.enabled && (
-                      <div className="grid grid-cols-2 gap-2 ml-6">
-                        <div>
-                          <label className="text-xs">Fast Period</label>
-                          <Input 
-                            type="number" 
-                            value={indicators.macd.fastPeriod}
-                            onChange={(e) => setIndicators({
-                              ...indicators,
-                              macd: { ...indicators.macd, fastPeriod: parseInt(e.target.value) || 12 }
-                            })}
-                            placeholder="12"
-                          />
+                      <div className="space-y-2 ml-6">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs">Fast Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.fastPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, fastPeriod: parseInt(e.target.value) || 12 }
+                              })}
+                              placeholder="12"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Slow Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.slowPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                              })}
+                              placeholder="26"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Signal Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.signalPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, signalPeriod: parseInt(e.target.value) || 9 }
+                              })}
+                              placeholder="9"
+                            />
+                          </div>
                         </div>
                         <div>
-                          <label className="text-xs">Slow Period</label>
-                          <Input 
-                            type="number" 
-                            value={indicators.macd.slowPeriod}
-                            onChange={(e) => setIndicators({
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.macd.condition} 
+                            onValueChange={(value) => setIndicators({
                               ...indicators,
-                              macd: { ...indicators.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                              macd: { ...indicators.macd, condition: value }
                             })}
-                            placeholder="26"
-                          />
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
+                              <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                              <SelectItem value="macd_above_signal">MACD Above Signal</SelectItem>
+                              <SelectItem value="macd_below_signal">MACD Below Signal</SelectItem>
+                              <SelectItem value="histogram_positive">Histogram Positive</SelectItem>
+                              <SelectItem value="histogram_negative">Histogram Negative</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     )}
@@ -752,7 +788,7 @@ export default function BotPage() {
                         </label>
                       </div>
                       {indicators[maKey as keyof typeof indicators].enabled && (
-                        <div className="grid grid-cols-3 gap-2 ml-6">
+                        <div className="space-y-2 ml-6">
                           <div>
                             <label className="text-xs">Type</label>
                             <Select 
@@ -772,37 +808,51 @@ export default function BotPage() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <div>
-                            <label className="text-xs">Period</label>
-                            <Input 
-                              type="number" 
-                              value={(indicators[maKey as keyof typeof indicators] as any).period}
-                              onChange={(e) => setIndicators({
-                                ...indicators,
-                                [maKey]: { ...indicators[maKey as keyof typeof indicators], period: parseInt(e.target.value) || 20 }
-                              })}
-                              placeholder="20"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs">Condition</label>
-                            <Select 
-                              value={(indicators[maKey as keyof typeof indicators] as any).condition} 
-                              onValueChange={(value) => setIndicators({
-                                ...indicators,
-                                [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
-                              })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="price_above">Price Above</SelectItem>
-                                <SelectItem value="price_below">Price Below</SelectItem>
-                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
-                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-xs">Period 1</label>
+                              <Input 
+                                type="number" 
+                                value={(indicators[maKey as keyof typeof indicators] as any).period1}
+                                onChange={(e) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
+                                })}
+                                placeholder="20"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs">Condition</label>
+                              <Select 
+                                value={(indicators[maKey as keyof typeof indicators] as any).condition} 
+                                onValueChange={(value) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
+                                })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="above">Above</SelectItem>
+                                  <SelectItem value="below">Below</SelectItem>
+                                  <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                  <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs">Period 2</label>
+                              <Input 
+                                type="number" 
+                                value={(indicators[maKey as keyof typeof indicators] as any).period2}
+                                onChange={(e) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
+                                })}
+                                placeholder="50"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
