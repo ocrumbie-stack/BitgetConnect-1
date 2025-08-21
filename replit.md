@@ -68,6 +68,9 @@ Basic structure in place for user management:
 - Enhanced Moving Averages configuration to support 3 MAs with all conditions (above, below, crossing up/down) and MA-to-MA comparison
 - Added Bollinger Bands and Volume Analysis indicators with professional condition operators
 - User confirmed need for enhanced indicator conditions matching professional trading platforms
+- Updated Moving Averages to period-condition-period format without price comparison (Type → Period → Condition → Period Value)
+- Created separate Price vs MA Conditions section for price-to-moving-average comparisons with timeframe selection
+- User confirmed preference for MA comparisons in price conditions rather than fixed price values
 
 ## August 20, 2025
 - Expanded from single screener to complete multi-page trading application

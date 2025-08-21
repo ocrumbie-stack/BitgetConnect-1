@@ -872,10 +872,10 @@ export function BotPage() {
                       <Card>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
-                            <div className="font-medium">Price Conditions</div>
+                            <div className="font-medium">Price vs MA Conditions</div>
                             <Switch data-testid="switch-price" />
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div>
                               <label className="text-xs font-medium mb-1 block">Condition</label>
                               <Select defaultValue="above">
@@ -885,18 +885,47 @@ export function BotPage() {
                                 <SelectContent>
                                   <SelectItem value="above">Above</SelectItem>
                                   <SelectItem value="below">Below</SelectItem>
-                                  <SelectItem value="between">Between</SelectItem>
-                                  <SelectItem value="equals">Equals</SelectItem>
+                                  <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                  <SelectItem value="crossing_down">Crossing Down</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                             <div>
-                              <label className="text-xs font-medium mb-1 block">Price Value</label>
-                              <Input type="number" placeholder="113000" className="h-8 text-xs" />
+                              <label className="text-xs font-medium mb-1 block">MA Type</label>
+                              <Select defaultValue="SMA">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="SMA">SMA</SelectItem>
+                                  <SelectItem value="EMA">EMA</SelectItem>
+                                  <SelectItem value="WMA">WMA</SelectItem>
+                                  <SelectItem value="DEMA">DEMA</SelectItem>
+                                  <SelectItem value="TEMA">TEMA</SelectItem>
+                                  <SelectItem value="HMA">HMA</SelectItem>
+                                  <SelectItem value="VWMA">VWMA</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div>
-                              <label className="text-xs font-medium mb-1 block">Max Price (if between)</label>
-                              <Input type="number" placeholder="115000" className="h-8 text-xs" />
+                              <label className="text-xs font-medium mb-1 block">MA Period</label>
+                              <Input type="number" placeholder="20" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Timeframe</label>
+                              <Select defaultValue="1h">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1m">1m</SelectItem>
+                                  <SelectItem value="5m">5m</SelectItem>
+                                  <SelectItem value="15m">15m</SelectItem>
+                                  <SelectItem value="1h">1h</SelectItem>
+                                  <SelectItem value="4h">4h</SelectItem>
+                                  <SelectItem value="1d">1d</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                         </CardContent>
