@@ -19,7 +19,7 @@ export function Markets() {
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
-  const [selectedScreener, setSelectedScreener] = useState<string>('all');
+  const [selectedScreener, setSelectedScreener] = useState<string>('');
   
   // Fetch user screeners from API
   const { data: userScreeners = [] } = useQuery({
