@@ -127,7 +127,7 @@ export function Markets() {
           // Split comma-separated symbols and trim whitespace
           const symbolList = Array.isArray(criteria.symbols) 
             ? criteria.symbols 
-            : criteria.symbols.split(',').map(s => s.trim());
+            : criteria.symbols.split(',').map((s: string) => s.trim());
           
           const symbolMatch = symbolList.some((symbol: string) => {
             const cleanSymbol = symbol.toLowerCase().replace(/usdt$/, '');
