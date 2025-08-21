@@ -44,7 +44,7 @@ export default function BotPage() {
   const [leverage, setLeverage] = useState('1');
   const [pairSearch, setPairSearch] = useState('');
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -233,7 +233,7 @@ export default function BotPage() {
 
   // AI Recommendation function
   const generateRecommendations = () => {
-    if (!futuresData || futuresData.length === 0) return;
+    if (!futuresData || !Array.isArray(futuresData) || futuresData.length === 0) return;
 
     const coins = futuresData as any[];
     
@@ -336,6 +336,7 @@ export default function BotPage() {
       })
       .slice(0, 15); // Show more results for daily movers
     
+    console.log('Generated recommendations:', topRecommendations.length, 'pairs');
     setRecommendations(topRecommendations);
     setShowRecommendations(true);
   };
