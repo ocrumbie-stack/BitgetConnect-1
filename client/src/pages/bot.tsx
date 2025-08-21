@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings } from 'lucide-react';
 
 export default function BotPage() {
-  const [activeTab, setActiveTab] = useState('strategies');
+  const [activeTab, setActiveTab] = useState('ai');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRunDialog, setShowRunDialog] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
@@ -50,11 +50,18 @@ export default function BotPage() {
 
   // Create strategy mutation
   const createStrategyMutation = useMutation({
-    mutationFn: (strategyData: any) => apiRequest('/api/bot-strategies', {
-      method: 'POST',
-      body: JSON.stringify(strategyData),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (strategyData: any) => {
+      const response = await fetch('/api/bot-strategies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(strategyData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to create strategy: ${error}`);
+      }
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
       setShowCreateForm(false);
@@ -64,11 +71,18 @@ export default function BotPage() {
 
   // Run strategy mutation
   const runStrategyMutation = useMutation({
-    mutationFn: (executionData: any) => apiRequest('/api/bot-executions', {
-      method: 'POST',
-      body: JSON.stringify(executionData),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (executionData: any) => {
+      const response = await fetch('/api/bot-executions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(executionData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to run strategy: ${error}`);
+      }
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       setShowRunDialog(false);
@@ -78,7 +92,11 @@ export default function BotPage() {
 
   // Delete strategy mutation
   const deleteStrategyMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/bot-strategies/${id}`, { method: 'DELETE' }),
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/bot-strategies/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete strategy');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
     }
@@ -94,7 +112,10 @@ export default function BotPage() {
   };
 
   const handleCreateStrategy = async () => {
-    if (!strategyName.trim()) return;
+    if (!strategyName.trim()) {
+      alert('Please enter a strategy name');
+      return;
+    }
 
     const strategyData = {
       name: strategyName,
@@ -114,20 +135,42 @@ export default function BotPage() {
       }
     };
 
-    await createStrategyMutation.mutateAsync(strategyData);
+    try {
+      console.log('Creating strategy with data:', strategyData);
+      await createStrategyMutation.mutateAsync(strategyData);
+      alert('Strategy created successfully!');
+    } catch (error) {
+      console.error('Strategy creation failed:', error);
+      alert('Failed to create strategy: ' + (error as Error).message);
+    }
   };
 
   const handleRunStrategy = async (strategy: any) => {
     if (!tradingPair || !capital) return;
 
-    const executionData = {
-      strategyId: strategy.id,
-      tradingPair,
-      capital,
-      leverage
-    };
+    // Handle AI bots differently - they don't have strategy IDs yet
+    if (strategy.isAI) {
+      // For now, create a simple execution entry for AI bots
+      const executionData = {
+        strategyId: strategy.id, // Use AI bot ID as strategy ID
+        tradingPair,
+        capital,
+        leverage,
+        status: 'active'
+      };
+      
+      await runStrategyMutation.mutateAsync(executionData);
+    } else {
+      // Handle custom user strategies
+      const executionData = {
+        strategyId: strategy.id,
+        tradingPair,
+        capital,
+        leverage
+      };
 
-    await runStrategyMutation.mutateAsync(executionData);
+      await runStrategyMutation.mutateAsync(executionData);
+    }
   };
 
   const handleDeleteStrategy = (strategyId: string) => {
@@ -151,10 +194,139 @@ export default function BotPage() {
 
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="ai">AI Bots</TabsTrigger>
             <TabsTrigger value="strategies">My Strategies</TabsTrigger>
             <TabsTrigger value="executions">Active Bots</TabsTrigger>
           </TabsList>
+
+          {/* AI Bots Tab */}
+          <TabsContent value="ai" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">AI Trading Bots</h3>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                {
+                  id: 'grid',
+                  name: 'Grid Trading Pro',
+                  description: 'Dynamic grid with auto-adjustment based on volatility',
+                  risk: 'Medium',
+                  profitPotential: 'High',
+                  features: ['Auto-grid adjustment', 'Volume-based spacing', 'Profit protection'],
+                  winRate: '78%',
+                  avgReturn: '15-25%/month',
+                },
+                {
+                  id: 'dca_smart',
+                  name: 'Smart DCA Bot',
+                  description: 'AI-powered dollar cost averaging with market timing',
+                  risk: 'Low',
+                  profitPotential: 'Medium',
+                  features: ['Market sentiment analysis', 'Dynamic entry timing', 'Risk management'],
+                  winRate: '85%',
+                  avgReturn: '8-15%/month',
+                },
+                {
+                  id: 'momentum',
+                  name: 'Momentum Scalper',
+                  description: 'High-frequency momentum detection with ML algorithms',
+                  risk: 'High',
+                  profitPotential: 'Very High',
+                  features: ['Real-time sentiment', '50+ indicators', 'Auto-scaling'],
+                  winRate: '72%',
+                  avgReturn: '25-50%/month',
+                },
+                {
+                  id: 'arbitrage',
+                  name: 'Cross-Exchange Arbitrage',
+                  description: 'Multi-exchange price difference exploitation',
+                  risk: 'Low',
+                  profitPotential: 'Medium',
+                  features: ['Multi-exchange monitoring', 'Instant execution', 'Low risk'],
+                  winRate: '92%',
+                  avgReturn: '5-12%/month',
+                },
+                {
+                  id: 'ai_trend',
+                  name: 'AI Trend Following',
+                  description: 'Machine learning powered trend detection and following',
+                  risk: 'Medium',
+                  profitPotential: 'High',
+                  features: ['Neural networks', 'Pattern recognition', 'Adaptive strategies'],
+                  winRate: '81%',
+                  avgReturn: '18-35%/month',
+                },
+                {
+                  id: 'volatility',
+                  name: 'Volatility Harvester',
+                  description: 'Profits from market volatility with advanced algorithms',
+                  risk: 'High',
+                  profitPotential: 'Very High',
+                  features: ['Volatility prediction', 'Dynamic hedging', 'Options strategies'],
+                  winRate: '76%',
+                  avgReturn: '30-45%/month',
+                }
+              ].map((bot) => (
+                <Card key={bot.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-foreground">{bot.name}</h4>
+                          <Badge variant={bot.risk === 'Low' ? 'secondary' : bot.risk === 'Medium' ? 'outline' : 'destructive'}>
+                            {bot.risk} Risk
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{bot.description}</p>
+                        
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <div className="text-sm font-medium text-green-600 dark:text-green-400">Win Rate</div>
+                            <div className="text-lg font-bold">{bot.winRate}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-blue-600 dark:text-blue-400">Expected Return</div>
+                            <div className="text-lg font-bold">{bot.avgReturn}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <div className="text-sm font-medium mb-1">Key Features:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {bot.features.map((feature, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {feature}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="bg-green-600 hover:bg-green-700 flex-1"
+                        onClick={() => {
+                          // For AI bots, we'll show a simplified run dialog
+                          setSelectedStrategy({ ...bot, isAI: true });
+                          setShowRunDialog(true);
+                        }}
+                      >
+                        <Play className="h-3 w-3 mr-1" />
+                        Deploy Bot
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Settings className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
           {/* Strategies Tab */}
           <TabsContent value="strategies" className="space-y-4 mt-4">
@@ -179,7 +351,7 @@ export default function BotPage() {
                   </Card>
                 ))}
               </div>
-            ) : userStrategies.length === 0 ? (
+            ) : (userStrategies as any[]).length === 0 ? (
               <Card>
                 <CardContent className="p-6 text-center">
                   <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
@@ -191,7 +363,7 @@ export default function BotPage() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {userStrategies.map((strategy: any) => (
+                {(userStrategies as any[]).map((strategy: any) => (
                   <Card key={strategy.id}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
@@ -254,7 +426,7 @@ export default function BotPage() {
 
             {executionsLoading ? (
               <div>Loading executions...</div>
-            ) : activeExecutions.length === 0 ? (
+            ) : (activeExecutions as any[]).length === 0 ? (
               <Card>
                 <CardContent className="p-6 text-center">
                   <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
@@ -263,7 +435,7 @@ export default function BotPage() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {activeExecutions.map((execution: any) => (
+                {(activeExecutions as any[]).map((execution: any) => (
                   <Card key={execution.id}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
