@@ -47,11 +47,18 @@ export function BotPage() {
     if (!botName.trim()) return;
 
     const botData = {
+      userId: 'default-user', // Required field
       name: botName,
       strategy: 'manual',
-      tradingPair: tradingPair || 'BTCUSDT', // Use selected pair or default
-      capital: parseFloat(capital) || 1000,
+      tradingPair: tradingPair || 'BTCUSDT',
+      status: 'inactive',
+      capital: (parseFloat(capital) || 1000).toString(), // Decimal field as string
       riskLevel,
+      profit: '0',
+      trades: '0',
+      winRate: '0',
+      roi: '0',
+      runtime: '0',
       config: {
         positionDirection,
         timeframe,
