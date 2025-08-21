@@ -537,20 +537,6 @@ export function BotPage() {
                           <Input placeholder="My Trading Bot" data-testid="input-bot-name" />
                         </div>
                         <div>
-                          <label className="text-sm font-medium mb-2 block">Trading Pair</label>
-                          <Select defaultValue="BTCUSDT">
-                            <SelectTrigger data-testid="select-trading-pair">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="BTCUSDT">BTC/USDT</SelectItem>
-                              <SelectItem value="ETHUSDT">ETH/USDT</SelectItem>
-                              <SelectItem value="ADAUSDT">ADA/USDT</SelectItem>
-                              <SelectItem value="SOLUSDT">SOL/USDT</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
                           <label className="text-sm font-medium mb-2 block">Timeframe</label>
                           <Select defaultValue="1h">
                             <SelectTrigger data-testid="select-bot-timeframe">
