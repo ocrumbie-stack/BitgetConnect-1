@@ -23,6 +23,14 @@ export function BotPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [tradingPair, setTradingPair] = useState('');
   const [positionDirection, setPositionDirection] = useState<'long' | 'short'>('long');
+  
+  // Bot creation form state
+  const [botName, setBotName] = useState('');
+  const [timeframe, setTimeframe] = useState('1h');
+  const [stopLoss, setStopLoss] = useState('');
+  const [takeProfit, setTakeProfit] = useState('');
+  const [maxPositionSize, setMaxPositionSize] = useState('');
+  const [leverage, setLeverage] = useState('1');
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -33,6 +41,45 @@ export function BotPage() {
       setActiveTab('manual'); // Switch to manual tab when coming from trade page
     }
   }, []);
+
+  // Handle bot creation
+  const handleCreateBot = async () => {
+    if (!botName.trim()) return;
+
+    const botData = {
+      name: botName,
+      strategy: 'manual',
+      tradingPair: tradingPair || 'BTCUSDT', // Use selected pair or default
+      capital: parseFloat(capital) || 1000,
+      riskLevel,
+      config: {
+        positionDirection,
+        timeframe,
+        stopLoss: parseFloat(stopLoss) || undefined,
+        takeProfit: parseFloat(takeProfit) || undefined,
+        maxPositionSize: parseFloat(maxPositionSize) || undefined,
+        leverage: parseInt(leverage) || 1,
+        indicators: {},
+        entryConditions: [],
+        exitConditions: []
+      }
+    };
+
+    try {
+      await createBotMutation.mutateAsync(botData);
+      // Clear form and close dialog
+      setBotName('');
+      setTimeframe('1h');
+      setStopLoss('');
+      setTakeProfit('');
+      setMaxPositionSize('');
+      setLeverage('1');
+      setPositionDirection('long');
+      setShowCreateForm(false);
+    } catch (error) {
+      console.error('Failed to create bot:', error);
+    }
+  };
 
   // Fetch user bots
   const { data: userBots = [], isLoading } = useQuery<any[]>({
@@ -612,11 +659,16 @@ export function BotPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">Bot Name</label>
-                          <Input placeholder="My Trading Bot" data-testid="input-bot-name" />
+                          <Input 
+                            placeholder="My Trading Bot" 
+                            value={botName}
+                            onChange={(e) => setBotName(e.target.value)}
+                            data-testid="input-bot-name" 
+                          />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">Timeframe</label>
-                          <Select defaultValue="1h">
+                          <Select value={timeframe} onValueChange={setTimeframe}>
                             <SelectTrigger data-testid="select-bot-timeframe">
                               <SelectValue />
                             </SelectTrigger>
@@ -1173,19 +1225,37 @@ export function BotPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">Stop Loss (%)</label>
-                          <Input type="number" placeholder="2.0" data-testid="input-stop-loss" />
+                          <Input 
+                            type="number" 
+                            placeholder="2.0" 
+                            value={stopLoss}
+                            onChange={(e) => setStopLoss(e.target.value)}
+                            data-testid="input-stop-loss" 
+                          />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">Take Profit (%)</label>
-                          <Input type="number" placeholder="4.0" data-testid="input-take-profit" />
+                          <Input 
+                            type="number" 
+                            placeholder="4.0" 
+                            value={takeProfit}
+                            onChange={(e) => setTakeProfit(e.target.value)}
+                            data-testid="input-take-profit" 
+                          />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">Max Position Size (%)</label>
-                          <Input type="number" placeholder="25" data-testid="input-position-size" />
+                          <Input 
+                            type="number" 
+                            placeholder="25" 
+                            value={maxPositionSize}
+                            onChange={(e) => setMaxPositionSize(e.target.value)}
+                            data-testid="input-position-size" 
+                          />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">Leverage</label>
-                          <Select defaultValue="1">
+                          <Select value={leverage} onValueChange={setLeverage}>
                             <SelectTrigger data-testid="select-leverage">
                               <SelectValue />
                             </SelectTrigger>
@@ -1213,7 +1283,8 @@ export function BotPage() {
                       </Button>
                       <Button 
                         className="flex-1"
-                        disabled={createBotMutation.isPending}
+                        onClick={handleCreateBot}
+                        disabled={createBotMutation.isPending || !botName.trim()}
                         data-testid="button-save-create"
                       >
                         {createBotMutation.isPending ? 'Creating...' : 'Create Bot'}
