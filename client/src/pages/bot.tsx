@@ -690,7 +690,7 @@ export function BotPage() {
                             {/* MA1 Configuration */}
                             <div className="border-l-2 border-blue-500 pl-3">
                               <div className="text-xs font-medium text-blue-600 mb-2">MA1 Configuration</div>
-                              <div className="grid grid-cols-5 gap-3">
+                              <div className="grid grid-cols-4 gap-3">
                                 <div>
                                   <label className="text-xs font-medium mb-1 block">Type</label>
                                   <Select defaultValue="SMA">
@@ -727,20 +727,8 @@ export function BotPage() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
-                                  <Select defaultValue="price">
-                                    <SelectTrigger className="h-8 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="price">Price</SelectItem>
-                                      <SelectItem value="period">Period Value</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className="text-xs font-medium mb-1 block">Period/Price</label>
-                                  <Input type="number" placeholder="20 or 113000" className="h-8 text-xs" />
+                                  <label className="text-xs font-medium mb-1 block">Period Value</label>
+                                  <Input type="number" placeholder="20" className="h-8 text-xs" />
                                 </div>
                               </div>
                             </div>
@@ -748,7 +736,7 @@ export function BotPage() {
                             {/* MA2 Configuration */}
                             <div className="border-l-2 border-green-500 pl-3">
                               <div className="text-xs font-medium text-green-600 mb-2">MA2 Configuration</div>
-                              <div className="grid grid-cols-5 gap-3">
+                              <div className="grid grid-cols-4 gap-3">
                                 <div>
                                   <label className="text-xs font-medium mb-1 block">Type</label>
                                   <Select defaultValue="EMA">
@@ -785,20 +773,8 @@ export function BotPage() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
-                                  <Select defaultValue="price">
-                                    <SelectTrigger className="h-8 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="price">Price</SelectItem>
-                                      <SelectItem value="period">Period Value</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className="text-xs font-medium mb-1 block">Period/Price</label>
-                                  <Input type="number" placeholder="50 or 110000" className="h-8 text-xs" />
+                                  <label className="text-xs font-medium mb-1 block">Period Value</label>
+                                  <Input type="number" placeholder="50" className="h-8 text-xs" />
                                 </div>
                               </div>
                             </div>
@@ -806,7 +782,7 @@ export function BotPage() {
                             {/* MA3 Configuration */}
                             <div className="border-l-2 border-orange-500 pl-3">
                               <div className="text-xs font-medium text-orange-600 mb-2">MA3 Configuration</div>
-                              <div className="grid grid-cols-5 gap-3">
+                              <div className="grid grid-cols-4 gap-3">
                                 <div>
                                   <label className="text-xs font-medium mb-1 block">Type</label>
                                   <Select defaultValue="SMA">
@@ -843,20 +819,8 @@ export function BotPage() {
                                   </Select>
                                 </div>
                                 <div>
-                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
-                                  <Select defaultValue="price">
-                                    <SelectTrigger className="h-8 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="price">Price</SelectItem>
-                                      <SelectItem value="period">Period Value</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className="text-xs font-medium mb-1 block">Period/Price</label>
-                                  <Input type="number" placeholder="100 or 105000" className="h-8 text-xs" />
+                                  <label className="text-xs font-medium mb-1 block">Period Value</label>
+                                  <Input type="number" placeholder="100" className="h-8 text-xs" />
                                 </div>
                               </div>
                             </div>
@@ -899,6 +863,40 @@ export function BotPage() {
                                   <SelectItem value="k_crossing_down_d">%K Crossing Down %D</SelectItem>
                                 </SelectContent>
                               </Select>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Price Conditions */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">Price Conditions</div>
+                            <Switch data-testid="switch-price" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="above">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="above">Above</SelectItem>
+                                  <SelectItem value="below">Below</SelectItem>
+                                  <SelectItem value="between">Between</SelectItem>
+                                  <SelectItem value="equals">Equals</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Price Value</label>
+                              <Input type="number" placeholder="113000" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Max Price (if between)</label>
+                              <Input type="number" placeholder="115000" className="h-8 text-xs" />
                             </div>
                           </div>
                         </CardContent>
