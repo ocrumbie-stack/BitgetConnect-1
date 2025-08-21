@@ -291,9 +291,12 @@ export default function BotPage() {
       } else if (volume24h > 10000000) { // > 10M volume
         score += 10;
         reasons.push('Good liquidity');
-      } else if (volume24h > 2000000) { // > 2M volume
-        score += 5;
+      } else if (volume24h > 1000000) { // > 1M volume
+        score += 8;
         reasons.push('Adequate liquidity');
+      } else if (volume24h > 500000) { // > 500K volume
+        score += 5;
+        reasons.push('Basic liquidity');
       }
       
       // Bonus for consistent patterns
@@ -302,8 +305,8 @@ export default function BotPage() {
         reasons.push('Volume confirms move');
       }
       
-      // Exclude very low activity coins
-      if (volume24h < 500000 || price < 0.00001) {
+      // Exclude very low activity coins (more lenient)
+      if (volume24h < 100000 || price < 0.000001) {
         score = 0;
         reasons = ['Insufficient activity'];
       }
@@ -324,9 +327,13 @@ export default function BotPage() {
       };
     });
     
+    // Debug: Log scoring details
+    console.log('Total coins analyzed:', scored.length);
+    console.log('Score distribution:', scored.map(c => ({ symbol: c.symbol, score: c.score, change: c.change24h, volume: c.volume24h })).slice(0, 10));
+    
     // Sort primarily by daily movement, then by score
     const topRecommendations = scored
-      .filter(coin => coin.score > 15) // Lower threshold to include more movement-based picks
+      .filter(coin => coin.score > 5) // Much lower threshold to include any movement
       .sort((a, b) => {
         // First sort by daily movement magnitude, then by overall score
         const moveA = Math.abs(parseFloat(a.change24h));
