@@ -498,7 +498,7 @@ export default function BotPage() {
 
       {/* Create Strategy Dialog */}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Create Trading Strategy</DialogTitle>
             <DialogDescription>
@@ -506,7 +506,7 @@ export default function BotPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
             <div>
               <label className="text-sm font-medium mb-2 block">Strategy Name</label>
               <Input 
@@ -928,17 +928,18 @@ export default function BotPage() {
               )}
             </div>
 
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleCreateStrategy} 
-                disabled={createStrategyMutation.isPending || !strategyName.trim()}
-              >
-                {createStrategyMutation.isPending ? 'Creating...' : 'Create Strategy'}
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateStrategy} 
+              disabled={createStrategyMutation.isPending || !strategyName.trim()}
+            >
+              {createStrategyMutation.isPending ? 'Creating...' : 'Create Strategy'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
