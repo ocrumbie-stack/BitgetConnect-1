@@ -375,6 +375,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/bot-executions/:id/terminate', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const execution = await storage.updateBotExecution(id, { status: 'terminated' });
+      res.json(execution);
+    } catch (error) {
+      console.error('Error terminating bot execution:', error);
+      res.status(500).json({ error: 'Failed to terminate bot execution' });
+    }
+  });
+
   app.delete('/api/bot-executions/:id', async (req, res) => {
     try {
       const { id } = req.params;

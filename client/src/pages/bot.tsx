@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square } from 'lucide-react';
 
 export default function BotPage() {
   const [activeTab, setActiveTab] = useState('ai');
@@ -212,6 +212,15 @@ export default function BotPage() {
       deleteStrategyMutation.mutate(strategyId);
     }
   };
+
+  const handleTerminateExecution = useMutation({
+    mutationFn: async (executionId: string) => {
+      return apiRequest(`/api/bot-executions/${executionId}/terminate`, 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+    }
+  });
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -482,9 +491,22 @@ export default function BotPage() {
                             {execution.status}
                           </Badge>
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-green-500">+${execution.profit || '0'}</div>
-                          <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-green-500">+${execution.profit || '0'}</div>
+                            <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
+                          </div>
+                          {execution.status === 'active' && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleTerminateExecution.mutate(execution.id)}
+                              disabled={handleTerminateExecution.isPending}
+                            >
+                              <Square className="h-3 w-3 mr-1" />
+                              {handleTerminateExecution.isPending ? 'Stopping...' : 'Stop'}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
