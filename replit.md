@@ -71,6 +71,8 @@ Basic structure in place for user management:
 - Updated Moving Averages to period-condition-period format without price comparison (Type → Period → Condition → Period Value)
 - Created separate Price vs MA Conditions section for price-to-moving-average comparisons with timeframe selection
 - User confirmed preference for MA comparisons in price conditions rather than fixed price values
+- Removed timeframe from Price vs MA Conditions and added global timeframe setting in Basic Configuration
+- User confirmed the updated bot creation layout as "Nice" - final professional trading bot configuration interface complete
 
 ## August 20, 2025
 - Expanded from single screener to complete multi-page trading application
