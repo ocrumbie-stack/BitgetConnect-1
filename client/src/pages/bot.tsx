@@ -237,7 +237,7 @@ export default function BotPage() {
 
     const coins = futuresData as any[];
     
-    // Analyze coins and score them based on various factors
+    // Analyze coins and score them based on daily movement patterns
     const scored = coins.map((coin: any) => {
       const price = parseFloat(coin.price);
       const change24h = parseFloat(coin.change24h);
@@ -246,68 +246,95 @@ export default function BotPage() {
       let score = 0;
       let reasons = [];
       
-      // Volume factor (higher volume = more liquidity)
-      if (volume24h > 100000000) { // > 100M volume
-        score += 30;
-        reasons.push('High liquidity');
-      } else if (volume24h > 50000000) { // > 50M volume
-        score += 20;
-        reasons.push('Good liquidity');
-      }
-      
-      // Volatility factor (moderate volatility is good for trading)
+      // Primary focus: Daily movement patterns (80% of scoring)
       const absChange = Math.abs(change24h);
-      if (absChange >= 3 && absChange <= 8) {
+      
+      // Exceptional daily movers (15%+ change)
+      if (absChange >= 15) {
+        score += 45;
+        reasons.push(change24h > 0 ? 'Explosive upward move' : 'Major correction opportunity');
+      }
+      // Strong daily movers (8-15% change)
+      else if (absChange >= 8) {
+        score += 40;
+        reasons.push(change24h > 0 ? 'Strong daily rally' : 'Significant daily drop');
+      }
+      // Good daily movers (4-8% change)
+      else if (absChange >= 4) {
+        score += 35;
+        reasons.push(change24h > 0 ? 'Solid upward momentum' : 'Notable downward move');
+      }
+      // Moderate daily movers (2-4% change)
+      else if (absChange >= 2) {
         score += 25;
-        reasons.push('Optimal volatility');
-      } else if (absChange >= 8 && absChange <= 15) {
-        score += 20;
-        reasons.push('High volatility');
-      } else if (absChange >= 1.5 && absChange <= 3) {
+        reasons.push(change24h > 0 ? 'Positive momentum' : 'Downward pressure');
+      }
+      // Steady movers (1-2% change)
+      else if (absChange >= 1) {
         score += 15;
-        reasons.push('Moderate movement');
+        reasons.push('Steady movement');
       }
       
-      // Trending factor (strong trends are good for momentum strategies)
-      if (change24h > 5) {
-        score += 20;
-        reasons.push('Strong uptrend');
-      } else if (change24h > 2) {
-        score += 15;
-        reasons.push('Upward momentum');
-      } else if (change24h < -5) {
-        score += 15;
-        reasons.push('Strong downtrend');
-      } else if (change24h < -2) {
+      // Direction-specific bonuses
+      if (change24h > 10) {
         score += 10;
-        reasons.push('Downward momentum');
+        reasons.push('Breaking out');
+      } else if (change24h < -10) {
+        score += 10;
+        reasons.push('Oversold potential');
       }
       
-      // Popular pairs bonus
-      if (['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT'].includes(coin.symbol)) {
+      // Volume factor (20% of scoring) - ensures liquidity
+      if (volume24h > 50000000) { // > 50M volume
         score += 15;
-        reasons.push('Major cryptocurrency');
+        reasons.push('High liquidity');
+      } else if (volume24h > 10000000) { // > 10M volume
+        score += 10;
+        reasons.push('Good liquidity');
+      } else if (volume24h > 2000000) { // > 2M volume
+        score += 5;
+        reasons.push('Adequate liquidity');
       }
       
-      // Exclude very low volume or extreme price coins
-      if (volume24h < 1000000 || price < 0.000001) {
+      // Bonus for consistent patterns
+      if (absChange >= 3 && volume24h > 5000000) {
+        score += 10;
+        reasons.push('Volume confirms move');
+      }
+      
+      // Exclude very low activity coins
+      if (volume24h < 500000 || price < 0.00001) {
         score = 0;
-        reasons = ['Low activity'];
+        reasons = ['Insufficient activity'];
+      }
+      
+      // Special patterns detection
+      if (absChange >= 20) {
+        reasons.push('Extreme volatility');
+      } else if (absChange >= 5 && absChange <= 12) {
+        reasons.push('Ideal trading range');
       }
       
       return {
         ...coin,
         score,
         reasons: reasons.slice(0, 3), // Limit to top 3 reasons
-        recommendation: score > 50 ? 'Excellent' : score > 35 ? 'Good' : score > 20 ? 'Fair' : 'Poor'
+        recommendation: score > 60 ? 'Excellent' : score > 45 ? 'Good' : score > 25 ? 'Fair' : 'Poor',
+        dailyMove: absChange
       };
     });
     
-    // Sort by score and get top 10
+    // Sort primarily by daily movement, then by score
     const topRecommendations = scored
-      .filter(coin => coin.score > 20)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
+      .filter(coin => coin.score > 15) // Lower threshold to include more movement-based picks
+      .sort((a, b) => {
+        // First sort by daily movement magnitude, then by overall score
+        const moveA = Math.abs(parseFloat(a.change24h));
+        const moveB = Math.abs(parseFloat(b.change24h));
+        if (moveB !== moveA) return moveB - moveA;
+        return b.score - a.score;
+      })
+      .slice(0, 15); // Show more results for daily movers
     
     setRecommendations(topRecommendations);
     setShowRecommendations(true);
@@ -1226,7 +1253,7 @@ export default function BotPage() {
           <DialogHeader>
             <DialogTitle>🤖 AI Trading Pair Recommendations</DialogTitle>
             <DialogDescription>
-              AI-analyzed trading opportunities based on volatility, volume, and momentum
+              Daily movement analysis - pairs ranked by 24h price action and trading patterns
             </DialogDescription>
           </DialogHeader>
           
@@ -1262,9 +1289,10 @@ export default function BotPage() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-2">
+                <div className="grid grid-cols-3 gap-2 text-sm text-muted-foreground mb-2">
                   <div>Volume: ${(parseFloat(rec.volume24h) / 1000000).toFixed(1)}M</div>
-                  <div>AI Score: {rec.score}/100</div>
+                  <div>Move: {Math.abs(parseFloat(rec.change24h)).toFixed(1)}%</div>
+                  <div>Score: {rec.score}/100</div>
                 </div>
                 
                 <div className="flex flex-wrap gap-1">

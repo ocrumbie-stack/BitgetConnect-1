@@ -64,11 +64,13 @@ Basic structure in place for user management:
 - Implemented searchable trading pair selector with real-time Bitget data and autocomplete functionality
 - User confirmed trading pair selector works perfectly - "Yes it works!" for improved pair selection experience
 - **NEW: Implemented AI-Powered Trading Pair Recommendation system**
-- AI recommendations analyze volatility, volume, momentum, and liquidity to score trading opportunities
-- Recommendation engine considers: high liquidity (>100M volume), optimal volatility (3-8% daily change), trending patterns, major cryptocurrency bonuses
-- AI scoring system rates pairs as Excellent/Good/Fair/Poor with detailed reasoning for each recommendation
-- Interactive recommendation dialog shows top 10 AI-selected pairs with scores, reasons, and one-click selection
-- Complete intelligent trading pair selection combining manual search with AI-powered market analysis
+- AI recommendations prioritize daily movement patterns over just major pairs (user requested feature)
+- Advanced scoring algorithm: 80% based on daily price movements (2-20%+ changes), 20% on liquidity
+- Movement-focused analysis: Exceptional movers (15%+), strong movers (8-15%), good movers (4-8%)
+- Detects trading patterns: explosive moves, corrections, breakouts, oversold conditions
+- Shows top 15 pairs ranked by daily movement magnitude with volume confirmation
+- Enhanced display shows daily movement percentage alongside AI scores and reasoning
+- Complete intelligent trading pair selection focusing on active daily price action
 - Strategy creation includes: Long/Short selection, timeframes, risk levels, stop loss/take profit, and advanced technical indicators
 - All indicators have full configuration options (periods, conditions, values, types) with enable/disable toggles
 - Entry conditions automatically built from enabled indicators for professional trading strategy deployment
