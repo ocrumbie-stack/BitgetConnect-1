@@ -1,12 +1,16 @@
 import { FuturesData } from '@shared/schema';
 import { useLocation } from 'wouter';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface SimpleTableProps {
   data: FuturesData[];
   isLoading: boolean;
+  sortBy?: 'change' | 'volume' | 'price';
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (field: 'change' | 'volume' | 'price') => void;
 }
 
-export function SimpleTable({ data, isLoading }: SimpleTableProps) {
+export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: SimpleTableProps) {
   const [, setLocation] = useLocation();
   if (isLoading) {
     return (
@@ -68,9 +72,36 @@ export function SimpleTable({ data, isLoading }: SimpleTableProps) {
     <div className="bg-background">
       {/* Header */}
       <div className="grid grid-cols-3 gap-4 p-4 text-sm font-medium text-muted-foreground border-b border-border">
-        <div>Coin/Volume</div>
-        <div className="text-center">Price</div>
-        <div className="text-right">Change</div>
+        <div 
+          className={`flex items-center gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          onClick={() => onSort?.('volume')}
+          data-testid="header-coin-volume"
+        >
+          Coin/Volume
+          {onSort && sortBy === 'volume' && (
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+          )}
+        </div>
+        <div 
+          className={`text-center flex items-center justify-center gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          onClick={() => onSort?.('price')}
+          data-testid="header-price"
+        >
+          Price
+          {onSort && sortBy === 'price' && (
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+          )}
+        </div>
+        <div 
+          className={`text-right flex items-center justify-end gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          onClick={() => onSort?.('change')}
+          data-testid="header-change"
+        >
+          Change
+          {onSort && sortBy === 'change' && (
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+          )}
+        </div>
       </div>
 
       {/* Data Rows */}
