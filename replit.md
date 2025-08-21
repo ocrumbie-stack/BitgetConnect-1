@@ -51,6 +51,16 @@ Basic structure in place for user management:
 
 # Recent Changes
 
+## August 21, 2025
+- Enhanced screener with comprehensive technical indicators: RSI, MACD, dual Moving Averages (7 types), Stochastic with Smooth K, Williams %R, ATR, CCI, and Momentum
+- Implemented volume in USD filtering and market cap range filtering for better liquidity analysis
+- Fixed duplicate form fields issue in screener creation form
+- Added clickable sorting functionality to all table columns (Coin/Volume, Price, Change) with visual indicators and hover effects
+- Updated SimpleTable component to support sorting props with up/down arrow indicators
+- Fixed dropdown area to display "Screener" instead of "All Markets" when no selection is made
+- Enhanced user interface with proper screener management dropdown functionality
+- User confirmed sorting and screener functionality as "Nice" - professional-grade table interaction implemented
+
 ## August 20, 2025
 - Expanded from single screener to complete multi-page trading application
 - Implemented bottom navigation with Home, Markets, Trade, Bot, and Assets sections
