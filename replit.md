@@ -52,6 +52,12 @@ Basic structure in place for user management:
 # Recent Changes
 
 ## August 21, 2025
+- Fixed trading pair navigation bug - pairs now correctly display when clicked from Markets page
+- Updated SimpleTable component to pass trading pair as URL parameter (?pair=SYMBOL)
+- Modified Trade page to dynamically read and display selected trading pair from URL
+- Trade page header, price data, and market information now update based on selected pair
+- Bot button correctly passes trading pair context to Bot page for targeted bot deployment
+- User confirmed fix as "Nice" - trading pair selection flow now works seamlessly
 - Enhanced screener with comprehensive technical indicators: RSI, MACD, dual Moving Averages (7 types), Stochastic with Smooth K, Williams %R, ATR, CCI, and Momentum
 - Implemented volume in USD filtering and market cap range filtering for better liquidity analysis
 - Fixed duplicate form fields issue in screener creation form
