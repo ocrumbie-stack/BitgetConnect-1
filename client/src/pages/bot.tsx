@@ -551,6 +551,22 @@ export function BotPage() {
                           </Select>
                         </div>
                         <div>
+                          <label className="text-sm font-medium mb-2 block">Timeframe</label>
+                          <Select defaultValue="1h">
+                            <SelectTrigger data-testid="select-bot-timeframe">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1m">1 Minute</SelectItem>
+                              <SelectItem value="5m">5 Minutes</SelectItem>
+                              <SelectItem value="15m">15 Minutes</SelectItem>
+                              <SelectItem value="1h">1 Hour</SelectItem>
+                              <SelectItem value="4h">4 Hours</SelectItem>
+                              <SelectItem value="1d">1 Day</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
                           <label className="text-sm font-medium mb-2 block">Capital (USDT)</label>
                           <Input
                             type="number"
@@ -875,7 +891,7 @@ export function BotPage() {
                             <div className="font-medium">Price vs MA Conditions</div>
                             <Switch data-testid="switch-price" />
                           </div>
-                          <div className="grid grid-cols-4 gap-3">
+                          <div className="grid grid-cols-3 gap-3">
                             <div>
                               <label className="text-xs font-medium mb-1 block">Condition</label>
                               <Select defaultValue="above">
@@ -910,22 +926,6 @@ export function BotPage() {
                             <div>
                               <label className="text-xs font-medium mb-1 block">MA Period</label>
                               <Input type="number" placeholder="20" className="h-8 text-xs" />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">Timeframe</label>
-                              <Select defaultValue="1h">
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="1m">1m</SelectItem>
-                                  <SelectItem value="5m">5m</SelectItem>
-                                  <SelectItem value="15m">15m</SelectItem>
-                                  <SelectItem value="1h">1h</SelectItem>
-                                  <SelectItem value="4h">4h</SelectItem>
-                                  <SelectItem value="1d">1d</SelectItem>
-                                </SelectContent>
-                              </Select>
                             </div>
                           </div>
                         </CardContent>
