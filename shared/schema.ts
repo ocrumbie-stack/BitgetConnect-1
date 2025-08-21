@@ -57,6 +57,44 @@ export const accountInfo = pgTable("account_info", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+export const bots = pgTable("bots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  name: text("name").notNull(),
+  strategy: text("strategy").notNull(), // 'ai' or 'manual'
+  tradingPair: text("trading_pair").notNull(),
+  status: text("status").notNull().default('inactive'), // 'active', 'inactive', 'paused'
+  capital: decimal("capital", { precision: 20, scale: 8 }).notNull(),
+  riskLevel: text("risk_level").notNull().default('medium'), // 'low', 'medium', 'high'
+  profit: decimal("profit", { precision: 20, scale: 8 }).default('0'),
+  trades: varchar("trades").default('0'),
+  winRate: decimal("win_rate", { precision: 5, scale: 2 }).default('0'),
+  roi: decimal("roi", { precision: 10, scale: 4 }).default('0'),
+  runtime: varchar("runtime").default('0'),
+  config: jsonb("config").$type<{
+    // AI Bot config
+    aiStrategy?: string;
+    autoConfig?: boolean;
+    
+    // Manual Bot config 
+    indicators?: {
+      rsi?: { period: number; oversold: number; overbought: number; };
+      macd?: { fastPeriod: number; slowPeriod: number; signalPeriod: number; };
+      ma?: { type: string; period: number; };
+      bollinger?: { period: number; stdDev: number; };
+      stochastic?: { kPeriod: number; dPeriod: number; smoothK: number; };
+    };
+    entryConditions?: string[];
+    exitConditions?: string[];
+    stopLoss?: number;
+    takeProfit?: number;
+    maxPositionSize?: number;
+    leverage?: number;
+  }>().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const screeners = pgTable("screeners", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
@@ -178,6 +216,12 @@ export const insertAccountInfoSchema = createInsertSchema(accountInfo).omit({
   lastUpdated: true,
 });
 
+export const insertBotSchema = createInsertSchema(bots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertScreenerSchema = createInsertSchema(screeners).omit({
   id: true,
   createdAt: true,
@@ -199,6 +243,9 @@ export type UserPosition = typeof userPositions.$inferSelect;
 
 export type InsertAccountInfo = z.infer<typeof insertAccountInfoSchema>;
 export type AccountInfo = typeof accountInfo.$inferSelect;
+
+export type InsertBot = z.infer<typeof insertBotSchema>;
+export type Bot = typeof bots.$inferSelect;
 
 export type InsertScreener = z.infer<typeof insertScreenerSchema>;
 export type Screener = typeof screeners.$inferSelect;

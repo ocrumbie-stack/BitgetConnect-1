@@ -9,6 +9,8 @@ import {
   type InsertUserPosition,
   type AccountInfo,
   type InsertAccountInfo,
+  type Bot,
+  type InsertBot,
   type Screener,
   type InsertScreener
 } from "@shared/schema";
@@ -32,6 +34,11 @@ export interface IStorage {
   getAccountInfo(userId: string): Promise<AccountInfo | undefined>;
   updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo>;
   
+  getUserBots(userId: string): Promise<Bot[]>;
+  createBot(bot: InsertBot): Promise<Bot>;
+  updateBot(id: string, bot: Partial<InsertBot>): Promise<Bot>;
+  deleteBot(id: string): Promise<void>;
+  
   getUserScreeners(userId: string): Promise<Screener[]>;
   createScreener(screener: InsertScreener): Promise<Screener>;
   updateScreener(id: string, screener: InsertScreener): Promise<Screener>;
@@ -44,6 +51,7 @@ export class MemStorage implements IStorage {
   private futuresData: Map<string, FuturesData>;
   private userPositions: Map<string, UserPosition[]>;
   private accountInfo: Map<string, AccountInfo>;
+  private bots: Map<string, Bot>;
   private screeners: Map<string, Screener>;
 
   constructor() {
@@ -52,6 +60,7 @@ export class MemStorage implements IStorage {
     this.futuresData = new Map();
     this.userPositions = new Map();
     this.accountInfo = new Map();
+    this.bots = new Map();
     this.screeners = new Map();
   }
 
@@ -193,6 +202,48 @@ export class MemStorage implements IStorage {
 
   async deleteScreener(id: string): Promise<void> {
     this.screeners.delete(id);
+  }
+
+  async getUserBots(userId: string): Promise<Bot[]> {
+    return Array.from(this.bots.values()).filter(bot => bot.userId === userId);
+  }
+
+  async createBot(insertBot: InsertBot): Promise<Bot> {
+    const id = randomUUID();
+    const now = new Date();
+    const bot: Bot = { 
+      ...insertBot,
+      id,
+      status: insertBot.status || 'inactive',
+      profit: insertBot.profit || '0',
+      trades: insertBot.trades || '0',
+      winRate: insertBot.winRate || '0',
+      roi: insertBot.roi || '0',
+      runtime: insertBot.runtime || '0',
+      createdAt: now,
+      updatedAt: now
+    };
+    this.bots.set(id, bot);
+    return bot;
+  }
+
+  async updateBot(id: string, updates: Partial<InsertBot>): Promise<Bot> {
+    const existingBot = this.bots.get(id);
+    if (!existingBot) {
+      throw new Error('Bot not found');
+    }
+    const updatedBot: Bot = { 
+      ...existingBot, 
+      ...updates,
+      status: updates.status || existingBot.status,
+      updatedAt: new Date()
+    };
+    this.bots.set(id, updatedBot);
+    return updatedBot;
+  }
+
+  async deleteBot(id: string): Promise<void> {
+    this.bots.delete(id);
   }
 }
 
