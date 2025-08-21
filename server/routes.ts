@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { BitgetAPI } from "./services/bitgetApi";
-import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrategySchema, insertBotExecutionSchema, insertScreenerSchema } from "@shared/schema";
+import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrategySchema, insertBotExecutionSchema, insertScreenerSchema, insertAlertSettingSchema, insertAlertSchema } from "@shared/schema";
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
@@ -394,6 +394,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting bot execution:', error);
       res.status(400).json({ error: 'Failed to delete bot execution' });
+    }
+  });
+
+  // Alert System API Routes
+  app.get('/api/alert-settings/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getUserAlertSettings(userId);
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch alert settings' 
+      });
+    }
+  });
+
+  app.post('/api/alert-settings', async (req, res) => {
+    try {
+      const settingData = insertAlertSettingSchema.parse(req.body);
+      const setting = await storage.createAlertSetting(settingData);
+      res.json(setting);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to create alert setting' 
+      });
+    }
+  });
+
+  app.put('/api/alert-settings/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const setting = await storage.updateAlertSetting(id, updates);
+      res.json(setting);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to update alert setting' 
+      });
+    }
+  });
+
+  app.delete('/api/alert-settings/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAlertSetting(id);
+      res.json({ message: 'Alert setting deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to delete alert setting' 
+      });
+    }
+  });
+
+  app.get('/api/alerts/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const alerts = await storage.getUserAlerts(userId);
+      res.json(alerts);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch alerts' 
+      });
+    }
+  });
+
+  app.post('/api/alerts', async (req, res) => {
+    try {
+      const alertData = insertAlertSchema.parse(req.body);
+      const alert = await storage.createAlert(alertData);
+      
+      // Broadcast alert to WebSocket clients for real-time notifications
+      const data = JSON.stringify({
+        type: 'newAlert',
+        data: alert
+      });
+
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(data);
+        }
+      });
+
+      res.json(alert);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to create alert' 
+      });
+    }
+  });
+
+  app.put('/api/alerts/:id/read', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.markAlertAsRead(id);
+      res.json({ message: 'Alert marked as read' });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to mark alert as read' 
+      });
+    }
+  });
+
+  app.put('/api/alerts/:userId/read-all', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      await storage.markAllAlertsAsRead(userId);
+      res.json({ message: 'All alerts marked as read' });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to mark all alerts as read' 
+      });
+    }
+  });
+
+  app.delete('/api/alerts/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAlert(id);
+      res.json({ message: 'Alert deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to delete alert' 
+      });
     }
   });
 
