@@ -42,6 +42,7 @@ export default function BotPage() {
   const [tradingPair, setTradingPair] = useState('BTCUSDT');
   const [capital, setCapital] = useState('1000');
   const [leverage, setLeverage] = useState('1');
+  const [pairSearch, setPairSearch] = useState('');
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -60,6 +61,12 @@ export default function BotPage() {
   // Fetch active executions
   const { data: activeExecutions = [], isLoading: executionsLoading } = useQuery({
     queryKey: ['/api/bot-executions']
+  });
+
+  // Fetch futures data for trading pairs
+  const { data: futuresData = [] } = useQuery({
+    queryKey: ['/api/futures'],
+    refetchInterval: 10000
   });
 
   // Create strategy mutation
@@ -1029,11 +1036,36 @@ export default function BotPage() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Trading Pair</label>
-              <Input 
-                placeholder="BTCUSDT" 
-                value={tradingPair}
-                onChange={(e) => setTradingPair(e.target.value)}
-              />
+              <Select value={tradingPair} onValueChange={setTradingPair}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select trading pair" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  <div className="p-2 border-b">
+                    <Input 
+                      placeholder="Search pairs..."
+                      value={pairSearch}
+                      onChange={(e) => setPairSearch(e.target.value)}
+                      className="h-8"
+                    />
+                  </div>
+                  {(futuresData as any[])
+                    .filter((coin: any) => 
+                      coin.symbol.toLowerCase().includes(pairSearch.toLowerCase())
+                    )
+                    .slice(0, 50) // Limit to 50 results for performance
+                    .map((coin: any) => (
+                      <SelectItem key={coin.symbol} value={coin.symbol}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{coin.symbol}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ${parseFloat(coin.price).toFixed(2)}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
