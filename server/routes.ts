@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { BitgetAPI } from "./services/bitgetApi";
-import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertScreenerSchema } from "@shared/schema";
+import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotSchema, insertScreenerSchema } from "@shared/schema";
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
@@ -277,6 +277,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: error.message || 'Failed to delete screener' 
       });
+    }
+  });
+
+  // Bot management routes
+  app.get('/api/bots', async (req, res) => {
+    try {
+      const userId = 'default-user'; // In a real app, get from authentication
+      const bots = await storage.getUserBots(userId);
+      res.json(bots);
+    } catch (error) {
+      console.error('Error fetching bots:', error);
+      res.status(500).json({ error: 'Failed to fetch bots' });
+    }
+  });
+
+  app.post('/api/bots', async (req, res) => {
+    try {
+      const validatedData = insertBotSchema.parse(req.body);
+      const userId = 'default-user'; // In a real app, get from authentication
+      
+      const bot = await storage.createBot({
+        ...validatedData,
+        userId
+      });
+      
+      res.json(bot);
+    } catch (error) {
+      console.error('Error creating bot:', error);
+      res.status(400).json({ error: 'Failed to create bot' });
+    }
+  });
+
+  app.put('/api/bots/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const bot = await storage.updateBot(id, updates);
+      res.json(bot);
+    } catch (error) {
+      console.error('Error updating bot:', error);
+      res.status(400).json({ error: 'Failed to update bot' });
+    }
+  });
+
+  app.delete('/api/bots/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteBot(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting bot:', error);
+      res.status(400).json({ error: 'Failed to delete bot' });
     }
   });
 
