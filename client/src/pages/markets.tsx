@@ -45,7 +45,7 @@ export function Markets() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/screeners', 'user1'] });
-      setSelectedScreener('all');
+      setSelectedScreener('');
       toast({
         title: "Screener deleted",
         description: "The screener has been successfully deleted.",
@@ -76,6 +76,9 @@ export function Markets() {
     deleteScreenerMutation.mutate(screenerId);
   };
 
+  // Find the selected screener object
+  const selectedScreenerObj = userScreeners.find((s: any) => s.id === selectedScreener);
+
   const filteredAndSortedData = data
     ?.filter((item) => {
       // Search filter
@@ -89,6 +92,71 @@ export function Markets() {
       }
       if (filter === 'losers' && parseFloat(item.change24h || '0') >= 0) {
         return false;
+      }
+      
+      // Screener filter
+      if (selectedScreenerObj && selectedScreenerObj.criteria) {
+        const criteria = selectedScreenerObj.criteria;
+        const price = parseFloat(item.price || '0');
+        const volume = parseFloat(item.volume24h || '0');
+        const change = parseFloat(item.change24h || '0') * 100; // Convert to percentage
+        
+        // Price range
+        if (criteria.minPrice && price < criteria.minPrice) return false;
+        if (criteria.maxPrice && price > criteria.maxPrice) return false;
+        
+        // Volume range (24h)
+        if (criteria.minVolume && volume < criteria.minVolume) return false;
+        if (criteria.maxVolume && volume > criteria.maxVolume) return false;
+        
+        // Volume USD range
+        if (criteria.minVolumeUsd && (volume * price) < criteria.minVolumeUsd) return false;
+        if (criteria.maxVolumeUsd && (volume * price) > criteria.maxVolumeUsd) return false;
+        
+        // Change range
+        if (criteria.minChange && change < criteria.minChange) return false;
+        if (criteria.maxChange && change > criteria.maxChange) return false;
+        
+        // Market cap range (approximation using volume * price as proxy)
+        const marketCapProxy = volume * price;
+        if (criteria.minMarketCap && marketCapProxy < criteria.minMarketCap) return false;
+        if (criteria.maxMarketCap && marketCapProxy > criteria.maxMarketCap) return false;
+        
+        // Specific symbols
+        if (criteria.symbols && criteria.symbols.length > 0) {
+          // Split comma-separated symbols and trim whitespace
+          const symbolList = Array.isArray(criteria.symbols) 
+            ? criteria.symbols 
+            : criteria.symbols.split(',').map(s => s.trim());
+          
+          const symbolMatch = symbolList.some((symbol: string) => {
+            const cleanSymbol = symbol.toLowerCase().replace(/usdt$/, '');
+            return item.symbol.toLowerCase().includes(cleanSymbol) || 
+                   item.symbol.toLowerCase().startsWith(cleanSymbol);
+          });
+          if (!symbolMatch) return false;
+        }
+        
+        // Technical indicators (basic implementation)
+        // Note: For a complete implementation, we would need historical price data
+        // For now, we'll implement basic RSI and other indicators using current price/volume data
+        
+        if (criteria.rsi) {
+          // Simplified RSI implementation based on price change
+          const priceChange = change;
+          if (criteria.rsi.operator === 'above' && priceChange <= criteria.rsi.value) return false;
+          if (criteria.rsi.operator === 'below' && priceChange >= criteria.rsi.value) return false;
+          if (criteria.rsi.operator === 'between' && 
+              (priceChange < criteria.rsi.value || priceChange > (criteria.rsi.valueMax || 100))) return false;
+        }
+        
+        if (criteria.stochastic) {
+          // Simplified stochastic implementation
+          if (criteria.stochastic.operator === 'oversold' && change >= -2) return false;
+          if (criteria.stochastic.operator === 'overbought' && change <= 2) return false;
+          if (criteria.stochastic.operator === 'above' && change <= criteria.stochastic.value) return false;
+          if (criteria.stochastic.operator === 'below' && change >= criteria.stochastic.value) return false;
+        }
       }
       
       return true;
@@ -189,7 +257,13 @@ export function Markets() {
           </div>
 
           {/* Screener Dropdown */}
-          <div className="w-48">
+          <div className="space-y-2">
+            {selectedScreenerObj && (
+              <div className="text-xs text-muted-foreground">
+                Active: {selectedScreenerObj.name} ({filteredAndSortedData.length} results)
+              </div>
+            )}
+            <div className="w-48">
             <Select value={selectedScreener} onValueChange={handleScreenerChange}>
               <SelectTrigger className="w-full" data-testid="screener-select">
                 <SelectValue placeholder="Screener" />
@@ -247,6 +321,7 @@ export function Markets() {
                 ))}
               </SelectContent>
             </Select>
+            </div>
           </div>
         </div>
       </div>
