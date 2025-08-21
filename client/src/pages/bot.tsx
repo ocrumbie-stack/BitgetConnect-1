@@ -43,6 +43,8 @@ export default function BotPage() {
   const [capital, setCapital] = useState('1000');
   const [leverage, setLeverage] = useState('1');
   const [pairSearch, setPairSearch] = useState('');
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -228,6 +230,88 @@ export default function BotPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
     }
   });
+
+  // AI Recommendation function
+  const generateRecommendations = () => {
+    if (!futuresData || futuresData.length === 0) return;
+
+    const coins = futuresData as any[];
+    
+    // Analyze coins and score them based on various factors
+    const scored = coins.map((coin: any) => {
+      const price = parseFloat(coin.price);
+      const change24h = parseFloat(coin.change24h);
+      const volume24h = parseFloat(coin.volume24h);
+      
+      let score = 0;
+      let reasons = [];
+      
+      // Volume factor (higher volume = more liquidity)
+      if (volume24h > 100000000) { // > 100M volume
+        score += 30;
+        reasons.push('High liquidity');
+      } else if (volume24h > 50000000) { // > 50M volume
+        score += 20;
+        reasons.push('Good liquidity');
+      }
+      
+      // Volatility factor (moderate volatility is good for trading)
+      const absChange = Math.abs(change24h);
+      if (absChange >= 3 && absChange <= 8) {
+        score += 25;
+        reasons.push('Optimal volatility');
+      } else if (absChange >= 8 && absChange <= 15) {
+        score += 20;
+        reasons.push('High volatility');
+      } else if (absChange >= 1.5 && absChange <= 3) {
+        score += 15;
+        reasons.push('Moderate movement');
+      }
+      
+      // Trending factor (strong trends are good for momentum strategies)
+      if (change24h > 5) {
+        score += 20;
+        reasons.push('Strong uptrend');
+      } else if (change24h > 2) {
+        score += 15;
+        reasons.push('Upward momentum');
+      } else if (change24h < -5) {
+        score += 15;
+        reasons.push('Strong downtrend');
+      } else if (change24h < -2) {
+        score += 10;
+        reasons.push('Downward momentum');
+      }
+      
+      // Popular pairs bonus
+      if (['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT'].includes(coin.symbol)) {
+        score += 15;
+        reasons.push('Major cryptocurrency');
+      }
+      
+      // Exclude very low volume or extreme price coins
+      if (volume24h < 1000000 || price < 0.000001) {
+        score = 0;
+        reasons = ['Low activity'];
+      }
+      
+      return {
+        ...coin,
+        score,
+        reasons: reasons.slice(0, 3), // Limit to top 3 reasons
+        recommendation: score > 50 ? 'Excellent' : score > 35 ? 'Good' : score > 20 ? 'Fair' : 'Poor'
+      };
+    });
+    
+    // Sort by score and get top 10
+    const topRecommendations = scored
+      .filter(coin => coin.score > 20)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+    
+    setRecommendations(topRecommendations);
+    setShowRecommendations(true);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -1083,6 +1167,15 @@ export default function BotPage() {
                   </div>
                 )}
               </div>
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm" 
+                onClick={generateRecommendations}
+                className="mt-2 w-full"
+              >
+                🤖 Get AI Recommendations
+              </Button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1123,6 +1216,72 @@ export default function BotPage() {
                 {runStrategyMutation.isPending ? 'Starting...' : 'Start Bot'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Recommendations Dialog */}
+      <Dialog open={showRecommendations} onOpenChange={setShowRecommendations}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>🤖 AI Trading Pair Recommendations</DialogTitle>
+            <DialogDescription>
+              AI-analyzed trading opportunities based on volatility, volume, and momentum
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {recommendations.map((rec: any, index: number) => (
+              <div 
+                key={rec.symbol} 
+                className="border rounded-lg p-4 hover:bg-accent cursor-pointer transition-colors"
+                onClick={() => {
+                  setTradingPair(rec.symbol);
+                  setShowRecommendations(false);
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-lg">#{index + 1}</span>
+                      <span className="font-semibold text-lg">{rec.symbol}</span>
+                    </div>
+                    <Badge 
+                      variant={rec.recommendation === 'Excellent' ? 'default' : 
+                              rec.recommendation === 'Good' ? 'secondary' : 'outline'}
+                      className={rec.recommendation === 'Excellent' ? 'bg-green-600' : ''}
+                    >
+                      {rec.recommendation}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">${parseFloat(rec.price).toFixed(4)}</div>
+                    <div className={`text-sm font-medium ${parseFloat(rec.change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {parseFloat(rec.change24h) >= 0 ? '+' : ''}{parseFloat(rec.change24h).toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground mb-2">
+                  <div>Volume: ${(parseFloat(rec.volume24h) / 1000000).toFixed(1)}M</div>
+                  <div>AI Score: {rec.score}/100</div>
+                </div>
+                
+                <div className="flex flex-wrap gap-1">
+                  {rec.reasons.map((reason: string, i: number) => (
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {reason}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowRecommendations(false)}>
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
