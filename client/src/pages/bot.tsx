@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Play, Pause, Settings, TrendingUp, TrendingDown, AlertTriangle, X, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -521,6 +521,9 @@ export function BotPage() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Create Trading Bot</DialogTitle>
+                    <DialogDescription>
+                      Configure your custom trading bot with technical indicators and risk management rules.
+                    </DialogDescription>
                   </DialogHeader>
                   
                   <div className="space-y-6">
@@ -584,17 +587,32 @@ export function BotPage() {
                             <div className="font-medium">RSI (Relative Strength Index)</div>
                             <Switch data-testid="switch-rsi" />
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div>
                               <label className="text-xs font-medium mb-1 block">Period</label>
                               <Input type="number" placeholder="14" className="h-8 text-xs" />
                             </div>
                             <div>
-                              <label className="text-xs font-medium mb-1 block">Oversold</label>
-                              <Input type="number" placeholder="30" className="h-8 text-xs" />
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="above">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="above">Above</SelectItem>
+                                  <SelectItem value="below">Below</SelectItem>
+                                  <SelectItem value="between">Between</SelectItem>
+                                  <SelectItem value="oversold">Oversold (30)</SelectItem>
+                                  <SelectItem value="overbought">Overbought (70)</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                             <div>
-                              <label className="text-xs font-medium mb-1 block">Overbought</label>
+                              <label className="text-xs font-medium mb-1 block">Value</label>
+                              <Input type="number" placeholder="50" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Value Max</label>
                               <Input type="number" placeholder="70" className="h-8 text-xs" />
                             </div>
                           </div>
@@ -608,7 +626,7 @@ export function BotPage() {
                             <div className="font-medium">MACD</div>
                             <Switch data-testid="switch-macd" />
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div>
                               <label className="text-xs font-medium mb-1 block">Fast Period</label>
                               <Input type="number" placeholder="12" className="h-8 text-xs" />
@@ -621,6 +639,22 @@ export function BotPage() {
                               <label className="text-xs font-medium mb-1 block">Signal Period</label>
                               <Input type="number" placeholder="9" className="h-8 text-xs" />
                             </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="bullish_crossover">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
+                                  <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                                  <SelectItem value="above_signal">Above Signal</SelectItem>
+                                  <SelectItem value="below_signal">Below Signal</SelectItem>
+                                  <SelectItem value="above_zero">Above Zero</SelectItem>
+                                  <SelectItem value="below_zero">Below Zero</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -632,44 +666,74 @@ export function BotPage() {
                             <div className="font-medium">Moving Averages</div>
                             <Switch data-testid="switch-ma" />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">MA1 Type</label>
-                              <Select defaultValue="SMA">
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="SMA">SMA</SelectItem>
-                                  <SelectItem value="EMA">EMA</SelectItem>
-                                  <SelectItem value="WMA">WMA</SelectItem>
-                                  <SelectItem value="DEMA">DEMA</SelectItem>
-                                  <SelectItem value="TEMA">TEMA</SelectItem>
-                                </SelectContent>
-                              </Select>
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-4 gap-3">
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">MA1 Type</label>
+                                <Select defaultValue="SMA">
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="SMA">SMA</SelectItem>
+                                    <SelectItem value="EMA">EMA</SelectItem>
+                                    <SelectItem value="WMA">WMA</SelectItem>
+                                    <SelectItem value="DEMA">DEMA</SelectItem>
+                                    <SelectItem value="TEMA">TEMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">MA1 Period</label>
+                                <Input type="number" placeholder="20" className="h-8 text-xs" />
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">Condition</label>
+                                <Select defaultValue="above">
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="above">Price Above MA</SelectItem>
+                                    <SelectItem value="below">Price Below MA</SelectItem>
+                                    <SelectItem value="crossing_up">Price Crossing Up</SelectItem>
+                                    <SelectItem value="crossing_down">Price Crossing Down</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">Compare To</label>
+                                <Select defaultValue="price">
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="price">Price</SelectItem>
+                                    <SelectItem value="another_ma">Another MA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">MA1 Period</label>
-                              <Input type="number" placeholder="20" className="h-8 text-xs" />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">MA2 Type</label>
-                              <Select defaultValue="EMA">
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="SMA">SMA</SelectItem>
-                                  <SelectItem value="EMA">EMA</SelectItem>
-                                  <SelectItem value="WMA">WMA</SelectItem>
-                                  <SelectItem value="DEMA">DEMA</SelectItem>
-                                  <SelectItem value="TEMA">TEMA</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">MA2 Period</label>
-                              <Input type="number" placeholder="50" className="h-8 text-xs" />
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">MA2 Type (if comparing)</label>
+                                <Select defaultValue="EMA">
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="SMA">SMA</SelectItem>
+                                    <SelectItem value="EMA">EMA</SelectItem>
+                                    <SelectItem value="WMA">WMA</SelectItem>
+                                    <SelectItem value="DEMA">DEMA</SelectItem>
+                                    <SelectItem value="TEMA">TEMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium mb-1 block">MA2 Period</label>
+                                <Input type="number" placeholder="50" className="h-8 text-xs" />
+                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -682,7 +746,7 @@ export function BotPage() {
                             <div className="font-medium">Stochastic Oscillator</div>
                             <Switch data-testid="switch-stochastic" />
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div>
                               <label className="text-xs font-medium mb-1 block">K Period</label>
                               <Input type="number" placeholder="14" className="h-8 text-xs" />
@@ -694,6 +758,96 @@ export function BotPage() {
                             <div>
                               <label className="text-xs font-medium mb-1 block">Smooth K</label>
                               <Input type="number" placeholder="3" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="oversold">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="oversold">Oversold (20)</SelectItem>
+                                  <SelectItem value="overbought">Overbought (80)</SelectItem>
+                                  <SelectItem value="k_above_d">%K Above %D</SelectItem>
+                                  <SelectItem value="k_below_d">%K Below %D</SelectItem>
+                                  <SelectItem value="k_crossing_up_d">%K Crossing Up %D</SelectItem>
+                                  <SelectItem value="k_crossing_down_d">%K Crossing Down %D</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Additional Indicators */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Additional Indicators</h4>
+                      
+                      {/* Bollinger Bands */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">Bollinger Bands</div>
+                            <Switch data-testid="switch-bollinger" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Period</label>
+                              <Input type="number" placeholder="20" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Std Dev</label>
+                              <Input type="number" placeholder="2" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="price_touches_lower">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="price_touches_lower">Price Touches Lower</SelectItem>
+                                  <SelectItem value="price_touches_upper">Price Touches Upper</SelectItem>
+                                  <SelectItem value="price_above_upper">Price Above Upper</SelectItem>
+                                  <SelectItem value="price_below_lower">Price Below Lower</SelectItem>
+                                  <SelectItem value="squeeze">Bollinger Squeeze</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Volume */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">Volume Analysis</div>
+                            <Switch data-testid="switch-volume" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Period</label>
+                              <Input type="number" placeholder="20" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Condition</label>
+                              <Select defaultValue="above_average">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="above_average">Above Average</SelectItem>
+                                  <SelectItem value="below_average">Below Average</SelectItem>
+                                  <SelectItem value="spike">Volume Spike (2x)</SelectItem>
+                                  <SelectItem value="surge">Volume Surge (3x)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Multiplier</label>
+                              <Input type="number" placeholder="1.5" className="h-8 text-xs" />
                             </div>
                           </div>
                         </CardContent>
