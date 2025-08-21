@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,17 @@ export function BotPage() {
   const [activeBotStates, setActiveBotStates] = useState<Record<string, { status: 'active' | 'paused' }>>({});
   const [activeTab, setActiveTab] = useState('ai');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [tradingPair, setTradingPair] = useState('');
+
+  // Get trading pair from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pair = urlParams.get('pair');
+    if (pair) {
+      setTradingPair(pair);
+      setActiveTab('manual'); // Switch to manual tab when coming from trade page
+    }
+  }, []);
 
   // Fetch user bots
   const { data: userBots = [], isLoading } = useQuery<any[]>({
@@ -314,8 +325,18 @@ export function BotPage() {
         <h1 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
           <Bot className="h-6 w-6" />
           Trading Bots
+          {tradingPair && (
+            <Badge variant="secondary" className="ml-2">
+              for {tradingPair}
+            </Badge>
+          )}
         </h1>
-        <p className="text-muted-foreground text-sm">Automate your trading strategies</p>
+        <p className="text-muted-foreground text-sm">
+          {tradingPair 
+            ? `Select or create a bot to trade ${tradingPair}`
+            : 'Automate your trading strategies'
+          }
+        </p>
       </div>
 
       <div className="p-4">
@@ -391,6 +412,40 @@ export function BotPage() {
 
           {/* Manual Tab - User's Created Bots */}
           <TabsContent value="manual" className="space-y-4 mt-4">
+            {tradingPair && (
+              <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                        Run Bot for {tradingPair}
+                      </h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        Select an existing bot to start trading this pair
+                      </p>
+                    </div>
+                    <Bot className="h-5 w-5 text-blue-600" />
+                  </div>
+                  {userBots.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {userBots.slice(0, 3).map((bot: any) => (
+                        <Button
+                          key={bot.id}
+                          size="sm"
+                          variant="outline"
+                          className="text-xs border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300"
+                          data-testid={`button-run-bot-${bot.id}`}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Run {bot.name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">My Trading Bots</h3>
               <Button 

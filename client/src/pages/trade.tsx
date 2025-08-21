@@ -1,12 +1,12 @@
 import { useState } from 'react';
+import { Link } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot, Settings } from 'lucide-react';
+import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot } from 'lucide-react';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -14,16 +14,9 @@ export function Trade() {
   const [amount, setAmount] = useState('');
   const [activeTab, setActiveTab] = useState('open');
   const [orderType, setOrderType] = useState('market');
-  const [selectedBot, setSelectedBot] = useState('');
-  const [showBotSelector, setShowBotSelector] = useState(false);
-
-  // Mock bot data - in real app this would come from API
-  const availableBots = [
-    { id: '1', name: 'Scalping Master', strategy: 'Short-term momentum', winRate: '78%', status: 'active' },
-    { id: '2', name: 'Trend Follower', strategy: 'Long-term trends', winRate: '65%', status: 'active' },
-    { id: '3', name: 'RSI Divergence', strategy: 'Technical divergence', winRate: '72%', status: 'active' },
-    { id: '4', name: 'Grid Trading', strategy: 'Range-bound markets', winRate: '69%', status: 'inactive' },
-  ];
+  
+  // Current trading pair
+  const currentPair = 'BTCUSDT';
 
   // Get current BTCUSDT data
   const currentMarket = data?.find(item => item.symbol === 'BTCUSDT');
@@ -66,76 +59,20 @@ export function Trade() {
               <span className="text-lg font-medium">BTCUSDT</span>
               <ChevronDown className="h-4 w-4" />
             </div>
-            <div className="flex items-center gap-4 mt-1">
-              <div className="text-sm text-gray-400">
-                Perpetual <span className="text-red-500">{change24h}%</span>
-              </div>
-              <div className="text-xs text-blue-400">
-                <span className="mr-1">🤖</span>Bot: {selectedBot ? availableBots.find(b => b.id === selectedBot)?.name || 'None Selected' : 'None Selected'}
-              </div>
+            <div className="text-sm text-gray-400">
+              Perpetual <span className="text-red-500">{change24h}%</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
               <div className="text-xs text-gray-400">0.00%</div>
             </div>
-            <Dialog open={showBotSelector} onOpenChange={setShowBotSelector}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="gap-2">
-                  <Bot className="h-4 w-4" />
-                  Select Bot
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Select Trading Bot for BTCUSDT</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-3">
-                  {availableBots.map((bot) => (
-                    <div
-                      key={bot.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedBot === bot.id
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      } ${bot.status === 'inactive' ? 'opacity-50' : ''}`}
-                      onClick={() => {
-                        if (bot.status === 'active') {
-                          setSelectedBot(bot.id);
-                          setShowBotSelector(false);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{bot.name}</div>
-                          <div className="text-sm text-gray-500">{bot.strategy}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-green-600">{bot.winRate}</div>
-                          <div className={`text-xs ${bot.status === 'active' ? 'text-green-500' : 'text-gray-400'}`}>
-                            {bot.status}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="pt-2 border-t">
-                    <Button 
-                      variant="outline" 
-                      className="w-full gap-2"
-                      onClick={() => {
-                        setSelectedBot('');
-                        setShowBotSelector(false);
-                      }}
-                    >
-                      <Settings className="h-4 w-4" />
-                      No Bot (Manual Trading)
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Link to={`/bot?pair=${currentPair}`}>
+              <Button size="sm" variant="outline" className="gap-2" data-testid="button-bot-trading">
+                <Bot className="h-4 w-4" />
+                Bot
+              </Button>
+            </Link>
             <div className="flex gap-2">
               <div className="w-6 h-6 bg-gray-800 rounded"></div>
               <MoreHorizontal className="h-5 w-5" />
