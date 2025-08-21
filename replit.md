@@ -52,40 +52,22 @@ Basic structure in place for user management:
 # Recent Changes
 
 ## August 21, 2025
-- Successfully fixed bot creation functionality with complete API validation
-- Resolved critical validation errors: added missing userId field and proper decimal field formatting
+- Successfully completed bot system architectural redesign from coin-specific to reusable strategy templates
+- Fixed bot creation functionality with complete API validation and missing userId field resolution
 - Bot creation now captures all configuration: name, position direction (Long/Short), timeframe, capital, risk settings
-- Fixed "Create Bot" button functionality with proper form state management and error handling  
-- User confirmed bot creation as "I like it" - complete manual bot creation workflow now operational
-- Enhanced bot creation includes: stop loss, take profit, position size, leverage, technical indicators framework
-- Bot list displays created bots with correct status badges and configuration details
-- Fixed trading pair navigation bug - pairs now correctly display when clicked from Markets page
-- Updated SimpleTable component to pass trading pair as URL parameter (?pair=SYMBOL)
-- Modified Trade page to dynamically read and display selected trading pair from URL
-- Trade page header, price data, and market information now update based on selected pair
-- Bot button correctly passes trading pair context to Bot page for targeted bot deployment
-- User confirmed fix as "Nice" - trading pair selection flow now works seamlessly
-- Enhanced screener with comprehensive technical indicators: RSI, MACD, dual Moving Averages (7 types), Stochastic with Smooth K, Williams %R, ATR, CCI, and Momentum
-- Implemented volume in USD filtering and market cap range filtering for better liquidity analysis
-- Fixed duplicate form fields issue in screener creation form
-- Added clickable sorting functionality to all table columns (Coin/Volume, Price, Change) with visual indicators and hover effects
-- Updated SimpleTable component to support sorting props with up/down arrow indicators
-- Fixed dropdown area to display "Screener" instead of "All Markets" when no selection is made
-- Enhanced user interface with proper screener management dropdown functionality
-- User confirmed sorting and screener functionality as "Nice" - professional-grade table interaction implemented
-- Implemented complete screener filtering functionality - when screeners are selected, coin list updates to show only matching coins
-- Added visual indicators showing active screener name and result count
-- User confirmed screener filtering as "that worked" - functional screener system now operational
-- Redesigned bot interface: AI tab shows autonomous 24/7 bots without create buttons, Manual tab provides comprehensive bot creation
-- Built comprehensive manual bot creation form with full technical indicator suite and condition operators
-- Enhanced Moving Averages configuration to support 3 MAs with all conditions (above, below, crossing up/down) and MA-to-MA comparison
-- Added Bollinger Bands and Volume Analysis indicators with professional condition operators
-- User confirmed need for enhanced indicator conditions matching professional trading platforms
-- Updated Moving Averages to period-condition-period format without price comparison (Type → Period → Condition → Period Value)
-- Created separate Price vs MA Conditions section for price-to-moving-average comparisons with timeframe selection
-- User confirmed preference for MA comparisons in price conditions rather than fixed price values
-- Removed timeframe from Price vs MA Conditions and added global timeframe setting in Basic Configuration
-- User confirmed the updated bot creation layout as "Nice" - final professional trading bot configuration interface complete
+- Restored comprehensive technical indicators interface: RSI, MACD, 3 Moving Averages (SMA/EMA/WMA), Bollinger Bands, Volume Analysis
+- Fixed critical scrolling issue in strategy creation dialog - form now properly scrollable with fixed action buttons
+- Enhanced dialog with flex layout, 90vh max height, and proper overflow handling for mobile optimization
+- User confirmed scrolling fix as "The view is now fixed" - complete professional trading bot creation interface operational
+- Strategy creation includes: Long/Short selection, timeframes, risk levels, stop loss/take profit, and advanced technical indicators
+- All indicators have full configuration options (periods, conditions, values, types) with enable/disable toggles
+- Entry conditions automatically built from enabled indicators for professional trading strategy deployment
+- Bot system now uses reusable strategy templates that can be applied to any trading pair
+- Fixed trading pair navigation bug - pairs correctly display when clicked from Markets page
+- Enhanced screener with comprehensive technical indicators and filtering functionality
+- Implemented complete screener management system with CRUD operations and dropdown integration
+- Added clickable sorting functionality to all table columns with visual indicators
+- User confirmed all major functionality as working - complete crypto trading platform operational
 
 ## August 20, 2025
 - Expanded from single screener to complete multi-page trading application
