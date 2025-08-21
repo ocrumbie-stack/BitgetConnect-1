@@ -20,6 +20,7 @@ export function BotPage() {
   const [selectedBotForSettings, setSelectedBotForSettings] = useState<string | null>(null);
   const [activeBotStates, setActiveBotStates] = useState<Record<string, { status: 'active' | 'paused' }>>({});
   const [activeTab, setActiveTab] = useState('ai');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Fetch user bots
   const { data: userBots = [], isLoading } = useQuery<any[]>({
@@ -327,7 +328,10 @@ export function BotPage() {
           {/* AI Tab */}
           <TabsContent value="ai" className="space-y-4 mt-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">AI-Powered Strategies</h3>
+              <div>
+                <h3 className="text-lg font-semibold">AI-Powered Strategies</h3>
+                <p className="text-sm text-muted-foreground">Autonomous trading bots powered by artificial intelligence</p>
+              </div>
               <div className="grid gap-3">
                 {strategies.map((strategy) => (
                   <Card key={strategy.id}>
@@ -345,17 +349,16 @@ export function BotPage() {
                             <Badge variant="outline">
                               {strategy.avgReturn}
                             </Badge>
+                            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">
+                              <Bot className="h-3 w-3 mr-1" />
+                              AI Autonomous
+                            </Badge>
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleCreateAIBot(strategy.id)}
-                          disabled={createBotMutation.isPending}
-                          data-testid={`button-create-${strategy.id}`}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          {createBotMutation.isPending ? 'Creating...' : 'Create'}
-                        </Button>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-green-500 mb-1">Active</div>
+                          <div className="text-xs text-muted-foreground">24/7 Trading</div>
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 text-xs mb-3">
@@ -390,7 +393,11 @@ export function BotPage() {
           <TabsContent value="manual" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">My Trading Bots</h3>
-              <Button size="sm" data-testid="button-create-manual-bot">
+              <Button 
+                size="sm" 
+                onClick={() => setShowCreateForm(true)}
+                data-testid="button-create-manual-bot"
+              >
                 <Plus className="h-3 w-3 mr-1" />
                 Create Bot
               </Button>
@@ -421,7 +428,10 @@ export function BotPage() {
                   <div className="text-sm text-muted-foreground mb-4">
                     Create your first trading bot or try AI strategies
                   </div>
-                  <Button data-testid="button-create-first-bot">
+                  <Button 
+                    onClick={() => setShowCreateForm(true)}
+                    data-testid="button-create-first-bot"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Bot
                   </Button>
@@ -503,6 +513,304 @@ export function BotPage() {
                   </Card>
                 ))}
               </div>
+            )}
+
+            {/* Bot Creation Form Modal */}
+            {showCreateForm && (
+              <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create Trading Bot</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6">
+                    {/* Basic Settings */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Basic Configuration</h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Bot Name</label>
+                          <Input placeholder="My Trading Bot" data-testid="input-bot-name" />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Trading Pair</label>
+                          <Select defaultValue="BTCUSDT">
+                            <SelectTrigger data-testid="select-trading-pair">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="BTCUSDT">BTC/USDT</SelectItem>
+                              <SelectItem value="ETHUSDT">ETH/USDT</SelectItem>
+                              <SelectItem value="ADAUSDT">ADA/USDT</SelectItem>
+                              <SelectItem value="SOLUSDT">SOL/USDT</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Capital (USDT)</label>
+                          <Input
+                            type="number"
+                            value={capital}
+                            onChange={(e) => setCapital(e.target.value)}
+                            placeholder="1000"
+                            data-testid="input-bot-capital"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Risk Level</label>
+                          <Select value={riskLevel} onValueChange={setRiskLevel}>
+                            <SelectTrigger data-testid="select-bot-risk">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="low">Low Risk</SelectItem>
+                              <SelectItem value="medium">Medium Risk</SelectItem>
+                              <SelectItem value="high">High Risk</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technical Indicators */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Technical Indicators</h4>
+                      
+                      {/* RSI */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">RSI (Relative Strength Index)</div>
+                            <Switch data-testid="switch-rsi" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Period</label>
+                              <Input type="number" placeholder="14" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Oversold</label>
+                              <Input type="number" placeholder="30" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Overbought</label>
+                              <Input type="number" placeholder="70" className="h-8 text-xs" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* MACD */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">MACD</div>
+                            <Switch data-testid="switch-macd" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Fast Period</label>
+                              <Input type="number" placeholder="12" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Slow Period</label>
+                              <Input type="number" placeholder="26" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Signal Period</label>
+                              <Input type="number" placeholder="9" className="h-8 text-xs" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Moving Averages */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">Moving Averages</div>
+                            <Switch data-testid="switch-ma" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">MA1 Type</label>
+                              <Select defaultValue="SMA">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="SMA">SMA</SelectItem>
+                                  <SelectItem value="EMA">EMA</SelectItem>
+                                  <SelectItem value="WMA">WMA</SelectItem>
+                                  <SelectItem value="DEMA">DEMA</SelectItem>
+                                  <SelectItem value="TEMA">TEMA</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">MA1 Period</label>
+                              <Input type="number" placeholder="20" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">MA2 Type</label>
+                              <Select defaultValue="EMA">
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="SMA">SMA</SelectItem>
+                                  <SelectItem value="EMA">EMA</SelectItem>
+                                  <SelectItem value="WMA">WMA</SelectItem>
+                                  <SelectItem value="DEMA">DEMA</SelectItem>
+                                  <SelectItem value="TEMA">TEMA</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">MA2 Period</label>
+                              <Input type="number" placeholder="50" className="h-8 text-xs" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Stochastic */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="font-medium">Stochastic Oscillator</div>
+                            <Switch data-testid="switch-stochastic" />
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">K Period</label>
+                              <Input type="number" placeholder="14" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">D Period</label>
+                              <Input type="number" placeholder="3" className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium mb-1 block">Smooth K</label>
+                              <Input type="number" placeholder="3" className="h-8 text-xs" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Entry/Exit Conditions */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Trading Rules</h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="font-medium mb-3">Entry Conditions</div>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="entry-rsi" />
+                                <label htmlFor="entry-rsi" className="text-sm">RSI below oversold</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="entry-macd" />
+                                <label htmlFor="entry-macd" className="text-sm">MACD bullish crossover</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="entry-ma" />
+                                <label htmlFor="entry-ma" className="text-sm">Price above MA</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="entry-volume" />
+                                <label htmlFor="entry-volume" className="text-sm">High volume</label>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="font-medium mb-3">Exit Conditions</div>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="exit-rsi" />
+                                <label htmlFor="exit-rsi" className="text-sm">RSI above overbought</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="exit-macd" />
+                                <label htmlFor="exit-macd" className="text-sm">MACD bearish crossover</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="exit-ma" />
+                                <label htmlFor="exit-ma" className="text-sm">Price below MA</label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input type="checkbox" id="exit-profit" />
+                                <label htmlFor="exit-profit" className="text-sm">Take profit target</label>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+
+                    {/* Risk Management */}
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Risk Management</h4>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Stop Loss (%)</label>
+                          <Input type="number" placeholder="2.0" data-testid="input-stop-loss" />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Take Profit (%)</label>
+                          <Input type="number" placeholder="4.0" data-testid="input-take-profit" />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Max Position Size (%)</label>
+                          <Input type="number" placeholder="25" data-testid="input-position-size" />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Leverage</label>
+                          <Select defaultValue="1">
+                            <SelectTrigger data-testid="select-leverage">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1x</SelectItem>
+                              <SelectItem value="2">2x</SelectItem>
+                              <SelectItem value="5">5x</SelectItem>
+                              <SelectItem value="10">10x</SelectItem>
+                              <SelectItem value="20">20x</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => setShowCreateForm(false)}
+                        data-testid="button-cancel-create"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        className="flex-1"
+                        disabled={createBotMutation.isPending}
+                        data-testid="button-save-create"
+                      >
+                        {createBotMutation.isPending ? 'Creating...' : 'Create Bot'}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </TabsContent>
         </Tabs>
