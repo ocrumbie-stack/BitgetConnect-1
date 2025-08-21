@@ -663,76 +663,172 @@ export function BotPage() {
                       <Card>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
-                            <div className="font-medium">Moving Averages</div>
+                            <div className="font-medium">Moving Averages (3 MA Setup)</div>
                             <Switch data-testid="switch-ma" />
                           </div>
-                          <div className="space-y-3">
-                            <div className="grid grid-cols-4 gap-3">
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">MA1 Type</label>
-                                <Select defaultValue="SMA">
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="SMA">SMA</SelectItem>
-                                    <SelectItem value="EMA">EMA</SelectItem>
-                                    <SelectItem value="WMA">WMA</SelectItem>
-                                    <SelectItem value="DEMA">DEMA</SelectItem>
-                                    <SelectItem value="TEMA">TEMA</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">MA1 Period</label>
-                                <Input type="number" placeholder="20" className="h-8 text-xs" />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Condition</label>
-                                <Select defaultValue="above">
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="above">Price Above MA</SelectItem>
-                                    <SelectItem value="below">Price Below MA</SelectItem>
-                                    <SelectItem value="crossing_up">Price Crossing Up</SelectItem>
-                                    <SelectItem value="crossing_down">Price Crossing Down</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">Compare To</label>
-                                <Select defaultValue="price">
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="price">Price</SelectItem>
-                                    <SelectItem value="another_ma">Another MA</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                          <div className="space-y-4">
+                            {/* MA1 Configuration */}
+                            <div className="border-l-2 border-blue-500 pl-3">
+                              <div className="text-xs font-medium text-blue-600 mb-2">MA1 Configuration</div>
+                              <div className="grid grid-cols-4 gap-3">
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Type</label>
+                                  <Select defaultValue="SMA">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SMA">SMA</SelectItem>
+                                      <SelectItem value="EMA">EMA</SelectItem>
+                                      <SelectItem value="WMA">WMA</SelectItem>
+                                      <SelectItem value="DEMA">DEMA</SelectItem>
+                                      <SelectItem value="TEMA">TEMA</SelectItem>
+                                      <SelectItem value="HMA">HMA</SelectItem>
+                                      <SelectItem value="VWMA">VWMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Period</label>
+                                  <Input type="number" placeholder="10" className="h-8 text-xs" />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Condition</label>
+                                  <Select defaultValue="above">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                      <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
+                                  <Select defaultValue="price">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="ma2">MA2</SelectItem>
+                                      <SelectItem value="ma3">MA3</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">MA2 Type (if comparing)</label>
-                                <Select defaultValue="EMA">
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="SMA">SMA</SelectItem>
-                                    <SelectItem value="EMA">EMA</SelectItem>
-                                    <SelectItem value="WMA">WMA</SelectItem>
-                                    <SelectItem value="DEMA">DEMA</SelectItem>
-                                    <SelectItem value="TEMA">TEMA</SelectItem>
-                                  </SelectContent>
-                                </Select>
+
+                            {/* MA2 Configuration */}
+                            <div className="border-l-2 border-green-500 pl-3">
+                              <div className="text-xs font-medium text-green-600 mb-2">MA2 Configuration</div>
+                              <div className="grid grid-cols-4 gap-3">
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Type</label>
+                                  <Select defaultValue="EMA">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SMA">SMA</SelectItem>
+                                      <SelectItem value="EMA">EMA</SelectItem>
+                                      <SelectItem value="WMA">WMA</SelectItem>
+                                      <SelectItem value="DEMA">DEMA</SelectItem>
+                                      <SelectItem value="TEMA">TEMA</SelectItem>
+                                      <SelectItem value="HMA">HMA</SelectItem>
+                                      <SelectItem value="VWMA">VWMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Period</label>
+                                  <Input type="number" placeholder="20" className="h-8 text-xs" />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Condition</label>
+                                  <Select defaultValue="above">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                      <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
+                                  <Select defaultValue="price">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="ma1">MA1</SelectItem>
+                                      <SelectItem value="ma3">MA3</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
-                              <div>
-                                <label className="text-xs font-medium mb-1 block">MA2 Period</label>
-                                <Input type="number" placeholder="50" className="h-8 text-xs" />
+                            </div>
+
+                            {/* MA3 Configuration */}
+                            <div className="border-l-2 border-orange-500 pl-3">
+                              <div className="text-xs font-medium text-orange-600 mb-2">MA3 Configuration</div>
+                              <div className="grid grid-cols-4 gap-3">
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Type</label>
+                                  <Select defaultValue="SMA">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="SMA">SMA</SelectItem>
+                                      <SelectItem value="EMA">EMA</SelectItem>
+                                      <SelectItem value="WMA">WMA</SelectItem>
+                                      <SelectItem value="DEMA">DEMA</SelectItem>
+                                      <SelectItem value="TEMA">TEMA</SelectItem>
+                                      <SelectItem value="HMA">HMA</SelectItem>
+                                      <SelectItem value="VWMA">VWMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Period</label>
+                                  <Input type="number" placeholder="50" className="h-8 text-xs" />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Condition</label>
+                                  <Select defaultValue="above">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                      <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-medium mb-1 block">Compare To</label>
+                                  <Select defaultValue="price">
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="ma1">MA1</SelectItem>
+                                      <SelectItem value="ma2">MA2</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             </div>
                           </div>
