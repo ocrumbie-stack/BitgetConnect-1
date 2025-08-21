@@ -1036,36 +1036,53 @@ export default function BotPage() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Trading Pair</label>
-              <Select value={tradingPair} onValueChange={setTradingPair}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select trading pair" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <div className="p-2 border-b">
-                    <Input 
-                      placeholder="Search pairs..."
-                      value={pairSearch}
-                      onChange={(e) => setPairSearch(e.target.value)}
-                      className="h-8"
-                    />
-                  </div>
-                  {(futuresData as any[])
-                    .filter((coin: any) => 
-                      coin.symbol.toLowerCase().includes(pairSearch.toLowerCase())
-                    )
-                    .slice(0, 50) // Limit to 50 results for performance
-                    .map((coin: any) => (
-                      <SelectItem key={coin.symbol} value={coin.symbol}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{coin.symbol}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
+              <div className="relative">
+                <Input 
+                  placeholder="Type to search pairs (e.g., BTC, ETH, SOL)..."
+                  value={pairSearch || tradingPair}
+                  onChange={(e) => {
+                    setPairSearch(e.target.value);
+                    if (!e.target.value) setTradingPair('');
+                  }}
+                  className="pr-4"
+                />
+                {pairSearch && (
+                  <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {(futuresData as any[])
+                      .filter((coin: any) => 
+                        coin.symbol.toLowerCase().includes(pairSearch.toLowerCase())
+                      )
+                      .slice(0, 100) // Show more results since typing filters them
+                      .map((coin: any) => (
+                        <div
+                          key={coin.symbol}
+                          className="flex items-center justify-between p-2 hover:bg-accent cursor-pointer"
+                          onClick={() => {
+                            setTradingPair(coin.symbol);
+                            setPairSearch('');
+                          }}
+                        >
+                          <span className="font-medium">{coin.symbol}</span>
+                          <span className="text-sm text-muted-foreground">
                             ${parseFloat(coin.price).toFixed(2)}
                           </span>
                         </div>
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+                      ))}
+                    {(futuresData as any[]).filter((coin: any) => 
+                      coin.symbol.toLowerCase().includes(pairSearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="p-4 text-center text-muted-foreground">
+                        No pairs found matching "{pairSearch}"
+                      </div>
+                    )}
+                  </div>
+                )}
+                {tradingPair && !pairSearch && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Selected: {tradingPair}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
