@@ -9,8 +9,10 @@ import {
   type InsertUserPosition,
   type AccountInfo,
   type InsertAccountInfo,
-  type Bot,
-  type InsertBot,
+  type BotStrategy,
+  type InsertBotStrategy,
+  type BotExecution,
+  type InsertBotExecution,
   type Screener,
   type InsertScreener
 } from "@shared/schema";
@@ -34,10 +36,15 @@ export interface IStorage {
   getAccountInfo(userId: string): Promise<AccountInfo | undefined>;
   updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo>;
   
-  getUserBots(userId: string): Promise<Bot[]>;
-  createBot(bot: InsertBot): Promise<Bot>;
-  updateBot(id: string, bot: Partial<InsertBot>): Promise<Bot>;
-  deleteBot(id: string): Promise<void>;
+  getBotStrategies(userId: string): Promise<BotStrategy[]>;
+  createBotStrategy(strategy: InsertBotStrategy): Promise<BotStrategy>;
+  updateBotStrategy(id: string, strategy: Partial<InsertBotStrategy>): Promise<BotStrategy>;
+  deleteBotStrategy(id: string): Promise<void>;
+  
+  getBotExecutions(userId: string): Promise<BotExecution[]>;
+  createBotExecution(execution: InsertBotExecution): Promise<BotExecution>;
+  updateBotExecution(id: string, execution: Partial<InsertBotExecution>): Promise<BotExecution>;
+  deleteBotExecution(id: string): Promise<void>;
   
   getUserScreeners(userId: string): Promise<Screener[]>;
   createScreener(screener: InsertScreener): Promise<Screener>;
@@ -51,7 +58,8 @@ export class MemStorage implements IStorage {
   private futuresData: Map<string, FuturesData>;
   private userPositions: Map<string, UserPosition[]>;
   private accountInfo: Map<string, AccountInfo>;
-  private bots: Map<string, Bot>;
+  private botStrategies: Map<string, BotStrategy>;
+  private botExecutions: Map<string, BotExecution>;
   private screeners: Map<string, Screener>;
 
   constructor() {
@@ -60,7 +68,8 @@ export class MemStorage implements IStorage {
     this.futuresData = new Map();
     this.userPositions = new Map();
     this.accountInfo = new Map();
-    this.bots = new Map();
+    this.botStrategies = new Map();
+    this.botExecutions = new Map();
     this.screeners = new Map();
   }
 
@@ -204,46 +213,89 @@ export class MemStorage implements IStorage {
     this.screeners.delete(id);
   }
 
-  async getUserBots(userId: string): Promise<Bot[]> {
-    return Array.from(this.bots.values()).filter(bot => bot.userId === userId);
+  async getBotStrategies(userId: string): Promise<BotStrategy[]> {
+    return Array.from(this.botStrategies.values()).filter(strategy => strategy.userId === userId);
   }
 
-  async createBot(insertBot: InsertBot): Promise<Bot> {
+  async createBotStrategy(insertStrategy: InsertBotStrategy): Promise<BotStrategy> {
     const id = randomUUID();
     const now = new Date();
-    const bot: Bot = { 
-      ...insertBot,
+    const strategy: BotStrategy = { 
+      ...insertStrategy,
       id,
-      status: insertBot.status || 'inactive',
-      profit: insertBot.profit || '0',
-      trades: insertBot.trades || '0',
-      winRate: insertBot.winRate || '0',
-      roi: insertBot.roi || '0',
-      runtime: insertBot.runtime || '0',
+      riskLevel: insertStrategy.riskLevel || 'medium',
+      description: insertStrategy.description || null,
       createdAt: now,
       updatedAt: now
     };
-    this.bots.set(id, bot);
-    return bot;
+    this.botStrategies.set(id, strategy);
+    return strategy;
   }
 
-  async updateBot(id: string, updates: Partial<InsertBot>): Promise<Bot> {
-    const existingBot = this.bots.get(id);
-    if (!existingBot) {
-      throw new Error('Bot not found');
+  async updateBotStrategy(id: string, updates: Partial<InsertBotStrategy>): Promise<BotStrategy> {
+    const existingStrategy = this.botStrategies.get(id);
+    if (!existingStrategy) {
+      throw new Error('Bot strategy not found');
     }
-    const updatedBot: Bot = { 
-      ...existingBot, 
+    const updatedStrategy: BotStrategy = { 
+      ...existingStrategy, 
       ...updates,
-      status: updates.status || existingBot.status,
+      config: {
+        ...existingStrategy.config,
+        ...(updates.config || {})
+      },
       updatedAt: new Date()
     };
-    this.bots.set(id, updatedBot);
-    return updatedBot;
+    this.botStrategies.set(id, updatedStrategy);
+    return updatedStrategy;
   }
 
-  async deleteBot(id: string): Promise<void> {
-    this.bots.delete(id);
+  async deleteBotStrategy(id: string): Promise<void> {
+    this.botStrategies.delete(id);
+  }
+
+  async getBotExecutions(userId: string): Promise<BotExecution[]> {
+    return Array.from(this.botExecutions.values()).filter(execution => execution.userId === userId);
+  }
+
+  async createBotExecution(insertExecution: InsertBotExecution): Promise<BotExecution> {
+    const id = randomUUID();
+    const now = new Date();
+    const execution: BotExecution = { 
+      ...insertExecution,
+      id,
+      status: insertExecution.status || 'inactive',
+      leverage: insertExecution.leverage || '1',
+      profit: insertExecution.profit || '0',
+      trades: insertExecution.trades || '0',
+      winRate: insertExecution.winRate || '0',
+      roi: insertExecution.roi || '0',
+      runtime: insertExecution.runtime || '0',
+      startedAt: null,
+      pausedAt: null,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.botExecutions.set(id, execution);
+    return execution;
+  }
+
+  async updateBotExecution(id: string, updates: Partial<InsertBotExecution>): Promise<BotExecution> {
+    const existingExecution = this.botExecutions.get(id);
+    if (!existingExecution) {
+      throw new Error('Bot execution not found');
+    }
+    const updatedExecution: BotExecution = { 
+      ...existingExecution, 
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.botExecutions.set(id, updatedExecution);
+    return updatedExecution;
+  }
+
+  async deleteBotExecution(id: string): Promise<void> {
+    this.botExecutions.delete(id);
   }
 }
 
