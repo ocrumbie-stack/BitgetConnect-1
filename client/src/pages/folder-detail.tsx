@@ -340,14 +340,28 @@ export default function FolderDetailPage() {
               </div>
             )}
 
-            <Button
-              onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
-              disabled={!newPairInput.trim() || addPairMutation.isPending}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add {newPairInput.trim().toUpperCase() || 'Pair'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
+                disabled={!newPairInput.trim() || addPairMutation.isPending}
+                className="flex-1"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add {newPairInput.trim().toUpperCase() || 'Pair'}
+              </Button>
+              {newPairInput.trim() && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setNewPairInput('');
+                    setPairSuggestions([]);
+                  }}
+                  className="px-6"
+                >
+                  Done
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
         )}
