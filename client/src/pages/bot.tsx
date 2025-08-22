@@ -200,7 +200,8 @@ export default function BotPage() {
         tradingPair,
         capital,
         leverage,
-        status: 'active'
+        status: 'active',
+        deploymentType: 'manual'
       };
       
       await runStrategyMutation.mutateAsync(executionData);
@@ -211,7 +212,8 @@ export default function BotPage() {
         strategyId: strategy.id,
         tradingPair,
         capital,
-        leverage
+        leverage,
+        deploymentType: 'manual'
       };
 
       await runStrategyMutation.mutateAsync(executionData);
@@ -620,17 +622,32 @@ export default function BotPage() {
             ) : (
               <div className="space-y-3">
                 {(activeExecutions as any[]).map((execution: any) => (
-                  <Card key={execution.id}>
+                  <Card key={execution.id} className={execution.deploymentType === 'folder_bulk' ? 'border-l-4 border-l-purple-500' : ''}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-medium mb-1">{execution.tradingPair}</h4>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{execution.tradingPair}</h4>
+                            {execution.deploymentType === 'folder_bulk' && (
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                Folder: {execution.folderName}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             Capital: ${execution.capital} | Leverage: {execution.leverage}x
                           </p>
-                          <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
-                            {execution.status}
-                          </Badge>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
+                              {execution.status}
+                            </Badge>
+                            {execution.deploymentType === 'folder_bulk' && (
+                              <Badge variant="outline" className="text-purple-600 border-purple-300">
+                                Bulk Deployed
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="text-right">

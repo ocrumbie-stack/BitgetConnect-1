@@ -116,6 +116,9 @@ export const botExecutions = pgTable("bot_executions", {
   winRate: decimal("win_rate", { precision: 5, scale: 2 }).default('0'),
   roi: decimal("roi", { precision: 10, scale: 4 }).default('0'),
   runtime: varchar("runtime").default('0'),
+  deploymentType: text("deployment_type").default('manual'), // 'manual', 'folder_bulk'
+  folderId: varchar("folder_id"), // Reference to the folder if deployed via bulk
+  folderName: text("folder_name"), // Store folder name for display
   startedAt: timestamp("started_at"),
   pausedAt: timestamp("paused_at"),
   createdAt: timestamp("created_at").defaultNow(),
