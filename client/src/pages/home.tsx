@@ -248,10 +248,10 @@ export function Home() {
       </div>
 
       <div className="p-4">
-        <Tabs defaultValue="opportunities" className="w-full">
+        <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="opportunities">AI Opportunities</TabsTrigger>
             <TabsTrigger value="overview">Market Overview</TabsTrigger>
+            <TabsTrigger value="opportunities">AI Opportunities</TabsTrigger>
           </TabsList>
 
           {/* AI Opportunities Tab */}
@@ -473,185 +473,244 @@ export function Home() {
             </Tabs>
           </TabsContent>
 
-          {/* Market Overview Tab */}
-          <TabsContent value="overview" className="space-y-4 mt-4">
-            <h2 className="text-lg font-semibold text-foreground">Market Overview</h2>
-            
+          {/* Market Overview Tab - Main Focus */}
+          <TabsContent value="overview" className="space-y-6 mt-4">
+            {/* Market Statistics Cards */}
             <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300" data-testid="total-volume">
+                        {isLoading ? '...' : formatVolume(totalVolume)}
+                      </div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">Total Volume (24h)</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={`bg-gradient-to-br ${avgChange >= 0 
+                ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+                : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
+              }`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${avgChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`}>
+                      {avgChange >= 0 ? 
+                        <TrendingUp className="h-5 w-5 text-white" /> : 
+                        <TrendingDown className="h-5 w-5 text-white" />
+                      }
+                    </div>
+                    <div>
+                      <div className={`text-2xl font-bold ${avgChange >= 0 
+                        ? 'text-green-700 dark:text-green-300' 
+                        : 'text-red-700 dark:text-red-300'
+                      }`} data-testid="avg-change">
+                        {isLoading ? '...' : formatChange(avgChange.toString())}
+                      </div>
+                      <div className={`text-sm ${avgChange >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                      }`}>Market Average (24h)</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Market Sentiment Visualization */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Market Sentiment Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-lg font-bold capitalize flex items-center gap-2">
+                    {marketTrend === 'bullish' && <TrendingUp className="h-5 w-5 text-green-500" />}
+                    {marketTrend === 'bearish' && <TrendingDown className="h-5 w-5 text-red-500" />}
+                    {marketTrend === 'neutral' && <Activity className="h-5 w-5 text-yellow-500" />}
+                    <span className={`${
+                      marketTrend === 'bullish' ? 'text-green-500' : 
+                      marketTrend === 'bearish' ? 'text-red-500' : 'text-yellow-500'
+                    }`}>
+                      {marketTrend} Market
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {data?.length || 0} Pairs Analyzed
+                  </Badge>
+                </div>
+
+                {/* Sentiment Progress Bars */}
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-green-500 font-medium">Bullish Pairs</span>
+                      <span className="font-medium">{bullishPairs.length} ({sentiment.bullish.toFixed(1)}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${sentiment.bullish}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-red-500 font-medium">Bearish Pairs</span>
+                      <span className="font-medium">{bearishPairs.length} ({sentiment.bearish.toFixed(1)}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${sentiment.bearish}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-500 font-medium">Neutral Pairs</span>
+                      <span className="font-medium">{stablePairs.length} ({sentiment.neutral.toFixed(1)}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-gray-400 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${sentiment.neutral}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Gainers & Losers */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Total Volume
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold" data-testid="total-volume">
-                {isLoading ? '...' : formatVolume(totalVolume)}
-              </div>
-              <div className="text-xs text-muted-foreground">24h</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Avg Change
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-lg font-bold ${avgChange >= 0 ? 'text-green-500' : 'text-red-500'}`} data-testid="avg-change">
-                {isLoading ? '...' : formatChange(avgChange.toString())}
-              </div>
-              <div className="text-xs text-muted-foreground">24h</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Market Sentiment */}
-        <div>
-          <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Market Sentiment
-          </h3>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-lg font-bold capitalize">
-                  {marketTrend} Market
-                </div>
-                <div className={`flex items-center gap-1 ${
-                  marketTrend === 'bullish' ? 'text-green-500' : 
-                  marketTrend === 'bearish' ? 'text-red-500' : 'text-yellow-500'
-                }`}>
-                  {marketTrend === 'bullish' ? <TrendingUp className="h-4 w-4" /> : 
-                   marketTrend === 'bearish' ? <TrendingDown className="h-4 w-4" /> : 
-                   <Activity className="h-4 w-4" />}
-                  <span className="text-sm font-medium">
-                    {marketTrend === 'bullish' ? 'Positive' : 
-                     marketTrend === 'bearish' ? 'Negative' : 'Mixed'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-500">Bullish Pairs</span>
-                  <span>{bullishPairs.length} ({sentiment.bullish.toFixed(1)}%)</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-red-500">Bearish Pairs</span>
-                  <span>{bearishPairs.length} ({sentiment.bearish.toFixed(1)}%)</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Stable Pairs</span>
-                  <span>{stablePairs.length} ({sentiment.neutral.toFixed(1)}%)</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Trading Suggestions */}
-        <div>
-          <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            Trading Opportunities
-          </h3>
-
-          <div className="space-y-3">
-            {isLoading ? (
-              <div className="text-center py-4 text-muted-foreground">Loading suggestions...</div>
-            ) : (
-              <>
-                {/* High Volume Opportunities */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">High Volume Pairs</div>
-                      <div className="text-xs text-muted-foreground">Active Trading</div>
-                    </div>
-                    <div className="text-sm text-muted-foreground mb-3">
-                      Strong liquidity and momentum for scalping
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {highVolumePairs.slice(0, 3).map((pair) => (
-                        <div key={pair.symbol} className="flex items-center gap-2 bg-accent/50 rounded px-2 py-1 text-xs">
-                          <span className="font-medium">{pair.symbol}</span>
-                          <span className={parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}>
-                            {formatChange(pair.change24h)}
-                          </span>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-green-600">
+                    <TrendingUp className="h-4 w-4" />
+                    Top Gainers (24h)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {bullishPairs.slice(0, 5).map((pair, index) => (
+                    <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {index + 1}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Market Direction Suggestion */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">Market Direction</div>
-                      <div className={`text-xs px-2 py-1 rounded ${
-                        marketTrend === 'bullish' ? 'bg-green-500/10 text-green-500' :
-                        marketTrend === 'bearish' ? 'bg-red-500/10 text-red-500' :
-                        'bg-yellow-500/10 text-yellow-500'
-                      }`}>
-                        {marketTrend.toUpperCase()}
+                        <span className="font-medium">{pair.symbol}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-green-600">
+                          {formatChange(pair.change24h)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          ${parseFloat(pair.price).toFixed(4)}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {marketTrend === 'bullish' && "Consider long positions on breakouts with strong volume"}
-                      {marketTrend === 'bearish' && "Look for short opportunities on resistance levels"}
-                      {marketTrend === 'neutral' && "Range trading strategies may be effective in current conditions"}
-                    </div>
-                  </CardContent>
-                </Card>
+                  ))}
+                </CardContent>
+              </Card>
 
-                {/* Risk Management */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">Risk Management</div>
-                      <div className="text-xs text-muted-foreground">Always Required</div>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-red-600">
+                    <TrendingDown className="h-4 w-4" />
+                    Top Losers (24h)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {bearishPairs.slice(0, 5).map((pair, index) => (
+                    <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <span className="font-medium">{pair.symbol}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-red-600">
+                          {formatChange(pair.change24h)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          ${parseFloat(pair.price).toFixed(4)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Current volatility suggests using tight stop-losses. 
-                      Consider position sizing based on 24h volume patterns.
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* High Volume Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-purple-500" />
+                  High Volume Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {highVolumePairs.slice(0, 6).map((pair, index) => (
+                    <div key={pair.symbol} className="flex items-center justify-between p-3 rounded border hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-medium">{pair.symbol}</div>
+                          <div className="text-xs text-muted-foreground">
+                            ${parseFloat(pair.price).toFixed(4)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-purple-600">
+                          {formatVolume(parseFloat(pair.volume24h || '0'))}
+                        </div>
+                        <div className={`text-sm ${parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {formatChange(pair.change24h)}
+                        </div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
-        </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Quick Actions */}
-            <div>
-              <h3 className="text-md font-semibold mb-3">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Link href="/trade" data-testid="button-start-trading">
-              <Card className="cursor-pointer hover:bg-accent transition-colors">
-                <CardContent className="p-4 text-center">
-                  <BarChart3 className="h-8 w-8 mx-auto mb-2 text-primary" />
-                  <div className="font-medium">Start Trading</div>
-                  <div className="text-xs text-muted-foreground">Open positions</div>
-                </CardContent>
-              </Card>
-            </Link>
+            <div className="grid grid-cols-2 gap-4">
+              <Link href="/trade" data-testid="button-start-trading">
+                <Card className="cursor-pointer hover:bg-accent transition-colors bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                  <CardContent className="p-4 text-center">
+                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                    <div className="font-medium">Start Trading</div>
+                    <div className="text-xs text-purple-600 dark:text-purple-400">Open positions</div>
+                  </CardContent>
+                </Card>
+              </Link>
 
-            <Link href="/bot" data-testid="button-setup-bot">
-              <Card className="cursor-pointer hover:bg-accent transition-colors">
-                <CardContent className="p-4 text-center">
-                  <Bot className="h-8 w-8 mx-auto mb-2 text-primary" />
-                  <div className="font-medium">Setup Bot</div>
-                  <div className="text-xs text-muted-foreground">Automate trading</div>
-                </CardContent>
-              </Card>
-            </Link>
-              </div>
+              <Link href="/analyzer" data-testid="button-analyze-pairs">
+                <Card className="cursor-pointer hover:bg-accent transition-colors bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+                  <CardContent className="p-4 text-center">
+                    <Brain className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+                    <div className="font-medium">Analyze Pairs</div>
+                    <div className="text-xs text-orange-600 dark:text-orange-400">Technical analysis</div>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </TabsContent>
         </Tabs>
