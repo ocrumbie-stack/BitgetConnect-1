@@ -222,7 +222,15 @@ export default function FolderDetailPage() {
   };
 
   const handleBulkBotDeployment = () => {
-    if (!selectedStrategy || !folder?.tradingPairs?.length) return;
+    if (!selectedStrategy || !folder?.tradingPairs?.length) {
+      alert('Please select a strategy and ensure the folder has trading pairs.');
+      return;
+    }
+    
+    if (!capital || parseFloat(capital) <= 0) {
+      alert('Please enter a valid capital amount.');
+      return;
+    }
     
     // Check if this folder already has active bots running
     const folderActiveExecutions = (activeExecutions || []).filter((execution: any) => 
@@ -540,8 +548,8 @@ export default function FolderDetailPage() {
                       {strategies.map((strategy: any) => (
                         <SelectItem key={strategy.id} value={strategy.id}>
                           <div className="flex items-center gap-2">
-                            <Badge variant={strategy.positionDirection === 'long' ? 'default' : 'destructive'} className="text-xs">
-                              {strategy.positionDirection?.toUpperCase()}
+                            <Badge variant={strategy.config?.positionDirection === 'long' ? 'default' : 'destructive'} className="text-xs">
+                              {strategy.config?.positionDirection?.toUpperCase() || 'MANUAL'}
                             </Badge>
                             <span>{strategy.name}</span>
                           </div>
