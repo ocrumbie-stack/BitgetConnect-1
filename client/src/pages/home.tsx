@@ -298,7 +298,7 @@ export function Home() {
               <TabsContent value="momentum" className="space-y-3 mt-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-base font-medium flex items-center gap-2">
+                    <h3 className="text-lg font-medium flex items-center gap-2">
                       <Zap className="h-4 w-4 text-yellow-500" />
                       Momentum Trading
                     </h3>
@@ -384,7 +384,7 @@ export function Home() {
                 <TabsContent key={strategy} value={strategy} className="space-y-3 mt-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium flex items-center gap-2">
+                      <h3 className="text-lg font-medium flex items-center gap-2">
                         {strategy === 'breakout' && <TrendingUp className="h-4 w-4 text-green-500" />}
                         {strategy === 'scalping' && <Target className="h-4 w-4 text-blue-500" />}
                         {strategy === 'swing' && <Trend className="h-4 w-4 text-purple-500" />}
@@ -529,7 +529,7 @@ export function Home() {
             {/* Market Sentiment Visualization */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <Activity className="h-5 w-5" />
                   Market Sentiment Analysis
                 </CardTitle>
@@ -600,7 +600,7 @@ export function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-green-600">
+                  <CardTitle className="text-lg flex items-center gap-2 text-green-600">
                     <TrendingUp className="h-4 w-4" />
                     Top Gainers (24h)
                   </CardTitle>
@@ -629,7 +629,7 @@ export function Home() {
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-red-600">
+                  <CardTitle className="text-lg flex items-center gap-2 text-red-600">
                     <TrendingDown className="h-4 w-4" />
                     Top Losers (24h)
                   </CardTitle>
@@ -660,7 +660,7 @@ export function Home() {
             {/* High Volume Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-purple-500" />
                   High Volume Activity
                 </CardTitle>

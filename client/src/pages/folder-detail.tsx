@@ -290,7 +290,7 @@ export default function FolderDetailPage() {
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: folder.color || '#3b82f6' }}
           />
-          <h1 className="text-xl font-bold text-foreground">{folder.name}</h1>
+          <h1 className="text-lg font-semibold text-foreground">{folder.name}</h1>
         </div>
         {folder.description && (
           <p className="text-muted-foreground text-sm ml-12">{folder.description}</p>

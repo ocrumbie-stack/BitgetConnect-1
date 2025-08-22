@@ -298,7 +298,7 @@ export function Analyzer() {
             {/* Support & Resistance */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
                   Key Levels
                 </CardTitle>
@@ -333,7 +333,7 @@ export function Analyzer() {
             {/* Trading Recommendation */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
                   Trading Recommendation
                 </CardTitle>
@@ -410,7 +410,7 @@ export function Analyzer() {
             {/* Technical Signals */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <Activity className="h-5 w-5" />
                   Technical Signals
                 </CardTitle>
@@ -433,7 +433,7 @@ export function Analyzer() {
         {!selectedPair && (
           <Card>
             <CardHeader>
-              <CardTitle>Quick Analysis - Popular Pairs</CardTitle>
+              <CardTitle className="text-lg">Quick Analysis - Popular Pairs</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
