@@ -12,6 +12,7 @@ import { Trade } from "@/pages/trade";
 import BotPage from "@/pages/bot";
 import { CreateScreener } from "@/pages/create-screener";
 import { EditScreener } from "@/pages/edit-screener";
+import FoldersPage from "@/pages/folders";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/markets" component={Markets} />
         <Route path="/trade" component={Trade} />
         <Route path="/bot" component={BotPage} />
+        <Route path="/folders" component={FoldersPage} />
         <Route path="/create-screener" component={CreateScreener} />
         <Route path="/edit-screener/:id" component={EditScreener} />
         <Route path="/advanced" component={Screener} />
