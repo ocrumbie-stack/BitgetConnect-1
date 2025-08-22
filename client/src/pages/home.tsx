@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
@@ -13,6 +13,8 @@ export function Home() {
   const { data, isLoading } = useBitgetData();
   const [, setLocation] = useLocation();
   const [activeOpportunityTab, setActiveOpportunityTab] = useState('momentum');
+  const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
+  const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
 
   // Market analysis
   const bullishPairs = data?.filter(item => parseFloat(item.change24h || '0') > 0.05) || [];
@@ -241,6 +243,23 @@ export function Home() {
     reversal: generateOpportunities('reversal')
   };
 
+  const toggleStrategyExpansion = (strategy: string) => {
+    const newExpanded = new Set(expandedStrategies);
+    if (newExpanded.has(strategy)) {
+      newExpanded.delete(strategy);
+    } else {
+      newExpanded.add(strategy);
+    }
+    setExpandedStrategies(newExpanded);
+  };
+
+  const toggleShowAll = (strategy: string) => {
+    setShowAllOpportunities(prev => ({
+      ...prev,
+      [strategy]: !prev[strategy]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -263,218 +282,194 @@ export function Home() {
                 <Brain className="h-5 w-5 text-blue-500" />
                 AI Trading Opportunities
               </h2>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Live Analysis
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Live Analysis
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
             </div>
 
-
-
-            <Tabs value={activeOpportunityTab} onValueChange={setActiveOpportunityTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 text-sm">
-                <TabsTrigger value="momentum" className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" />
-                  Momentum
-                </TabsTrigger>
-                <TabsTrigger value="breakout" className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  Breakout
-                </TabsTrigger>
-                <TabsTrigger value="scalping" className="flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  Scalping
-                </TabsTrigger>
-                <TabsTrigger value="swing" className="flex items-center gap-1">
-                  <Trend className="h-3 w-3" />
-                  Swing
-                </TabsTrigger>
-                <TabsTrigger value="reversal" className="flex items-center gap-1">
-                  <Activity className="h-3 w-3" />
-                  Reversal
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Momentum Opportunities */}
-              <TabsContent value="momentum" className="space-y-3 mt-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-yellow-500" />
-                      Momentum Trading
-                    </h3>
-                    <Badge variant="secondary" className="text-sm">
-                      Strong Directional Moves
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    High-momentum pairs with strong volume confirmation for trend following strategies.
-                  </p>
-                </div>
+            {/* Strategy Overview Dashboard */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+              {[
+                { key: 'momentum', label: 'Momentum', icon: Zap, color: 'bg-yellow-500', desc: 'Strong directional moves', bgColor: 'bg-yellow-50 dark:bg-yellow-950' },
+                { key: 'breakout', label: 'Breakout', icon: TrendingUp, color: 'bg-green-500', desc: 'Volume breakouts', bgColor: 'bg-green-50 dark:bg-green-950' },
+                { key: 'scalping', label: 'Scalping', icon: Target, color: 'bg-blue-500', desc: 'Quick scalp trades', bgColor: 'bg-blue-50 dark:bg-blue-950' },
+                { key: 'swing', label: 'Swing', icon: Trend, color: 'bg-purple-500', desc: 'Trend following', bgColor: 'bg-purple-50 dark:bg-purple-950' },
+                { key: 'reversal', label: 'Reversal', icon: Activity, color: 'bg-orange-500', desc: 'Mean reversion', bgColor: 'bg-orange-50 dark:bg-orange-950' }
+              ].map((strategy) => {
+                const isExpanded = expandedStrategies.has(strategy.key);
+                const opportunityCount = opportunities[strategy.key as keyof typeof opportunities]?.length || 0;
                 
-                {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Brain className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-                    Analyzing momentum opportunities...
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {opportunities.momentum.slice(0, 6).map((opportunity: any) => (
-                      <Card key={opportunity.symbol} className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <div>
-                              <div className="font-medium text-sm">{opportunity.symbol}</div>
-                              <div className="text-xs text-muted-foreground">
-                                ${parseFloat(opportunity.price).toFixed(4)}
-                              </div>
-                            </div>
-                            <Badge variant={opportunity.change24hNum >= 0 ? 'default' : 'destructive'} className="text-xs">
-                              {formatChange(opportunity.change24h)}
-                            </Badge>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className={`text-xs ${
-                                opportunity.risk === 'High' ? 'border-red-200 text-red-700' :
-                                opportunity.risk === 'Medium' ? 'border-yellow-200 text-yellow-700' :
-                                'border-green-200 text-green-700'
-                              }`}>
-                                {opportunity.risk} Risk
-                              </Badge>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
-                                className="h-8 px-2"
-                              >
-                                <ChevronRight className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {opportunity.timeframe}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm">
-                              Score: <span className="font-medium">{opportunity.score}</span>
-                            </div>
-                            <div className="text-sm text-blue-600">
-                              Confidence: {opportunity.confidence}%
-                            </div>
-                          </div>
-                          <div className="flex gap-1 flex-wrap">
-                            {opportunity.reasons.map((reason: string, idx: number) => (
-                              <Badge key={idx} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                {reason}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                return (
+                  <Card 
+                    key={strategy.key}
+                    className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                      isExpanded ? `border-blue-500 ${strategy.bgColor}` : 'border-border'
+                    }`}
+                    onClick={() => toggleStrategyExpansion(strategy.key)}
+                  >
+                    <CardContent className="p-4 text-center">
+                      <div className={`w-12 h-12 ${strategy.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
+                        <strategy.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="text-sm font-semibold">{strategy.label}</div>
+                      <div className="text-xs text-muted-foreground mb-2">{strategy.desc}</div>
+                      <div className="flex items-center justify-center gap-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {opportunityCount} pairs
+                        </Badge>
+                        {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
 
-              {/* Other strategy tabs with similar structure */}
-              {['breakout', 'scalping', 'swing', 'reversal'].map((strategy) => (
-                <TabsContent key={strategy} value={strategy} className="space-y-3 mt-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium flex items-center gap-2">
-                        {strategy === 'breakout' && <TrendingUp className="h-4 w-4 text-green-500" />}
-                        {strategy === 'scalping' && <Target className="h-4 w-4 text-blue-500" />}
-                        {strategy === 'swing' && <Trend className="h-4 w-4 text-purple-500" />}
-                        {strategy === 'reversal' && <Activity className="h-4 w-4 text-orange-500" />}
-                        {strategy.charAt(0).toUpperCase() + strategy.slice(1)} Trading
-                      </h3>
-                      <Badge variant="secondary" className="text-xs">
-                        {strategy === 'breakout' && 'Volume Breakouts'}
-                        {strategy === 'scalping' && 'High Liquidity'}
-                        {strategy === 'swing' && 'Trend Following'}
-                        {strategy === 'reversal' && 'Mean Reversion'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {strategy === 'breakout' && 'Moderate moves with accelerating volume for breakout strategies.'}
-                      {strategy === 'scalping' && 'Ultra-high liquidity pairs perfect for quick scalping trades.'}
-                      {strategy === 'swing' && 'Established trends with good risk/reward for swing trading.'}
-                      {strategy === 'reversal' && 'Oversold/overbought conditions for mean reversion plays.'}
-                    </p>
-                  </div>
-                  
-                  {isLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Brain className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-                      Analyzing {strategy} opportunities...
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {opportunities[strategy as keyof typeof opportunities].slice(0, 6).map((opportunity: any) => (
-                        <Card key={opportunity.symbol} className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <div>
-                                <div className="font-medium">{opportunity.symbol}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  ${parseFloat(opportunity.price).toFixed(4)}
+            {/* Collapsible Strategy Sections */}
+            <div className="space-y-4">
+              {[
+                { key: 'momentum', label: 'Momentum Trading', icon: Zap, color: 'text-yellow-500', desc: 'High-momentum pairs with strong volume confirmation for trend following strategies.', badge: 'Strong Directional Moves' },
+                { key: 'breakout', label: 'Breakout Trading', icon: TrendingUp, color: 'text-green-500', desc: 'Moderate moves with accelerating volume for breakout strategies.', badge: 'Volume Breakouts' },
+                { key: 'scalping', label: 'Scalping Trading', icon: Target, color: 'text-blue-500', desc: 'Ultra-high liquidity pairs perfect for quick scalping trades.', badge: 'High Liquidity' },
+                { key: 'swing', label: 'Swing Trading', icon: Trend, color: 'text-purple-500', desc: 'Established trends with good risk/reward for swing trading.', badge: 'Trend Following' },
+                { key: 'reversal', label: 'Reversal Trading', icon: Activity, color: 'text-orange-500', desc: 'Oversold/overbought conditions for mean reversion plays.', badge: 'Mean Reversion' }
+              ].map((strategy) => {
+                const isExpanded = expandedStrategies.has(strategy.key);
+                const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
+                const showAll = showAllOpportunities[strategy.key] || false;
+                const displayedOpportunities = showAll ? strategyOpportunities : strategyOpportunities.slice(0, 3);
+                
+                return (
+                  <Card key={strategy.key} className={`transition-all ${isExpanded ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : ''}`}>
+                    <CardHeader 
+                      className="cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => toggleStrategyExpansion(strategy.key)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <strategy.icon className={`h-5 w-5 ${strategy.color}`} />
+                          <div>
+                            <CardTitle className="text-lg">{strategy.label}</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">{strategy.desc}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {strategy.badge}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {strategyOpportunities.length} pairs
+                          </Badge>
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    {isExpanded && (
+                      <CardContent className="pt-0">
+                        {isLoading ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Brain className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                            Analyzing {strategy.key} opportunities...
+                          </div>
+                        ) : strategyOpportunities.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Info className="h-8 w-8 mx-auto mb-2" />
+                            <p>No {strategy.key} opportunities found at the moment</p>
+                            <p className="text-xs mt-1">Market conditions may change - try refreshing later</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {displayedOpportunities.map((opportunity: any) => (
+                              <Card key={opportunity.symbol} className="p-4 hover:shadow-md transition-shadow">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <div>
+                                      <div className="font-medium text-sm">{opportunity.symbol}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        ${parseFloat(opportunity.price).toFixed(4)}
+                                      </div>
+                                    </div>
+                                    <Badge variant={opportunity.change24hNum >= 0 ? 'default' : 'destructive'} className="text-xs">
+                                      {formatChange(opportunity.change24h)}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Badge variant="outline" className={`text-xs ${
+                                        opportunity.risk === 'High' ? 'border-red-200 text-red-700' :
+                                        opportunity.risk === 'Medium' ? 'border-yellow-200 text-yellow-700' :
+                                        'border-green-200 text-green-700'
+                                      }`}>
+                                        {opportunity.risk} Risk
+                                      </Badge>
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
+                                        className="h-8 px-2"
+                                      >
+                                        <ChevronRight className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {opportunity.timeframe}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                              <Badge variant={opportunity.change24hNum >= 0 ? 'default' : 'destructive'} className="text-xs">
-                                {formatChange(opportunity.change24h)}
-                              </Badge>
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className={`text-xs ${
-                                  opportunity.risk === 'High' ? 'border-red-200 text-red-700' :
-                                  opportunity.risk === 'Medium' ? 'border-yellow-200 text-yellow-700' :
-                                  'border-green-200 text-green-700'
-                                }`}>
-                                  {opportunity.risk} Risk
-                                </Badge>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
-                                  className="h-8 px-2"
+                                
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-4">
+                                    <div className="text-sm">
+                                      Score: <span className="font-medium text-blue-600">{opportunity.score}</span>
+                                    </div>
+                                    <div className="text-sm">
+                                      Confidence: <span className="font-medium text-green-600">{opportunity.confidence}%</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {opportunity.reasons.map((reason: string, idx: number) => (
+                                      <Badge key={idx} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                        {reason}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                            
+                            {strategyOpportunities.length > 3 && (
+                              <div className="text-center pt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => toggleShowAll(strategy.key)}
+                                  className="flex items-center gap-2"
                                 >
-                                  <ChevronRight className="h-4 w-4" />
+                                  {showAll ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                  {showAll ? `Show Less` : `Show All ${strategyOpportunities.length} Opportunities`}
                                 </Button>
                               </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {opportunity.timeframe}
-                              </div>
-                            </div>
+                            )}
                           </div>
-                          
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <div className="text-sm">
-                                Score: <span className="font-medium">{opportunity.score}</span>
-                              </div>
-                              <div className="text-sm text-blue-600">
-                                Confidence: {opportunity.confidence}%
-                              </div>
-                            </div>
-                            <div className="flex gap-1 flex-wrap">
-                              {opportunity.reasons.map((reason: string, idx: number) => (
-                                <Badge key={idx} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                  {reason}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
+                        )}
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
           </TabsContent>
 
           {/* Market Overview Tab - Main Focus */}
