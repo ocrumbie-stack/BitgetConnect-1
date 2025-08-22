@@ -298,37 +298,37 @@ export function Home() {
               </div>
             </div>
 
-            {/* Strategy Overview Dashboard */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+            {/* Trading Strategy Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
               {[
-                { key: 'momentum', label: 'Momentum', icon: Zap, color: 'bg-yellow-500', desc: 'Strong directional moves', bgColor: 'bg-yellow-50 dark:bg-yellow-950' },
-                { key: 'breakout', label: 'Breakout', icon: TrendingUp, color: 'bg-green-500', desc: 'Volume breakouts', bgColor: 'bg-green-50 dark:bg-green-950' },
-                { key: 'scalping', label: 'Scalping', icon: Target, color: 'bg-blue-500', desc: 'Quick scalp trades', bgColor: 'bg-blue-50 dark:bg-blue-950' },
-                { key: 'swing', label: 'Swing', icon: Trend, color: 'bg-purple-500', desc: 'Trend following', bgColor: 'bg-purple-50 dark:bg-purple-950' },
-                { key: 'reversal', label: 'Reversal', icon: Activity, color: 'bg-orange-500', desc: 'Mean reversion', bgColor: 'bg-orange-50 dark:bg-orange-950' }
+                { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
+                { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
+                { key: 'scalping', label: 'Scalping', icon: Target, iconColor: 'bg-blue-500', desc: 'Quick scalp trades' },
+                { key: 'swing', label: 'Swing', icon: Trend, iconColor: 'bg-purple-500', desc: 'Trend following' },
+                { key: 'reversal', label: 'Reversal', icon: Activity, iconColor: 'bg-orange-500', desc: 'Mean reversion' }
               ].map((strategy) => {
                 const isExpanded = expandedStrategies.has(strategy.key);
-                const opportunityCount = opportunities[strategy.key as keyof typeof opportunities]?.length || 0;
+                const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
                 
                 return (
                   <Card 
-                    key={strategy.key}
+                    key={strategy.key} 
                     className={`cursor-pointer transition-all hover:shadow-md border-2 ${
-                      isExpanded ? `border-blue-500 ${strategy.bgColor}` : 'border-border'
+                      isExpanded ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : 'border-border hover:border-accent'
                     }`}
                     onClick={() => toggleStrategyExpansion(strategy.key)}
                   >
-                    <CardContent className="p-4 text-center">
-                      <div className={`w-12 h-12 ${strategy.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                        <strategy.icon className="h-6 w-6 text-white" />
+                    <CardContent className="p-6 text-center">
+                      <div className={`w-16 h-16 ${strategy.iconColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                        <strategy.icon className="h-8 w-8 text-white" />
                       </div>
-                      <div className="text-sm font-semibold">{strategy.label}</div>
-                      <div className="text-xs text-muted-foreground mb-2">{strategy.desc}</div>
-                      <div className="flex items-center justify-center gap-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {opportunityCount} pairs
+                      <div className="text-lg font-semibold mb-1">{strategy.label}</div>
+                      <div className="text-sm text-muted-foreground mb-3">{strategy.desc}</div>
+                      <div className="flex items-center justify-center gap-2">
+                        <Badge variant="secondary" className="text-sm">
+                          {strategyOpportunities.length} pairs
                         </Badge>
-                        {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </div>
                     </CardContent>
                   </Card>
@@ -336,7 +336,7 @@ export function Home() {
               })}
             </div>
 
-            {/* Collapsible Strategy Sections */}
+            {/* Expanded Strategy Content */}
             <div className="space-y-4">
               {[
                 { key: 'momentum', label: 'Momentum Trading', icon: Zap, color: 'text-yellow-500', desc: 'High-momentum pairs with strong volume confirmation for trend following strategies.', badge: 'Strong Directional Moves' },
@@ -344,18 +344,14 @@ export function Home() {
                 { key: 'scalping', label: 'Scalping Trading', icon: Target, color: 'text-blue-500', desc: 'Ultra-high liquidity pairs perfect for quick scalping trades.', badge: 'High Liquidity' },
                 { key: 'swing', label: 'Swing Trading', icon: Trend, color: 'text-purple-500', desc: 'Established trends with good risk/reward for swing trading.', badge: 'Trend Following' },
                 { key: 'reversal', label: 'Reversal Trading', icon: Activity, color: 'text-orange-500', desc: 'Oversold/overbought conditions for mean reversion plays.', badge: 'Mean Reversion' }
-              ].map((strategy) => {
-                const isExpanded = expandedStrategies.has(strategy.key);
+              ].filter(strategy => expandedStrategies.has(strategy.key)).map((strategy) => {
                 const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
                 const showAll = showAllOpportunities[strategy.key] || false;
                 const displayedOpportunities = showAll ? strategyOpportunities : strategyOpportunities.slice(0, 3);
                 
                 return (
-                  <Card key={strategy.key} className={`transition-all ${isExpanded ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : ''}`}>
-                    <CardHeader 
-                      className="cursor-pointer hover:bg-accent/50 transition-colors"
-                      onClick={() => toggleStrategyExpansion(strategy.key)}
-                    >
+                  <Card key={strategy.key} className="border-2 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+                    <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <strategy.icon className={`h-5 w-5 ${strategy.color}`} />
@@ -368,16 +364,19 @@ export function Home() {
                           <Badge variant="secondary" className="text-xs">
                             {strategy.badge}
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {strategyOpportunities.length} pairs
-                          </Badge>
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleStrategyExpansion(strategy.key)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </CardHeader>
                     
-                    {isExpanded && (
-                      <CardContent className="pt-0">
+                    <CardContent className="pt-0">
                         {isLoading ? (
                           <div className="text-center py-8 text-muted-foreground">
                             <Brain className="h-8 w-8 mx-auto mb-2 animate-pulse" />
@@ -465,7 +464,6 @@ export function Home() {
                           </div>
                         )}
                       </CardContent>
-                    )}
                   </Card>
                 );
               })}
