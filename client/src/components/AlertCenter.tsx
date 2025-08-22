@@ -120,8 +120,18 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
     if (severity === 'error') return <AlertTriangle className="h-4 w-4 text-red-500" />;
     if (severity === 'warning') return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
     if (severity === 'success') return <CheckCircle className="h-4 w-4 text-green-500" />;
+    
+    // Specific alert type icons
     if (alertType.includes('pnl_gain')) return <TrendingUp className="h-4 w-4 text-green-500" />;
     if (alertType.includes('pnl_loss')) return <TrendingDown className="h-4 w-4 text-red-500" />;
+    if (alertType.includes('screener')) return <Settings className="h-4 w-4 text-blue-500" />;
+    if (alertType.includes('trend')) return <TrendingUp className="h-4 w-4 text-purple-500" />;
+    if (alertType.includes('volume')) return <Bell className="h-4 w-4 text-orange-500" />;
+    if (alertType.includes('price') || alertType.includes('breakout')) return <TrendingUp className="h-4 w-4 text-green-500" />;
+    if (alertType.includes('technical')) return <Settings className="h-4 w-4 text-cyan-500" />;
+    if (alertType.includes('support') || alertType.includes('resistance')) return <TrendingUp className="h-4 w-4 text-indigo-500" />;
+    if (alertType.includes('unusual') || alertType.includes('news')) return <Info className="h-4 w-4 text-yellow-500" />;
+    
     return <Info className="h-4 w-4 text-blue-500" />;
   };
 
@@ -221,7 +231,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
                                   )}
                                   {alert.data.pnl && (
                                     <span className={`px-2 py-1 rounded ${
-                                      parseFloat(alert.data.pnl) >= 0 
+                                      parseFloat(alert.data.pnl.replace(/[^0-9.-]/g, '')) >= 0 
                                         ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
                                         : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                                     }`}>
@@ -231,6 +241,31 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
                                   {alert.data.price && (
                                     <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                                       Price: ${alert.data.price}
+                                    </span>
+                                  )}
+                                  {alert.data.screenerName && (
+                                    <span className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded">
+                                      {alert.data.screenerName}
+                                    </span>
+                                  )}
+                                  {alert.data.volume && (
+                                    <span className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 px-2 py-1 rounded">
+                                      Vol: {alert.data.volume}
+                                    </span>
+                                  )}
+                                  {alert.data.indicator && (
+                                    <span className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-1 rounded">
+                                      {alert.data.indicator}: {alert.data.indicatorValue}
+                                    </span>
+                                  )}
+                                  {alert.data.timeframe && (
+                                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                      {alert.data.timeframe}
+                                    </span>
+                                  )}
+                                  {alert.data.confidence && (
+                                    <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 px-2 py-1 rounded">
+                                      {alert.data.confidence}% confidence
                                     </span>
                                   )}
                                 </div>
@@ -428,6 +463,14 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
                 <SelectItem value="exit_signal">Exit Signal</SelectItem>
                 <SelectItem value="bot_error">Bot Error</SelectItem>
                 <SelectItem value="performance_milestone">Performance Milestone</SelectItem>
+                <SelectItem value="screener_match">Screener Match</SelectItem>
+                <SelectItem value="trend_change">Trend Change</SelectItem>
+                <SelectItem value="volume_spike">Volume Spike</SelectItem>
+                <SelectItem value="price_breakout">Price Breakout</SelectItem>
+                <SelectItem value="technical_signal">Technical Signal</SelectItem>
+                <SelectItem value="support_resistance">Support/Resistance</SelectItem>
+                <SelectItem value="unusual_activity">Unusual Activity</SelectItem>
+                <SelectItem value="market_news">Market News</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -447,18 +490,104 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
             </Select>
           </div>
 
-          {(alertType.includes('pnl') || alertType.includes('performance')) && (
+          {(alertType.includes('pnl') || alertType.includes('performance') || alertType.includes('volume') || alertType.includes('price')) && (
             <div>
-              <Label htmlFor="threshold">Threshold (%)</Label>
+              <Label htmlFor="threshold">
+                {alertType.includes('volume') ? 'Volume Threshold (%)' : 
+                 alertType.includes('price') ? 'Price Change (%)' : 
+                 'Threshold (%)'}
+              </Label>
               <Input
                 id="threshold"
                 type="number"
                 step="0.1"
                 value={threshold}
                 onChange={(e) => setThreshold(e.target.value)}
-                placeholder="e.g., 5 for 5%"
+                placeholder={
+                  alertType.includes('volume') ? 'e.g., 200 for 200% volume increase' :
+                  alertType.includes('price') ? 'e.g., 5 for 5% price move' :
+                  'e.g., 5 for 5%'
+                }
                 data-testid="input-threshold"
               />
+            </div>
+          )}
+
+          {alertType === 'screener_match' && (
+            <div>
+              <Label htmlFor="screenerSelect">Select Screener</Label>
+              <Input
+                id="screenerSelect"
+                type="text"
+                placeholder="Enter screener name or ID"
+                data-testid="input-screener"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Alert when any pair matches the selected screener criteria
+              </p>
+            </div>
+          )}
+
+          {alertType === 'trend_change' && (
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="trendDirection">Trend Direction</Label>
+                <Select defaultValue="bullish">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bullish">Bullish</SelectItem>
+                    <SelectItem value="bearish">Bearish</SelectItem>
+                    <SelectItem value="neutral">Neutral</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="timeframe">Timeframe</Label>
+                <Select defaultValue="1h">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {alertType === 'technical_signal' && (
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="indicator">Technical Indicator</Label>
+                <Select defaultValue="rsi">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rsi">RSI</SelectItem>
+                    <SelectItem value="macd">MACD</SelectItem>
+                    <SelectItem value="bollinger">Bollinger Bands</SelectItem>
+                    <SelectItem value="stochastic">Stochastic</SelectItem>
+                    <SelectItem value="moving_average">Moving Average</SelectItem>
+                    <SelectItem value="volume">Volume</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="signal">Signal Type</Label>
+                <Input
+                  id="signal"
+                  type="text"
+                  placeholder="e.g., Oversold, Crossover, Breakout"
+                  data-testid="input-signal"
+                />
+              </div>
             </div>
           )}
 
