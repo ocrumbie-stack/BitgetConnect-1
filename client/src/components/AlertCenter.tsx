@@ -345,16 +345,16 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
             </ScrollArea>
           </TabsContent>
         </Tabs>
-
-        {showCreateAlert && (
-          <CreateAlertSettingDialog
-            userId={userId}
-            onClose={() => setShowCreateAlert(false)}
-            onSubmit={(setting) => createSettingMutation.mutate(setting)}
-            isSubmitting={createSettingMutation.isPending}
-          />
-        )}
       </DialogContent>
+
+      {showCreateAlert && (
+        <CreateAlertSettingDialog
+          userId={userId}
+          onClose={() => setShowCreateAlert(false)}
+          onSubmit={(setting) => createSettingMutation.mutate(setting)}
+          isSubmitting={createSettingMutation.isPending}
+        />
+      )}
     </Dialog>
   );
 }
@@ -429,16 +429,38 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
   const [method, setMethod] = useState('in_app');
   const [threshold, setThreshold] = useState('');
   const [isEnabled, setIsEnabled] = useState(true);
+  const [screenerName, setScreenerName] = useState('');
+  const [trendDirection, setTrendDirection] = useState('bullish');
+  const [timeframe, setTimeframe] = useState('1h');
+  const [indicator, setIndicator] = useState('rsi');
+  const [signal, setSignal] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const config: any = {};
+    
+    if (alertType === 'screener_match') {
+      config.screenerName = screenerName;
+    }
+    
+    if (alertType === 'trend_change') {
+      config.trendDirection = trendDirection;
+      config.timeframe = timeframe;
+    }
+    
+    if (alertType === 'technical_signal') {
+      config.technicalIndicator = indicator;
+      config.timeframe = timeframe;
+    }
+
     onSubmit({
       userId,
       alertType,
       method,
       threshold: threshold || null,
       isEnabled,
-      config: {}
+      config
     });
   };
 
@@ -519,6 +541,8 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
               <Input
                 id="screenerSelect"
                 type="text"
+                value={screenerName}
+                onChange={(e) => setScreenerName(e.target.value)}
                 placeholder="Enter screener name or ID"
                 data-testid="input-screener"
               />
@@ -532,7 +556,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
             <div className="space-y-2">
               <div>
                 <Label htmlFor="trendDirection">Trend Direction</Label>
-                <Select defaultValue="bullish">
+                <Select value={trendDirection} onValueChange={setTrendDirection}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -545,7 +569,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
               </div>
               <div>
                 <Label htmlFor="timeframe">Timeframe</Label>
-                <Select defaultValue="1h">
+                <Select value={timeframe} onValueChange={setTimeframe}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -565,7 +589,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
             <div className="space-y-2">
               <div>
                 <Label htmlFor="indicator">Technical Indicator</Label>
-                <Select defaultValue="rsi">
+                <Select value={indicator} onValueChange={setIndicator}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -584,6 +608,8 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
                 <Input
                   id="signal"
                   type="text"
+                  value={signal}
+                  onChange={(e) => setSignal(e.target.value)}
                   placeholder="e.g., Oversold, Crossover, Breakout"
                   data-testid="input-signal"
                 />
