@@ -119,6 +119,7 @@ export const botExecutions = pgTable("bot_executions", {
   deploymentType: text("deployment_type").default('manual'), // 'manual', 'folder'
   folderId: varchar("folder_id"), // Reference to the folder if deployed via bulk
   botName: text("bot_name"), // Store custom bot name for display
+  folderName: text("folder_name"), // Store folder name for compatibility
   startedAt: timestamp("started_at"),
   pausedAt: timestamp("paused_at"),
   createdAt: timestamp("created_at").defaultNow(),

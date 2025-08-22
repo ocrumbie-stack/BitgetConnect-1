@@ -220,7 +220,8 @@ export default function BotPage() {
             status: 'active',
             deploymentType: 'folder',
             folderId: selectedFolder,
-            botName: `${folder.name} - ${strategy.name}` // Use folder name as bot name
+            botName: `${folder.name} - ${strategy.name}`, // Use folder name as bot name
+            folderName: folder.name // Also store folder name for compatibility
           };
           
           await runStrategyMutation.mutateAsync(executionData);
@@ -659,11 +660,12 @@ export default function BotPage() {
                   const manualExecutions: any[] = [];
                   
                   (activeExecutions as any[]).forEach((execution: any) => {
-                    if (execution.deploymentType === 'folder_bulk' && execution.folderName) {
-                      if (!folderGroups[execution.folderName]) {
-                        folderGroups[execution.folderName] = [];
+                    if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                      const folderName = execution.folderName || execution.botName;
+                      if (!folderGroups[folderName]) {
+                        folderGroups[folderName] = [];
                       }
-                      folderGroups[execution.folderName].push(execution);
+                      folderGroups[folderName].push(execution);
                     } else {
                       manualExecutions.push(execution);
                     }
