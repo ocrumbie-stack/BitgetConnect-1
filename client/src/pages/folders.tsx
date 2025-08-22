@@ -19,7 +19,9 @@ import {
   Star,
   TrendingUp,
   BarChart3,
-  Settings
+  Settings,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -42,6 +44,7 @@ export default function FoldersPage() {
   const [folderName, setFolderName] = useState('');
   const [folderDescription, setFolderDescription] = useState('');
   const [folderColor, setFolderColor] = useState('#3b82f6');
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   // Fetch folders (using screeners API as base for now)
   const { data: folders = [], isLoading } = useQuery({
@@ -143,6 +146,16 @@ export default function FoldersPage() {
     setFolderDescription('');
     setFolderColor('#3b82f6');
     setSelectedFolder(null);
+  };
+
+  const toggleFolderExpansion = (folderId: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
+    } else {
+      newExpanded.add(folderId);
+    }
+    setExpandedFolders(newExpanded);
   };
 
   const handleCreateFolder = () => {
@@ -247,105 +260,125 @@ export default function FoldersPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {folders.map((folder: any) => (
-              <Card key={folder.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            {folders.map((folder: any) => {
+              const isExpanded = expandedFolders.has(folder.id);
+              return (
+                <Card key={folder.id} className="overflow-hidden">
+                  {/* Folder Header - Always Visible */}
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => toggleFolderExpansion(folder.id)}
+                  >
                     <div className="flex items-center gap-3">
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
                       <div 
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: folder.color || '#3b82f6' }}
                       />
-                      <div>
-                        <CardTitle className="text-base flex items-center gap-2">
-                          {folder.name}
-                          {folder.isStarred && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
-                        </CardTitle>
-                        {folder.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {folder.description}
-                          </p>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{folder.name}</h3>
+                        {folder.isStarred && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                       </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(folder)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => deleteFolderMutation.mutate(folder.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Trading Pairs</span>
-                      <Badge variant="secondary">
-                        {folder.tradingPairs?.length || 0}
+                      <Badge variant="outline" className="text-xs">
+                        {folder.tradingPairs?.length || 0} pairs
                       </Badge>
                     </div>
                     
-                    {folder.tradingPairs && folder.tradingPairs.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {folder.tradingPairs.slice(0, 4).map((pair: string) => (
-                          <Badge key={pair} variant="outline" className="text-xs">
-                            {pair}
-                          </Badge>
-                        ))}
-                        {folder.tradingPairs.length > 4 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{folder.tradingPairs.length - 4} more
-                          </Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-muted-foreground">
-                        <FileText className="h-8 w-8 mx-auto mb-2" />
-                        <p className="text-sm">No pairs added yet</p>
-                        <p className="text-xs mt-1">Right-click on pairs in Markets to add them</p>
-                      </div>
-                    )}
-
-                    <Separator />
-                    
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-2"
-                        onClick={() => setLocation(`/folders/${folder.id}`)}
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation(`/folders/${folder.id}`);
+                        }}
+                        className="text-xs"
                       >
-                        <BarChart3 className="h-4 w-4" />
-                        View
+                        View Details
                       </Button>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <TrendingUp className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEditDialog(folder)}>
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => deleteFolderMutation.mutate(folder.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                  {/* Expandable Content */}
+                  {isExpanded && (
+                    <div className="border-t bg-accent/20">
+                      <div className="p-4 space-y-3">
+                        {folder.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {folder.description}
+                          </p>
+                        )}
+                        
+                        {folder.tradingPairs && folder.tradingPairs.length > 0 ? (
+                          <div>
+                            <div className="text-sm text-muted-foreground mb-2">Trading Pairs:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {folder.tradingPairs.map((pair: string) => (
+                                <Badge 
+                                  key={pair} 
+                                  variant="outline" 
+                                  className="text-xs cursor-pointer hover:bg-accent"
+                                  onClick={() => setLocation(`/trade?pair=${pair}`)}
+                                >
+                                  {pair}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            <FileText className="h-8 w-8 mx-auto mb-2" />
+                            <p className="text-sm">No pairs added yet</p>
+                            <p className="text-xs mt-1">Right-click on pairs in Markets to add them</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2 pt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2"
+                            onClick={() => setLocation(`/folders/${folder.id}`)}
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                            Manage Pairs
+                          </Button>
+                          <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Analytics
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
