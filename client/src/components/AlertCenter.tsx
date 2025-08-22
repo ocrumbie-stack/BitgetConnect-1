@@ -62,7 +62,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Mark alert as read
   const markAsReadMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest(`/api/alerts/${alertId}/read`, 'PUT'),
+    mutationFn: (alertId: string) => apiRequest('PUT', `/api/alerts/${alertId}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
     },
@@ -70,7 +70,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Mark all alerts as read
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/alerts/${userId}/read-all`, 'PUT'),
+    mutationFn: () => apiRequest('PUT', `/api/alerts/${userId}/read-all`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
       toast({ title: 'All alerts marked as read' });
@@ -79,7 +79,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Delete alert
   const deleteAlertMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest(`/api/alerts/${alertId}`, 'DELETE'),
+    mutationFn: (alertId: string) => apiRequest('DELETE', `/api/alerts/${alertId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
       toast({ title: 'Alert deleted' });
@@ -90,9 +90,9 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
   const createSettingMutation = useMutation({
     mutationFn: async (setting: any) => {
       console.log('Creating alert setting:', setting);
-      const response = await apiRequest('/api/alert-settings', 'POST', setting);
+      const response = await apiRequest('POST', '/api/alert-settings', setting);
       console.log('Alert setting response:', response);
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       console.log('Alert setting created successfully:', data);
@@ -108,7 +108,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Update alert setting
   const updateSettingMutation = useMutation({
-    mutationFn: ({ id, ...updates }: any) => apiRequest(`/api/alert-settings/${id}`, 'PUT', updates),
+    mutationFn: ({ id, ...updates }: any) => apiRequest('PUT', `/api/alert-settings/${id}`, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
       toast({ title: 'Alert setting updated' });
@@ -117,7 +117,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Delete alert setting
   const deleteSettingMutation = useMutation({
-    mutationFn: (settingId: string) => apiRequest(`/api/alert-settings/${settingId}`, 'DELETE'),
+    mutationFn: (settingId: string) => apiRequest('DELETE', `/api/alert-settings/${settingId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
       toast({ title: 'Alert setting deleted' });
