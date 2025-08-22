@@ -124,6 +124,23 @@ export default function BotPage() {
     }
   });
 
+  // Terminate execution mutation
+  const handleTerminateExecution = useMutation({
+    mutationFn: async (executionId: string) => {
+      const response = await fetch(`/api/bot-executions/${executionId}/terminate`, {
+        method: 'POST'
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to stop bot: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+    }
+  });
+
   // Delete strategy mutation
   const deleteStrategyMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -259,14 +276,7 @@ export default function BotPage() {
     }
   };
 
-  const handleTerminateExecution = useMutation({
-    mutationFn: async (executionId: string) => {
-      return apiRequest(`/api/bot-executions/${executionId}/terminate`, 'POST');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
-    }
-  });
+
 
   // AI Recommendation function
   const generateRecommendations = () => {
