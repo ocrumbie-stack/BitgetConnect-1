@@ -220,7 +220,7 @@ export default function FoldersPage() {
       <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
               <Folder className="h-6 w-6" />
               Trading Folders
             </h1>
