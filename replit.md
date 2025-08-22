@@ -27,7 +27,7 @@ Key technical implementations include real-time data streaming via WebSockets, a
 ## Feature Specifications
 The application includes:
 - **Multi-page navigation**: Home, Markets, Trade, Bot, Analyzer.
-- **Home Page**: Market overview, top gainers/losers, AI-powered trading opportunities with strategy analysis (Momentum, Breakout, Scalping, Swing, Reversal), smart scoring, and risk assessment.
+- **Home Page**: Enhanced market overview with visual dashboard design featuring gradient cards, interactive sentiment analysis with progress bars, top gainers/losers rankings, high volume activity tracking, and AI-powered trading opportunities with strategy analysis (Momentum, Breakout, Scalping, Swing, Reversal), smart scoring, and risk assessment.
 - **Markets Page**: Comprehensive screener functionality with filtering criteria and clickable sorting.
 - **Trade Page**: Order placement, leverage, and position management.
 - **Bot Page**: Automated trading strategy setup, including creation, deployment, monitoring, and termination. Bots are strategy-based and can be applied to any trading pair.
