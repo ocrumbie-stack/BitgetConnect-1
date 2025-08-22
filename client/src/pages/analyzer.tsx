@@ -199,7 +199,7 @@ export function Analyzer() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              Select Trading Pair
+              Trend and Statistics
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
