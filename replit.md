@@ -51,7 +51,7 @@ Basic structure in place for user management:
 
 # Recent Changes
 
-## August 22, 2025 - COMPLETE TRADING PAIR MANAGEMENT WITH DONE BUTTON
+## August 22, 2025 - COMPLETE TRADING PAIR MANAGEMENT WITH UNIFIED FOLDER DEPLOYMENT
 - **Completed Comprehensive Trading Pair Organization System**: Full folder management with right-click context menus, long-press mobile support, and manual pair addition
 - **Implemented Clean Collapsible Folder View**: User-requested design showing only folder names with click-to-expand functionality for cleaner organization  
 - **Enhanced Markets Integration**: Right-click or long-press any trading pair in Markets page to add to folders with smart duplicate prevention
@@ -63,8 +63,12 @@ Basic structure in place for user management:
 - **NEW: Perfect Trading Pair Addition Flow**: Implemented expandable add pairs section with proper Done button functionality
 - **Clean Interface Design**: Shows simple "Add Trading Pairs" button by default, expands to full search interface when needed
 - **Done Button Implementation**: Properly closes entire add pairs section and returns to clean folder view when clicked
+- **COMPLETED: Unified Folder Deployment System**: Both Bot page and Folders page now create folder-named bots with consistent display
+- **Folder Bot Naming**: Active bots deployed via folder selection show as "FolderName - StrategyName" in active monitoring
+- **Schema Enhancement**: Added folderName field to botExecutions schema for proper folder-based bot identification
+- **Display Logic Fix**: Updated active bot grouping to recognize both 'folder' and 'folder_bulk' deployment types consistently
 - **Complete Workflow**: Folders → Strategy Selection → Bulk Deployment → Active Bot Monitoring → Clean Pair Management all working seamlessly
-- User confirmed Done button working: "It's working" - complete professional trading pair management system operational
+- User confirmed complete system: "Perfect" - unified professional trading pair and bot deployment system fully operational
 
 ## August 21, 2025
 - Successfully completed bot system architectural redesign from coin-specific to reusable strategy templates
