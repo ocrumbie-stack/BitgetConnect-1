@@ -358,13 +358,17 @@ export default function FolderDetailPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    console.log('Done button clicked, clearing input');
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Done button clicked, clearing input. Current input:', newPairInput);
                     setNewPairInput('');
                     setPairSuggestions([]);
+                    console.log('Input cleared');
                   }}
                   className="px-4 bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 whitespace-nowrap"
                   data-testid="button-done-adding-pairs"
+                  type="button"
                 >
                   Done
                 </Button>
@@ -372,7 +376,7 @@ export default function FolderDetailPage() {
               
               {/* Debug Info */}
               <div className="text-xs text-muted-foreground">
-                Input: "{newPairInput}" | Length: {newPairInput.length}
+                Input: "{newPairInput}" | Length: {newPairInput.length} | Suggestions: {pairSuggestions.length}
               </div>
             </div>
           </CardContent>
