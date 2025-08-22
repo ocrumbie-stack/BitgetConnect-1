@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,13 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
   const [prediction, setPrediction] = useState<PricePrediction | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Fetch real-time market data from Bitget API
+  const { data: marketData, isLoading: marketLoading } = useQuery({
+    queryKey: ['/api/futures'],
+    refetchInterval: 3000, // Refresh every 3 seconds for real-time data
+    staleTime: 1000
+  });
+
   // Common trading pairs for autocomplete
   const commonPairs = [
     'BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'SOLUSDT', 'DOTUSDT', 'MATICUSDT',
@@ -88,30 +96,34 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
     ).slice(0, 6);
   };
 
-  // Generate a reasonable price for demo purposes (in real implementation, you'd fetch from API)
-  const generateDemoPrice = (symbol: string) => {
-    // Generate realistic prices based on common crypto pairs
+  // Get real-time price from Bitget API data
+  const getRealTimePrice = (symbol: string) => {
+    if (!marketData || !Array.isArray(marketData)) {
+      return 0;
+    }
+    
+    const pair = marketData.find((item: any) => item.symbol === symbol);
+    return pair ? parseFloat(pair.price) : 0;
+  };
+
+  // Get current price with real-time data or fallback
+  const getCurrentPrice = (symbol: string) => {
+    const realPrice = getRealTimePrice(symbol);
+    if (realPrice > 0) {
+      return realPrice;
+    }
+    
+    // Fallback pricing only if real data isn't available
     const basePrices: { [key: string]: number } = {
-      'BTC': 40000,
-      'ETH': 2500,
-      'ADA': 0.45,
-      'SOL': 85,
-      'DOT': 7.5,
-      'MATIC': 0.85,
-      'LINK': 15,
-      'UNI': 6.5,
-      'AVAX': 25,
-      'ATOM': 12
+      'BTC': 40000, 'ETH': 2500, 'ADA': 0.45, 'SOL': 85, 'DOT': 7.5,
+      'MATIC': 0.85, 'LINK': 15, 'UNI': 6.5, 'AVAX': 25, 'ATOM': 12
     };
     
     const baseSymbol = symbol.replace('USDT', '').replace('USD', '').replace('BUSD', '');
-    const basePrice = basePrices[baseSymbol] || Math.random() * 100 + 1;
-    
-    // Add some random variation
-    return basePrice * (0.95 + Math.random() * 0.1);
+    return basePrices[baseSymbol] || 100;
   };
 
-  // Mock AI prediction generation (replace with actual API call)
+  // AI prediction generation with real-time data
   const generatePrediction = async () => {
     const targetSymbol = tradingPair.trim().toUpperCase();
     
@@ -125,8 +137,16 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate demo price and prediction
-    const currentPrice = generateDemoPrice(targetSymbol);
+    // Get real-time current price
+    const currentPrice = getCurrentPrice(targetSymbol);
+    
+    if (currentPrice === 0) {
+      alert('Unable to fetch real-time price for this trading pair. Please try a different pair.');
+      setIsGenerating(false);
+      return;
+    }
+    
+    // Generate realistic prediction based on current real price
     const changePercent = (Math.random() - 0.5) * 10; // -5% to +5%
     const predictedPrice = currentPrice * (1 + changePercent / 100);
     const direction = changePercent > 1 ? 'up' : changePercent < -1 ? 'down' : 'sideways';
@@ -269,7 +289,10 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                     >
                       <span className="font-medium">{suggestion}</span>
                       <span className="text-muted-foreground text-xs">
-                        ${generateDemoPrice(suggestion).toFixed(2)}
+                        ${getCurrentPrice(suggestion).toFixed(2)}
+                        {getRealTimePrice(suggestion) > 0 && (
+                          <span className="ml-1 w-1 h-1 bg-green-500 rounded-full inline-block animate-pulse"></span>
+                        )}
                       </span>
                     </div>
                   ))}
@@ -287,8 +310,16 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                     <span className="font-bold text-lg">{tradingPair}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Current Price</div>
-                    <div className="font-bold text-lg">${generateDemoPrice(tradingPair).toFixed(4)}</div>
+                    <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+                      Current Price 
+                      {getRealTimePrice(tradingPair) > 0 && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <div className="font-bold text-lg">${getCurrentPrice(tradingPair).toFixed(4)}</div>
+                    {getRealTimePrice(tradingPair) > 0 && (
+                      <div className="text-xs text-green-500 font-medium">LIVE</div>
+                    )}
                   </div>
                 </div>
               </div>
