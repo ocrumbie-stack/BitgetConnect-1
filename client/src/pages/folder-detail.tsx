@@ -344,19 +344,19 @@ export default function FolderDetailPage() {
               <Button
                 onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
                 disabled={!newPairInput.trim() || addPairMutation.isPending}
-                className="flex-1"
+                className={newPairInput.trim() ? "flex-1" : "w-full"}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add {newPairInput.trim().toUpperCase() || 'Pair'}
               </Button>
-              {newPairInput.trim() && (
+              {newPairInput && newPairInput.length > 0 && (
                 <Button
                   variant="outline"
                   onClick={() => {
                     setNewPairInput('');
                     setPairSuggestions([]);
                   }}
-                  className="px-6"
+                  className="px-6 whitespace-nowrap"
                 >
                   Done
                 </Button>
