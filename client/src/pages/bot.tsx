@@ -621,55 +621,130 @@ export default function BotPage() {
               </Card>
             ) : (
               <div className="space-y-3">
-                {(activeExecutions as any[]).map((execution: any) => (
-                  <Card key={execution.id} className={execution.deploymentType === 'folder_bulk' ? 'border-l-4 border-l-purple-500' : ''}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium">{execution.tradingPair}</h4>
-                            {execution.deploymentType === 'folder_bulk' && (
-                              <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
-                                <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
-                                Folder: {execution.folderName}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Capital: ${execution.capital} | Leverage: {execution.leverage}x
-                          </p>
-                          <div className="flex gap-2 mt-1">
-                            <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
-                              {execution.status}
-                            </Badge>
-                            {execution.deploymentType === 'folder_bulk' && (
-                              <Badge variant="outline" className="text-purple-600 border-purple-300">
-                                Bulk Deployed
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <div className="text-sm font-medium text-green-500">+${execution.profit || '0'}</div>
-                            <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
-                          </div>
-                          {execution.status === 'active' && (
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => handleTerminateExecution.mutate(execution.id)}
-                              disabled={handleTerminateExecution.isPending}
-                            >
-                              <Square className="h-3 w-3 mr-1" />
-                              {handleTerminateExecution.isPending ? 'Stopping...' : 'Stop'}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {(() => {
+                  // Group executions by deployment type and folder
+                  const folderGroups: { [key: string]: any[] } = {};
+                  const manualExecutions: any[] = [];
+                  
+                  (activeExecutions as any[]).forEach((execution: any) => {
+                    if (execution.deploymentType === 'folder_bulk' && execution.folderName) {
+                      if (!folderGroups[execution.folderName]) {
+                        folderGroups[execution.folderName] = [];
+                      }
+                      folderGroups[execution.folderName].push(execution);
+                    } else {
+                      manualExecutions.push(execution);
+                    }
+                  });
+
+                  return (
+                    <>
+                      {/* Folder-deployed bots grouped by folder */}
+                      {Object.entries(folderGroups).map(([folderName, executions]) => (
+                        <Card key={folderName} className="border-l-4 border-l-purple-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium">{folderName}</h4>
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                    Folder Bot
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  {executions.length} pairs • Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0)}
+                                </p>
+                                <div className="flex gap-2 mb-2">
+                                  <Badge variant="default">
+                                    {executions.filter(ex => ex.status === 'active').length} active
+                                  </Badge>
+                                  <Badge variant="outline" className="text-purple-600 border-purple-300">
+                                    Bulk Deployed
+                                  </Badge>
+                                </div>
+                                {/* Show trading pairs in compact format */}
+                                <div className="text-xs text-muted-foreground">
+                                  Pairs: {executions.map(ex => ex.tradingPair).join(', ')}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-green-500">
+                                    +${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)} trades
+                                  </div>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (window.confirm(`Stop all ${executions.length} bots in ${folderName}?`)) {
+                                      executions.forEach(ex => {
+                                        if (ex.status === 'active') {
+                                          handleTerminateExecution.mutate(ex.id);
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  disabled={handleTerminateExecution.isPending}
+                                >
+                                  <Square className="h-3 w-3 mr-1" />
+                                  Stop All
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                      {/* Individual manually deployed bots */}
+                      {manualExecutions.map((execution: any) => (
+                        <Card key={execution.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium">{execution.tradingPair}</h4>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  Capital: ${execution.capital} | Leverage: {execution.leverage}x
+                                </p>
+                                <div className="flex gap-2 mt-1">
+                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
+                                    {execution.status}
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    Manual
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-green-500">+${execution.profit || '0'}</div>
+                                  <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
+                                </div>
+                                {execution.status === 'active' && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => handleTerminateExecution.mutate(execution.id)}
+                                    disabled={handleTerminateExecution.isPending}
+                                  >
+                                    <Square className="h-3 w-3 mr-1" />
+                                    {handleTerminateExecution.isPending ? 'Stopping...' : 'Stop'}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             )}
           </TabsContent>
