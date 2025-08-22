@@ -200,10 +200,16 @@ export default function FolderDetailPage() {
     } else {
       setPairSuggestions([]);
     }
-  }, [newPairInput, marketData, folder?.tradingPairs]);
+  }, [newPairInput, marketData.length, folder?.tradingPairs?.length]);
 
-  const handleAddPair = (symbol: string) => {
-    addPairMutation.mutate(symbol.toUpperCase());
+  const handleAddPair = async (symbol: string) => {
+    try {
+      await addPairMutation.mutateAsync(symbol.toUpperCase());
+      setNewPairInput('');
+      setPairSuggestions([]);
+    } catch (error) {
+      console.error('Failed to add pair:', error);
+    }
   };
 
   const handleBulkBotDeployment = () => {
@@ -349,18 +355,19 @@ export default function FolderDetailPage() {
                 <Plus className="h-4 w-4 mr-2" />
                 Add {newPairInput.trim().toUpperCase() || 'Pair'}
               </Button>
-              {newPairInput && newPairInput.length > 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setNewPairInput('');
-                    setPairSuggestions([]);
-                  }}
-                  className="px-6 whitespace-nowrap"
-                >
-                  Done
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setNewPairInput('');
+                  setPairSuggestions([]);
+                }}
+                className="px-6 whitespace-nowrap"
+                style={{
+                  display: newPairInput && newPairInput.length > 0 ? 'block' : 'none'
+                }}
+              >
+                Done
+              </Button>
             </div>
           </CardContent>
         </Card>
