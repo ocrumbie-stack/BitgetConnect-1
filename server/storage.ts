@@ -87,6 +87,7 @@ export class MemStorage implements IStorage {
   private screeners: Map<string, Screener>;
   private alertSettings: Map<string, AlertSetting>;
   private alerts: Map<string, Alert>;
+  private pricePredictions: Map<string, PricePrediction>;
 
   constructor() {
     this.users = new Map();
@@ -99,6 +100,7 @@ export class MemStorage implements IStorage {
     this.screeners = new Map();
     this.alertSettings = new Map();
     this.alerts = new Map();
+    this.pricePredictions = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -200,46 +202,7 @@ export class MemStorage implements IStorage {
     return accountData;
   }
 
-  async getUserScreeners(userId: string): Promise<Screener[]> {
-    return Array.from(this.screeners.values()).filter(
-      screener => screener.userId === userId
-    );
-  }
 
-  async createScreener(screener: InsertScreener): Promise<Screener> {
-    const id = randomUUID();
-    const savedScreener: Screener = {
-      ...screener,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      criteria: screener.criteria as any
-    };
-    this.screeners.set(id, savedScreener);
-    return savedScreener;
-  }
-
-  async updateScreener(id: string, screenerData: InsertScreener): Promise<Screener> {
-    const existingScreener = this.screeners.get(id);
-    if (!existingScreener) {
-      throw new Error('Screener not found');
-    }
-    
-    const updatedScreener: Screener = {
-      ...existingScreener,
-      ...screenerData,
-      id,
-      updatedAt: new Date(),
-      criteria: screenerData.criteria as any
-    };
-    
-    this.screeners.set(id, updatedScreener);
-    return updatedScreener;
-  }
-
-  async deleteScreener(id: string): Promise<void> {
-    this.screeners.delete(id);
-  }
 
   async getBotStrategies(userId: string): Promise<BotStrategy[]> {
     return Array.from(this.botStrategies.values()).filter(strategy => strategy.userId === userId);
@@ -251,7 +214,7 @@ export class MemStorage implements IStorage {
     const strategy: BotStrategy = { 
       ...insertStrategy,
       id,
-      riskLevel: insertStrategy.riskLevel || 'medium',
+      riskLevel: insertStrategy.riskLevel,
       description: insertStrategy.description || null,
       createdAt: now,
       updatedAt: now
@@ -268,10 +231,7 @@ export class MemStorage implements IStorage {
     const updatedStrategy: BotStrategy = { 
       ...existingStrategy, 
       ...updates,
-      config: {
-        ...existingStrategy.config,
-        ...(updates.config || {})
-      },
+      config: updates.config || existingStrategy.config,
       updatedAt: new Date()
     };
     this.botStrategies.set(id, updatedStrategy);
@@ -299,6 +259,10 @@ export class MemStorage implements IStorage {
       winRate: insertExecution.winRate || '0',
       roi: insertExecution.roi || '0',
       runtime: insertExecution.runtime || '0',
+      deploymentType: insertExecution.deploymentType || null,
+      folderId: insertExecution.folderId || null,
+      botName: insertExecution.botName || null,
+      folderName: insertExecution.folderName || null,
       startedAt: null,
       pausedAt: null,
       createdAt: now,
@@ -336,6 +300,11 @@ export class MemStorage implements IStorage {
     const screener: Screener = { 
       ...insertScreener,
       id,
+      description: insertScreener.description || null,
+      color: insertScreener.color || null,
+      tradingPairs: insertScreener.tradingPairs || null,
+      isStarred: insertScreener.isStarred || null,
+      criteria: insertScreener.criteria || null,
       createdAt: now,
       updatedAt: now
     };
@@ -351,6 +320,11 @@ export class MemStorage implements IStorage {
     const updatedScreener: Screener = { 
       ...existingScreener,
       ...insertScreener,
+      description: insertScreener.description || null,
+      color: insertScreener.color || null,
+      tradingPairs: insertScreener.tradingPairs || null,
+      isStarred: insertScreener.isStarred || null,
+      criteria: insertScreener.criteria || null,
       updatedAt: new Date()
     };
     this.screeners.set(id, updatedScreener);
@@ -371,6 +345,10 @@ export class MemStorage implements IStorage {
     const newSetting: AlertSetting = {
       id,
       ...setting,
+      isEnabled: setting.isEnabled ?? null,
+      threshold: setting.threshold || null,
+      method: setting.method,
+      config: setting.config || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -386,6 +364,7 @@ export class MemStorage implements IStorage {
     const updated: AlertSetting = {
       ...existing,
       ...setting,
+      config: setting.config || existing.config,
       updatedAt: new Date(),
     };
     this.alertSettings.set(id, updated);
@@ -400,7 +379,7 @@ export class MemStorage implements IStorage {
   async getUserAlerts(userId: string): Promise<Alert[]> {
     return Array.from(this.alerts.values())
       .filter(alert => alert.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async createAlert(alert: InsertAlert): Promise<Alert> {
@@ -408,6 +387,11 @@ export class MemStorage implements IStorage {
     const newAlert: Alert = {
       id,
       ...alert,
+      botExecutionId: alert.botExecutionId || null,
+      severity: alert.severity,
+      isRead: alert.isRead ?? null,
+      isPinned: alert.isPinned ?? null,
+      data: alert.data || null,
       createdAt: new Date(),
     };
     this.alerts.set(id, newAlert);
@@ -423,16 +407,57 @@ export class MemStorage implements IStorage {
   }
 
   async markAllAlertsAsRead(userId: string): Promise<void> {
-    for (const [id, alert] of this.alerts) {
+    this.alerts.forEach((alert, id) => {
       if (alert.userId === userId && !alert.isRead) {
         alert.isRead = true;
         this.alerts.set(id, alert);
       }
-    }
+    });
   }
 
   async deleteAlert(id: string): Promise<void> {
     this.alerts.delete(id);
+  }
+
+  // Price Predictions
+  async createPricePrediction(prediction: InsertPricePrediction): Promise<PricePrediction> {
+    const id = randomUUID();
+    const newPrediction: PricePrediction = {
+      id,
+      ...prediction,
+      timeframe: prediction.timeframe,
+      aiAnalysis: prediction.aiAnalysis || null,
+      accuracy: prediction.accuracy || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.pricePredictions.set(id, newPrediction);
+    return newPrediction;
+  }
+
+  async getPricePredictions(symbol?: string): Promise<PricePrediction[]> {
+    const predictions = Array.from(this.pricePredictions.values());
+    if (symbol) {
+      return predictions.filter(p => p.symbol === symbol);
+    }
+    return predictions;
+  }
+
+  async updatePricePrediction(id: string, updates: Partial<PricePrediction>): Promise<boolean> {
+    const existing = this.pricePredictions.get(id);
+    if (!existing) return false;
+    
+    const updated: PricePrediction = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.pricePredictions.set(id, updated);
+    return true;
+  }
+
+  async deletePricePrediction(id: string): Promise<boolean> {
+    return this.pricePredictions.delete(id);
   }
 }
 

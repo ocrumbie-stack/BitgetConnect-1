@@ -1,48 +1,71 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { Alert, AlertSetting } from '@shared/schema';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, Settings, Trash2, Check, CheckCheck, AlertTriangle, Info, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Separator } from '@/components/ui/separator';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Bell, 
+  BellOff, 
+  Settings, 
+  Trash2, 
+  Check, 
+  Pin, 
+  PinOff,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Plus,
+  Mail,
+  Webhook,
+  Smartphone
+} from 'lucide-react';
+import type { Alert, AlertSetting } from '@shared/schema';
 
 interface AlertCenterProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  userId?: string;
 }
 
-export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
+export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('alerts');
+  const [showCreateAlert, setShowCreateAlert] = useState(false);
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const userId = 'default-user'; // In real app, get from auth
 
   // Fetch alerts
-  const { data: alerts = [], isLoading: alertsLoading } = useQuery({
+  const { data: alertsData = [], isLoading: alertsLoading } = useQuery({
     queryKey: ['/api/alerts', userId],
-    queryFn: () => apiRequest(`/api/alerts/${userId}`),
+    queryFn: () => apiRequest(`/api/alerts/${userId}`) as Promise<Alert[]>,
+    refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   // Fetch alert settings
-  const { data: alertSettings = [], isLoading: settingsLoading } = useQuery({
+  const { data: alertSettingsData = [], isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/alert-settings', userId],
-    queryFn: () => apiRequest(`/api/alert-settings/${userId}`),
+    queryFn: () => apiRequest(`/api/alert-settings/${userId}`) as Promise<AlertSetting[]>,
   });
+
+  const alerts = Array.isArray(alertsData) ? alertsData : [];
+  const alertSettings = Array.isArray(alertSettingsData) ? alertSettingsData : [];
 
   // Mark alert as read
   const markAsReadMutation = useMutation({
     mutationFn: (alertId: string) => apiRequest(`/api/alerts/${alertId}/read`, 'PUT'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
-    }
+    },
   });
 
   // Mark all alerts as read
@@ -50,7 +73,8 @@ export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
     mutationFn: () => apiRequest(`/api/alerts/${userId}/read-all`, 'PUT'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
-    }
+      toast({ title: 'All alerts marked as read' });
+    },
   });
 
   // Delete alert
@@ -58,7 +82,8 @@ export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
     mutationFn: (alertId: string) => apiRequest(`/api/alerts/${alertId}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
-    }
+      toast({ title: 'Alert deleted' });
+    },
   });
 
   // Create alert setting
@@ -66,148 +91,165 @@ export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
     mutationFn: (setting: any) => apiRequest('/api/alert-settings', 'POST', setting),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
-    }
+      toast({ title: 'Alert setting created' });
+      setShowCreateAlert(false);
+    },
   });
 
   // Update alert setting
   const updateSettingMutation = useMutation({
-    mutationFn: ({ id, ...setting }: any) => apiRequest(`/api/alert-settings/${id}`, 'PUT', setting),
+    mutationFn: ({ id, ...updates }: any) => apiRequest(`/api/alert-settings/${id}`, 'PUT', updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
-    }
+      toast({ title: 'Alert setting updated' });
+    },
   });
 
-  const unreadCount = alerts.filter((alert: Alert) => !alert.isRead).length;
+  // Delete alert setting
+  const deleteSettingMutation = useMutation({
+    mutationFn: (settingId: string) => apiRequest(`/api/alert-settings/${settingId}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
+      toast({ title: 'Alert setting deleted' });
+    },
+  });
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'success': return <TrendingUp className="h-4 w-4 text-green-500" />;
-      default: return <Info className="h-4 w-4 text-blue-500" />;
-    }
+  const unreadAlerts = alerts.filter((alert: Alert) => !alert.isRead);
+
+  const getAlertIcon = (alertType: string, severity: string) => {
+    if (severity === 'error') return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    if (severity === 'warning') return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+    if (severity === 'success') return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (alertType.includes('pnl_gain')) return <TrendingUp className="h-4 w-4 text-green-500" />;
+    if (alertType.includes('pnl_loss')) return <TrendingDown className="h-4 w-4 text-red-500" />;
+    return <Info className="h-4 w-4 text-blue-500" />;
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'error': return 'destructive';
-      case 'warning': return 'outline';
-      case 'success': return 'default';
-      default: return 'secondary';
-    }
+  const formatTime = (date: Date | string | null) => {
+    if (!date) return '--:--';
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  const alertTypes = [
-    { value: 'pnl_gain', label: 'Profit Threshold' },
-    { value: 'pnl_loss', label: 'Loss Threshold' },
-    { value: 'entry_signal', label: 'Entry Signals' },
-    { value: 'exit_signal', label: 'Exit Signals' },
-    { value: 'bot_error', label: 'Bot Errors' },
-    { value: 'performance_milestone', label: 'Performance Milestones' }
-  ];
-
-  const notificationMethods = [
-    { value: 'in_app', label: 'In-App Notification' },
-    { value: 'browser_notification', label: 'Browser Notification' },
-    { value: 'email', label: 'Email' },
-    { value: 'webhook', label: 'Webhook' }
-  ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" className="relative p-2" data-testid="button-alerts">
+          <Bell className="h-5 w-5" />
+          {unreadAlerts.length > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center">
+              {unreadAlerts.length > 9 ? '9+' : unreadAlerts.length}
+            </Badge>
+          )}
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-4xl h-[80vh] p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             Alert Center
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {unreadCount} new
+            {unreadAlerts.length > 0 && (
+              <Badge className="bg-red-500 text-white">
+                {unreadAlerts.length} unread
               </Badge>
             )}
           </DialogTitle>
-          <DialogDescription>
-            Manage your trading bot alerts and notification preferences
-          </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 px-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="alerts">Recent Alerts</TabsTrigger>
-            <TabsTrigger value="settings">Alert Settings</TabsTrigger>
+            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="flex-1 space-y-4">
+          <TabsContent value="alerts" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                {alerts.length} total alerts • {unreadCount} unread
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => markAllAsReadMutation.mutate()}
-                  disabled={unreadCount === 0 || markAllAsReadMutation.isPending}
-                >
-                  <CheckCheck className="h-4 w-4 mr-1" />
-                  Mark All Read
-                </Button>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">Recent Alerts</h3>
+                {unreadAlerts.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => markAllAsReadMutation.mutate()}
+                    disabled={markAllAsReadMutation.isPending}
+                    data-testid="button-mark-all-read"
+                  >
+                    <Check className="h-4 w-4 mr-1" />
+                    Mark All Read
+                  </Button>
+                )}
               </div>
             </div>
 
-            <ScrollArea className="h-96">
-              <div className="space-y-3">
+            <ScrollArea className="h-[50vh]">
+              <div className="space-y-2">
                 {alertsLoading ? (
-                  <div className="text-center py-8">Loading alerts...</div>
+                  <div className="text-center py-8 text-muted-foreground">Loading alerts...</div>
                 ) : alerts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No alerts yet. Alerts will appear here when your trading bots trigger notifications.
+                    <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    No alerts yet
                   </div>
                 ) : (
                   alerts.map((alert: Alert) => (
-                    <Card key={alert.id} className={`${!alert.isRead ? 'bg-muted/50' : ''}`}>
+                    <Card
+                      key={alert.id}
+                      className={`${!alert.isRead ? 'border-blue-200 bg-blue-50/50 dark:bg-blue-950/20' : ''}`}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3 flex-1">
-                            {getSeverityIcon(alert.severity)}
+                            {getAlertIcon(alert.alertType, alert.severity)}
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <h4 className="font-medium">{alert.title}</h4>
-                                <Badge variant={getSeverityColor(alert.severity) as any} className="text-xs">
+                                <Badge variant="outline" className="text-xs">
                                   {alert.alertType.replace('_', ' ')}
                                 </Badge>
                                 {!alert.isRead && (
-                                  <Badge variant="destructive" className="text-xs">New</Badge>
+                                  <Badge className="bg-blue-500 text-white text-xs">New</Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {alert.message}
-                              </p>
+                              <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
+                              
                               {alert.data && (
-                                <div className="text-xs text-muted-foreground space-y-1">
+                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                                   {alert.data.tradingPair && (
-                                    <div>Pair: {alert.data.tradingPair}</div>
+                                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                      {alert.data.tradingPair}
+                                    </span>
                                   )}
                                   {alert.data.pnl && (
-                                    <div>P&L: {alert.data.pnl}</div>
+                                    <span className={`px-2 py-1 rounded ${
+                                      parseFloat(alert.data.pnl) >= 0 
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
+                                        : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                                    }`}>
+                                      PnL: {alert.data.pnl}
+                                    </span>
                                   )}
                                   {alert.data.price && (
-                                    <div>Price: ${alert.data.price}</div>
+                                    <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                      Price: ${alert.data.price}
+                                    </span>
                                   )}
                                 </div>
                               )}
+                              
                               <div className="text-xs text-muted-foreground mt-2">
-                                {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true })}
+                                {formatTime(alert.createdAt)}
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-1">
+                          
+                          <div className="flex items-center gap-1">
                             {!alert.isRead && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => markAsReadMutation.mutate(alert.id)}
                                 disabled={markAsReadMutation.isPending}
+                                data-testid={`button-mark-read-${alert.id}`}
                               >
                                 <Check className="h-4 w-4" />
                               </Button>
@@ -217,6 +259,7 @@ export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
                               size="sm"
                               onClick={() => deleteAlertMutation.mutate(alert.id)}
                               disabled={deleteAlertMutation.isPending}
+                              data-testid={`button-delete-alert-${alert.id}`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -230,119 +273,218 @@ export function AlertCenter({ open, onOpenChange }: AlertCenterProps) {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="settings" className="flex-1 space-y-4">
-            <div className="text-sm text-muted-foreground mb-4">
-              Configure when and how you want to receive alerts from your trading bots
+          <TabsContent value="settings" className="space-y-4 mt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Alert Settings</h3>
+              <Button
+                onClick={() => setShowCreateAlert(true)}
+                data-testid="button-create-alert-setting"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Setting
+              </Button>
             </div>
 
-            <ScrollArea className="h-96">
+            <ScrollArea className="h-[50vh]">
               <div className="space-y-4">
-                {alertTypes.map((type) => {
-                  const setting = alertSettings.find((s: AlertSetting) => s.alertType === type.value);
-                  
-                  return (
-                    <Card key={type.value}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="text-base">{type.label}</CardTitle>
-                            <CardDescription className="text-sm">
-                              {type.value === 'pnl_gain' && 'Alert when profits reach a target amount'}
-                              {type.value === 'pnl_loss' && 'Alert when losses exceed a threshold'}
-                              {type.value === 'entry_signal' && 'Alert when bots enter new positions'}
-                              {type.value === 'exit_signal' && 'Alert when bots exit positions'}
-                              {type.value === 'bot_error' && 'Alert when bots encounter errors'}
-                              {type.value === 'performance_milestone' && 'Alert when bots reach performance goals'}
-                            </CardDescription>
-                          </div>
-                          <Switch
-                            checked={setting?.isEnabled || false}
-                            onCheckedChange={(enabled) => {
-                              if (setting) {
-                                updateSettingMutation.mutate({
-                                  id: setting.id,
-                                  isEnabled: enabled
-                                });
-                              } else {
-                                createSettingMutation.mutate({
-                                  userId,
-                                  alertType: type.value,
-                                  isEnabled: enabled,
-                                  method: 'in_app'
-                                });
-                              }
-                            }}
-                          />
-                        </div>
-                      </CardHeader>
-                      
-                      {(setting?.isEnabled || false) && (
-                        <CardContent>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Notification Method
-                              </label>
-                              <Select
-                                value={setting?.method || 'in_app'}
-                                onValueChange={(method) => {
-                                  if (setting) {
-                                    updateSettingMutation.mutate({
-                                      id: setting.id,
-                                      method
-                                    });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {notificationMethods.map((method) => (
-                                    <SelectItem key={method.value} value={method.value}>
-                                      {method.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            {(type.value === 'pnl_gain' || type.value === 'pnl_loss') && (
-                              <div>
-                                <label className="text-sm font-medium mb-2 block">
-                                  Threshold ($)
-                                </label>
-                                <Input
-                                  type="number"
-                                  placeholder="Enter amount"
-                                  value={setting?.threshold || ''}
-                                  onChange={(e) => {
-                                    if (setting) {
-                                      updateSettingMutation.mutate({
-                                        id: setting.id,
-                                        threshold: e.target.value
-                                      });
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      )}
-                    </Card>
-                  );
-                })}
+                {settingsLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
+                ) : alertSettings.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    No alert settings configured
+                  </div>
+                ) : (
+                  alertSettings.map((setting: AlertSetting) => (
+                    <AlertSettingCard
+                      key={setting.id}
+                      setting={setting}
+                      onUpdate={(updates) => updateSettingMutation.mutate({ id: setting.id, ...updates })}
+                      onDelete={() => deleteSettingMutation.mutate(setting.id)}
+                      isUpdating={updateSettingMutation.isPending}
+                      isDeleting={deleteSettingMutation.isPending}
+                    />
+                  ))
+                )}
               </div>
             </ScrollArea>
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+        {showCreateAlert && (
+          <CreateAlertSettingDialog
+            userId={userId}
+            onClose={() => setShowCreateAlert(false)}
+            onSubmit={(setting) => createSettingMutation.mutate(setting)}
+            isSubmitting={createSettingMutation.isPending}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface AlertSettingCardProps {
+  setting: AlertSetting;
+  onUpdate: (updates: Partial<AlertSetting>) => void;
+  onDelete: () => void;
+  isUpdating: boolean;
+  isDeleting: boolean;
+}
+
+function AlertSettingCard({ setting, onUpdate, onDelete, isUpdating, isDeleting }: AlertSettingCardProps) {
+  const getMethodIcon = (method: string) => {
+    switch (method) {
+      case 'email': return <Mail className="h-4 w-4" />;
+      case 'webhook': return <Webhook className="h-4 w-4" />;
+      case 'browser_notification': return <Smartphone className="h-4 w-4" />;
+      default: return <Bell className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {getMethodIcon(setting.method)}
+            <div>
+              <h4 className="font-medium capitalize">
+                {setting.alertType.replace('_', ' ')} Alert
+              </h4>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Method: {setting.method.replace('_', ' ')}</span>
+                {setting.threshold && <span>• Threshold: {setting.threshold}</span>}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={setting.isEnabled || false}
+              onCheckedChange={(enabled) => onUpdate({ isEnabled: enabled })}
+              disabled={isUpdating}
+              data-testid={`switch-alert-${setting.id}`}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              disabled={isDeleting}
+              data-testid={`button-delete-setting-${setting.id}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface CreateAlertSettingDialogProps {
+  userId: string;
+  onClose: () => void;
+  onSubmit: (setting: any) => void;
+  isSubmitting: boolean;
+}
+
+function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: CreateAlertSettingDialogProps) {
+  const [alertType, setAlertType] = useState('pnl_gain');
+  const [method, setMethod] = useState('in_app');
+  const [threshold, setThreshold] = useState('');
+  const [isEnabled, setIsEnabled] = useState(true);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      userId,
+      alertType,
+      method,
+      threshold: threshold || null,
+      isEnabled,
+      config: {}
+    });
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Alert Setting</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="alertType">Alert Type</Label>
+            <Select value={alertType} onValueChange={setAlertType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pnl_gain">PnL Gain</SelectItem>
+                <SelectItem value="pnl_loss">PnL Loss</SelectItem>
+                <SelectItem value="entry_signal">Entry Signal</SelectItem>
+                <SelectItem value="exit_signal">Exit Signal</SelectItem>
+                <SelectItem value="bot_error">Bot Error</SelectItem>
+                <SelectItem value="performance_milestone">Performance Milestone</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="method">Notification Method</Label>
+            <Select value={method} onValueChange={setMethod}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="in_app">In App</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="webhook">Webhook</SelectItem>
+                <SelectItem value="browser_notification">Browser Notification</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(alertType.includes('pnl') || alertType.includes('performance')) && (
+            <div>
+              <Label htmlFor="threshold">Threshold (%)</Label>
+              <Input
+                id="threshold"
+                type="number"
+                step="0.1"
+                value={threshold}
+                onChange={(e) => setThreshold(e.target.value)}
+                placeholder="e.g., 5 for 5%"
+                data-testid="input-threshold"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="isEnabled"
+              checked={isEnabled}
+              onCheckedChange={setIsEnabled}
+              data-testid="switch-enabled"
+            />
+            <Label htmlFor="isEnabled">Enable this alert</Label>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              data-testid="button-submit-alert-setting"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Alert'}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
