@@ -248,6 +248,16 @@ export default function BotPage() {
           return;
         }
 
+        // Check if this folder already has active bots running
+        const folderActiveExecutions = activeExecutions.filter((execution: any) => 
+          execution.folderName === folder.name && execution.status === 'active'
+        );
+        
+        if (folderActiveExecutions.length > 0) {
+          alert(`Folder "${folder.name}" already has ${folderActiveExecutions.length} active bots running. Please stop the existing bots before deploying new ones.`);
+          return;
+        }
+
         // Deploy strategy to all pairs in the folder
         for (const pair of folder.tradingPairs) {
           const executionData = {

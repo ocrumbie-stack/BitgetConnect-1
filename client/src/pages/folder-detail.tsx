@@ -78,6 +78,14 @@ export default function FolderDetailPage() {
     },
   });
 
+  // Fetch active executions to check for existing folder bots
+  const { data: allExecutions = [] } = useQuery({
+    queryKey: ['/api/bot-executions']
+  });
+
+  // Filter only active executions
+  const activeExecutions = allExecutions.filter((execution: any) => execution.status === 'active');
+
   const folder = folders.find((f: any) => f.id === folderId);
 
   // Add pair mutation
@@ -215,6 +223,16 @@ export default function FolderDetailPage() {
 
   const handleBulkBotDeployment = () => {
     if (!selectedStrategy || !folder?.tradingPairs?.length) return;
+    
+    // Check if this folder already has active bots running
+    const folderActiveExecutions = (activeExecutions || []).filter((execution: any) => 
+      execution.folderName === folder.name && execution.status === 'active'
+    );
+    
+    if (folderActiveExecutions.length > 0) {
+      alert(`Folder "${folder.name}" already has ${folderActiveExecutions.length} active bots running. Please stop the existing bots before deploying new ones.`);
+      return;
+    }
     
     console.log('Starting bulk bot deployment:', {
       strategyId: selectedStrategy,
