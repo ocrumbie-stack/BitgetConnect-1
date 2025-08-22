@@ -101,7 +101,6 @@
   .price-text { @apply text-sm font-medium; }
   .change-text { @apply text-sm; }
   .volume-text { @apply text-xs text-muted-foreground; }
-}
 
   .animate-pulse-dot {
     animation: pulse-dot 2s infinite;
@@ -115,6 +114,7 @@
       opacity: 0.5;
     }
   }
+}
 
 @layer utilities {
   .text-success {

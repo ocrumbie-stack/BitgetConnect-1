@@ -4,8 +4,8 @@ import type { FuturesData } from '@shared/schema';
 export function useBitgetData() {
   return useQuery<FuturesData[]>({
     queryKey: ['/api/futures'],
-    refetchInterval: 5000, // Refetch every 5 seconds for real-time data
-    staleTime: 0, // Always fetch fresh data for trading
+    refetchInterval: 10000, // Refetch every 10 seconds for performance balance
+    staleTime: 5000, // Keep data fresh for 5 seconds
     refetchOnWindowFocus: true,
     retry: 3,
   });

@@ -15,7 +15,7 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
 
   const { data: statusData } = useQuery({
     queryKey: ['/api/status'],
-    refetchInterval: 10000, // Check status every 10 seconds
+    refetchInterval: 30000, // Check status every 30 seconds for better performance
   });
 
   return (
