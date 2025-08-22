@@ -214,7 +214,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
           <TabsContent value="alerts" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold">Recent Alerts</h3>
+                <h3 className="text-lg font-medium">Recent Alerts</h3>
                 {unreadAlerts.length > 0 && (
                   <Button
                     variant="outline"
@@ -356,7 +356,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
           <TabsContent value="settings" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold">Alert Settings</h3>
+              <h3 className="text-lg font-medium">Alert Settings</h3>
               <Button
                 onClick={() => setShowCreateAlert(true)}
                 data-testid="button-create-alert-setting"

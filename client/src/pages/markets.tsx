@@ -206,7 +206,7 @@ export function Markets() {
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold">Markets</h1>
+            <h1 className="text-lg font-semibold">Markets</h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

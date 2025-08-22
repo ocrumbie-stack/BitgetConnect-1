@@ -245,7 +245,7 @@ export function Home() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
-        <h1 className="text-xl font-semibold text-foreground mb-2">Welcome Back</h1>
+        <h1 className="text-lg font-semibold text-foreground mb-2">Welcome Back</h1>
         <p className="text-sm text-muted-foreground">Discover AI-powered trading opportunities and market insights</p>
       </div>
 
@@ -259,7 +259,7 @@ export function Home() {
           {/* AI Opportunities Tab */}
           <TabsContent value="opportunities" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+              <h2 className="text-lg font-medium flex items-center gap-2">
                 <Brain className="h-5 w-5 text-blue-500" />
                 AI Trading Opportunities
               </h2>
