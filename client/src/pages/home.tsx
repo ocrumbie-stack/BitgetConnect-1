@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
+import { AlertDemoCreator } from '@/components/AlertDemoCreator';
 
 export function Home() {
   const { data, isLoading } = useBitgetData();
@@ -714,6 +715,11 @@ export function Home() {
                   </CardContent>
                 </Card>
               </Link>
+            </div>
+
+            {/* Alert System Demo */}
+            <div className="mt-6">
+              <AlertDemoCreator />
             </div>
           </TabsContent>
         </Tabs>
