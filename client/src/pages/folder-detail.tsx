@@ -346,28 +346,30 @@ export default function FolderDetailPage() {
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="space-y-3">
               <Button
                 onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
                 disabled={!newPairInput.trim() || addPairMutation.isPending}
-                className="flex-1"
+                className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add {newPairInput.trim().toUpperCase() || 'Pair'}
               </Button>
-              {newPairInput && newPairInput.length > 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setNewPairInput('');
-                    setPairSuggestions([]);
-                  }}
-                  className="px-6 whitespace-nowrap bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700"
-                  data-testid="button-done-adding-pairs"
-                >
-                  Done
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  console.log('Done button clicked, current input:', newPairInput);
+                  setNewPairInput('');
+                  setPairSuggestions([]);
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700"
+                data-testid="button-done-adding-pairs"
+                style={{
+                  display: newPairInput && newPairInput.length > 0 ? 'block' : 'none'
+                }}
+              >
+                Done Adding Pairs
+              </Button>
             </div>
           </CardContent>
         </Card>
