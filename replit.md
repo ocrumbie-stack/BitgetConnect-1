@@ -77,7 +77,11 @@ Basic structure in place for user management:
 - **Smart Conflict Detection**: Both Bot page and Folder detail page check for existing active executions before allowing new deployments
 - **User-Friendly Error Messages**: Clear alerts guide users to stop existing bots before deploying new strategies to the same folder
 - **Complete Professional System**: All folder management, bot deployment, individual control, and conflict prevention working flawlessly
-- User confirmed complete system: "Perfect" - unified professional trading pair and bot deployment system with comprehensive validation fully operational
+- **DEPLOYMENT ISSUE RESOLUTION**: Fixed Deploy Bots functionality after server restart cleared in-memory storage
+- **Strategy Data Access Fix**: Corrected strategy.config.positionDirection access in deployment dialog
+- **Enhanced Validation**: Added better error handling and user feedback for deployment process
+- **Memory Storage Impact**: Documented that server restarts clear in-memory bot strategies and executions
+- User confirmed deployment fix: "It works" - complete folder bot deployment system fully operational with proper validation and error handling
 
 ## August 21, 2025
 - Successfully completed bot system architectural redesign from coin-specific to reusable strategy templates
