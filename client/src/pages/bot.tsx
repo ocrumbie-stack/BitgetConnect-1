@@ -740,28 +740,31 @@ export default function BotPage() {
                                 {/* Individual Bot Details */}
                                 <div className="space-y-2">
                                   {executions.map((execution: any) => (
-                                    <div key={execution.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                                    <div key={execution.id} className="flex items-center justify-between p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">{execution.tradingPair}</span>
-                                        <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                        <span className="font-medium text-white">{execution.tradingPair}</span>
+                                        <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
                                           {execution.status}
                                         </Badge>
                                       </div>
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <span className="text-muted-foreground">${execution.capital}</span>
-                                        <span className="text-green-500">+${execution.profit || '0'}</span>
+                                      <div className="flex items-center gap-3 text-sm">
+                                        <span className="text-gray-300">${execution.capital}</span>
+                                        <span className={`${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                          {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
+                                        </span>
                                         {execution.status === 'active' && (
                                           <Button 
                                             size="sm" 
-                                            variant="outline"
+                                            variant="destructive"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               handleTerminateExecution.mutate(execution.id);
                                             }}
                                             disabled={handleTerminateExecution.isPending}
-                                            className="h-6 px-2"
+                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs h-7"
                                           >
-                                            <Square className="h-2 w-2" />
+                                            <Square className="h-3 w-3 mr-1" />
+                                            Stop
                                           </Button>
                                         )}
                                       </div>
