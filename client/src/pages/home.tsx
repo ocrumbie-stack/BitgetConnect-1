@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge } from 'lucide-react';
-import { PricePredictionMeter } from '@/components/PricePredictionMeter';
+
 import { Link, useLocation } from 'wouter';
 
 export function Home() {
@@ -267,19 +267,7 @@ export function Home() {
               </Badge>
             </div>
 
-            {/* Interactive Price Prediction Meter - Any Pair */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Gauge className="h-5 w-5 text-purple-500" />
-                <h3 className="text-md font-semibold">Interactive Price Prediction</h3>
-                <Badge className="bg-purple-500 text-white text-xs">AI Powered</Badge>
-              </div>
-              <PricePredictionMeter 
-                onPredictionGenerated={(prediction) => {
-                  console.log('New prediction generated:', prediction);
-                }}
-              />
-            </div>
+
 
             <Tabs value={activeOpportunityTab} onValueChange={setActiveOpportunityTab} className="w-full">
               <TabsList className="grid w-full grid-cols-5 text-xs">
