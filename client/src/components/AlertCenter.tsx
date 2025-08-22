@@ -88,12 +88,22 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
   // Create alert setting
   const createSettingMutation = useMutation({
-    mutationFn: (setting: any) => apiRequest('/api/alert-settings', 'POST', setting),
-    onSuccess: () => {
+    mutationFn: async (setting: any) => {
+      console.log('Creating alert setting:', setting);
+      const response = await apiRequest('/api/alert-settings', 'POST', setting);
+      console.log('Alert setting response:', response);
+      return response;
+    },
+    onSuccess: (data) => {
+      console.log('Alert setting created successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/alert-settings', userId] });
-      toast({ title: 'Alert setting created' });
+      toast({ title: 'Alert setting created successfully' });
       setShowCreateAlert(false);
     },
+    onError: (error) => {
+      console.error('Failed to create alert setting:', error);
+      toast({ title: 'Failed to create alert setting', variant: 'destructive' });
+    }
   });
 
   // Update alert setting
@@ -439,6 +449,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted');
     
     const config: any = {};
     
@@ -464,16 +475,17 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
       config.folderName = folderName;
     }
 
-    onSubmit({
+    const settingData = {
       userId,
       alertType,
       method,
       threshold: threshold || null,
       isEnabled,
       config
-    });
-    
-    onClose();
+    };
+
+    console.log('Submitting alert setting:', settingData);
+    onSubmit(settingData);
   };
 
   return (
@@ -813,14 +825,14 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               type="button"
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                index === selectedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''
+              className={`w-full text-left px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors ${
+                index === selectedIndex ? 'bg-accent text-accent-foreground' : ''
               }`}
               onClick={() => handleSuggestionClick(suggestion)}
             >
