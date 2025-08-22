@@ -378,11 +378,9 @@ export default function FolderDetailPage() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Done button clicked - closing add pairs section');
                     setNewPairInput('');
                     setPairSuggestions([]);
                     setShowAddPairsSection(false);
-                    console.log('Add pairs section closed');
                   }}
                   className="px-4 bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 whitespace-nowrap"
                   data-testid="button-done-adding-pairs"
@@ -392,10 +390,7 @@ export default function FolderDetailPage() {
                 </Button>
               </div>
               
-              {/* Debug Info */}
-              <div className="text-xs text-muted-foreground">
-                Input: "{newPairInput}" | Length: {newPairInput.length} | Suggestions: {pairSuggestions.length} | Show Section: {showAddPairsSection.toString()}
-              </div>
+
             </div>
           </CardContent>
         </Card>
