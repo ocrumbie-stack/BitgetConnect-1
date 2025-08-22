@@ -188,22 +188,11 @@ export function Analyzer() {
 
       <div className="p-4 space-y-6">
         {/* AI Price Prediction Section */}
-        <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gauge className="h-5 w-5 text-purple-500" />
-              AI Price Prediction Engine
-              <Badge className="bg-purple-500 text-white text-xs">Real-Time</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PricePredictionMeter 
-              onPredictionGenerated={(prediction) => {
-                console.log('Analyzer prediction generated:', prediction);
-              }}
-            />
-          </CardContent>
-        </Card>
+        <PricePredictionMeter 
+          onPredictionGenerated={(prediction) => {
+            console.log('Analyzer prediction generated:', prediction);
+          }}
+        />
 
         {/* Pair Selection */}
         <Card>
