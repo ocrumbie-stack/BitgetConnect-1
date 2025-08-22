@@ -21,7 +21,8 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Bot
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -368,10 +369,17 @@ export default function FoldersPage() {
                             <BarChart3 className="h-4 w-4" />
                             Manage Pairs
                           </Button>
-                          <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4" />
-                            Analytics
-                          </Button>
+                          {folder.tradingPairs && folder.tradingPairs.length > 0 && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                              onClick={() => setLocation(`/folders/${folder.id}`)}
+                            >
+                              <Bot className="h-4 w-4" />
+                              Deploy Bots
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
