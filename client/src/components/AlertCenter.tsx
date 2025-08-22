@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -472,6 +472,8 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
       isEnabled,
       config
     });
+    
+    onClose();
   };
 
   return (
@@ -627,21 +629,12 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
             </div>
           )}
 
-          {/* Trading Pair Selection */}
-          <div>
-            <Label htmlFor="tradingPair">Trading Pair (Optional)</Label>
-            <Input
-              id="tradingPair"
-              type="text"
-              value={tradingPair}
-              onChange={(e) => setTradingPair(e.target.value)}
-              placeholder="e.g., BTCUSDT, ETHUSDT or leave empty for all pairs"
-              data-testid="input-trading-pair"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Specify a trading pair or leave empty to monitor all pairs
-            </p>
-          </div>
+          {/* Trading Pair Selection with Auto-suggest */}
+          <TradingPairAutosuggest
+            value={tradingPair}
+            onChange={setTradingPair}
+            placeholder="e.g., BTCUSDT, ETHUSDT or leave empty for all pairs"
+          />
 
           {/* Folder Selection */}
           <div>
@@ -684,5 +677,169 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Trading Pair Auto-suggest Component
+interface TradingPairAutosuggestProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAutosuggestProps) {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Fetch futures data for auto-suggest
+  const { data: futuresData = [] } = useQuery({
+    queryKey: ['/api/futures'],
+    refetchInterval: 5000,
+  });
+
+  // Common trading pairs for quick suggestions
+  const commonPairs = [
+    'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'SOLUSDT', 
+    'XRPUSDT', 'DOTUSDT', 'MATICUSDT', 'LINKUSDT', 'AVAXUSDT',
+    'LTCUSDT', 'BCHUSDT', 'FILUSDT', 'TRXUSDT', 'ETCUSDT'
+  ];
+
+  // Filter and update suggestions based on input
+  useEffect(() => {
+    if (!value.trim()) {
+      setSuggestions(commonPairs.slice(0, 8));
+      return;
+    }
+
+    const searchTerm = value.toUpperCase();
+    const allPairs = [
+      ...commonPairs,
+      ...futuresData.map((f: any) => f.symbol || '').filter((s: string) => s)
+    ];
+
+    const filtered = [...new Set(allPairs)]
+      .filter(pair => pair.includes(searchTerm))
+      .slice(0, 10);
+
+    setSuggestions(filtered);
+  }, [value, futuresData]);
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    setShowSuggestions(true);
+    setSelectedIndex(-1);
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionClick = (suggestion: string) => {
+    onChange(suggestion);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev + 1) % suggestions.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev <= 0 ? suggestions.length - 1 : prev - 1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+          handleSuggestionClick(suggestions[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current && !inputRef.current.contains(event.target as Node) &&
+        suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative">
+      <Label htmlFor="tradingPair">Trading Pair (Optional)</Label>
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          id="tradingPair"
+          type="text"
+          value={value}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setShowSuggestions(true)}
+          placeholder={placeholder}
+          data-testid="input-trading-pair"
+          className="pr-8"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+          onClick={() => setShowSuggestions(!showSuggestions)}
+        >
+          <Settings className="h-3 w-3" />
+        </Button>
+      </div>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div
+          ref={suggestionsRef}
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
+        >
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={suggestion}
+              type="button"
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                index === selectedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''
+              }`}
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{suggestion}</span>
+                {futuresData.find((f: any) => f.symbol === suggestion) && (
+                  <span className="text-xs text-muted-foreground">
+                    ${futuresData.find((f: any) => f.symbol === suggestion)?.price || 'N/A'}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      
+      <p className="text-xs text-muted-foreground mt-1">
+        Specify a trading pair or leave empty to monitor all pairs
+      </p>
+    </div>
   );
 }
