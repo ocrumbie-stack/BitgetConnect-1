@@ -343,7 +343,7 @@ export default function FoldersPage() {
                                 <Badge 
                                   key={pair} 
                                   variant="outline" 
-                                  className="text-xs cursor-pointer hover:bg-accent"
+                                  className="text-sm cursor-pointer hover:bg-accent"
                                   onClick={() => setLocation(`/trade?pair=${pair}`)}
                                 >
                                   {pair}

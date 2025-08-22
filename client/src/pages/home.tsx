@@ -323,7 +323,7 @@ export function Home() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <div>
-                              <div className="font-medium">{opportunity.symbol}</div>
+                              <div className="font-medium text-sm">{opportunity.symbol}</div>
                               <div className="text-xs text-muted-foreground">
                                 ${parseFloat(opportunity.price).toFixed(4)}
                               </div>
@@ -612,7 +612,7 @@ export function Home() {
                         <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                           {index + 1}
                         </div>
-                        <span className="font-medium">{pair.symbol}</span>
+                        <span className="font-medium text-sm">{pair.symbol}</span>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-green-600">
@@ -641,7 +641,7 @@ export function Home() {
                         <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                           {index + 1}
                         </div>
-                        <span className="font-medium">{pair.symbol}</span>
+                        <span className="font-medium text-sm">{pair.symbol}</span>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-red-600">
@@ -674,7 +674,7 @@ export function Home() {
                           {index + 1}
                         </div>
                         <div>
-                          <div className="font-medium">{pair.symbol}</div>
+                          <div className="font-medium text-sm">{pair.symbol}</div>
                           <div className="text-xs text-muted-foreground">
                             ${parseFloat(pair.price).toFixed(4)}
                           </div>
