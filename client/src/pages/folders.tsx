@@ -44,22 +44,70 @@ export default function FoldersPage() {
   // Fetch folders (using screeners API as base for now)
   const { data: folders = [], isLoading } = useQuery({
     queryKey: ['/api/folders', 'default-user'],
-    queryFn: () => apiRequest('/api/screeners/default-user'),
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/screeners/default-user');
+        if (!response.ok) {
+          throw new Error('Failed to fetch folders');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching folders:', error);
+        return [];
+      }
+    },
   });
 
   // Create folder mutation
   const createFolderMutation = useMutation({
-    mutationFn: (folderData: any) => apiRequest('/api/screeners', 'POST', folderData),
+    mutationFn: async (folderData: any) => {
+      try {
+        const response = await fetch('/api/screeners', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(folderData),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to create folder');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error creating folder:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
       setShowCreateDialog(false);
       resetForm();
+    },
+    onError: (error) => {
+      console.error('Create folder mutation error:', error);
     }
   });
 
   // Update folder mutation
   const updateFolderMutation = useMutation({
-    mutationFn: ({ id, ...folderData }: any) => apiRequest(`/api/screeners/${id}`, 'PUT', folderData),
+    mutationFn: async ({ id, ...folderData }: any) => {
+      try {
+        const response = await fetch(`/api/screeners/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(folderData),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update folder');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error updating folder:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
       setShowEditDialog(false);
@@ -69,7 +117,20 @@ export default function FoldersPage() {
 
   // Delete folder mutation
   const deleteFolderMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/screeners/${id}`, 'DELETE'),
+    mutationFn: async (id: string) => {
+      try {
+        const response = await fetch(`/api/screeners/${id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to delete folder');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error deleting folder:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
     }
@@ -84,6 +145,15 @@ export default function FoldersPage() {
 
   const handleCreateFolder = () => {
     if (!folderName.trim()) return;
+
+    console.log('Creating folder with data:', {
+      userId: 'default-user',
+      name: folderName,
+      description: folderDescription,
+      color: folderColor,
+      tradingPairs: [],
+      isStarred: false
+    });
 
     createFolderMutation.mutate({
       userId: 'default-user',

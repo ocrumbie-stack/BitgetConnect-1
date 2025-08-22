@@ -126,6 +126,10 @@ export const screeners = pgTable("screeners", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default('#3b82f6'),
+  tradingPairs: text("trading_pairs").array(),
+  isStarred: boolean("is_starred").default(false),
   criteria: jsonb("criteria").$type<{
     // Basic filters
     minPrice?: number;
@@ -209,7 +213,7 @@ export const screeners = pgTable("screeners", {
       operator: 'above' | 'below' | 'positive' | 'negative';
       value?: number;
     };
-  }>().notNull(),
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
