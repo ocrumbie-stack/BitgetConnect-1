@@ -213,7 +213,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
           <TabsContent value="alerts" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">Recent Alerts</h3>
+                <h3 className="text-base font-semibold">Recent Alerts</h3>
                 {unreadAlerts.length > 0 && (
                   <Button
                     variant="outline"
@@ -257,8 +257,8 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
                             {getAlertIcon(alert.alertType, alert.severity)}
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium">{alert.title}</h4>
-                                <Badge variant="outline" className="text-xs">
+                                <h4 className="text-sm font-medium">{alert.title}</h4>
+                                <Badge variant="outline" className="text-sm">
                                   {alert.alertType.replace('_', ' ')}
                                 </Badge>
                                 {!alert.isRead && (
@@ -355,7 +355,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
 
           <TabsContent value="settings" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Alert Settings</h3>
+              <h3 className="text-base font-semibold">Alert Settings</h3>
               <Button
                 onClick={() => setShowCreateAlert(true)}
                 data-testid="button-create-alert-setting"

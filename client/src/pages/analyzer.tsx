@@ -182,8 +182,8 @@ export function Analyzer() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Pair Analyzer</h1>
-        <p className="text-muted-foreground">Advanced technical analysis and trading recommendations</p>
+        <h1 className="text-xl font-semibold text-foreground mb-2">Pair Analyzer</h1>
+        <p className="text-sm text-muted-foreground">Advanced technical analysis and trading recommendations</p>
       </div>
 
       <div className="p-4 space-y-6">

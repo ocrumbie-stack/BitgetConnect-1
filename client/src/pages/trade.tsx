@@ -63,10 +63,10 @@ export function Trade() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{currentPair}</span>
+              <span className="text-base font-medium">{currentPair}</span>
               <ChevronDown className="h-4 w-4" />
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-base text-gray-400">
               Perpetual <span className="text-red-500">{change24h}%</span>
             </div>
           </div>
