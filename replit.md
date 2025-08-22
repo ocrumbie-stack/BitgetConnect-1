@@ -67,8 +67,13 @@ Basic structure in place for user management:
 - **Folder Bot Naming**: Active bots deployed via folder selection show as "FolderName - StrategyName" in active monitoring
 - **Schema Enhancement**: Added folderName field to botExecutions schema for proper folder-based bot identification
 - **Display Logic Fix**: Updated active bot grouping to recognize both 'folder' and 'folder_bulk' deployment types consistently
-- **Complete Workflow**: Folders → Strategy Selection → Bulk Deployment → Active Bot Monitoring → Clean Pair Management all working seamlessly
-- User confirmed complete system: "Perfect" - unified professional trading pair and bot deployment system fully operational
+- **FINAL: Separate Folder Bot Executions with Complete Stop All Functionality**: Each folder deployment now creates truly separate bot executions
+- **Individual Red Trading Pair Boxes**: Trading pairs within folders display in red boxes with individual stop buttons as requested
+- **Folder-Level Termination**: "Stop All" button now properly terminates all bots in a folder and removes entire folder from active list
+- **Enhanced Backend Logic**: Created terminate-folder endpoint that only targets active bots and provides detailed logging
+- **Perfect Active Filtering**: Frontend properly filters only active executions, automatically hiding terminated bots
+- **Complete Workflow**: Folders → Strategy Selection → Bulk Deployment → Individual Pair Management → Folder-Level Termination all working seamlessly
+- User confirmed complete system: "It now works" - unified professional trading pair and bot deployment system with proper separation fully operational
 
 ## August 21, 2025
 - Successfully completed bot system architectural redesign from coin-specific to reusable strategy templates
