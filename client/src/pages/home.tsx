@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
@@ -205,6 +205,37 @@ export function Home() {
           risk = 'High';
           timeframe = '2-8h';
           break;
+
+        case 'remarkable':
+          // Remarkable price changes - significant movements
+          if (absChange >= 0.03) { // 3%+ change in 24h
+            score += 40;
+            reasons.push('Significant move');
+          }
+          
+          if (absChange >= 0.05) { // 5%+ change
+            score += 30;
+            reasons.push('Major price shift');
+          }
+          
+          if (absChange >= 0.08) { // 8%+ change
+            score += 25;
+            reasons.push('Remarkable change');
+          }
+          
+          if (volume24h > 1000000) {
+            score += 20;
+            confidence += 15;
+            reasons.push('Volume confirmation');
+          }
+          
+          // Higher confidence for bigger moves
+          if (absChange >= 0.10) confidence += 25;
+          else if (absChange >= 0.05) confidence += 15;
+          
+          risk = absChange >= 0.08 ? 'High' : absChange >= 0.05 ? 'Medium' : 'Low';
+          timeframe = 'Real-time';
+          break;
       }
       
       // Volume-based confidence adjustment
@@ -240,7 +271,8 @@ export function Home() {
     breakout: generateOpportunities('breakout'),
     scalping: generateOpportunities('scalping'),
     swing: generateOpportunities('swing'),
-    reversal: generateOpportunities('reversal')
+    reversal: generateOpportunities('reversal'),
+    remarkable: generateOpportunities('remarkable')
   };
 
   const toggleStrategyExpansion = (strategy: string) => {
@@ -299,13 +331,14 @@ export function Home() {
             </div>
 
             {/* Trading Strategy Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
               {[
                 { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
                 { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
                 { key: 'scalping', label: 'Scalping', icon: Target, iconColor: 'bg-blue-500', desc: 'Quick scalp trades' },
                 { key: 'swing', label: 'Swing', icon: Trend, iconColor: 'bg-purple-500', desc: 'Trend following' },
-                { key: 'reversal', label: 'Reversal', icon: Activity, iconColor: 'bg-orange-500', desc: 'Mean reversion' }
+                { key: 'reversal', label: 'Reversal', icon: Activity, iconColor: 'bg-orange-500', desc: 'Mean reversion' },
+                { key: 'remarkable', label: 'Remarkable Changes', icon: AlertTriangle, iconColor: 'bg-red-500', desc: 'Significant price movements' }
               ].map((strategy) => {
                 const isExpanded = expandedStrategies.has(strategy.key);
                 const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
@@ -346,7 +379,8 @@ export function Home() {
                 { key: 'breakout', label: 'Breakout Trading', icon: TrendingUp, color: 'text-green-500', desc: 'Moderate moves with accelerating volume for breakout strategies.', badge: 'Volume Breakouts' },
                 { key: 'scalping', label: 'Scalping Trading', icon: Target, color: 'text-blue-500', desc: 'Ultra-high liquidity pairs perfect for quick scalping trades.', badge: 'High Liquidity' },
                 { key: 'swing', label: 'Swing Trading', icon: Trend, color: 'text-purple-500', desc: 'Established trends with good risk/reward for swing trading.', badge: 'Trend Following' },
-                { key: 'reversal', label: 'Reversal Trading', icon: Activity, color: 'text-orange-500', desc: 'Oversold/overbought conditions for mean reversion plays.', badge: 'Mean Reversion' }
+                { key: 'reversal', label: 'Reversal Trading', icon: Activity, color: 'text-orange-500', desc: 'Oversold/overbought conditions for mean reversion plays.', badge: 'Mean Reversion' },
+                { key: 'remarkable', label: 'Remarkable Price Changes', icon: AlertTriangle, color: 'text-red-500', desc: 'Significant 5-minute and 24-hour price movements with timestamps.', badge: 'Price Alerts' }
               ].filter(strategy => expandedStrategies.has(strategy.key)).map((strategy) => {
                 const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
                 const showAll = showAllOpportunities[strategy.key] || false;
@@ -395,27 +429,44 @@ export function Home() {
                           <div className="space-y-3">
                             {displayedOpportunities.map((opportunity: any) => (
                               <Card key={opportunity.symbol} className="p-4 hover:shadow-md transition-shadow">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-3">
-                                    <div>
-                                      <div className="font-medium text-sm">{opportunity.symbol}</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        ${parseFloat(opportunity.price).toFixed(4)}
+                                {strategy.key === 'remarkable' ? (
+                                  // Special layout for remarkable price changes
+                                  <>
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-3">
+                                        <div>
+                                          <div className="font-semibold text-base">{opportunity.symbol}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })} {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-center">
+                                          <Badge 
+                                            variant={Math.abs(opportunity.change24hNum) >= 0.05 ? 'default' : 'secondary'}
+                                            className={`text-sm px-3 py-1 ${
+                                              Math.abs(opportunity.change24hNum) >= 0.08 ? 'bg-red-500 text-white' :
+                                              Math.abs(opportunity.change24hNum) >= 0.05 ? 'bg-orange-500 text-white' :
+                                              'bg-blue-500 text-white'
+                                            }`}
+                                          >
+                                            {Math.abs(opportunity.change24hNum) >= 0.08 ? '24h high' :
+                                             Math.abs(opportunity.change24hNum) >= 0.05 ? '5m rise' : '24h move'}
+                                          </Badge>
+                                        </div>
+                                        <div className={`text-lg font-bold mt-1 ${
+                                          opportunity.change24hNum >= 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                          {formatChange(opportunity.change24h)}
+                                        </div>
                                       </div>
                                     </div>
-                                    <Badge variant={opportunity.change24hNum >= 0 ? 'default' : 'destructive'} className="text-xs">
-                                      {formatChange(opportunity.change24h)}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <Badge variant="outline" className={`text-xs ${
-                                        opportunity.risk === 'High' ? 'border-red-200 text-red-700' :
-                                        opportunity.risk === 'Medium' ? 'border-yellow-200 text-yellow-700' :
-                                        'border-green-200 text-green-700'
-                                      }`}>
-                                        {opportunity.risk} Risk
-                                      </Badge>
+                                    
+                                    <div className="flex items-center justify-between text-sm">
+                                      <div className="text-muted-foreground">
+                                        Price: ${parseFloat(opportunity.price).toFixed(4)}
+                                      </div>
                                       <Button 
                                         size="sm" 
                                         variant="ghost" 
@@ -425,29 +476,65 @@ export function Home() {
                                         <ChevronRight className="h-4 w-4" />
                                       </Button>
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {opportunity.timeframe}
+                                  </>
+                                ) : (
+                                  // Standard layout for other strategies
+                                  <>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-3">
+                                        <div>
+                                          <div className="font-medium text-sm">{opportunity.symbol}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            ${parseFloat(opportunity.price).toFixed(4)}
+                                          </div>
+                                        </div>
+                                        <Badge variant={opportunity.change24hNum >= 0 ? 'default' : 'destructive'} className="text-xs">
+                                          {formatChange(opportunity.change24h)}
+                                        </Badge>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <Badge variant="outline" className={`text-xs ${
+                                            opportunity.risk === 'High' ? 'border-red-200 text-red-700' :
+                                            opportunity.risk === 'Medium' ? 'border-yellow-200 text-yellow-700' :
+                                            'border-green-200 text-green-700'
+                                          }`}>
+                                            {opportunity.risk} Risk
+                                          </Badge>
+                                          <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
+                                            className="h-8 px-2"
+                                          >
+                                            <ChevronRight className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {opportunity.timeframe}
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-4">
-                                    <div className="text-sm">
-                                      Score: <span className="font-medium text-blue-600">{opportunity.score}</span>
+                                    
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-4">
+                                        <div className="text-sm">
+                                          Score: <span className="font-medium text-blue-600">{opportunity.score}</span>
+                                        </div>
+                                        <div className="text-sm">
+                                          Confidence: <span className="font-medium text-green-600">{opportunity.confidence}%</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-1 flex-wrap">
+                                        {opportunity.reasons.map((reason: string, idx: number) => (
+                                          <Badge key={idx} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                            {reason}
+                                          </Badge>
+                                        ))}
+                                      </div>
                                     </div>
-                                    <div className="text-sm">
-                                      Confidence: <span className="font-medium text-green-600">{opportunity.confidence}%</span>
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-1 flex-wrap">
-                                    {opportunity.reasons.map((reason: string, idx: number) => (
-                                      <Badge key={idx} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                        {reason}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
+                                  </>
+                                )}
                               </Card>
                             ))}
                             
