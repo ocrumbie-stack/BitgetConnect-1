@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { Home, TrendingUp, BarChart3, Bot, Wallet } from 'lucide-react';
+import { Home, TrendingUp, BarChart3, Bot, Brain } from 'lucide-react';
 
 export function BottomNavigation() {
   const [location] = useLocation();
@@ -9,7 +9,7 @@ export function BottomNavigation() {
     { path: '/markets', label: 'Markets', icon: TrendingUp },
     { path: '/trade', label: 'Trade', icon: BarChart3 },
     { path: '/bot', label: 'Bot', icon: Bot },
-    { path: '/assets', label: 'Assets', icon: Wallet },
+    { path: '/analyzer', label: 'Analyzer', icon: Brain },
   ];
 
   return (
