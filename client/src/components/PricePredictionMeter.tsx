@@ -470,7 +470,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
               <TabsContent value="analysis" className="space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
                       <Target className="h-4 w-4" />
                       Market Sentiment Analysis
                     </CardTitle>
@@ -498,7 +498,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Support & Resistance Levels</CardTitle>
+                    <CardTitle className="text-lg">Support & Resistance Levels</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
