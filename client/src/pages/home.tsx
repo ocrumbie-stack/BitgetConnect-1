@@ -316,7 +316,10 @@ export function Home() {
                     className={`cursor-pointer transition-all hover:shadow-md border-2 ${
                       isExpanded ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : 'border-border hover:border-accent'
                     }`}
-                    onClick={() => toggleStrategyExpansion(strategy.key)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleStrategyExpansion(strategy.key);
+                    }}
                   >
                     <CardContent className="p-6 text-center">
                       <div className={`w-16 h-16 ${strategy.iconColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
