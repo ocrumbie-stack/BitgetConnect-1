@@ -264,7 +264,11 @@ export default function FolderDetailPage() {
         {folder.tradingPairs && folder.tradingPairs.length > 0 && (
           <div className="mt-4 ml-12">
             <Button
-              onClick={() => setShowBulkBotDialog(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowBulkBotDialog(true);
+              }}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               disabled={strategies.length === 0}
               title={strategies.length === 0 ? "Create a bot strategy first in the Bot page" : ""}
@@ -277,12 +281,13 @@ export default function FolderDetailPage() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Add Pair Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Add Trading Pairs</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Add Pair Section - Hidden when bulk bot dialog is open */}
+        {!showBulkBotDialog && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Add Trading Pairs</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -342,9 +347,11 @@ export default function FolderDetailPage() {
             </Button>
           </CardContent>
         </Card>
+        )}
 
-        {/* Trading Pairs List */}
-        <Card>
+        {/* Trading Pairs List - Hidden when bulk bot dialog is open */}
+        {!showBulkBotDialog && (
+          <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center justify-between">
               Trading Pairs
@@ -417,6 +424,7 @@ export default function FolderDetailPage() {
             )}
           </CardContent>
         </Card>
+        )}
       </div>
 
       {/* Bulk Bot Deployment Dialog */}
