@@ -36,6 +36,7 @@ The application includes:
 - **AI-Powered Recommendations**: Recommendations based on daily movement patterns, liquidity, and trading patterns, with detailed display of movement percentage and AI scores.
 - **Interactive Price Prediction Confidence Meter**: Advanced AI-powered price prediction system for any trading pair with real-time Bitget API integration, featuring smart autocomplete with live prices, multi-timeframe analysis (1H, 4H, 1D, 1W), confidence scoring (0-100%), technical indicator analysis (RSI, MACD, Bollinger Bands, Volume), market sentiment assessment, support/resistance level detection, risk evaluation, and historical accuracy tracking. All prices are fetched live from Bitget API with 3-second refresh intervals.
 - **Analyzer Page**: Advanced technical analysis tool with trend detection, support/resistance levels, entry/exit recommendations, multi-timeframe analysis, and direct trading execution.
+- **Comprehensive Alert System**: Complete notification system with 8+ alert categories (PnL gains/losses, screener matches, trend changes, volume spikes, price breakouts, technical signals, support/resistance levels, unusual activity, market news), intelligent auto-suggest functionality for trading pairs with live price data and keyboard navigation, distinction between alert settings (configurations) and alerts (actual notifications), real-time monitoring with 5-second refresh intervals, and proper light/dark mode support.
 
 # External Dependencies
 
