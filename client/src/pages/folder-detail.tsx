@@ -153,7 +153,7 @@ export default function FolderDetailPage() {
               userId: 'default-user',
               strategyId,
               tradingPair: pair,
-              capital: parseFloat(capital),
+              capital: capital, // Keep as string to match schema
               leverage,
               status: 'active'
             }),
@@ -174,7 +174,11 @@ export default function FolderDetailPage() {
     onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       const successCount = results.filter(r => r.success).length;
+      const failedResults = results.filter(r => !r.success);
       console.log(`Successfully deployed bots for ${successCount}/${results.length} pairs`);
+      if (failedResults.length > 0) {
+        console.log('Failed deployments:', failedResults);
+      }
       setShowBulkBotDialog(false);
     },
   });
