@@ -48,6 +48,7 @@ export default function BotPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
+  const [selectedFolder, setSelectedFolder] = useState<string>('');
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -72,6 +73,20 @@ export default function BotPage() {
   const { data: futuresData = [] } = useQuery({
     queryKey: ['/api/futures'],
     refetchInterval: 10000
+  });
+
+  // Fetch folders for dropdown
+  const { data: folders = [] } = useQuery({
+    queryKey: ['/api/folders', 'default-user'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/screeners/default-user');
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        return [];
+      }
+    },
   });
 
   // Create strategy mutation
@@ -1359,6 +1374,38 @@ export default function BotPage() {
               >
                 🤖 Get AI Recommendations
               </Button>
+              
+              {/* Folder Selection */}
+              <div className="mt-4">
+                <label className="text-sm font-medium mb-2 block">Deploy to Folder (Optional)</label>
+                <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a folder or deploy individual pair" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Individual Pair (Default)</SelectItem>
+                    {(folders as any[]).map((folder: any) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: folder.color || '#3b82f6' }}
+                          />
+                          <span>{folder.name}</span>
+                          <span className="text-muted-foreground">
+                            ({folder.tradingPairs?.length || 0} pairs)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFolder && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This will deploy the strategy to all pairs in the selected folder
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
