@@ -40,14 +40,15 @@ export default function BotPage() {
   });
   
   // Bot execution form
+  const [tradingPair, setTradingPair] = useState('BTCUSDT');
   const [capital, setCapital] = useState('1000');
   const [leverage, setLeverage] = useState('1');
+  const [pairSearch, setPairSearch] = useState('');
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
-  const [tradingPair, setTradingPair] = useState('BTCUSDT');
 
 
 
@@ -197,34 +198,53 @@ export default function BotPage() {
   };
 
   const handleRunStrategy = async (strategy: any) => {
-    if (!selectedFolder || !capital) return;
-
-    // Find the selected folder and get its trading pairs
-    const folder = (folders as any[]).find(f => f.id === selectedFolder);
-    if (!folder || !folder.tradingPairs || folder.tradingPairs.length === 0) {
-      alert('Selected folder has no trading pairs. Please add pairs to the folder first.');
-      return;
-    }
+    if (!capital) return;
 
     try {
-      // Deploy strategy to all pairs in the folder
-      for (const pair of folder.tradingPairs) {
+      if (selectedFolder) {
+        // Deploy to folder
+        const folder = (folders as any[]).find(f => f.id === selectedFolder);
+        if (!folder || !folder.tradingPairs || folder.tradingPairs.length === 0) {
+          alert('Selected folder has no trading pairs. Please add pairs to the folder first.');
+          return;
+        }
+
+        // Deploy strategy to all pairs in the folder
+        for (const pair of folder.tradingPairs) {
+          const executionData = {
+            userId: 'default-user',
+            strategyId: strategy.isAI ? strategy.id : strategy.id,
+            tradingPair: pair,
+            capital,
+            leverage,
+            status: 'active',
+            deploymentType: 'folder',
+            folderId: selectedFolder
+          };
+          
+          await runStrategyMutation.mutateAsync(executionData);
+        }
+        
+        setShowRunDialog(false);
+        alert(`Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder!`);
+      } else if (tradingPair) {
+        // Deploy to individual pair
         const executionData = {
           userId: 'default-user',
           strategyId: strategy.isAI ? strategy.id : strategy.id,
-          tradingPair: pair,
+          tradingPair,
           capital,
           leverage,
           status: 'active',
-          deploymentType: 'folder',
-          folderId: selectedFolder
+          deploymentType: 'manual'
         };
         
         await runStrategyMutation.mutateAsync(executionData);
+        setShowRunDialog(false);
+        alert(`Strategy deployed to ${tradingPair}!`);
+      } else {
+        alert('Please select either a trading pair or a folder to deploy the strategy.');
       }
-      
-      setShowRunDialog(false);
-      alert(`Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder!`);
     } catch (error) {
       console.error('Failed to deploy strategy:', error);
       alert('Failed to deploy strategy: ' + (error as Error).message);
@@ -1311,35 +1331,62 @@ export default function BotPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Folder Selection */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Select Folder</label>
-              <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose folder to deploy strategy" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(folders as any[]).map((folder: any) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: folder.color || '#3b82f6' }}
-                        />
-                        <span>{folder.name}</span>
-                        <span className="text-muted-foreground">
-                          ({folder.tradingPairs?.length || 0} pairs)
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedFolder && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Strategy will be deployed to all pairs in this folder
-                </p>
-              )}
+              <label className="text-sm font-medium mb-2 block">Trading Pair</label>
+              <div className="relative">
+                <Input 
+                  placeholder="Type to search pairs (e.g., BTC, ETH, SOL)..."
+                  value={tradingPair}
+                  onChange={(e) => setTradingPair(e.target.value)}
+                  className="pr-4"
+                />
+                {tradingPair && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Selected: {tradingPair}
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm" 
+                onClick={generateRecommendations}
+                className="mt-2 w-full"
+              >
+                🤖 Get AI Recommendations
+              </Button>
+              
+              {/* Folder Selection */}
+              <div className="mt-4">
+                <label className="text-sm font-medium mb-2 block">Select Folder</label>
+                <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose folder to deploy strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(folders as any[]).map((folder: any) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: folder.color || '#3b82f6' }}
+                          />
+                          <span>{folder.name}</span>
+                          <span className="text-muted-foreground">
+                            ({folder.tradingPairs?.length || 0} pairs)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFolder && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Strategy will be deployed to all pairs in this folder
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1374,7 +1421,7 @@ export default function BotPage() {
               </Button>
               <Button 
                 onClick={() => handleRunStrategy(selectedStrategy)} 
-                disabled={runStrategyMutation.isPending || !selectedFolder || !capital}
+                disabled={runStrategyMutation.isPending || (!tradingPair && !selectedFolder) || !capital}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {runStrategyMutation.isPending ? 'Starting...' : 'Start Bot'}
