@@ -141,6 +141,25 @@ export default function BotPage() {
     }
   });
 
+  // Terminate all bots in a folder
+  const handleTerminateFolder = useMutation({
+    mutationFn: async (folderName: string) => {
+      const response = await fetch(`/api/bot-executions/terminate-folder/${folderName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'default-user' })
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to stop folder bots: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+    }
+  });
+
   // Delete strategy mutation
   const deleteStrategyMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -721,18 +740,14 @@ export default function BotPage() {
                                   variant="destructive"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm(`Stop all ${executions.length} bots in ${folderName}?`)) {
-                                      executions.forEach(ex => {
-                                        if (ex.status === 'active') {
-                                          handleTerminateExecution.mutate(ex.id);
-                                        }
-                                      });
+                                    if (window.confirm(`Stop all ${executions.length} bots in ${folderName} folder? This will remove the entire folder from active bots.`)) {
+                                      handleTerminateFolder.mutate(folderName);
                                     }
                                   }}
-                                  disabled={handleTerminateExecution.isPending}
+                                  disabled={handleTerminateFolder.isPending}
                                 >
                                   <Square className="h-3 w-3 mr-1" />
-                                  Stop All
+                                  {handleTerminateFolder.isPending ? 'Stopping...' : 'Stop All'}
                                 </Button>
                               </div>
                             </div>
