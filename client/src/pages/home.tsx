@@ -267,35 +267,20 @@ export function Home() {
               </Badge>
             </div>
 
-            {/* Interactive Price Prediction Meter - ETH Only */}
-            {!isLoading && data && data.length > 0 && (() => {
-              const ethPair = data.find(pair => pair.symbol === 'ETHUSDT');
-              return ethPair ? (
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Gauge className="h-5 w-5 text-purple-500" />
-                    <h3 className="text-md font-semibold">Interactive Price Prediction</h3>
-                    <Badge className="bg-purple-500 text-white text-xs">ETH Analysis</Badge>
-                  </div>
-                  <PricePredictionMeter 
-                    symbol={ethPair.symbol} 
-                    currentPrice={parseFloat(ethPair.price)}
-                    onPredictionGenerated={(prediction) => {
-                      console.log('New ETH prediction generated:', prediction);
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="mb-6">
-                  <Card className="p-4 border-dashed border-muted-foreground/30">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Gauge className="h-5 w-5" />
-                      <span className="text-sm">ETH price prediction available when ETHUSDT data is loaded</span>
-                    </div>
-                  </Card>
-                </div>
-              );
-            })()}
+            {/* Interactive Price Prediction Meter - Any Pair */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Gauge className="h-5 w-5 text-purple-500" />
+                <h3 className="text-md font-semibold">Interactive Price Prediction</h3>
+                <Badge className="bg-purple-500 text-white text-xs">AI Powered</Badge>
+              </div>
+              <PricePredictionMeter 
+                availablePairs={data || []}
+                onPredictionGenerated={(prediction) => {
+                  console.log('New prediction generated:', prediction);
+                }}
+              />
+            </div>
 
             <Tabs value={activeOpportunityTab} onValueChange={setActiveOpportunityTab} className="w-full">
               <TabsList className="grid w-full grid-cols-5 text-xs">

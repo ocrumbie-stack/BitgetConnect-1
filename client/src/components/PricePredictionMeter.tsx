@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   TrendingUp, 
@@ -62,19 +63,44 @@ interface PricePrediction {
 }
 
 interface PricePredictionMeterProps {
-  symbol: string;
-  currentPrice: number;
+  symbol?: string;
+  currentPrice?: number;
+  availablePairs?: Array<{symbol: string; price: string}>;
   onPredictionGenerated?: (prediction: PricePrediction) => void;
 }
 
-export function PricePredictionMeter({ symbol, currentPrice, onPredictionGenerated }: PricePredictionMeterProps) {
+export function PricePredictionMeter({ symbol, currentPrice, availablePairs = [], onPredictionGenerated }: PricePredictionMeterProps) {
+  const [selectedSymbol, setSelectedSymbol] = useState(symbol || '');
+  const [customSymbol, setCustomSymbol] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prediction, setPrediction] = useState<PricePrediction | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Get current price for selected symbol
+  const getCurrentPrice = () => {
+    if (selectedSymbol && availablePairs.length > 0) {
+      const pair = availablePairs.find(p => p.symbol === selectedSymbol);
+      return pair ? parseFloat(pair.price) : currentPrice || 0;
+    }
+    return currentPrice || 0;
+  };
+
+  // Get the symbol to use for prediction
+  const getSymbolForPrediction = () => {
+    return customSymbol.trim() || selectedSymbol || symbol || '';
+  };
+
   // Mock AI prediction generation (replace with actual API call)
   const generatePrediction = async () => {
+    const targetSymbol = getSymbolForPrediction();
+    const targetPrice = getCurrentPrice();
+    
+    if (!targetSymbol || !targetPrice) {
+      alert('Please select or enter a valid trading pair');
+      return;
+    }
+
     setIsGenerating(true);
     
     // Simulate AI processing time
@@ -82,7 +108,7 @@ export function PricePredictionMeter({ symbol, currentPrice, onPredictionGenerat
     
     // Generate realistic prediction based on current price and market conditions
     const changePercent = (Math.random() - 0.5) * 10; // -5% to +5%
-    const predictedPrice = currentPrice * (1 + changePercent / 100);
+    const predictedPrice = targetPrice * (1 + changePercent / 100);
     const direction = changePercent > 1 ? 'up' : changePercent < -1 ? 'down' : 'sideways';
     
     // Generate confidence based on various factors
@@ -94,8 +120,8 @@ export function PricePredictionMeter({ symbol, currentPrice, onPredictionGenerat
     const avgConfidence = Math.floor((technicalAlignment + volumeConfirmation + marketConsensus + historicalAccuracy) / 4);
     
     const mockPrediction: PricePrediction = {
-      symbol,
-      currentPrice,
+      symbol: targetSymbol,
+      currentPrice: targetPrice,
       predictedPrice,
       direction,
       confidence: avgConfidence,
@@ -131,11 +157,11 @@ export function PricePredictionMeter({ symbol, currentPrice, onPredictionGenerat
           ].slice(0, Math.floor(Math.random() * 3) + 2)
         },
         supportResistance: {
-          support: [currentPrice * 0.95, currentPrice * 0.92].sort((a, b) => b - a),
-          resistance: [currentPrice * 1.05, currentPrice * 1.08].sort((a, b) => a - b),
+          support: [targetPrice * 0.95, targetPrice * 0.92].sort((a, b) => b - a),
+          resistance: [targetPrice * 1.05, targetPrice * 1.08].sort((a, b) => a - b),
           nearestLevel: {
             type: Math.random() > 0.5 ? 'resistance' : 'support',
-            price: currentPrice * (Math.random() > 0.5 ? 1.03 : 0.97),
+            price: targetPrice * (Math.random() > 0.5 ? 1.03 : 0.97),
             distance: Math.random() * 5
           }
         },
@@ -186,45 +212,103 @@ export function PricePredictionMeter({ symbol, currentPrice, onPredictionGenerat
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-purple-500" />
-          AI Price Prediction - {symbol}
+          AI Price Prediction
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Controls */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-              <SelectTrigger className="w-24">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1h">1H</SelectItem>
-                <SelectItem value="4h">4H</SelectItem>
-                <SelectItem value="1d">1D</SelectItem>
-                <SelectItem value="1w">1W</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Button 
-            onClick={generatePrediction} 
-            disabled={isGenerating}
-            className="flex items-center gap-2"
-            data-testid="button-generate-prediction"
-          >
-            {isGenerating ? (
-              <>
-                <Zap className="h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Zap className="h-4 w-4" />
-                Generate Prediction
-              </>
+        <div className="space-y-4">
+          {/* Trading Pair Selection */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Select Trading Pair</div>
+            
+            {/* Available Pairs Dropdown */}
+            {availablePairs.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">From list:</span>
+                <Select value={selectedSymbol} onValueChange={(value) => {
+                  setSelectedSymbol(value);
+                  setCustomSymbol(''); // Clear custom input when selecting from list
+                }}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Select pair" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePairs.map((pair) => (
+                      <SelectItem key={pair.symbol} value={pair.symbol}>
+                        {pair.symbol} - ${parseFloat(pair.price).toFixed(4)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
-          </Button>
+
+            {/* Custom Pair Input */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Or enter:</span>
+              <Input
+                placeholder="e.g., ETHUSDT, BTCUSDT"
+                value={customSymbol}
+                onChange={(e) => {
+                  setCustomSymbol(e.target.value.toUpperCase());
+                  setSelectedSymbol(''); // Clear dropdown selection when typing custom
+                }}
+                className="w-40"
+                data-testid="input-custom-pair"
+              />
+            </div>
+
+            {/* Show selected pair info */}
+            {(selectedSymbol || customSymbol) && (
+              <div className="p-2 bg-accent/50 rounded text-sm">
+                <span className="font-medium">Selected: </span>
+                {getSymbolForPrediction()}
+                {selectedSymbol && (
+                  <span className="text-muted-foreground ml-2">
+                    Current: ${getCurrentPrice().toFixed(4)}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Timeframe and Generate */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h">1H</SelectItem>
+                  <SelectItem value="4h">4H</SelectItem>
+                  <SelectItem value="1d">1D</SelectItem>
+                  <SelectItem value="1w">1W</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          
+            <Button 
+              onClick={generatePrediction} 
+              disabled={isGenerating || !getSymbolForPrediction()}
+              className="flex items-center gap-2"
+              data-testid="button-generate-prediction"
+            >
+              {isGenerating ? (
+                <>
+                  <Zap className="h-4 w-4 animate-spin" />
+                  Analyzing {getSymbolForPrediction()}...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Generate Prediction
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Prediction Results */}

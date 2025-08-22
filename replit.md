@@ -34,7 +34,7 @@ The application includes:
 - **Trading Pair Management**: Folder-based organization with bulk bot deployment, manual pair addition, and context menus for adding pairs from the Markets page.
 - **Bulk Bot Deployment**: Deploying strategies to all pairs within a folder simultaneously, with individual capital allocation, leverage settings, and investment calculation.
 - **AI-Powered Recommendations**: Recommendations based on daily movement patterns, liquidity, and trading patterns, with detailed display of movement percentage and AI scores.
-- **Interactive Price Prediction Confidence Meter**: Advanced AI-powered price prediction system specifically for ETH, featuring multi-timeframe analysis (1H, 4H, 1D, 1W), confidence scoring (0-100%), technical indicator analysis (RSI, MACD, Bollinger Bands, Volume), market sentiment assessment, support/resistance level detection, risk evaluation, and historical accuracy tracking.
+- **Interactive Price Prediction Confidence Meter**: Advanced AI-powered price prediction system for any trading pair with flexible pair selection (dropdown from available pairs or custom input), featuring multi-timeframe analysis (1H, 4H, 1D, 1W), confidence scoring (0-100%), technical indicator analysis (RSI, MACD, Bollinger Bands, Volume), market sentiment assessment, support/resistance level detection, risk evaluation, and historical accuracy tracking.
 - **Analyzer Page**: Advanced technical analysis tool with trend detection, support/resistance levels, entry/exit recommendations, multi-timeframe analysis, and direct trading execution.
 
 # External Dependencies
