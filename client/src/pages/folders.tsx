@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +35,7 @@ interface TradingFolder {
 }
 
 export default function FoldersPage() {
+  const [, setLocation] = useLocation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<TradingFolder | null>(null);
@@ -315,13 +317,19 @@ export default function FoldersPage() {
                       <div className="text-center py-4 text-muted-foreground">
                         <FileText className="h-8 w-8 mx-auto mb-2" />
                         <p className="text-sm">No pairs added yet</p>
+                        <p className="text-xs mt-1">Right-click on pairs in Markets to add them</p>
                       </div>
                     )}
 
                     <Separator />
                     
                     <div className="flex items-center justify-between">
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setLocation(`/folders/${folder.id}`)}
+                      >
                         <BarChart3 className="h-4 w-4" />
                         View
                       </Button>

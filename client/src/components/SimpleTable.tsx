@@ -1,6 +1,14 @@
 import { FuturesData } from '@shared/schema';
 import { useLocation } from 'wouter';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, Plus, FolderPlus } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 interface SimpleTableProps {
   data: FuturesData[];
@@ -12,6 +20,81 @@ interface SimpleTableProps {
 
 export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: SimpleTableProps) {
   const [, setLocation] = useLocation();
+  const [selectedSymbol, setSelectedSymbol] = useState<string>('');
+  const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const queryClient = useQueryClient();
+
+  // Fetch user folders
+  const { data: folders = [] } = useQuery({
+    queryKey: ['/api/folders', 'default-user'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/screeners/default-user');
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        return [];
+      }
+    },
+  });
+
+  // Add to folder mutation
+  const addToFolderMutation = useMutation({
+    mutationFn: async ({ folderId, symbol }: { folderId: string; symbol: string }) => {
+      // Get current folder data
+      const folder = folders.find((f: any) => f.id === folderId);
+      if (!folder) throw new Error('Folder not found');
+      
+      const currentPairs = folder.tradingPairs || [];
+      if (currentPairs.includes(symbol)) {
+        throw new Error('Pair already in folder');
+      }
+      
+      const updatedPairs = [...currentPairs, symbol];
+      
+      const response = await fetch(`/api/screeners/${folderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...folder,
+          tradingPairs: updatedPairs
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update folder');
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
+      setShowAddToFolderDialog(false);
+    },
+  });
+
+  const handleLongPressStart = (symbol: string) => {
+    const timer = setTimeout(() => {
+      setSelectedSymbol(symbol);
+      setShowAddToFolderDialog(true);
+      // Haptic feedback for mobile
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 800); // 800ms long press
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleAddToFolder = (folderId: string) => {
+    if (selectedSymbol) {
+      addToFolderMutation.mutate({ folderId, symbol: selectedSymbol });
+    }
+  };
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -107,44 +190,196 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: 
       {/* Data Rows */}
       <div className="divide-y divide-border">
         {data.map((item) => (
-          <div 
-            key={item.symbol} 
-            className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
-            data-testid={`row-${item.symbol}`}
-            onClick={() => setLocation(`/trade?pair=${item.symbol}`)}
-          >
-            {/* Coin/Volume Column */}
-            <div>
-              <div className="font-semibold text-foreground text-base" data-testid={`symbol-${item.symbol}`}>
-                {item.symbol}
-              </div>
-              <div className="text-sm text-muted-foreground" data-testid={`volume-${item.symbol}`}>
-                {formatVolume(item.volume24h)}
-              </div>
-            </div>
-
-            {/* Price Column */}
-            <div className="text-center">
-              <div className="font-medium text-foreground text-base" data-testid={`price-${item.symbol}`}>
-                {formatPrice(item.price)}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                ${formatPrice(item.price)}
-              </div>
-            </div>
-
-            {/* Change Column */}
-            <div className="text-right">
+          <ContextMenu key={item.symbol}>
+            <ContextMenuTrigger asChild>
               <div 
-                className={`inline-block px-3 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
-                data-testid={`change-${item.symbol}`}
+                className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
+                data-testid={`row-${item.symbol}`}
+                onClick={() => setLocation(`/trade?pair=${item.symbol}`)}
+                onTouchStart={() => handleLongPressStart(item.symbol)}
+                onTouchEnd={handleLongPressEnd}
+                onMouseDown={() => handleLongPressStart(item.symbol)}
+                onMouseUp={handleLongPressEnd}
+                onMouseLeave={handleLongPressEnd}
               >
-                {formatChange(item.change24h)}
+                {/* Coin/Volume Column */}
+                <div>
+                  <div className="font-semibold text-foreground text-base" data-testid={`symbol-${item.symbol}`}>
+                    {item.symbol}
+                  </div>
+                  <div className="text-sm text-muted-foreground" data-testid={`volume-${item.symbol}`}>
+                    {formatVolume(item.volume24h)}
+                  </div>
+                </div>
+
+                {/* Price Column */}
+                <div className="text-center">
+                  <div className="font-medium text-foreground text-base" data-testid={`price-${item.symbol}`}>
+                    {formatPrice(item.price)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    ${formatPrice(item.price)}
+                  </div>
+                </div>
+
+                {/* Change Column */}
+                <div className="text-right">
+                  <div 
+                    className={`inline-block px-3 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
+                    data-testid={`change-${item.symbol}`}
+                  >
+                    {formatChange(item.change24h)}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </ContextMenuTrigger>
+            
+            <ContextMenuContent>
+              <ContextMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLocation(`/trade?pair=${item.symbol}`);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Trade {item.symbol}
+              </ContextMenuItem>
+              
+              <ContextMenuSeparator />
+              
+              {folders.length > 0 ? (
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Add to Folder
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent>
+                    {folders.map((folder: any) => (
+                      <ContextMenuItem
+                        key={folder.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToFolder(folder.id);
+                        }}
+                        disabled={folder.tradingPairs?.includes(item.symbol)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: folder.color || '#3b82f6' }}
+                          />
+                          <span>{folder.name}</span>
+                          {folder.tradingPairs?.includes(item.symbol) && (
+                            <Badge variant="secondary" className="text-xs">Added</Badge>
+                          )}
+                        </div>
+                      </ContextMenuItem>
+                    ))}
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+              ) : (
+                <ContextMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSymbol(item.symbol);
+                    setShowAddToFolderDialog(true);
+                  }}
+                >
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Add to Folder
+                </ContextMenuItem>
+              )}
+            </ContextMenuContent>
+          </ContextMenu>
         ))}
       </div>
+
+      {/* Add to Folder Dialog */}
+      <Dialog open={showAddToFolderDialog} onOpenChange={setShowAddToFolderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add {selectedSymbol} to Folder</DialogTitle>
+            <DialogDescription>
+              Choose a folder to add {selectedSymbol} to, or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {folders.length === 0 ? (
+              <div className="text-center py-8">
+                <FolderPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">No folders yet</p>
+                <Button
+                  onClick={() => {
+                    setShowAddToFolderDialog(false);
+                    setLocation('/folders');
+                  }}
+                >
+                  Create First Folder
+                </Button>
+              </div>
+            ) : (
+              <ScrollArea className="h-64">
+                <div className="space-y-2">
+                  {folders.map((folder: any) => {
+                    const isAlreadyAdded = folder.tradingPairs?.includes(selectedSymbol);
+                    return (
+                      <div
+                        key={folder.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                          isAlreadyAdded 
+                            ? 'bg-muted border-muted-foreground/20 opacity-50 cursor-not-allowed' 
+                            : 'hover:bg-accent border-border'
+                        }`}
+                        onClick={() => !isAlreadyAdded && handleAddToFolder(folder.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-4 h-4 rounded-full"
+                              style={{ backgroundColor: folder.color || '#3b82f6' }}
+                            />
+                            <div>
+                              <div className="font-medium">{folder.name}</div>
+                              {folder.description && (
+                                <div className="text-sm text-muted-foreground">
+                                  {folder.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">
+                              {folder.tradingPairs?.length || 0} pairs
+                            </Badge>
+                            {isAlreadyAdded && (
+                              <Badge variant="secondary">Already added</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowAddToFolderDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setShowAddToFolderDialog(false);
+                setLocation('/folders');
+              }}
+            >
+              Manage Folders
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
