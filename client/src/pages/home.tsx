@@ -245,8 +245,8 @@ export function Home() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h1>
-        <p className="text-muted-foreground">Discover AI-powered trading opportunities and market insights</p>
+        <h1 className="text-xl font-semibold text-foreground mb-2">Welcome Back</h1>
+        <p className="text-sm text-muted-foreground">Discover AI-powered trading opportunities and market insights</p>
       </div>
 
       <div className="p-4">
@@ -271,7 +271,7 @@ export function Home() {
 
 
             <Tabs value={activeOpportunityTab} onValueChange={setActiveOpportunityTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5 text-xs">
+              <TabsList className="grid w-full grid-cols-5 text-sm">
                 <TabsTrigger value="momentum" className="flex items-center gap-1">
                   <Zap className="h-3 w-3" />
                   Momentum
@@ -298,11 +298,11 @@ export function Home() {
               <TabsContent value="momentum" className="space-y-3 mt-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium flex items-center gap-2">
+                    <h3 className="text-base font-medium flex items-center gap-2">
                       <Zap className="h-4 w-4 text-yellow-500" />
                       Momentum Trading
                     </h3>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-sm">
                       Strong Directional Moves
                     </Badge>
                   </div>

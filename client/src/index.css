@@ -72,6 +72,37 @@
     font-family: var(--font-sans);
   }
 
+  /* Standardized Typography System for Mobile-Friendly Crypto Trading App */
+  h1 { @apply text-xl font-semibold; }
+  h2 { @apply text-lg font-medium; }
+  h3 { @apply text-base font-medium; }
+  h4 { @apply text-sm font-medium; }
+  p { @apply text-sm; }
+  
+  /* Additional Typography Classes for Consistency */
+  .card-title { @apply text-base font-medium; }
+  .page-subtitle { @apply text-sm text-muted-foreground; }
+  .section-title { @apply text-base font-medium; }
+  .small-text { @apply text-xs; }
+  .label-text { @apply text-sm font-medium; }
+  .button-text { @apply text-sm font-medium; }
+  .badge-text { @apply text-sm; }
+  
+  /* Form and Input Typography */
+  input { @apply text-sm; }
+  select { @apply text-sm; }
+  button { @apply text-sm font-medium; }
+  
+  /* Alert and Notification Typography */
+  .alert-title { @apply text-sm font-medium; }
+  .alert-message { @apply text-sm text-muted-foreground; }
+  
+  /* Trading Data Typography */
+  .price-text { @apply text-sm font-medium; }
+  .change-text { @apply text-sm; }
+  .volume-text { @apply text-xs text-muted-foreground; }
+}
+
   .animate-pulse-dot {
     animation: pulse-dot 2s infinite;
   }
@@ -84,7 +115,6 @@
       opacity: 0.5;
     }
   }
-}
 
 @layer utilities {
   .text-success {
