@@ -15,7 +15,10 @@ import {
   Search,
   TrendingUp,
   TrendingDown,
-  DollarSign
+  DollarSign,
+  Bot,
+  Play,
+  Zap
 } from 'lucide-react';
 
 export default function FolderDetailPage() {
@@ -23,6 +26,10 @@ export default function FolderDetailPage() {
   const [, setLocation] = useLocation();
   const [newPairInput, setNewPairInput] = useState('');
   const [pairSuggestions, setPairSuggestions] = useState<string[]>([]);
+  const [showBulkBotDialog, setShowBulkBotDialog] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState('');
+  const [capital, setCapital] = useState('100');
+  const [leverage, setLeverage] = useState('1');
   
   const folderId = params.id as string;
 
@@ -46,6 +53,20 @@ export default function FolderDetailPage() {
     queryFn: async () => {
       try {
         const response = await fetch('/api/futures');
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        return [];
+      }
+    },
+  });
+
+  // Fetch bot strategies for bulk deployment
+  const { data: strategies = [] } = useQuery({
+    queryKey: ['/api/bot-strategies'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/bot-strategies');
         if (!response.ok) return [];
         return await response.json();
       } catch (error) {
@@ -112,6 +133,50 @@ export default function FolderDetailPage() {
     },
   });
 
+  // Bulk bot deployment mutation
+  const bulkBotMutation = useMutation({
+    mutationFn: async ({ strategyId, pairs, capital, leverage }: { 
+      strategyId: string; 
+      pairs: string[]; 
+      capital: string; 
+      leverage: string; 
+    }) => {
+      const results = [];
+      for (const pair of pairs) {
+        try {
+          const response = await fetch('/api/bot-executions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: 'default-user',
+              strategyId,
+              tradingPair: pair,
+              capital: parseFloat(capital),
+              leverage,
+              status: 'active'
+            }),
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            results.push({ pair, success: true, data: result });
+          } else {
+            results.push({ pair, success: false, error: 'Failed to deploy' });
+          }
+        } catch (error) {
+          results.push({ pair, success: false, error: error.message });
+        }
+      }
+      return results;
+    },
+    onSuccess: (results) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      const successCount = results.filter(r => r.success).length;
+      console.log(`Successfully deployed bots for ${successCount}/${results.length} pairs`);
+      setShowBulkBotDialog(false);
+    },
+  });
+
   // Handle input change and show suggestions
   useEffect(() => {
     if (newPairInput.length > 0) {
@@ -130,6 +195,17 @@ export default function FolderDetailPage() {
 
   const handleAddPair = (symbol: string) => {
     addPairMutation.mutate(symbol.toUpperCase());
+  };
+
+  const handleBulkBotDeployment = () => {
+    if (!selectedStrategy || !folder?.tradingPairs?.length) return;
+    
+    bulkBotMutation.mutate({
+      strategyId: selectedStrategy,
+      pairs: folder.tradingPairs,
+      capital,
+      leverage
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -168,6 +244,20 @@ export default function FolderDetailPage() {
         </div>
         {folder.description && (
           <p className="text-muted-foreground text-sm ml-12">{folder.description}</p>
+        )}
+        
+        {/* Quick Actions */}
+        {folder.tradingPairs && folder.tradingPairs.length > 0 && (
+          <div className="mt-4 ml-12">
+            <Button
+              onClick={() => setShowBulkBotDialog(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={strategies.length === 0}
+            >
+              <Bot className="h-4 w-4 mr-2" />
+              Deploy Bots to All Pairs ({folder.tradingPairs.length})
+            </Button>
+          </div>
         )}
       </div>
 
@@ -313,6 +403,137 @@ export default function FolderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk Bot Deployment Dialog */}
+      <Dialog open={showBulkBotDialog} onOpenChange={setShowBulkBotDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Deploy Bots to All Pairs
+            </DialogTitle>
+            <DialogDescription>
+              Deploy trading bots to all {folder.tradingPairs?.length || 0} trading pairs in this folder using the same strategy and settings.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Strategy Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Trading Strategy</label>
+              <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a strategy" />
+                </SelectTrigger>
+                <SelectContent>
+                  {strategies.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No strategies available - Create one first
+                    </SelectItem>
+                  ) : (
+                    strategies.map((strategy: any) => (
+                      <SelectItem key={strategy.id} value={strategy.id}>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={strategy.positionDirection === 'long' ? 'default' : 'destructive'} className="text-xs">
+                            {strategy.positionDirection?.toUpperCase()}
+                          </Badge>
+                          <span>{strategy.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Capital per pair */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Capital per Pair (USDT)</label>
+                <Input
+                  type="number"
+                  value={capital}
+                  onChange={(e) => setCapital(e.target.value)}
+                  placeholder="100"
+                  min="1"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Leverage</label>
+                <Select value={leverage} onValueChange={setLeverage}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 5, 10, 20, 50, 100].map((lev) => (
+                      <SelectItem key={lev} value={lev.toString()}>
+                        {lev}x
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Total investment calculation */}
+            <div className="bg-accent/20 p-4 rounded-lg">
+              <div className="flex justify-between items-center text-sm">
+                <span>Total Investment:</span>
+                <span className="font-medium">
+                  {((parseFloat(capital) || 0) * (folder.tradingPairs?.length || 0)).toLocaleString()} USDT
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-1">
+                <span>Total Pairs:</span>
+                <span className="font-medium">{folder.tradingPairs?.length || 0}</span>
+              </div>
+            </div>
+
+            {/* Deployment preview */}
+            {folder.tradingPairs && folder.tradingPairs.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pairs to Deploy:</label>
+                <div className="max-h-32 overflow-y-auto border rounded p-2 bg-accent/10">
+                  <div className="flex flex-wrap gap-1">
+                    {folder.tradingPairs.map((pair: string) => (
+                      <Badge key={pair} variant="outline" className="text-xs">
+                        {pair}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBulkBotDialog(false)}
+              disabled={bulkBotMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkBotDeployment}
+              disabled={!selectedStrategy || !capital || bulkBotMutation.isPending || !folder.tradingPairs?.length}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {bulkBotMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deploying...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Deploy {folder.tradingPairs?.length || 0} Bots
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
