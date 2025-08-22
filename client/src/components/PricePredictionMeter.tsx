@@ -71,6 +71,22 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prediction, setPrediction] = useState<PricePrediction | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Common trading pairs for autocomplete
+  const commonPairs = [
+    'BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'SOLUSDT', 'DOTUSDT', 'MATICUSDT',
+    'LINKUSDT', 'UNIUSDT', 'AVAXUSDT', 'ATOMUSDT', 'XLMUSDT', 'VETUSDT',
+    'LTCUSDT', 'BCHUSDT', 'XRPUSDT', 'DOGEUSDT', 'SHIBUSDT', 'FTMUSDT'
+  ];
+
+  // Filter suggestions based on input
+  const getSuggestions = () => {
+    if (!tradingPair.trim()) return [];
+    return commonPairs.filter(pair => 
+      pair.toLowerCase().includes(tradingPair.toLowerCase())
+    ).slice(0, 6);
+  };
 
   // Generate a reasonable price for demo purposes (in real implementation, you'd fetch from API)
   const generateDemoPrice = (symbol: string) => {
@@ -223,23 +239,58 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
         {/* Controls */}
         <div className="space-y-4">
           {/* Trading Pair Input */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
             <div className="text-sm font-medium">Enter Trading Pair</div>
-            <div className="flex items-center gap-3">
+            <div className="relative">
               <Input
-                placeholder="e.g., ETHUSDT, BTCUSDT, SOLUSDT"
+                placeholder="Start typing... e.g., ETH, BTC, SOL"
                 value={tradingPair}
-                onChange={(e) => setTradingPair(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  setTradingPair(e.target.value.toUpperCase());
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 className="flex-1"
                 data-testid="input-trading-pair"
               />
+              
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && tradingPair && getSuggestions().length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-background border border-border rounded-md shadow-lg max-h-48 overflow-auto">
+                  {getSuggestions().map((suggestion) => (
+                    <div
+                      key={suggestion}
+                      className="px-3 py-2 hover:bg-accent cursor-pointer text-sm flex items-center justify-between"
+                      onClick={() => {
+                        setTradingPair(suggestion);
+                        setShowSuggestions(false);
+                      }}
+                    >
+                      <span className="font-medium">{suggestion}</span>
+                      <span className="text-muted-foreground text-xs">
+                        ${generateDemoPrice(suggestion).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
-            {/* Show entered pair */}
+            {/* Show entered pair with current price */}
             {tradingPair && (
-              <div className="p-2 bg-accent/50 rounded text-sm">
-                <span className="font-medium">Pair: </span>
-                {tradingPair}
+              <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-200/30 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span className="font-semibold text-purple-600 dark:text-purple-400">Selected Pair:</span>
+                    <span className="font-bold text-lg">{tradingPair}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">Current Price</div>
+                    <div className="font-bold text-lg">${generateDemoPrice(tradingPair).toFixed(4)}</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -285,6 +336,35 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
         {/* Prediction Results */}
         {prediction && (
           <div className="space-y-6">
+            {/* Prediction Header with Selected Pair */}
+            <div className="p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-300/50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-lg font-bold">AI Prediction for {prediction.symbol}</span>
+                </div>
+                <Badge 
+                  className={`${
+                    prediction.confidence >= 80 
+                      ? 'bg-green-500' 
+                      : prediction.confidence >= 60 
+                      ? 'bg-yellow-500' 
+                      : 'bg-red-500'
+                  } text-white text-sm px-3 py-1`}
+                >
+                  {prediction.confidence}% Confidence
+                </Badge>
+              </div>
+              <div className="flex items-center gap-6 text-sm">
+                <span>Timeframe: <strong>{selectedTimeframe.toUpperCase()}</strong></span>
+                <span>Current: <strong>${prediction.currentPrice.toFixed(4)}</strong></span>
+                <span>Predicted: <strong>${prediction.predictedPrice.toFixed(4)}</strong></span>
+                <span className={`font-bold ${prediction.changePercent > 0 ? 'text-green-500' : prediction.changePercent < 0 ? 'text-red-500' : 'text-yellow-500'}`}>
+                  {prediction.changePercent > 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+
             {/* Main Prediction Card */}
             <Card className={`border-2 ${
               prediction.direction === 'up' ? 'border-green-200 bg-green-50 dark:bg-green-900/20' :
