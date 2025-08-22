@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 
 export default function BotPage() {
@@ -47,6 +47,7 @@ export default function BotPage() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -643,30 +644,25 @@ export default function BotPage() {
                       {Object.entries(folderGroups).map(([folderName, executions]) => (
                         <Card key={folderName} className="border-l-4 border-l-purple-500">
                           <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium">{folderName}</h4>
-                                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
-                                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
-                                    Folder Bot
-                                  </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {executions.length} pairs • Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0)}
-                                </p>
-                                <div className="flex gap-2 mb-2">
-                                  <Badge variant="default">
-                                    {executions.filter(ex => ex.status === 'active').length} active
-                                  </Badge>
-                                  <Badge variant="outline" className="text-purple-600 border-purple-300">
-                                    Bulk Deployed
-                                  </Badge>
-                                </div>
-                                {/* Show trading pairs in compact format */}
-                                <div className="text-xs text-muted-foreground">
-                                  Pairs: {executions.map(ex => ex.tradingPair).join(', ')}
-                                </div>
+                            {/* Folder Header - Always Visible */}
+                            <div 
+                              className="flex items-center justify-between cursor-pointer"
+                              onClick={() => setExpandedFolders(prev => ({ ...prev, [folderName]: !prev[folderName] }))}
+                            >
+                              <div className="flex items-center gap-2">
+                                {expandedFolders[folderName] ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <h4 className="font-medium">{folderName}</h4>
+                                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
+                                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                  {executions.length} bots
+                                </Badge>
+                                <Badge variant="outline" className="text-purple-600 border-purple-300">
+                                  Bulk Deployed
+                                </Badge>
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="text-right">
@@ -674,13 +670,14 @@ export default function BotPage() {
                                     +${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)} trades
+                                    {executions.filter(ex => ex.status === 'active').length}/{executions.length} active
                                   </div>
                                 </div>
                                 <Button 
                                   size="sm" 
                                   variant="destructive"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     if (window.confirm(`Stop all ${executions.length} bots in ${folderName}?`)) {
                                       executions.forEach(ex => {
                                         if (ex.status === 'active') {
@@ -696,6 +693,50 @@ export default function BotPage() {
                                 </Button>
                               </div>
                             </div>
+
+                            {/* Expanded Details */}
+                            {expandedFolders[folderName] && (
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <div className="mb-3">
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0)} • 
+                                    Total Trades: {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)}
+                                  </p>
+                                </div>
+                                
+                                {/* Individual Bot Details */}
+                                <div className="space-y-2">
+                                  {executions.map((execution: any) => (
+                                    <div key={execution.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm">{execution.tradingPair}</span>
+                                        <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                          {execution.status}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-sm">
+                                        <span className="text-muted-foreground">${execution.capital}</span>
+                                        <span className="text-green-500">+${execution.profit || '0'}</span>
+                                        {execution.status === 'active' && (
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleTerminateExecution.mutate(execution.id);
+                                            }}
+                                            disabled={handleTerminateExecution.isPending}
+                                            className="h-6 px-2"
+                                          >
+                                            <Square className="h-2 w-2" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
