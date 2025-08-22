@@ -62,7 +62,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
         return [];
       }
     },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 30000, // Reduce polling to 30 seconds for better performance
   });
 
   // Fetch alert settings

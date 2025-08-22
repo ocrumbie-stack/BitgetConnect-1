@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AccountOverview() {
   const { data: accountData, isLoading } = useQuery({
     queryKey: ['/api/account', 'user1'], // Using a default user ID for demo
-    refetchInterval: 15000, // Refresh every 15 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds for better performance
   });
 
   const formatCurrency = (value: string | null | undefined) => {
