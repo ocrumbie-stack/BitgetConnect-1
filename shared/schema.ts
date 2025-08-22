@@ -226,7 +226,7 @@ export const screeners = pgTable("screeners", {
 export const alertSettings = pgTable("alert_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
-  alertType: text("alert_type").notNull(), // 'pnl_gain', 'pnl_loss', 'entry_signal', 'exit_signal', 'bot_error', 'performance_milestone'
+  alertType: text("alert_type").notNull(), // 'pnl_gain', 'pnl_loss', 'entry_signal', 'exit_signal', 'bot_error', 'performance_milestone', 'screener_match', 'trend_change', 'volume_spike', 'price_breakout', 'technical_signal', 'market_news', 'support_resistance', 'unusual_activity'
   isEnabled: boolean("is_enabled").default(true),
   threshold: text("threshold"), // For PnL thresholds, performance metrics
   method: text("method").notNull().default('in_app'), // 'in_app', 'email', 'webhook', 'browser_notification'
@@ -236,6 +236,18 @@ export const alertSettings = pgTable("alert_settings", {
     discordWebhook?: string;
     sound?: boolean;
     priority?: 'low' | 'medium' | 'high';
+    // Screener-specific config
+    screenerId?: string;
+    screenerName?: string;
+    // Technical analysis config
+    technicalIndicator?: string;
+    timeframe?: string;
+    // Market conditions
+    volumeThreshold?: number;
+    priceChangeThreshold?: number;
+    // Trend analysis
+    trendDirection?: 'bullish' | 'bearish' | 'neutral';
+    trendStrength?: number;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -259,6 +271,24 @@ export const alerts = pgTable("alerts", {
     profit?: string;
     winRate?: string;
     actionRequired?: boolean;
+    // Screener data
+    screenerId?: string;
+    screenerName?: string;
+    matchedCriteria?: string[];
+    // Technical analysis data
+    indicator?: string;
+    indicatorValue?: number;
+    timeframe?: string;
+    // Volume and price data
+    volume?: string;
+    volumeChange?: string;
+    priceTarget?: string;
+    supportLevel?: string;
+    resistanceLevel?: string;
+    // Market trend data
+    trendDirection?: string;
+    trendStrength?: number;
+    confidence?: number;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
