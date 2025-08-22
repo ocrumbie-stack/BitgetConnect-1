@@ -18,7 +18,9 @@ import {
   type AlertSetting,
   type InsertAlertSetting,
   type Alert,
-  type InsertAlert
+  type InsertAlert,
+  type PricePrediction,
+  type InsertPricePrediction
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -66,6 +68,12 @@ export interface IStorage {
   markAlertAsRead(id: string): Promise<void>;
   markAllAlertsAsRead(userId: string): Promise<void>;
   deleteAlert(id: string): Promise<void>;
+
+  // Price Predictions
+  createPricePrediction(prediction: InsertPricePrediction): Promise<PricePrediction>;
+  getPricePredictions(symbol?: string): Promise<PricePrediction[]>;
+  updatePricePrediction(id: string, updates: Partial<PricePrediction>): Promise<boolean>;
+  deletePricePrediction(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

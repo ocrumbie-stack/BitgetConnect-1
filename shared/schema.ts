@@ -353,3 +353,56 @@ export type AlertSetting = typeof alertSettings.$inferSelect;
 
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type Alert = typeof alerts.$inferSelect;
+
+// Price Predictions with AI Confidence Analysis
+export const pricePredictions = pgTable("price_predictions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  symbol: text("symbol").notNull(),
+  currentPrice: decimal("current_price", { precision: 20, scale: 8 }).notNull(),
+  predictedPrice: decimal("predicted_price", { precision: 20, scale: 8 }).notNull(),
+  direction: text("direction").notNull(), // 'up', 'down', 'sideways'
+  confidence: integer("confidence").notNull(), // 0-100
+  timeframe: text("timeframe").notNull().default('1h'), // '1h', '4h', '1d', '1w'
+  aiAnalysis: jsonb("ai_analysis").$type<{
+    technicalIndicators: {
+      rsi: { value: number; signal: 'oversold' | 'overbought' | 'neutral' };
+      macd: { value: number; signal: 'bullish' | 'bearish' | 'neutral' };
+      bollinger: { position: 'upper' | 'middle' | 'lower' | 'outside' };
+      volume: { trend: 'increasing' | 'decreasing' | 'stable'; strength: number };
+    };
+    marketSentiment: {
+      overall: 'bullish' | 'bearish' | 'neutral';
+      strength: number; // 0-100
+      factors: string[];
+    };
+    supportResistance: {
+      support: number[];
+      resistance: number[];
+      nearestLevel: { type: 'support' | 'resistance'; price: number; distance: number };
+    };
+    riskFactors: {
+      volatility: 'low' | 'medium' | 'high';
+      liquidityRisk: 'low' | 'medium' | 'high';
+      marketConditions: string[];
+    };
+    confidenceFactors: {
+      technicalAlignment: number; // 0-100
+      volumeConfirmation: number; // 0-100
+      marketConsensus: number; // 0-100
+      historicalAccuracy: number; // 0-100
+    };
+  }>(),
+  accuracy: decimal("accuracy", { precision: 5, scale: 2 }), // Historical accuracy percentage
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const insertPricePredictionSchema = createInsertSchema(pricePredictions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPricePrediction = z.infer<typeof insertPricePredictionSchema>;
+export type PricePrediction = typeof pricePredictions.$inferSelect;
