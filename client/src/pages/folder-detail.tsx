@@ -202,6 +202,14 @@ export default function FolderDetailPage() {
   const handleBulkBotDeployment = () => {
     if (!selectedStrategy || !folder?.tradingPairs?.length) return;
     
+    console.log('Starting bulk bot deployment:', {
+      strategyId: selectedStrategy,
+      pairs: folder.tradingPairs,
+      capital,
+      leverage,
+      totalPairs: folder.tradingPairs.length
+    });
+    
     bulkBotMutation.mutate({
       strategyId: selectedStrategy,
       pairs: folder.tradingPairs,
@@ -255,9 +263,10 @@ export default function FolderDetailPage() {
               onClick={() => setShowBulkBotDialog(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               disabled={strategies.length === 0}
+              title={strategies.length === 0 ? "Create a bot strategy first in the Bot page" : ""}
             >
               <Bot className="h-4 w-4 mr-2" />
-              Deploy Bots to All Pairs ({folder.tradingPairs.length})
+              {strategies.length === 0 ? "No Strategies Available" : `Deploy Bots to All Pairs (${folder.tradingPairs.length})`}
             </Button>
           </div>
         )}
@@ -420,33 +429,50 @@ export default function FolderDetailPage() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Strategy Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Trading Strategy</label>
-              <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a strategy" />
-                </SelectTrigger>
-                <SelectContent>
-                  {strategies.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      No strategies available - Create one first
-                    </SelectItem>
-                  ) : (
-                    strategies.map((strategy: any) => (
-                      <SelectItem key={strategy.id} value={strategy.id}>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={strategy.positionDirection === 'long' ? 'default' : 'destructive'} className="text-xs">
-                            {strategy.positionDirection?.toUpperCase()}
-                          </Badge>
-                          <span>{strategy.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+{strategies.length === 0 ? (
+              /* No Strategies Available */
+              <div className="text-center py-8 space-y-4">
+                <Bot className="h-16 w-16 text-muted-foreground mx-auto" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">No Trading Strategies</h3>
+                  <p className="text-muted-foreground mb-4">
+                    You need to create a trading strategy before deploying bots to multiple pairs.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setShowBulkBotDialog(false);
+                      setLocation('/bot');
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Strategy
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Strategy Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Trading Strategy</label>
+                  <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a strategy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {strategies.map((strategy: any) => (
+                        <SelectItem key={strategy.id} value={strategy.id}>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={strategy.positionDirection === 'long' ? 'default' : 'destructive'} className="text-xs">
+                              {strategy.positionDirection?.toUpperCase()}
+                            </Badge>
+                            <span>{strategy.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
             {/* Capital per pair */}
             <div className="grid grid-cols-2 gap-4">
@@ -506,34 +532,38 @@ export default function FolderDetailPage() {
                 </div>
               </div>
             )}
+              </>
+            )}
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowBulkBotDialog(false)}
-              disabled={bulkBotMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkBotDeployment}
-              disabled={!selectedStrategy || !capital || bulkBotMutation.isPending || !folder.tradingPairs?.length}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              {bulkBotMutation.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Deploying...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Deploy {folder.tradingPairs?.length || 0} Bots
-                </>
-              )}
-            </Button>
-          </div>
+{strategies.length > 0 && (
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowBulkBotDialog(false)}
+                disabled={bulkBotMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleBulkBotDeployment}
+                disabled={!selectedStrategy || !capital || bulkBotMutation.isPending || !folder.tradingPairs?.length}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {bulkBotMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deploying...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Deploy {folder.tradingPairs?.length || 0} Bots
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
