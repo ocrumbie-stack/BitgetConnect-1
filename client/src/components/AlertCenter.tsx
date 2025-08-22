@@ -83,6 +83,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
         return [];
       }
     },
+    refetchInterval: 30000, // Reduce polling to 30 seconds for better performance
   });
 
   const alerts = Array.isArray(alertsData) ? alertsData : [];

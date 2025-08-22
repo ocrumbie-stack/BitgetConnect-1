@@ -268,13 +268,13 @@ export function Analyzer() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">${parseFloat(selectedPairData.price).toFixed(4)}</div>
+                    <div className="text-lg font-semibold">${parseFloat(selectedPairData.price).toFixed(4)}</div>
                     <div className={`text-sm ${parseFloat(selectedPairData.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {((parseFloat(selectedPairData.change24h || '0')) * 100).toFixed(2)}% (24h)
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{analysis.strength.toFixed(0)}</div>
+                    <div className="text-lg font-semibold">{analysis.strength.toFixed(0)}</div>
                     <div className="text-sm text-muted-foreground">Trend Strength</div>
                   </div>
                 </div>
@@ -310,14 +310,14 @@ export function Analyzer() {
                       <ArrowUp className="h-4 w-4 text-red-500" />
                       <span className="font-medium">Resistance</span>
                     </div>
-                    <span className="font-mono">${analysis.resistance.toFixed(4)}</span>
+                    <span className="font-mono text-sm">${analysis.resistance.toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4 text-blue-500" />
                       <span className="font-medium">Current Price</span>
                     </div>
-                    <span className="font-mono">${parseFloat(selectedPairData.price).toFixed(4)}</span>
+                    <span className="font-mono text-sm">${parseFloat(selectedPairData.price).toFixed(4)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

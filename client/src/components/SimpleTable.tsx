@@ -204,20 +204,20 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: 
               >
                 {/* Coin/Volume Column */}
                 <div>
-                  <div className="font-semibold text-foreground text-base" data-testid={`symbol-${item.symbol}`}>
+                  <div className="font-medium text-foreground text-sm" data-testid={`symbol-${item.symbol}`}>
                     {item.symbol}
                   </div>
-                  <div className="text-sm text-muted-foreground" data-testid={`volume-${item.symbol}`}>
+                  <div className="text-xs text-muted-foreground" data-testid={`volume-${item.symbol}`}>
                     {formatVolume(item.volume24h)}
                   </div>
                 </div>
 
                 {/* Price Column */}
                 <div className="text-center">
-                  <div className="font-medium text-foreground text-base" data-testid={`price-${item.symbol}`}>
+                  <div className="font-medium text-foreground text-sm" data-testid={`price-${item.symbol}`}>
                     {formatPrice(item.price)}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs text-muted-foreground">
                     ${formatPrice(item.price)}
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: 
                 {/* Change Column */}
                 <div className="text-right">
                   <div 
-                    className={`inline-block px-3 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
+                    className={`inline-block px-2 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
                     data-testid={`change-${item.symbol}`}
                   >
                     {formatChange(item.change24h)}
