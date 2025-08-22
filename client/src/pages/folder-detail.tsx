@@ -346,29 +346,14 @@ export default function FolderDetailPage() {
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button
-                onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
-                disabled={!newPairInput.trim() || addPairMutation.isPending}
-                className={newPairInput.trim() ? "flex-1" : "w-full"}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add {newPairInput.trim().toUpperCase() || 'Pair'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setNewPairInput('');
-                  setPairSuggestions([]);
-                }}
-                className="px-6 whitespace-nowrap"
-                style={{
-                  display: newPairInput && newPairInput.length > 0 ? 'block' : 'none'
-                }}
-              >
-                Done
-              </Button>
-            </div>
+            <Button
+              onClick={() => newPairInput.trim() && handleAddPair(newPairInput.trim())}
+              disabled={!newPairInput.trim() || addPairMutation.isPending}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {newPairInput.trim().toUpperCase() || 'Pair'}
+            </Button>
           </CardContent>
         </Card>
         )}
@@ -602,6 +587,21 @@ export default function FolderDetailPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Floating Done Button - Bottom Right */}
+      {newPairInput && newPairInput.length > 0 && !showBulkBotDialog && (
+        <div className="fixed bottom-20 right-4 z-50">
+          <Button
+            onClick={() => {
+              setNewPairInput('');
+              setPairSuggestions([]);
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-3 shadow-lg"
+          >
+            Done Adding Pairs
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
