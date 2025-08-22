@@ -248,6 +248,9 @@ export const alertSettings = pgTable("alert_settings", {
     // Trend analysis
     trendDirection?: 'bullish' | 'bearish' | 'neutral';
     trendStrength?: number;
+    // Trading pair and folder targeting
+    tradingPair?: string;
+    folderName?: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -289,6 +292,8 @@ export const alerts = pgTable("alerts", {
     trendDirection?: string;
     trendStrength?: number;
     confidence?: number;
+    // Target scope
+    folderName?: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
 });

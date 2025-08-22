@@ -434,6 +434,8 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
   const [timeframe, setTimeframe] = useState('1h');
   const [indicator, setIndicator] = useState('rsi');
   const [signal, setSignal] = useState('');
+  const [tradingPair, setTradingPair] = useState('');
+  const [folderName, setFolderName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -452,6 +454,14 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
     if (alertType === 'technical_signal') {
       config.technicalIndicator = indicator;
       config.timeframe = timeframe;
+    }
+
+    // Add trading pair or folder to config
+    if (tradingPair) {
+      config.tradingPair = tradingPair;
+    }
+    if (folderName) {
+      config.folderName = folderName;
     }
 
     onSubmit({
@@ -616,6 +626,38 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
               </div>
             </div>
           )}
+
+          {/* Trading Pair Selection */}
+          <div>
+            <Label htmlFor="tradingPair">Trading Pair (Optional)</Label>
+            <Input
+              id="tradingPair"
+              type="text"
+              value={tradingPair}
+              onChange={(e) => setTradingPair(e.target.value)}
+              placeholder="e.g., BTCUSDT, ETHUSDT or leave empty for all pairs"
+              data-testid="input-trading-pair"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Specify a trading pair or leave empty to monitor all pairs
+            </p>
+          </div>
+
+          {/* Folder Selection */}
+          <div>
+            <Label htmlFor="folderName">Folder (Optional)</Label>
+            <Input
+              id="folderName"
+              type="text"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="e.g., DeFi Tokens, Top 10, My Watchlist"
+              data-testid="input-folder-name"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Monitor alerts for all pairs in a specific folder
+            </p>
+          </div>
 
           <div className="flex items-center space-x-2">
             <Switch
