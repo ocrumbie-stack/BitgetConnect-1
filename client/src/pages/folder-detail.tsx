@@ -155,7 +155,10 @@ export default function FolderDetailPage() {
               tradingPair: pair,
               capital: capital, // Keep as string to match schema
               leverage,
-              status: 'active'
+              status: 'active',
+              deploymentType: 'folder_bulk',
+              folderId: folderId,
+              folderName: folder.name
             }),
           });
           
