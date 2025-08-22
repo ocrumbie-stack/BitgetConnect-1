@@ -386,6 +386,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Terminate all bots in a folder
+  app.post('/api/bot-executions/terminate-folder/:folderName', async (req, res) => {
+    try {
+      const { folderName } = req.params;
+      const { userId = 'default-user' } = req.body;
+      
+      // Get all executions for this folder
+      const allExecutions = await storage.getBotExecutions(userId);
+      const folderExecutions = allExecutions.filter(ex => ex.folderName === folderName);
+      
+      // Terminate all executions in the folder
+      const updatedExecutions = [];
+      for (const execution of folderExecutions) {
+        const updated = await storage.updateBotExecution(execution.id, { status: 'terminated' });
+        updatedExecutions.push(updated);
+      }
+      
+      res.json({ 
+        message: `Terminated ${updatedExecutions.length} bots in folder ${folderName}`,
+        executions: updatedExecutions 
+      });
+    } catch (error) {
+      console.error('Error terminating folder bots:', error);
+      res.status(500).json({ error: 'Failed to terminate folder bots' });
+    }
+  });
+
   app.delete('/api/bot-executions/:id', async (req, res) => {
     try {
       const { id } = req.params;
