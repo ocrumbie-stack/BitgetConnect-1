@@ -275,7 +275,6 @@ export function Home() {
                 <Badge className="bg-purple-500 text-white text-xs">AI Powered</Badge>
               </div>
               <PricePredictionMeter 
-                availablePairs={data || []}
                 onPredictionGenerated={(prediction) => {
                   console.log('New prediction generated:', prediction);
                 }}
