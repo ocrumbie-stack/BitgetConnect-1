@@ -48,7 +48,7 @@ export default function BotPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
-  const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [selectedFolder, setSelectedFolder] = useState<string>('individual');
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -1383,7 +1383,7 @@ export default function BotPage() {
                     <SelectValue placeholder="Select a folder or deploy individual pair" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Individual Pair (Default)</SelectItem>
+                    <SelectItem value="individual">Individual Pair (Default)</SelectItem>
                     {(folders as any[]).map((folder: any) => (
                       <SelectItem key={folder.id} value={folder.id}>
                         <div className="flex items-center gap-2">
@@ -1400,7 +1400,7 @@ export default function BotPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedFolder && (
+                {selectedFolder && selectedFolder !== 'individual' && (
                   <p className="text-xs text-muted-foreground mt-1">
                     This will deploy the strategy to all pairs in the selected folder
                   </p>
