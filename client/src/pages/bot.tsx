@@ -219,7 +219,8 @@ export default function BotPage() {
             leverage,
             status: 'active',
             deploymentType: 'folder',
-            folderId: selectedFolder
+            folderId: selectedFolder,
+            botName: `${folder.name} - ${strategy.name}` // Use folder name as bot name
           };
           
           await runStrategyMutation.mutateAsync(executionData);
