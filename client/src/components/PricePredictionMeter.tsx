@@ -63,41 +63,44 @@ interface PricePrediction {
 }
 
 interface PricePredictionMeterProps {
-  symbol?: string;
-  currentPrice?: number;
-  availablePairs?: Array<{symbol: string; price: string}>;
   onPredictionGenerated?: (prediction: PricePrediction) => void;
 }
 
-export function PricePredictionMeter({ symbol, currentPrice, availablePairs = [], onPredictionGenerated }: PricePredictionMeterProps) {
-  const [selectedSymbol, setSelectedSymbol] = useState(symbol || '');
-  const [customSymbol, setCustomSymbol] = useState('');
+export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionMeterProps) {
+  const [tradingPair, setTradingPair] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1h');
   const [isGenerating, setIsGenerating] = useState(false);
   const [prediction, setPrediction] = useState<PricePrediction | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
 
-  // Get current price for selected symbol
-  const getCurrentPrice = () => {
-    if (selectedSymbol && availablePairs.length > 0) {
-      const pair = availablePairs.find(p => p.symbol === selectedSymbol);
-      return pair ? parseFloat(pair.price) : currentPrice || 0;
-    }
-    return currentPrice || 0;
-  };
-
-  // Get the symbol to use for prediction
-  const getSymbolForPrediction = () => {
-    return customSymbol.trim() || selectedSymbol || symbol || '';
+  // Generate a reasonable price for demo purposes (in real implementation, you'd fetch from API)
+  const generateDemoPrice = (symbol: string) => {
+    // Generate realistic prices based on common crypto pairs
+    const basePrices: { [key: string]: number } = {
+      'BTC': 40000,
+      'ETH': 2500,
+      'ADA': 0.45,
+      'SOL': 85,
+      'DOT': 7.5,
+      'MATIC': 0.85,
+      'LINK': 15,
+      'UNI': 6.5,
+      'AVAX': 25,
+      'ATOM': 12
+    };
+    
+    const baseSymbol = symbol.replace('USDT', '').replace('USD', '').replace('BUSD', '');
+    const basePrice = basePrices[baseSymbol] || Math.random() * 100 + 1;
+    
+    // Add some random variation
+    return basePrice * (0.95 + Math.random() * 0.1);
   };
 
   // Mock AI prediction generation (replace with actual API call)
   const generatePrediction = async () => {
-    const targetSymbol = getSymbolForPrediction();
-    const targetPrice = getCurrentPrice();
+    const targetSymbol = tradingPair.trim().toUpperCase();
     
-    if (!targetSymbol || !targetPrice) {
-      alert('Please select or enter a valid trading pair');
+    if (!targetSymbol) {
+      alert('Please enter a valid trading pair (e.g., ETHUSDT, BTCUSDT)');
       return;
     }
 
@@ -106,9 +109,10 @@ export function PricePredictionMeter({ symbol, currentPrice, availablePairs = []
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate realistic prediction based on current price and market conditions
+    // Generate demo price and prediction
+    const currentPrice = generateDemoPrice(targetSymbol);
     const changePercent = (Math.random() - 0.5) * 10; // -5% to +5%
-    const predictedPrice = targetPrice * (1 + changePercent / 100);
+    const predictedPrice = currentPrice * (1 + changePercent / 100);
     const direction = changePercent > 1 ? 'up' : changePercent < -1 ? 'down' : 'sideways';
     
     // Generate confidence based on various factors
@@ -121,7 +125,7 @@ export function PricePredictionMeter({ symbol, currentPrice, availablePairs = []
     
     const mockPrediction: PricePrediction = {
       symbol: targetSymbol,
-      currentPrice: targetPrice,
+      currentPrice: currentPrice,
       predictedPrice,
       direction,
       confidence: avgConfidence,
@@ -157,11 +161,11 @@ export function PricePredictionMeter({ symbol, currentPrice, availablePairs = []
           ].slice(0, Math.floor(Math.random() * 3) + 2)
         },
         supportResistance: {
-          support: [targetPrice * 0.95, targetPrice * 0.92].sort((a, b) => b - a),
-          resistance: [targetPrice * 1.05, targetPrice * 1.08].sort((a, b) => a - b),
+          support: [currentPrice * 0.95, currentPrice * 0.92].sort((a, b) => b - a),
+          resistance: [currentPrice * 1.05, currentPrice * 1.08].sort((a, b) => a - b),
           nearestLevel: {
             type: Math.random() > 0.5 ? 'resistance' : 'support',
-            price: targetPrice * (Math.random() > 0.5 ? 1.03 : 0.97),
+            price: currentPrice * (Math.random() > 0.5 ? 1.03 : 0.97),
             distance: Math.random() * 5
           }
         },
@@ -218,57 +222,24 @@ export function PricePredictionMeter({ symbol, currentPrice, availablePairs = []
       <CardContent className="space-y-6">
         {/* Controls */}
         <div className="space-y-4">
-          {/* Trading Pair Selection */}
+          {/* Trading Pair Input */}
           <div className="space-y-3">
-            <div className="text-sm font-medium">Select Trading Pair</div>
-            
-            {/* Available Pairs Dropdown */}
-            {availablePairs.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">From list:</span>
-                <Select value={selectedSymbol} onValueChange={(value) => {
-                  setSelectedSymbol(value);
-                  setCustomSymbol(''); // Clear custom input when selecting from list
-                }}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select pair" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availablePairs.map((pair) => (
-                      <SelectItem key={pair.symbol} value={pair.symbol}>
-                        {pair.symbol} - ${parseFloat(pair.price).toFixed(4)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Custom Pair Input */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Or enter:</span>
+            <div className="text-sm font-medium">Enter Trading Pair</div>
+            <div className="flex items-center gap-3">
               <Input
-                placeholder="e.g., ETHUSDT, BTCUSDT"
-                value={customSymbol}
-                onChange={(e) => {
-                  setCustomSymbol(e.target.value.toUpperCase());
-                  setSelectedSymbol(''); // Clear dropdown selection when typing custom
-                }}
-                className="w-40"
-                data-testid="input-custom-pair"
+                placeholder="e.g., ETHUSDT, BTCUSDT, SOLUSDT"
+                value={tradingPair}
+                onChange={(e) => setTradingPair(e.target.value.toUpperCase())}
+                className="flex-1"
+                data-testid="input-trading-pair"
               />
             </div>
-
-            {/* Show selected pair info */}
-            {(selectedSymbol || customSymbol) && (
+            
+            {/* Show entered pair */}
+            {tradingPair && (
               <div className="p-2 bg-accent/50 rounded text-sm">
-                <span className="font-medium">Selected: </span>
-                {getSymbolForPrediction()}
-                {selectedSymbol && (
-                  <span className="text-muted-foreground ml-2">
-                    Current: ${getCurrentPrice().toFixed(4)}
-                  </span>
-                )}
+                <span className="font-medium">Pair: </span>
+                {tradingPair}
               </div>
             )}
           </div>
@@ -292,14 +263,14 @@ export function PricePredictionMeter({ symbol, currentPrice, availablePairs = []
           
             <Button 
               onClick={generatePrediction} 
-              disabled={isGenerating || !getSymbolForPrediction()}
+              disabled={isGenerating || !tradingPair.trim()}
               className="flex items-center gap-2"
               data-testid="button-generate-prediction"
             >
               {isGenerating ? (
                 <>
                   <Zap className="h-4 w-4 animate-spin" />
-                  Analyzing {getSymbolForPrediction()}...
+                  Analyzing {tradingPair}...
                 </>
               ) : (
                 <>
