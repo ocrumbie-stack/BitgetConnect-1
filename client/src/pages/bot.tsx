@@ -58,9 +58,12 @@ export default function BotPage() {
   });
 
   // Fetch active executions
-  const { data: activeExecutions = [], isLoading: executionsLoading } = useQuery({
+  const { data: allExecutions = [], isLoading: executionsLoading } = useQuery({
     queryKey: ['/api/bot-executions']
   });
+
+  // Filter only active executions in frontend
+  const activeExecutions = allExecutions.filter((execution: any) => execution.status === 'active');
 
   // Fetch futures data for trading pairs
   const { data: futuresData = [] } = useQuery({
@@ -688,14 +691,15 @@ export default function BotPage() {
                   const folderGroups: { [key: string]: any[] } = {};
                   const manualExecutions: any[] = [];
                   
+                  // Only group active folder executions - exclude terminated ones
                   (activeExecutions as any[]).forEach((execution: any) => {
-                    if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                    if (execution.status === 'active' && (execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
                       const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } else {
+                    } else if (execution.status === 'active' && (!execution.folderName || execution.deploymentType === 'manual')) {
                       manualExecutions.push(execution);
                     }
                   });

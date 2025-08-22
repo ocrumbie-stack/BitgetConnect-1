@@ -392,15 +392,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { folderName } = req.params;
       const { userId = 'default-user' } = req.body;
       
-      // Get all executions for this folder
+      console.log(`Terminating all bots in folder: ${folderName} for user: ${userId}`);
+      
+      // Get all executions for this folder that are currently active
       const allExecutions = await storage.getBotExecutions(userId);
-      const folderExecutions = allExecutions.filter(ex => ex.folderName === folderName);
+      const folderExecutions = allExecutions.filter(ex => 
+        ex.folderName === folderName && ex.status === 'active'
+      );
+      
+      console.log(`Found ${folderExecutions.length} active executions to terminate`);
       
       // Terminate all executions in the folder
       const updatedExecutions = [];
       for (const execution of folderExecutions) {
         const updated = await storage.updateBotExecution(execution.id, { status: 'terminated' });
         updatedExecutions.push(updated);
+        console.log(`Terminated execution ${execution.id} for pair ${execution.tradingPair}`);
       }
       
       res.json({ 
