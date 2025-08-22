@@ -47,14 +47,42 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
   // Fetch alerts
   const { data: alertsData = [], isLoading: alertsLoading } = useQuery({
     queryKey: ['/api/alerts', userId],
-    queryFn: () => apiRequest(`/api/alerts/${userId}`) as Promise<Alert[]>,
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/alerts/${userId}`);
+        if (!response.ok) {
+          console.error('Failed to fetch alerts:', response.status, response.statusText);
+          return [];
+        }
+        const data = await response.json();
+        console.log('Fetched alerts:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching alerts:', error);
+        return [];
+      }
+    },
     refetchInterval: 5000, // Refresh every 5 seconds
   });
 
   // Fetch alert settings
   const { data: alertSettingsData = [], isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/alert-settings', userId],
-    queryFn: () => apiRequest(`/api/alert-settings/${userId}`) as Promise<AlertSetting[]>,
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/alert-settings/${userId}`);
+        if (!response.ok) {
+          console.error('Failed to fetch alert settings:', response.status, response.statusText);
+          return [];
+        }
+        const data = await response.json();
+        console.log('Fetched alert settings:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching alert settings:', error);
+        return [];
+      }
+    },
   });
 
   const alerts = Array.isArray(alertsData) ? alertsData : [];
@@ -208,7 +236,14 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
                 ) : alerts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    No alerts yet
+                    <div className="space-y-2">
+                      <p>No alerts yet</p>
+                      <p className="text-xs">
+                        Alerts will appear here when your configured conditions are met.
+                        <br />
+                        Check the Settings tab to see your alert configurations.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   alerts.map((alert: Alert) => (
@@ -337,7 +372,12 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
                 ) : alertSettings.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    No alert settings configured
+                    <div className="space-y-2">
+                      <p>No alert settings configured</p>
+                      <p className="text-xs">
+                        Click "Add Setting" to create your first alert configuration.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   alertSettings.map((setting: AlertSetting) => (
