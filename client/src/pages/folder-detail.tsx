@@ -84,7 +84,7 @@ export default function FolderDetailPage() {
   });
 
   // Filter only active executions
-  const activeExecutions = allExecutions.filter((execution: any) => execution.status === 'active');
+  const activeExecutions = (allExecutions as any[]).filter((execution: any) => execution.status === 'active');
 
   const folder = folders.find((f: any) => f.id === folderId);
 
