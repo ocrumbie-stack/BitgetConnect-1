@@ -29,6 +29,7 @@ export default function FolderDetailPage() {
   const [newPairInput, setNewPairInput] = useState('');
   const [pairSuggestions, setPairSuggestions] = useState<string[]>([]);
   const [showBulkBotDialog, setShowBulkBotDialog] = useState(false);
+  const [showAddPairsSection, setShowAddPairsSection] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [capital, setCapital] = useState('100');
   const [leverage, setLeverage] = useState('1');
@@ -290,8 +291,24 @@ export default function FolderDetailPage() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Add Pair Button */}
+        {!showBulkBotDialog && !showAddPairsSection && (
+          <Card>
+            <CardContent className="pt-6">
+              <Button
+                onClick={() => setShowAddPairsSection(true)}
+                variant="outline"
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Trading Pairs
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Add Pair Section - Hidden when bulk bot dialog is open */}
-        {!showBulkBotDialog && (
+        {!showBulkBotDialog && showAddPairsSection && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Add Trading Pairs</CardTitle>
@@ -361,10 +378,11 @@ export default function FolderDetailPage() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Done button clicked, clearing input. Current input:', newPairInput);
+                    console.log('Done button clicked - closing add pairs section');
                     setNewPairInput('');
                     setPairSuggestions([]);
-                    console.log('Input cleared');
+                    setShowAddPairsSection(false);
+                    console.log('Add pairs section closed');
                   }}
                   className="px-4 bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 whitespace-nowrap"
                   data-testid="button-done-adding-pairs"
@@ -376,7 +394,7 @@ export default function FolderDetailPage() {
               
               {/* Debug Info */}
               <div className="text-xs text-muted-foreground">
-                Input: "{newPairInput}" | Length: {newPairInput.length} | Suggestions: {pairSuggestions.length}
+                Input: "{newPairInput}" | Length: {newPairInput.length} | Suggestions: {pairSuggestions.length} | Show Section: {showAddPairsSection.toString()}
               </div>
             </div>
           </CardContent>
