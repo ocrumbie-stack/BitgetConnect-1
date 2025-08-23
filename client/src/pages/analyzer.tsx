@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, TrendingDown, Target, AlertTriangle, Activity, BarChart3, Search, Brain, ArrowUp, ArrowDown, Minus, Gauge } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, AlertTriangle, Activity, BarChart3, Search, Brain, ArrowUp, ArrowDown, Minus, Gauge, X } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { UnifiedAnalysisTools } from '@/components/UnifiedAnalysisTools';
 
@@ -293,9 +293,20 @@ export function Analyzer() {
                     <Brain className="h-5 w-5 text-blue-500" />
                     {selectedPair} Analysis
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {timeframe} Timeframe
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {timeframe} Timeframe
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedPair('')}
+                      className="h-8 w-8 p-0 hover:bg-background/80"
+                      data-testid="button-close-analysis"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
