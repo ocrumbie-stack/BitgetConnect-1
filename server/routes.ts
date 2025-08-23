@@ -799,7 +799,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             indicators: {
               primary: ['RSI', 'MACD'],
               secondary: ['Volume', 'MA_20']
-            }
+            },
+            entryConditions: [
+              { indicator: 'RSI', operator: '<', value: 30, weight: 0.4 },
+              { indicator: 'MACD', operator: '>', value: 0, weight: 0.6 }
+            ],
+            exitConditions: [
+              { indicator: 'RSI', operator: '>', value: 70, weight: 0.5 },
+              { indicator: 'Stop_Loss', operator: 'trigger', value: 2.5, weight: 1.0 }
+            ]
           },
           reasoning: {
             marketAnalysis: [
@@ -863,7 +871,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         indicators: {
           primary: ['Trend_Strength', 'Correlation'],
           secondary: ['Volume_Profile', 'Support_Resistance']
-        }
+        },
+        entryConditions: [
+          { indicator: 'Trend_Strength', operator: '>', value: 0.6, weight: 0.5 },
+          { indicator: 'Correlation', operator: '<', value: 0.5, weight: 0.5 }
+        ],
+        exitConditions: [
+          { indicator: 'Trend_Strength', operator: '<', value: 0.3, weight: 0.4 },
+          { indicator: 'Take_Profit', operator: 'trigger', value: 8.0, weight: 0.6 }
+        ]
       },
       reasoning: {
         marketAnalysis: [

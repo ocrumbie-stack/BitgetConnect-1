@@ -708,6 +708,7 @@ export default function Markets() {
               ) : (
                 <SimpleTable 
                   data={filteredAndSortedData}
+                  isLoading={isLoading}
                   onSort={handleSort}
                   sortBy={sortBy}
                   sortDirection={sortDirection}
@@ -922,6 +923,7 @@ export default function Markets() {
       {selectedRiskPair && (
         <DynamicRiskMeter
           pair={selectedRiskPair}
+          isOpen={!!selectedRiskPair}
           onClose={() => setSelectedRiskPair(null)}
         />
       )}
