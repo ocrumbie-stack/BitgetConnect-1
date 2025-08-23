@@ -244,17 +244,17 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
           <Brain className="h-4 w-4 text-purple-500" />
           AI Price Prediction
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Controls */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Trading Pair Input */}
-          <div className="space-y-3 relative">
+          <div className="space-y-2 relative">
             <div className="text-xs font-medium">Enter Trading Pair</div>
             <div className="relative">
               <Input
@@ -297,7 +297,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
             
             {/* Show entered pair with current price */}
             {tradingPair && (
-              <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-200/30 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-200/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
@@ -322,7 +322,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
           </div>
 
           {/* Timeframe and Generate */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-muted-foreground" />
               <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
@@ -361,9 +361,9 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
 
         {/* Prediction Results */}
         {prediction && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Prediction Header with Selected Pair */}
-            <div className="p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-300/50 rounded-lg">
+            <div className="p-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-300/50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
