@@ -42,108 +42,144 @@ export function Analyzer() {
     pair.symbol.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 10) || [];
 
-  const analyzePair = (pair: any): TechnicalAnalysis => {
+  const analyzePair = (pair: any, selectedTimeframe: string): TechnicalAnalysis => {
     const price = parseFloat(pair.price || '0');
     const change24h = parseFloat(pair.change24h || '0');
     const volume24h = parseFloat(pair.volume24h || '0');
     
-    // Technical Analysis Calculations
+    // Timeframe-specific analysis adjustments
+    const timeframeMultipliers = {
+      '1h': { sensitivity: 2.5, volatility: 1.8, confidence: 0.7 },
+      '4h': { sensitivity: 1.5, volatility: 1.2, confidence: 1.0 },
+      '1d': { sensitivity: 1.0, volatility: 1.0, confidence: 1.2 },
+      '1w': { sensitivity: 0.6, volatility: 0.8, confidence: 1.5 }
+    };
+    
+    const multiplier = timeframeMultipliers[selectedTimeframe as keyof typeof timeframeMultipliers] || timeframeMultipliers['4h'];
+    
+    // Technical Analysis Calculations with timeframe considerations
     const absChange = Math.abs(change24h);
+    const adjustedChange = change24h * multiplier.sensitivity;
+    const adjustedAbsChange = Math.abs(adjustedChange);
+    
     let trend: 'uptrend' | 'downtrend' | 'sideways' = 'sideways';
     let strength = 0;
     let momentum: 'bullish' | 'bearish' | 'neutral' = 'neutral';
     
-    // Trend Detection
-    if (change24h > 0.03) {
+    // Timeframe-adjusted trend detection
+    const bullishThreshold = selectedTimeframe === '1h' ? 0.015 : selectedTimeframe === '4h' ? 0.03 : selectedTimeframe === '1d' ? 0.05 : 0.08;
+    const bearishThreshold = -bullishThreshold;
+    
+    if (adjustedChange > bullishThreshold) {
       trend = 'uptrend';
-      strength = Math.min(100, absChange * 500);
+      strength = Math.min(100, adjustedAbsChange * 300 * multiplier.sensitivity);
       momentum = 'bullish';
-    } else if (change24h < -0.03) {
+    } else if (adjustedChange < bearishThreshold) {
       trend = 'downtrend';
-      strength = Math.min(100, absChange * 500);
+      strength = Math.min(100, adjustedAbsChange * 300 * multiplier.sensitivity);
       momentum = 'bearish';
     } else {
       trend = 'sideways';
-      strength = 25 + Math.random() * 25;
+      strength = 25 + (Math.random() * 25);
       momentum = 'neutral';
     }
     
-    // Support and Resistance Levels
-    const volatility = absChange;
-    const support = price * (1 - (volatility + 0.015));
-    const resistance = price * (1 + (volatility + 0.015));
+    // Support and Resistance Levels (adjusted for timeframe)
+    const volatility = adjustedAbsChange * multiplier.volatility;
+    const supportResistanceRange = selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.015 : selectedTimeframe === '1d' ? 0.025 : 0.04;
+    const support = price * (1 - (volatility + supportResistanceRange));
+    const resistance = price * (1 + (volatility + supportResistanceRange));
     
     // Entry Signal Analysis
     let entryType: 'long' | 'short' | 'wait' = 'wait';
     let entryPrice = price;
-    let confidence = 50;
-    let reason = 'Market consolidation - waiting for clear signal';
+    let confidence = 50 * multiplier.confidence;
+    let reason = `${selectedTimeframe} consolidation - waiting for clear signal`;
     
     const signals: string[] = [];
     
-    // Volume Analysis
-    const volumeStrength = volume24h > 5000000 ? 'high' : volume24h > 1000000 ? 'medium' : 'low';
+    // Timeframe-specific signals
+    if (selectedTimeframe === '1h') {
+      signals.push('Short-term scalping opportunities');
+    } else if (selectedTimeframe === '4h') {
+      signals.push('Intraday swing trading setup');
+    } else if (selectedTimeframe === '1d') {
+      signals.push('Daily trend analysis');
+    } else {
+      signals.push('Weekly trend confirmation');
+    }
+    
+    // Volume Analysis (adjusted for timeframe)
+    const volumeThresholds = {
+      high: selectedTimeframe === '1h' ? 3000000 : selectedTimeframe === '4h' ? 5000000 : 8000000,
+      medium: selectedTimeframe === '1h' ? 800000 : selectedTimeframe === '4h' ? 1000000 : 2000000
+    };
+    
+    const volumeStrength = volume24h > volumeThresholds.high ? 'high' : volume24h > volumeThresholds.medium ? 'medium' : 'low';
     if (volumeStrength === 'high') {
-      signals.push('High volume confirmation');
-      confidence += 15;
+      signals.push(`High ${selectedTimeframe} volume confirmation`);
+      confidence += 15 * multiplier.confidence;
     } else if (volumeStrength === 'low') {
-      signals.push('Low volume - weak signal');
+      signals.push(`Low ${selectedTimeframe} volume - weak signal`);
       confidence -= 10;
     }
     
-    // Momentum Signals
-    if (absChange > 0.05) {
-      if (change24h > 0) {
+    // Momentum Signals (timeframe-adjusted thresholds)
+    const strongMomentumThreshold = selectedTimeframe === '1h' ? 0.025 : selectedTimeframe === '4h' ? 0.05 : selectedTimeframe === '1d' ? 0.08 : 0.12;
+    const moderateMomentumThreshold = selectedTimeframe === '1h' ? 0.01 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.04 : 0.06;
+    
+    if (adjustedAbsChange > strongMomentumThreshold) {
+      if (adjustedChange > 0) {
         entryType = 'long';
-        reason = 'Strong bullish momentum with volume';
-        signals.push('Bullish momentum breakout');
-        confidence += 20;
+        reason = `Strong ${selectedTimeframe} bullish momentum`;
+        signals.push(`${selectedTimeframe} bullish breakout`);
+        confidence += 25 * multiplier.confidence;
       } else {
         entryType = 'short';
-        reason = 'Strong bearish momentum with volume';
-        signals.push('Bearish momentum breakdown');
-        confidence += 20;
+        reason = `Strong ${selectedTimeframe} bearish momentum`;
+        signals.push(`${selectedTimeframe} bearish breakdown`);
+        confidence += 25 * multiplier.confidence;
       }
-    } else if (absChange > 0.02) {
-      if (change24h > 0) {
+    } else if (adjustedAbsChange > moderateMomentumThreshold) {
+      if (adjustedChange > 0) {
         entryType = 'long';
-        reason = 'Moderate bullish trend continuation';
-        signals.push('Trend continuation signal');
-        confidence += 10;
+        reason = `Moderate ${selectedTimeframe} bullish trend`;
+        signals.push(`${selectedTimeframe} trend continuation`);
+        confidence += 15 * multiplier.confidence;
       } else {
         entryType = 'short';
-        reason = 'Moderate bearish trend continuation';
-        signals.push('Downtrend continuation');
-        confidence += 10;
+        reason = `Moderate ${selectedTimeframe} bearish trend`;
+        signals.push(`${selectedTimeframe} downtrend continuation`);
+        confidence += 15 * multiplier.confidence;
       }
     }
     
-    // Oversold/Overbought Detection
-    if (change24h < -0.10) {
-      signals.push('Potentially oversold - reversal opportunity');
+    // Oversold/Overbought Detection (timeframe-specific)
+    const oversoldThreshold = selectedTimeframe === '1h' ? -0.05 : selectedTimeframe === '4h' ? -0.10 : selectedTimeframe === '1d' ? -0.15 : -0.25;
+    const overboughtThreshold = selectedTimeframe === '1h' ? 0.05 : selectedTimeframe === '4h' ? 0.15 : selectedTimeframe === '1d' ? 0.20 : 0.30;
+    
+    if (adjustedChange < oversoldThreshold) {
+      signals.push(`${selectedTimeframe} oversold - reversal opportunity`);
       if (entryType === 'wait') {
         entryType = 'long';
-        reason = 'Oversold bounce opportunity';
-        confidence = 65;
+        reason = `${selectedTimeframe} oversold bounce opportunity`;
+        confidence = 65 * multiplier.confidence;
       }
-    } else if (change24h > 0.15) {
-      signals.push('Potentially overbought - correction risk');
+    } else if (adjustedChange > overboughtThreshold) {
+      signals.push(`${selectedTimeframe} overbought - correction risk`);
       if (entryType === 'long') {
         confidence -= 15;
-        reason += ' - but overbought conditions';
+        reason += ` - but ${selectedTimeframe} overbought`;
       }
     }
     
-    // Price Action Signals
-    if (Math.abs(change24h) < 0.01) {
-      signals.push('Low volatility - potential breakout setup');
-    } else if (Math.abs(change24h) > 0.08) {
-      signals.push('High volatility - strong directional move');
-    }
-    
-    // Risk Management
-    const stopLossDistance = volatility > 0.05 ? 0.08 : 0.05;
-    const targetDistance = volatility > 0.05 ? 0.12 : 0.08;
+    // Risk Management (timeframe-adjusted)
+    const stopLossDistance = selectedTimeframe === '1h' ? (volatility > 0.02 ? 0.03 : 0.02) :
+                             selectedTimeframe === '4h' ? (volatility > 0.05 ? 0.08 : 0.05) :
+                             selectedTimeframe === '1d' ? (volatility > 0.08 ? 0.12 : 0.08) :
+                             (volatility > 0.12 ? 0.18 : 0.12);
+                             
+    const targetDistance = stopLossDistance * (selectedTimeframe === '1h' ? 1.5 : selectedTimeframe === '4h' ? 2.0 : selectedTimeframe === '1d' ? 2.5 : 3.0);
     
     const exit = {
       target: entryType === 'long' 
@@ -155,7 +191,7 @@ export function Analyzer() {
       riskReward: targetDistance / stopLossDistance
     };
     
-    // Adjust confidence based on market conditions
+    // Adjust confidence based on timeframe reliability
     confidence = Math.max(20, Math.min(95, confidence));
     
     return {
@@ -171,13 +207,13 @@ export function Analyzer() {
       },
       exit,
       signals: signals.slice(0, 4),
-      timeframe,
+      timeframe: selectedTimeframe,
       momentum
     };
   };
 
   const selectedPairData = data?.find(pair => pair.symbol === selectedPair);
-  const analysis = selectedPairData ? analyzePair(selectedPairData) : null;
+  const analysis = selectedPairData ? analyzePair(selectedPairData, timeframe) : null;
 
   return (
     <div className="min-h-screen bg-background pb-20">
