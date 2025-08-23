@@ -1,603 +1,243 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp, 
-  TrendingDown,
-  Activity, 
-  BarChart3,
-  Gauge,
-  Target,
-  Clock,
-  DollarSign,
-  Zap,
-  Eye,
-  RefreshCw,
-  X
-} from 'lucide-react';
+import { AlertTriangle, TrendingUp, TrendingDown, Activity, Shield, X } from 'lucide-react';
+import { useLocation } from 'wouter';
 
-interface RiskMetrics {
-  symbol: string;
-  overallRiskScore: number; // 0-100 (0 = very safe, 100 = very risky)
-  riskLevel: 'Very Low' | 'Low' | 'Medium' | 'High' | 'Very High';
-  volatilityRisk: number;
-  liquidityRisk: number;
-  marketCapRisk: number;
-  technicalRisk: number;
-  sentimentRisk: number;
-  correlationRisk: number;
-  factors: {
-    positive: string[];
-    negative: string[];
-  };
-  recommendations: {
-    positionSize: number; // Recommended % of portfolio
-    stopLoss: number; // Recommended stop loss %
-    timeHorizon: 'Short' | 'Medium' | 'Long';
-    diversification: string;
-  };
-  historicalData: {
-    maxDrawdown: number;
-    volatility30d: number;
-    sharpeRatio: number;
-    beta: number;
-  };
+interface RiskData {
+  overall: number; // 0-100 risk score
+  volatility: number;
+  volume: number;
+  trend: number;
+  support: number;
+  liquidity: number;
 }
 
 interface DynamicRiskMeterProps {
-  onRiskAnalyzed?: (risk: RiskMetrics) => void;
+  symbol: string;
+  price: string;
+  change24h: string;
+  volume24h: string;
+  onClose?: () => void;
+  className?: string;
 }
 
-export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
-  const [selectedPair, setSelectedPair] = useState('');
-  const [riskData, setRiskData] = useState<RiskMetrics | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  // Fetch real-time market data
-  const { data: marketData, isLoading: marketLoading } = useQuery({
-    queryKey: ['/api/futures'],
-    refetchInterval: 5000,
-    staleTime: 2000
+export function DynamicRiskMeter({ 
+  symbol, 
+  price, 
+  change24h, 
+  volume24h, 
+  onClose,
+  className = "" 
+}: DynamicRiskMeterProps) {
+  const [, setLocation] = useLocation();
+  const [riskData, setRiskData] = useState<RiskData>({
+    overall: 0,
+    volatility: 0,
+    volume: 0,
+    trend: 0,
+    support: 0,
+    liquidity: 0
   });
 
-  // Get all available pairs
-  const getAllPairs = () => {
-    if (!marketData || !Array.isArray(marketData)) return [];
-    return marketData.map((item: any) => item.symbol).sort();
-  };
+  useEffect(() => {
+    calculateRiskMetrics();
+  }, [symbol, price, change24h, volume24h]);
 
-  // Filter suggestions based on input
-  const getSuggestions = () => {
-    if (!selectedPair.trim()) return [];
-    const allPairs = getAllPairs();
-    return allPairs.filter(pair => 
-      pair.toLowerCase().includes(selectedPair.toLowerCase())
-    ).slice(0, 8);
-  };
+  const calculateRiskMetrics = () => {
+    const priceNum = parseFloat(price);
+    const changeNum = Math.abs(parseFloat(change24h || '0'));
+    const volumeNum = parseFloat(volume24h || '0');
 
-  // Calculate risk metrics based on market data
-  const calculateRiskMetrics = (symbol: string): RiskMetrics => {
-    if (!marketData || !Array.isArray(marketData)) {
-      throw new Error('Market data not available');
-    }
-    const pair = marketData.find((item: any) => item.symbol === symbol);
-    if (!pair) throw new Error('Pair not found');
+    // Volatility Risk (0-100)
+    const volatilityRisk = Math.min(changeNum * 1000, 100); // Higher change = higher risk
 
-    const price = parseFloat(pair.price || '0');
-    const change24h = parseFloat(pair.change24h || '0');
-    const volume24h = parseFloat(pair.volume24h || '0');
+    // Volume Risk (0-100) - Low volume = higher risk
+    const volumeRisk = volumeNum < 1000000 ? 80 : 
+                      volumeNum < 10000000 ? 50 : 
+                      volumeNum < 50000000 ? 30 : 20;
 
-    // Volatility Risk (0-100) - based on 24h change
-    const absChange = Math.abs(change24h);
-    const volatilityRisk = Math.min(100, absChange * 1000); // Scale to 0-100
+    // Trend Risk (0-100)
+    const trendRisk = changeNum > 15 ? 90 : 
+                     changeNum > 10 ? 70 : 
+                     changeNum > 5 ? 40 : 20;
 
-    // Liquidity Risk (0-100) - based on volume
-    const liquidityRisk = volume24h < 1000000 ? 80 : 
-                         volume24h < 5000000 ? 60 :
-                         volume24h < 20000000 ? 40 :
-                         volume24h < 50000000 ? 20 : 10;
+    // Support Risk (based on price level)
+    const supportRisk = priceNum < 0.01 ? 85 : 
+                       priceNum < 1 ? 60 : 
+                       priceNum < 100 ? 30 : 15;
 
-    // Market Cap Risk (simulated based on price and volume)
-    const estimatedMarketCap = price * volume24h / 1000; // Rough estimation
-    const marketCapRisk = estimatedMarketCap < 100000 ? 90 :
-                         estimatedMarketCap < 1000000 ? 70 :
-                         estimatedMarketCap < 10000000 ? 50 :
-                         estimatedMarketCap < 100000000 ? 30 : 10;
+    // Liquidity Risk (inverse of volume)
+    const liquidityRisk = volumeRisk;
 
-    // Technical Risk - based on price momentum and patterns
-    const technicalRisk = absChange > 0.15 ? 85 :
-                         absChange > 0.10 ? 70 :
-                         absChange > 0.05 ? 50 :
-                         absChange > 0.02 ? 30 : 20;
-
-    // Sentiment Risk - simulated based on recent performance
-    const sentimentRisk = change24h < -0.20 ? 90 :
-                         change24h < -0.10 ? 70 :
-                         change24h < -0.05 ? 50 :
-                         change24h > 0.20 ? 75 :
-                         change24h > 0.10 ? 45 : 30;
-
-    // Correlation Risk - simulated (would need broader market data in practice)
-    const correlationRisk = Math.random() * 40 + 30; // 30-70 range
-
-    // Calculate overall risk score
-    const weights = {
-      volatility: 0.25,
-      liquidity: 0.20,
-      marketCap: 0.15,
-      technical: 0.15,
-      sentiment: 0.15,
-      correlation: 0.10
-    };
-
-    const overallRiskScore = Math.round(
-      volatilityRisk * weights.volatility +
-      liquidityRisk * weights.liquidity +
-      marketCapRisk * weights.marketCap +
-      technicalRisk * weights.technical +
-      sentimentRisk * weights.sentiment +
-      correlationRisk * weights.correlation
+    // Overall Risk (weighted average)
+    const overallRisk = Math.round(
+      (volatilityRisk * 0.3 + 
+       volumeRisk * 0.2 + 
+       trendRisk * 0.25 + 
+       supportRisk * 0.15 + 
+       liquidityRisk * 0.1)
     );
 
-    // Determine risk level
-    const riskLevel = overallRiskScore >= 80 ? 'Very High' :
-                     overallRiskScore >= 60 ? 'High' :
-                     overallRiskScore >= 40 ? 'Medium' :
-                     overallRiskScore >= 20 ? 'Low' : 'Very Low';
-
-    // Generate factors
-    const positiveFactors = [];
-    const negativeFactors = [];
-
-    if (liquidityRisk < 30) positiveFactors.push('High liquidity reduces execution risk');
-    if (volatilityRisk < 30) positiveFactors.push('Low volatility provides stability');
-    if (technicalRisk < 40) positiveFactors.push('Stable technical indicators');
-    if (change24h > 0.05) positiveFactors.push('Strong positive momentum');
-
-    if (liquidityRisk > 70) negativeFactors.push('Low liquidity increases slippage risk');
-    if (volatilityRisk > 70) negativeFactors.push('High volatility creates price uncertainty');
-    if (technicalRisk > 60) negativeFactors.push('Weak technical support levels');
-    if (marketCapRisk > 60) negativeFactors.push('Small market cap increases manipulation risk');
-
-    // Generate recommendations
-    const positionSize = overallRiskScore > 70 ? 2 :
-                        overallRiskScore > 50 ? 5 :
-                        overallRiskScore > 30 ? 10 : 15;
-
-    const stopLoss = overallRiskScore > 70 ? 3 :
-                    overallRiskScore > 50 ? 5 :
-                    overallRiskScore > 30 ? 8 : 12;
-
-    const timeHorizon = overallRiskScore > 60 ? 'Short' :
-                       overallRiskScore > 30 ? 'Medium' : 'Long';
-
-    return {
-      symbol,
-      overallRiskScore,
-      riskLevel,
-      volatilityRisk: Math.round(volatilityRisk),
-      liquidityRisk: Math.round(liquidityRisk),
-      marketCapRisk: Math.round(marketCapRisk),
-      technicalRisk: Math.round(technicalRisk),
-      sentimentRisk: Math.round(sentimentRisk),
-      correlationRisk: Math.round(correlationRisk),
-      factors: {
-        positive: positiveFactors,
-        negative: negativeFactors
-      },
-      recommendations: {
-        positionSize,
-        stopLoss,
-        timeHorizon,
-        diversification: overallRiskScore > 50 ? 'High diversification recommended' : 'Moderate diversification sufficient'
-      },
-      historicalData: {
-        maxDrawdown: Math.random() * 30 + 10, // 10-40%
-        volatility30d: volatilityRisk * 0.8, // Correlated with current volatility
-        sharpeRatio: Math.random() * 2 - 0.5, // -0.5 to 1.5
-        beta: Math.random() * 2 + 0.5 // 0.5 to 2.5
-      }
-    };
+    setRiskData({
+      overall: overallRisk,
+      volatility: Math.round(volatilityRisk),
+      volume: Math.round(volumeRisk),
+      trend: Math.round(trendRisk),
+      support: Math.round(supportRisk),
+      liquidity: Math.round(liquidityRisk)
+    });
   };
 
-  // Analyze risk for selected pair
-  const analyzeRisk = async () => {
-    const targetSymbol = selectedPair.trim().toUpperCase();
-    
-    if (!targetSymbol || !marketData) {
-      alert('Please enter a valid trading pair (e.g., ETHUSDT, BTCUSDT)');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setShowSuggestions(false);
-    
-    // Simulate analysis time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    try {
-      const metrics = calculateRiskMetrics(targetSymbol);
-      setRiskData(metrics);
-      onRiskAnalyzed?.(metrics);
-    } catch (error) {
-      alert('Unable to analyze risk for this pair. Please try another.');
-    }
-    
-    setIsAnalyzing(false);
+  const getRiskLevel = (score: number): { level: string; color: string; bgColor: string } => {
+    if (score >= 80) return { level: 'Extreme', color: 'text-red-600', bgColor: 'bg-red-500' };
+    if (score >= 60) return { level: 'High', color: 'text-orange-600', bgColor: 'bg-orange-500' };
+    if (score >= 40) return { level: 'Medium', color: 'text-yellow-600', bgColor: 'bg-yellow-500' };
+    if (score >= 20) return { level: 'Low', color: 'text-green-600', bgColor: 'bg-green-500' };
+    return { level: 'Very Low', color: 'text-blue-600', bgColor: 'bg-blue-500' };
   };
 
-  // Get risk color based on score
-  const getRiskColor = (score: number) => {
-    if (score >= 80) return 'text-red-500';
-    if (score >= 60) return 'text-orange-500';
-    if (score >= 40) return 'text-yellow-500';
-    if (score >= 20) return 'text-blue-500';
-    return 'text-green-500';
-  };
+  const overallRisk = getRiskLevel(riskData.overall);
 
-  // Get risk background color for progress bars
-  const getRiskBgColor = (score: number) => {
-    if (score >= 80) return 'bg-red-500';
-    if (score >= 60) return 'bg-orange-500';
-    if (score >= 40) return 'bg-yellow-500';
-    if (score >= 20) return 'bg-blue-500';
-    return 'bg-green-500';
+  const RiskMeter = ({ value, label, icon: Icon }: { value: number; label: string; icon: any }) => {
+    const risk = getRiskLevel(value);
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className="h-4 w-4" />
+            <span className="text-sm font-medium">{label}</span>
+          </div>
+          <span className={`text-sm font-bold ${risk.color}`}>{value}</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-1000 ${risk.bgColor}`}
+            style={{ width: `${value}%` }}
+          />
+        </div>
+      </div>
+    );
   };
 
   return (
-    <Card className="w-full">
+    <Card className={`${className} border-2 ${overallRisk.level === 'Extreme' ? 'border-red-500' : 
+      overallRisk.level === 'High' ? 'border-orange-500' : 
+      overallRisk.level === 'Medium' ? 'border-yellow-500' : 
+      overallRisk.level === 'Low' ? 'border-green-500' : 'border-blue-500'}`}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Shield className="h-4 w-4 text-blue-500" />
-          Dynamic Risk Visualizer
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Comprehensive risk analysis with real-time market data integration
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Pair Selection */}
-        <div className="space-y-3">
-          <div className="flex gap-2 relative">
-            <div className="flex-1 relative">
-              <Input
-                placeholder="Enter Trading Pair"
-                value={selectedPair}
-                onChange={(e) => {
-                  setSelectedPair(e.target.value);
-                  setShowSuggestions(e.target.value.length > 0);
-                }}
-                onFocus={() => setShowSuggestions(selectedPair.length > 0)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="pr-10 text-xs placeholder:text-xs"
-                data-testid="input-risk-pair"
-              />
-              
-              {/* Autocomplete Suggestions */}
-              {showSuggestions && getSuggestions().length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
-                  {getSuggestions().map((pair, index) => {
-                    const pairData = marketData?.find((item: any) => item.symbol === pair);
-                    const price = pairData ? parseFloat(pairData.price).toLocaleString('en-US', { 
-                      minimumFractionDigits: 2, 
-                      maximumFractionDigits: 6 
-                    }) : 'N/A';
-                    const change = pairData ? parseFloat(pairData.change24h || '0') * 100 : 0;
-                    
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between px-3 py-2 hover:bg-muted cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setSelectedPair(pair);
-                          setShowSuggestions(false);
-                        }}
-                        data-testid={`suggestion-${pair}`}
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-xs">{pair}</span>
-                          <span className="text-xs text-muted-foreground">${price}</span>
-                        </div>
-                        <span className={`text-xs font-medium ${
-                          change > 0 ? 'text-green-500' : change < 0 ? 'text-red-500' : 'text-muted-foreground'
-                        }`}>
-                          {change > 0 ? '+' : ''}{change.toFixed(2)}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            
-            <Button 
-              onClick={analyzeRisk} 
-              disabled={isAnalyzing || !selectedPair.trim()}
-              className="gap-2 h-8 text-xs"
-            >
-              {isAnalyzing ? (
-                <>
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Gauge className="h-3 w-3" />
-                  Analyze Risk
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {/* Risk Analysis Results */}
-        {riskData && (
-          <div className="space-y-4">
-            {/* Overall Risk Score */}
-            <div className="text-center space-y-3">
-              <div className="relative">
-                <div className="w-24 h-24 mx-auto">
-                  <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray="100, 100"
-                      className="text-muted-foreground/20"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray={`${riskData.overallRiskScore}, 100`}
-                      className={getRiskColor(riskData.overallRiskScore)}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className={`text-sm font-bold ${getRiskColor(riskData.overallRiskScore)}`}>
-                        {riskData.overallRiskScore}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Risk Score</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-2 relative">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <Badge 
-                      variant="outline" 
-                      className={`${getRiskColor(riskData.overallRiskScore)} border-current`}
-                    >
-                      {riskData.riskLevel} Risk
-                    </Badge>
-                    <p className="text-xs text-muted-foreground">
-                      {riskData.symbol} Risk Assessment
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setRiskData(null)}
-                    className="h-8 w-8 p-0 absolute top-0 right-0"
-                    data-testid="button-close-risk-analysis"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Risk Breakdown */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span>Volatility Risk</span>
-                  <span className={getRiskColor(riskData.volatilityRisk)}>
-                    {riskData.volatilityRisk}%
-                  </span>
-                </div>
-                <Progress value={riskData.volatilityRisk} className="h-2" />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span>Liquidity Risk</span>
-                  <span className={getRiskColor(riskData.liquidityRisk)}>
-                    {riskData.liquidityRisk}%
-                  </span>
-                </div>
-                <Progress value={riskData.liquidityRisk} className="h-2" />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span>Market Cap Risk</span>
-                  <span className={getRiskColor(riskData.marketCapRisk)}>
-                    {riskData.marketCapRisk}%
-                  </span>
-                </div>
-                <Progress value={riskData.marketCapRisk} className="h-2" />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span>Technical Risk</span>
-                  <span className={getRiskColor(riskData.technicalRisk)}>
-                    {riskData.technicalRisk}%
-                  </span>
-                </div>
-                <Progress value={riskData.technicalRisk} className="h-2" />
-              </div>
-            </div>
-
-            {/* Recommendations */}
-            <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-medium">
-                  <Target className="h-3 w-3" />
-                  Position Size
-                </div>
-                <div className="text-sm font-bold text-primary">
-                  {riskData.recommendations.positionSize}%
-                </div>
-                <div className="text-xs text-muted-foreground">of portfolio</div>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-medium">
-                  <AlertTriangle className="h-3 w-3" />
-                  Stop Loss
-                </div>
-                <div className="text-sm font-bold text-destructive">
-                  {riskData.recommendations.stopLoss}%
-                </div>
-                <div className="text-xs text-muted-foreground">recommended</div>
-              </div>
-            </div>
-
-            {/* Toggle Details */}
-            <Button 
-              variant="outline" 
-              onClick={() => setShowDetails(!showDetails)}
-              className="w-full gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {showDetails ? 'Hide' : 'Show'} Detailed Analysis
-            </Button>
-
-            {/* Detailed Analysis */}
-            {showDetails && (
-              <Tabs defaultValue="factors" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="factors">Risk Factors</TabsTrigger>
-                  <TabsTrigger value="historical">Historical Data</TabsTrigger>
-                  <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="factors" className="space-y-4">
-                  <div className="grid gap-4">
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-xs text-green-600 dark:text-green-400">Positive Factors</h4>
-                      {riskData.factors.positive.length > 0 ? (
-                        <ul className="space-y-1">
-                          {riskData.factors.positive.map((factor, index) => (
-                            <li key={index} className="text-xs flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                              {factor}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No significant positive factors identified</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-xs text-red-600 dark:text-red-400">Risk Factors</h4>
-                      {riskData.factors.negative.length > 0 ? (
-                        <ul className="space-y-1">
-                          {riskData.factors.negative.map((factor, index) => (
-                            <li key={index} className="text-xs flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 flex-shrink-0" />
-                              {factor}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No significant risk factors identified</p>
-                      )}
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="historical" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium">Max Drawdown</div>
-                      <div className="text-sm font-bold text-red-500">
-                        {riskData.historicalData.maxDrawdown.toFixed(1)}%
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium">30d Volatility</div>
-                      <div className="text-sm font-bold text-orange-500">
-                        {riskData.historicalData.volatility30d.toFixed(1)}%
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium">Sharpe Ratio</div>
-                      <div className={`text-sm font-bold ${riskData.historicalData.sharpeRatio > 1 ? 'text-green-500' : riskData.historicalData.sharpeRatio > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
-                        {riskData.historicalData.sharpeRatio.toFixed(2)}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium">Beta</div>
-                      <div className={`text-sm font-bold ${riskData.historicalData.beta < 1 ? 'text-green-500' : riskData.historicalData.beta < 1.5 ? 'text-yellow-500' : 'text-red-500'}`}>
-                        {riskData.historicalData.beta.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="recommendations" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium text-xs mb-2">Time Horizon</h4>
-                      <Badge variant="outline">{riskData.recommendations.timeHorizon} Term</Badge>
-                    </div>
-                    
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium text-xs mb-2">Diversification</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {riskData.recommendations.diversification}
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 border rounded-lg bg-muted/50">
-                      <h4 className="font-medium text-xs mb-2">Risk Management Tips</h4>
-                      <ul className="text-xs space-y-1 text-muted-foreground">
-                        <li>• Never risk more than you can afford to lose</li>
-                        <li>• Use proper position sizing based on your risk tolerance</li>
-                        <li>• Set stop-loss orders before entering positions</li>
-                        <li>• Monitor market conditions regularly</li>
-                        <li>• Consider correlation with your existing portfolio</li>
-                      </ul>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!riskData && !isAnalyzing && (
-          <div className="text-center py-12 space-y-3">
-            <Gauge className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="font-medium text-sm">Risk Analysis Ready</h3>
-            <p className="text-xs text-muted-foreground">
-              Select a trading pair and click "Analyze Risk" to get comprehensive risk metrics
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Risk Analysis
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {symbol} - ${parseFloat(price).toFixed(4)}
             </p>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Overall Risk Score */}
+        <div className="text-center p-4 rounded-lg border-2 border-dashed" 
+             style={{ borderColor: overallRisk.level === 'Extreme' ? '#ef4444' : 
+                                 overallRisk.level === 'High' ? '#f97316' : 
+                                 overallRisk.level === 'Medium' ? '#eab308' : 
+                                 overallRisk.level === 'Low' ? '#22c55e' : '#3b82f6' }}>
+          <div className="text-3xl font-bold mb-2" style={{ 
+            color: overallRisk.level === 'Extreme' ? '#ef4444' : 
+                   overallRisk.level === 'High' ? '#f97316' : 
+                   overallRisk.level === 'Medium' ? '#eab308' : 
+                   overallRisk.level === 'Low' ? '#22c55e' : '#3b82f6' 
+          }}>
+            {riskData.overall}
+          </div>
+          <Badge 
+            variant="outline" 
+            className={`${overallRisk.color} border-current font-medium`}
+          >
+            {overallRisk.level} Risk
+          </Badge>
+        </div>
+
+        {/* Risk Breakdown */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-muted-foreground">Risk Breakdown</h4>
+          
+          <RiskMeter 
+            value={riskData.volatility} 
+            label="Volatility" 
+            icon={Activity} 
+          />
+          
+          <RiskMeter 
+            value={riskData.volume} 
+            label="Volume Risk" 
+            icon={TrendingDown} 
+          />
+          
+          <RiskMeter 
+            value={riskData.trend} 
+            label="Trend Risk" 
+            icon={TrendingUp} 
+          />
+          
+          <RiskMeter 
+            value={riskData.support} 
+            label="Support Level" 
+            icon={Shield} 
+          />
+          
+          <RiskMeter 
+            value={riskData.liquidity} 
+            label="Liquidity Risk" 
+            icon={AlertTriangle} 
+          />
+        </div>
+
+        {/* Risk Assessment */}
+        <div className="bg-muted/50 rounded-lg p-3">
+          <h4 className="text-sm font-semibold mb-2">Risk Assessment</h4>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {riskData.overall >= 80 && "⚠️ Extreme risk detected. High volatility and unstable conditions. Consider avoiding or using minimal position sizes."}
+            {riskData.overall >= 60 && riskData.overall < 80 && "🔶 High risk pair with significant volatility. Use proper risk management and stop losses."}
+            {riskData.overall >= 40 && riskData.overall < 60 && "🟨 Moderate risk levels. Standard trading precautions recommended."}
+            {riskData.overall >= 20 && riskData.overall < 40 && "🟢 Low risk environment with stable conditions. Good for conservative strategies."}
+            {riskData.overall < 20 && "💎 Very low risk with stable market conditions. Suitable for larger position sizes."}
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-2">
+          <Button 
+            className="flex-1" 
+            onClick={() => setLocation(`/trade?pair=${symbol}`)}
+          >
+            Trade {symbol}
+          </Button>
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => setLocation(`/analyzer?pair=${symbol}`)}
+          >
+            Analyze
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

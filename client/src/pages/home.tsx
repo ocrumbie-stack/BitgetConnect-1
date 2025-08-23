@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock, Shield } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
+import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
 
 export function Home() {
   const { data, isLoading } = useBitgetData();
@@ -15,6 +16,7 @@ export function Home() {
   const [activeOpportunityTab, setActiveOpportunityTab] = useState('momentum');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
+  const [selectedRiskPair, setSelectedRiskPair] = useState<string | null>(null);
 
   // Define major pairs to filter out for more diverse results
   const majorPairs = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'ETCUSDT'];
@@ -931,8 +933,21 @@ export function Home() {
                           <div className="font-bold text-green-600">
                             {formatChange(pair.change24h)}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            ${parseFloat(pair.price).toFixed(4)}
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              ${parseFloat(pair.price).toFixed(4)}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRiskPair(pair.symbol);
+                              }}
+                            >
+                              <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -972,8 +987,21 @@ export function Home() {
                           <div className="font-bold text-red-600">
                             {formatChange(pair.change24h)}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            ${parseFloat(pair.price).toFixed(4)}
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">
+                              ${parseFloat(pair.price).toFixed(4)}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRiskPair(pair.symbol);
+                              }}
+                            >
+                              <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -1020,8 +1048,21 @@ export function Home() {
                         <div className="font-bold text-purple-600">
                           {formatVolume(parseFloat(pair.volume24h || '0'))}
                         </div>
-                        <div className={`text-xs ${parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {formatChange(pair.change24h)}
+                        <div className="flex items-center gap-2">
+                          <div className={`text-xs ${parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {formatChange(pair.change24h)}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRiskPair(pair.symbol);
+                            }}
+                          >
+                            <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1059,6 +1100,22 @@ export function Home() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dynamic Risk Meter Overlay */}
+        {selectedRiskPair && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="max-w-md w-full">
+              <DynamicRiskMeter
+                symbol={selectedRiskPair}
+                price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
+                change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
+                volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
+                onClose={() => setSelectedRiskPair(null)}
+                className="max-h-[90vh] overflow-y-auto"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
