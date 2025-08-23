@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 
 export default function BotPage() {
@@ -51,6 +51,8 @@ export default function BotPage() {
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
+  const [showBotInfo, setShowBotInfo] = useState(false);
+  const [selectedBotInfo, setSelectedBotInfo] = useState<any>(null);
 
 
 
@@ -554,6 +556,11 @@ export default function BotPage() {
                   avgReturn: '15-25%/month',
                   icon: BarChart3,
                   gradient: 'from-blue-500 to-cyan-500',
+                  howItWorks: 'Places multiple buy and sell orders at predetermined intervals above and below the current price. When market moves, it automatically captures profits from price swings while maintaining a balanced position.',
+                  strategy: 'Creates a grid of orders that profit from market volatility without predicting direction',
+                  bestFor: 'Sideways markets with regular price movements',
+                  timeframe: '24/7 continuous operation',
+                  indicators: ['Bollinger Bands', 'ATR', 'Volume Profile', 'Support/Resistance'],
                 },
                 {
                   id: 'dca_smart',
@@ -566,6 +573,11 @@ export default function BotPage() {
                   avgReturn: '8-15%/month',
                   icon: TrendingUp,
                   gradient: 'from-green-500 to-emerald-500',
+                  howItWorks: 'Systematically purchases assets at regular intervals, but uses AI to optimize timing based on market conditions. Adjusts purchase amounts based on volatility and sentiment.',
+                  strategy: 'Dollar-cost averaging with intelligent timing to reduce average entry price',
+                  bestFor: 'Long-term accumulation during market downturns',
+                  timeframe: 'Daily to weekly purchase intervals',
+                  indicators: ['RSI', 'Moving Averages', 'Market Sentiment', 'Fear & Greed Index'],
                 },
                 {
                   id: 'momentum',
@@ -578,6 +590,11 @@ export default function BotPage() {
                   avgReturn: '25-50%/month',
                   icon: Zap,
                   gradient: 'from-orange-500 to-red-500',
+                  howItWorks: 'Detects momentum breakouts using machine learning models trained on price patterns. Executes rapid trades to capture short-term price movements with tight stop-losses.',
+                  strategy: 'High-frequency trading based on momentum signals and volume spikes',
+                  bestFor: 'Trending markets with strong directional moves',
+                  timeframe: 'Seconds to minutes per trade',
+                  indicators: ['MACD', 'Momentum Oscillator', 'Volume Flow', 'Price Velocity'],
                 },
                 {
                   id: 'arbitrage',
@@ -590,6 +607,11 @@ export default function BotPage() {
                   avgReturn: '5-12%/month',
                   icon: Target,
                   gradient: 'from-indigo-500 to-purple-500',
+                  howItWorks: 'Monitors price differences across multiple exchanges and executes simultaneous buy/sell orders to capture risk-free profits from price discrepancies.',
+                  strategy: 'Risk-free profit from temporary price differences between exchanges',
+                  bestFor: 'Stable markets with sufficient liquidity across exchanges',
+                  timeframe: 'Milliseconds to seconds per trade',
+                  indicators: ['Price Spreads', 'Liquidity Depth', 'Exchange Fees', 'Transfer Times'],
                 },
                 {
                   id: 'ai_trend',
@@ -602,6 +624,11 @@ export default function BotPage() {
                   avgReturn: '18-35%/month',
                   icon: Trend,
                   gradient: 'from-purple-500 to-pink-500',
+                  howItWorks: 'Uses neural networks to identify trend patterns and predict continuation probabilities. Adapts position sizes and entry/exit points based on trend strength and market conditions.',
+                  strategy: 'AI-powered trend identification with adaptive position management',
+                  bestFor: 'Markets with clear trending patterns and momentum',
+                  timeframe: 'Hours to days per trade',
+                  indicators: ['AI Pattern Recognition', 'Trend Strength', 'Support/Resistance', 'Market Structure'],
                 },
                 {
                   id: 'volatility',
@@ -614,6 +641,11 @@ export default function BotPage() {
                   avgReturn: '30-45%/month',
                   icon: Activity,
                   gradient: 'from-pink-500 to-rose-500',
+                  howItWorks: 'Predicts volatility spikes using advanced statistical models. Uses delta-neutral strategies and dynamic hedging to profit from volatility changes regardless of price direction.',
+                  strategy: 'Statistical volatility trading with delta-neutral positioning',
+                  bestFor: 'High volatility periods and uncertainty events',
+                  timeframe: 'Minutes to hours per trade cycle',
+                  indicators: ['Implied Volatility', 'Historical Volatility', 'VIX', 'Option Greeks'],
                 }
               ].map((bot) => {
                 const IconComponent = bot.icon;
@@ -671,6 +703,18 @@ export default function BotPage() {
                         >
                           <Play className="h-4 w-4 mr-2" />
                           Deploy Bot
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="px-3"
+                          onClick={() => {
+                            setSelectedBotInfo(bot);
+                            setShowBotInfo(true);
+                          }}
+                          data-testid={`button-info-${bot.id}`}
+                        >
+                          <Info className="h-4 w-4" />
                         </Button>
                         <Button 
                           size="sm" 
@@ -1665,6 +1709,143 @@ export default function BotPage() {
               Close
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Info Dialog */}
+      <Dialog open={showBotInfo} onOpenChange={setShowBotInfo}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              How {selectedBotInfo?.name} Works
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about this AI trading bot's strategy and operation
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBotInfo && (
+            <div className="space-y-6 py-4">
+              {/* Bot Header */}
+              <div className={`bg-gradient-to-r ${selectedBotInfo.gradient} rounded-lg p-4 text-white`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    {selectedBotInfo.icon && (
+                      <selectedBotInfo.icon className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl">{selectedBotInfo.name}</h3>
+                    <p className="text-white/90">{selectedBotInfo.description}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <div className="text-sm opacity-90">Win Rate</div>
+                    <div className="font-bold text-lg">{selectedBotInfo.winRate}</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <div className="text-sm opacity-90">Expected Return</div>
+                    <div className="font-bold text-lg">{selectedBotInfo.avgReturn}</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <div className="text-sm opacity-90">Risk Level</div>
+                    <div className="font-bold text-lg">{selectedBotInfo.risk}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* How It Works */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Target className="h-5 w-5 text-blue-500" />
+                    How It Works
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedBotInfo.howItWorks}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-green-500" />
+                    Trading Strategy
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedBotInfo.strategy}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-purple-500" />
+                    Best Market Conditions
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedBotInfo.bestFor}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-orange-500" />
+                    Trading Timeframe
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedBotInfo.timeframe}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-indigo-500" />
+                    Key Indicators Used
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedBotInfo.indicators?.map((indicator: string, idx: number) => (
+                      <Badge key={idx} variant="outline" className="bg-slate-50 dark:bg-slate-800">
+                        {indicator}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-500" />
+                    Key Features
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedBotInfo.features?.map((feature: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowBotInfo(false)} className="flex-1">
+                  Close
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowBotInfo(false);
+                    setSelectedStrategy({ ...selectedBotInfo, isAI: true });
+                    setShowRunDialog(true);
+                  }} 
+                  className={`flex-1 bg-gradient-to-r ${selectedBotInfo.gradient} hover:opacity-90 text-white`}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Deploy This Bot
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
