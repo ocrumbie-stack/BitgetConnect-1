@@ -27,7 +27,7 @@ export default function BotPage() {
   const [riskLevel, setRiskLevel] = useState('medium');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
-  const [showAdvancedIndicators, setShowAdvancedIndicators] = useState(false);
+  // Removed showAdvancedIndicators state - indicators are now always visible
   
   // Technical Indicators state
   const [indicators, setIndicators] = useState({
@@ -190,7 +190,7 @@ export default function BotPage() {
     setRiskLevel('medium');
     setStopLoss('');
     setTakeProfit('');
-    setShowAdvancedIndicators(false);
+    // Indicators are now always visible - no need to reset showAdvancedIndicators
     setIndicators({
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
       macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
@@ -1219,19 +1219,7 @@ export default function BotPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-end">
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowAdvancedIndicators(!showAdvancedIndicators)}
-                >
-                  {showAdvancedIndicators ? 'Hide' : 'Show'} Advanced
-                </Button>
-              </div>
-
-              {showAdvancedIndicators && (
-                <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
                   <h4 className="font-medium text-sm">Entry Conditions</h4>
                   
                   {/* RSI */}
@@ -1582,7 +1570,6 @@ export default function BotPage() {
                     )}
                   </div>
                 </div>
-              )}
             </div>
 
             {/* Action Buttons */}
@@ -1590,7 +1577,7 @@ export default function BotPage() {
               <Button 
                 type="button"
                 variant="outline" 
-                onClick={() => setShowCreateStrategyDialog(false)}
+                onClick={() => setShowCreateForm(false)}
                 className="flex-1"
               >
                 Cancel
@@ -1599,7 +1586,7 @@ export default function BotPage() {
                 type="button"
                 onClick={handleCreateStrategy}
                 className="flex-1"
-                disabled={!strategyName.trim() || !selectedTradingPair}
+                disabled={!strategyName.trim()}
               >
                 Create Strategy
               </Button>
