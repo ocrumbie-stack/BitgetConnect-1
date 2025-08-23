@@ -377,36 +377,36 @@ export default function BotPage() {
     let riskLevel = 'medium';
     let suggestedIndicators: any = {};
 
-    // Volatility analysis - FIXED to handle extreme cases properly
-    if (absChange >= 50) {
+    // Volatility analysis - REALISTIC thresholds for crypto markets
+    if (absChange >= 20) {
       volatilityLevel = 'extreme';
       recommendedTimeframe = '5m';
       recommendedStopLoss = '1';
       recommendedTakeProfit = '2';
       recommendedLeverage = '2';
       riskLevel = 'extreme';
-    } else if (absChange >= 20) {
+    } else if (absChange >= 10) {
       volatilityLevel = 'extreme';
       recommendedTimeframe = '15m';
       recommendedStopLoss = '1.5';
       recommendedTakeProfit = '3';
       recommendedLeverage = '2';
       riskLevel = 'high';
-    } else if (absChange >= 10) {
+    } else if (absChange >= 5) {
       volatilityLevel = 'very high';
       recommendedTimeframe = '30m';
       recommendedStopLoss = '2';
       recommendedTakeProfit = '4';
       recommendedLeverage = '3';
       riskLevel = 'high';
-    } else if (absChange >= 5) {
+    } else if (absChange >= 3) {
       volatilityLevel = 'high';
       recommendedTimeframe = '1h';
       recommendedStopLoss = '2.5';
       recommendedTakeProfit = '5';
       recommendedLeverage = '4';
       riskLevel = 'medium';
-    } else if (absChange >= 2) {
+    } else if (absChange >= 1.5) {
       volatilityLevel = 'medium';
       recommendedTimeframe = '2h';
       recommendedStopLoss = '3';
