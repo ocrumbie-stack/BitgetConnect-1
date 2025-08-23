@@ -415,32 +415,67 @@ export default function BotPage() {
       recommendedStopLoss = (parseFloat(recommendedStopLoss) + 0.5).toString();
     }
 
+    // Generate direction-aware indicators first
+    const generateDirectionAwareIndicators = (direction: string, pairType: 'btc' | 'eth' | 'alt') => {
+      if (direction === 'long') {
+        // Long position indicators - looking for bullish signals
+        if (pairType === 'btc') {
+          return {
+            rsi: { enabled: true, period: 14, condition: 'oversold', value: 30 },
+            macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+            ma1: { enabled: true, type: 'ema', period1: 21, condition: 'above', period2: 50 }
+          };
+        } else if (pairType === 'eth') {
+          return {
+            rsi: { enabled: true, period: 14, condition: 'oversold', value: 35 },
+            bollinger: { enabled: true, period: 20, stdDev: 2, condition: 'near_lower' },
+            volume: { enabled: true, condition: 'above_average', multiplier: 1.5 }
+          };
+        } else {
+          return {
+            rsi: { enabled: true, period: 7, condition: 'oversold', value: 25 },
+            macd: { enabled: true, fastPeriod: 8, slowPeriod: 21, signalPeriod: 5, condition: 'bullish_crossover' },
+            ma1: { enabled: true, type: 'ema', period1: 9, condition: 'above', period2: 21 }
+          };
+        }
+      } else {
+        // Short position indicators - looking for bearish signals
+        if (pairType === 'btc') {
+          return {
+            rsi: { enabled: true, period: 14, condition: 'overbought', value: 70 },
+            macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bearish_crossover' },
+            ma1: { enabled: true, type: 'ema', period1: 21, condition: 'below', period2: 50 }
+          };
+        } else if (pairType === 'eth') {
+          return {
+            rsi: { enabled: true, period: 14, condition: 'overbought', value: 70 },
+            bollinger: { enabled: true, period: 20, stdDev: 2, condition: 'above_upper' },
+            volume: { enabled: true, condition: 'above_average', multiplier: 1.5 }
+          };
+        } else {
+          return {
+            rsi: { enabled: true, period: 7, condition: 'overbought', value: 75 },
+            macd: { enabled: true, fastPeriod: 8, slowPeriod: 21, signalPeriod: 5, condition: 'bearish_crossover' },
+            ma1: { enabled: true, type: 'ema', period1: 9, condition: 'below', period2: 21 }
+          };
+        }
+      }
+    };
+
     // Pair-specific optimizations
     if (symbol.includes('BTC')) {
       // Bitcoin pairs - more conservative
       recommendedStopLoss = (parseFloat(recommendedStopLoss) * 0.8).toFixed(1);
       recommendedTakeProfit = (parseFloat(recommendedTakeProfit) * 0.9).toFixed(1);
-      suggestedIndicators = {
-        rsi: { enabled: true, period: 14, condition: 'oversold', value: 30 },
-        macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-        ma1: { enabled: true, type: 'ema', period1: 21, condition: 'above', period2: 50 }
-      };
+      suggestedIndicators = generateDirectionAwareIndicators(recommendedDirection, 'btc');
     } else if (symbol.includes('ETH')) {
       // Ethereum pairs - moderate settings
-      suggestedIndicators = {
-        rsi: { enabled: true, period: 14, condition: 'overbought', value: 70 },
-        bollinger: { enabled: true, period: 20, stdDev: 2, condition: 'above_upper' },
-        volume: { enabled: true, condition: 'above_average', multiplier: 1.5 }
-      };
+      suggestedIndicators = generateDirectionAwareIndicators(recommendedDirection, 'eth');
     } else if (symbol.includes('USDT') && !symbol.includes('BTC') && !symbol.includes('ETH')) {
       // Alt-USDT pairs - more aggressive for opportunities
       recommendedLeverage = Math.min(parseInt(recommendedLeverage) + 2, 10).toString();
       recommendedTakeProfit = (parseFloat(recommendedTakeProfit) * 1.2).toFixed(1);
-      suggestedIndicators = {
-        rsi: { enabled: true, period: 7, condition: 'oversold', value: 25 },
-        macd: { enabled: true, fastPeriod: 8, slowPeriod: 21, signalPeriod: 5, condition: 'bullish_crossover' },
-        ma1: { enabled: true, type: 'ema', period1: 9, condition: 'above', period2: 21 }
-      };
+      suggestedIndicators = generateDirectionAwareIndicators(recommendedDirection, 'alt');
     }
 
     // Trend-based direction refinement
@@ -474,8 +509,9 @@ export default function BotPage() {
       reasoning: [
         `${volatilityLevel.charAt(0).toUpperCase() + volatilityLevel.slice(1)} volatility detected (${absChange.toFixed(2)}% 24h change)`,
         `${volume24h > 500000000 ? 'High' : volume24h > 100000000 ? 'Medium' : 'Low'} trading volume suggests ${volume24h > 500000000 ? 'strong liquidity' : volume24h > 100000000 ? 'adequate liquidity' : 'careful position sizing'}`,
-        `${change24h > 0 ? 'Positive' : 'Negative'} momentum indicates ${recommendedDirection} bias`,
-        `${recommendedTimeframe} timeframe optimal for ${volatilityLevel} volatility environment`
+        `${change24h > 0 ? 'Positive' : 'Negative'} momentum (${change24h.toFixed(2)}%) indicates ${recommendedDirection} bias with ${recommendedDirection === 'long' ? 'bullish' : 'bearish'} indicators`,
+        `Technical indicators configured for ${recommendedDirection} positions: ${recommendedDirection === 'long' ? 'RSI oversold, MACD bullish crossover, price above moving averages' : 'RSI overbought, MACD bearish crossover, price below moving averages'}`,
+        `${recommendedTimeframe} timeframe optimal for ${volatilityLevel} volatility environment with ${recommendedStopLoss}% stop loss and ${recommendedTakeProfit}% take profit`
       ]
     };
 
