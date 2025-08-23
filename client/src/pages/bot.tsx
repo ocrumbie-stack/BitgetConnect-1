@@ -624,6 +624,8 @@ export default function BotPage() {
 
   // Handle pair search input changes and filter suggestions
   const handlePairSearchChange = (value: string) => {
+    console.log('handlePairSearchChange called with:', value);
+    console.log('futuresData available:', futuresData && Array.isArray(futuresData) ? futuresData.length : 'No data');
     setPairSearch(value);
     
     if (value.length > 0 && futuresData && Array.isArray(futuresData)) {
@@ -643,6 +645,7 @@ export default function BotPage() {
           return parseFloat(b.volume24h) - parseFloat(a.volume24h);
         });
       
+      console.log('Filtered pairs:', filtered.length, filtered.map(p => p.symbol));
       setFilteredPairs(filtered);
       setShowAutoSuggest(filtered.length > 0);
     } else {
@@ -2336,6 +2339,15 @@ export default function BotPage() {
                   onChange={(e) => handlePairSearchChange(e.target.value)}
                   placeholder="Search trading pairs... (e.g., BTCUSDT)"
                   className="pr-10"
+                  onFocus={() => {
+                    console.log('Deploy dialog input focused, filteredPairs length:', filteredPairs.length);
+                    if (filteredPairs.length > 0) setShowAutoSuggest(true);
+                  }}
+                  onBlur={() => {
+                    console.log('Deploy dialog input blurred');
+                    // Delay hiding to allow clicking on suggestions
+                    setTimeout(() => setShowAutoSuggest(false), 200);
+                  }}
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
