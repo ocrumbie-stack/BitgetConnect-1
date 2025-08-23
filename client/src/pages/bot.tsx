@@ -1635,10 +1635,9 @@ export default function BotPage() {
               
               {/* Folder Selection */}
               <div className="mt-4">
-                <label className="text-sm font-medium mb-2 block">Select Folder</label>
                 <Select value={selectedFolder} onValueChange={setSelectedFolder}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose folder to deploy strategy" />
+                    <SelectValue placeholder="Select deployment folder" />
                   </SelectTrigger>
                   <SelectContent>
                     {(folders as any[]).map((folder: any) => (
