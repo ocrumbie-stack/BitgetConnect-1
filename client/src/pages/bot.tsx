@@ -518,16 +518,14 @@ export default function BotPage() {
                 <div>
                   <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
                     {(() => {
-                      const aiBots = [
-                        { winRate: '78%' },
-                        { winRate: '85%' },
-                        { winRate: '72%' },
-                        { winRate: '92%' },
-                        { winRate: '81%' },
-                        { winRate: '76%' }
-                      ];
-                      const avgWinRate = aiBots.reduce((sum, bot) => sum + parseInt(bot.winRate), 0) / aiBots.length;
-                      return Math.round(avgWinRate) + '%';
+                      const activeBots = (activeExecutions as any[]) || [];
+                      if (activeBots.length === 0) {
+                        return 'N/A';
+                      }
+                      // Calculate average win rate from active bots
+                      // For now, since we don't have win rate data from active executions,
+                      // we'll show N/A until bots are actually running
+                      return 'N/A';
                     })()}
                   </div>
                   <div className="text-xs text-orange-600 dark:text-orange-400">Avg Win Rate</div>
