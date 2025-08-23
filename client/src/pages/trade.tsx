@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot } from 'lucide-react';
-import { BackButton } from '@/components/BackButton';
+
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -62,16 +62,13 @@ export function Trade() {
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BackButton to="/" label="Home" className="text-gray-400" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{currentPair}</span>
-                <ChevronDown className="h-4 w-4" />
-              </div>
-              <div className="text-sm text-gray-400">
-                Perpetual <span className="text-red-500">{change24h}%</span>
-              </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{currentPair}</span>
+              <ChevronDown className="h-4 w-4" />
+            </div>
+            <div className="text-sm text-gray-400">
+              Perpetual <span className="text-red-500">{change24h}%</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
