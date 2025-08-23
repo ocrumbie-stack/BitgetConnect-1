@@ -156,6 +156,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get 5-minute price changes for top movers
+  app.get('/api/futures/5m-movers', async (req, res) => {
+    try {
+      if (!bitgetAPI) {
+        return res.status(400).json({ 
+          message: 'Bitget API not configured' 
+        });
+      }
+
+      // Get current tickers first
+      const tickers = await bitgetAPI.getAllFuturesTickers();
+      const topSymbols = tickers
+        .filter(t => parseFloat(t.quoteVolume) > 1000000) // Filter by volume
+        .slice(0, 20); // Limit to top 20 by volume
+
+      const fiveMinMovers: any[] = [];
+
+      // Get 5-minute data for each symbol
+      for (const ticker of topSymbols) {
+        try {
+          const candleData = await bitgetAPI.getCandlestickData(ticker.symbol, '5m', 2);
+          if (candleData.length >= 2) {
+            const current = parseFloat(candleData[0].close);
+            const previous = parseFloat(candleData[1].close);
+            const change5m = ((current - previous) / previous);
+            
+            fiveMinMovers.push({
+              symbol: ticker.symbol,
+              price: ticker.lastPr,
+              change5m: change5m.toString(),
+              volume24h: ticker.quoteVolume,
+              timestamp: Date.now()
+            });
+          }
+        } catch (error) {
+          // Skip this symbol if candlestick data fails
+          console.log(`Skipping ${ticker.symbol} - candlestick data unavailable`);
+        }
+      }
+
+      // Sort and get top gainer/loser
+      const gainers = fiveMinMovers
+        .filter(m => parseFloat(m.change5m) > 0)
+        .sort((a, b) => parseFloat(b.change5m) - parseFloat(a.change5m));
+      
+      const losers = fiveMinMovers
+        .filter(m => parseFloat(m.change5m) < 0)
+        .sort((a, b) => parseFloat(a.change5m) - parseFloat(b.change5m));
+
+      res.json({
+        topGainer: gainers[0] || null,
+        topLoser: losers[0] || null,
+        allMovers: fiveMinMovers
+      });
+      
+    } catch (error: any) {
+      console.error('Error fetching 5-minute movers:', error);
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch 5-minute movers data' 
+      });
+    }
+  });
+
   app.get('/api/account/:userId', async (req, res) => {
     try {
       if (!bitgetAPI) {

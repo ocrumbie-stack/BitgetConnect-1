@@ -1,5 +1,6 @@
 import { SimpleTable } from '@/components/SimpleTable';
 import { useBitgetData } from '@/hooks/useBitgetData';
+import { use5MinMovers } from '@/hooks/use5MinMovers';
 import { useState } from 'react';
 import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ export default function Markets() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useBitgetData();
+  const { data: fiveMinData, isLoading: fiveMinLoading } = use5MinMovers();
   
   // Screener state
   const [searchQuery, setSearchQuery] = useState('');
@@ -621,74 +623,80 @@ export default function Markets() {
                 </div>
               )}
 
-              {/* Top Movers Cards - Using 24h data since 5m data is not available from Bitget API */}
-              {filteredAndSortedData && filteredAndSortedData.length > 0 && (
-                <div className="grid grid-cols-2 gap-3 mb-4 max-w-md mx-auto">
-                  {/* Top Gainer */}
-                  {(() => {
-                    const topGainer = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') > 0)
-                      .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0];
-                    
-                    return topGainer ? (
-                      <Card 
-                        className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => setLocation(`/trade?pair=${topGainer.symbol}`)}
-                      >
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer</p>
-                          <p className="text-sm font-bold text-green-800 dark:text-green-200">{topGainer.symbol}</p>
-                          <div className="flex items-center justify-center gap-1 mt-1">
-                            <TrendingUp className="h-3 w-3 text-green-600" />
-                            <span className="text-sm font-bold text-green-600">
-                              +{(parseFloat(topGainer.change24h || '0') * 100).toFixed(2)}%
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    ) : (
-                      <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-gray-500 mb-1">Top Gainer</p>
-                          <p className="text-sm text-gray-400">No gainers found</p>
-                        </div>
-                      </Card>
-                    );
-                  })()}
+              {/* Top Movers Cards - Real 5-minute data from Bitget API */}
+              <div className="grid grid-cols-2 gap-3 mb-4 max-w-md mx-auto">
+                {/* Top Gainer (5M) */}
+                {fiveMinLoading ? (
+                  <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Top Gainer (5M)</p>
+                      <div className="flex items-center justify-center">
+                        <RefreshCw className="h-4 w-4 animate-spin text-gray-400" />
+                        <span className="text-xs text-gray-400 ml-2">Loading...</span>
+                      </div>
+                    </div>
+                  </Card>
+                ) : fiveMinData?.topGainer ? (
+                  <Card 
+                    className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => setLocation(`/trade?pair=${fiveMinData.topGainer!.symbol}`)}
+                  >
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (5M)</p>
+                      <p className="text-sm font-bold text-green-800 dark:text-green-200">{fiveMinData.topGainer.symbol}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <TrendingUp className="h-3 w-3 text-green-600" />
+                        <span className="text-sm font-bold text-green-600">
+                          +{(parseFloat(fiveMinData.topGainer.change5m) * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Top Gainer (5M)</p>
+                      <p className="text-sm text-gray-400">No data available</p>
+                    </div>
+                  </Card>
+                )}
 
-                  {/* Top Loser */}
-                  {(() => {
-                    const topLoser = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') < 0)
-                      .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0];
-                    
-                    return topLoser ? (
-                      <Card 
-                        className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => setLocation(`/trade?pair=${topLoser.symbol}`)}
-                      >
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser</p>
-                          <p className="text-sm font-bold text-red-800 dark:text-red-200">{topLoser.symbol}</p>
-                          <div className="flex items-center justify-center gap-1 mt-1">
-                            <TrendingDown className="h-3 w-3 text-red-600" />
-                            <span className="text-sm font-bold text-red-600">
-                              {(parseFloat(topLoser.change24h || '0') * 100).toFixed(2)}%
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    ) : (
-                      <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                        <div className="text-center">
-                          <p className="text-xs font-medium text-gray-500 mb-1">Top Loser</p>
-                          <p className="text-sm text-gray-400">No losers found</p>
-                        </div>
-                      </Card>
-                    );
-                  })()}
-                </div>
-              )}
+                {/* Top Loser (5M) */}
+                {fiveMinLoading ? (
+                  <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Top Loser (5M)</p>
+                      <div className="flex items-center justify-center">
+                        <RefreshCw className="h-4 w-4 animate-spin text-gray-400" />
+                        <span className="text-xs text-gray-400 ml-2">Loading...</span>
+                      </div>
+                    </div>
+                  </Card>
+                ) : fiveMinData?.topLoser ? (
+                  <Card 
+                    className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => setLocation(`/trade?pair=${fiveMinData.topLoser!.symbol}`)}
+                  >
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (5M)</p>
+                      <p className="text-sm font-bold text-red-800 dark:text-red-200">{fiveMinData.topLoser.symbol}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <TrendingDown className="h-3 w-3 text-red-600" />
+                        <span className="text-sm font-bold text-red-600">
+                          {(parseFloat(fiveMinData.topLoser.change5m) * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Top Loser (5M)</p>
+                      <p className="text-sm text-gray-400">No data available</p>
+                    </div>
+                  </Card>
+                )}
+              </div>
 
               {/* Market Table */}
               {isLoading ? (
