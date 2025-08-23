@@ -526,7 +526,7 @@ export function Analyzer() {
             <CardContent>
               <div className="space-y-3">
                 {data?.slice(0, 5).map((pair) => {
-                  const quickAnalysis = analyzePair(pair);
+                  const quickAnalysis = analyzePair(pair, timeframe);
                   return (
                     <div 
                       key={pair.symbol} 
