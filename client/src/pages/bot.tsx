@@ -1384,31 +1384,31 @@ export default function BotPage() {
                   
                   {/* Auto-suggest dropdown */}
                   {showAutoSuggest && filteredPairs.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                       {filteredPairs.map((pair: any, index: number) => (
                         <div
                           key={pair.symbol}
                           onClick={() => selectPair(pair)}
-                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                          className="px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors"
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="font-medium text-gray-900 dark:text-white">
+                              <div className="font-semibold text-gray-900 dark:text-gray-100">
                                 {pair.symbol}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                              <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                                 ${parseFloat(pair.price).toLocaleString()}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className={`text-sm font-medium ${
+                              <div className={`text-sm font-semibold ${
                                 parseFloat(pair.change24h) >= 0 
                                   ? 'text-green-600 dark:text-green-400' 
-                                  : 'text-red-600 dark:text-red-400'
+                                  : 'text-red-500 dark:text-red-400'
                               }`}>
                                 {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
                               </div>
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                 Vol: ${(parseFloat(pair.volume24h) / 1000000).toFixed(1)}M
                               </div>
                             </div>
@@ -1919,22 +1919,22 @@ export default function BotPage() {
                 <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3">Market Analysis</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">24h Change</p>
-                    <p className={`font-semibold ${suggestedSettings.analysis.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">24h Change</p>
+                    <p className={`font-bold text-lg ${suggestedSettings.analysis.change24h >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {suggestedSettings.analysis.change24h >= 0 ? '+' : ''}{suggestedSettings.analysis.change24h.toFixed(2)}%
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Volatility</p>
-                    <p className="font-semibold capitalize">{suggestedSettings.analysis.volatility}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Volatility</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.analysis.volatility}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Trend</p>
-                    <p className="font-semibold capitalize">{suggestedSettings.analysis.trend}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Trend</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.analysis.trend}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Confidence</p>
-                    <p className="font-semibold text-blue-600">{suggestedSettings.confidence}%</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Confidence</p>
+                    <p className="font-bold text-lg text-blue-600 dark:text-blue-400">{suggestedSettings.confidence}%</p>
                   </div>
                 </div>
               </div>
@@ -1944,30 +1944,30 @@ export default function BotPage() {
                 <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">Recommended Settings</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Direction</p>
-                    <p className={`font-semibold capitalize ${suggestedSettings.recommended.direction === 'long' ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Direction</p>
+                    <p className={`font-bold text-lg capitalize ${suggestedSettings.recommended.direction === 'long' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {suggestedSettings.recommended.direction}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Timeframe</p>
-                    <p className="font-semibold">{suggestedSettings.recommended.timeframe}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Timeframe</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200">{suggestedSettings.recommended.timeframe}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Stop Loss</p>
-                    <p className="font-semibold">{suggestedSettings.recommended.stopLoss}%</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Stop Loss</p>
+                    <p className="font-bold text-lg text-red-600 dark:text-red-400">{suggestedSettings.recommended.stopLoss}%</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Take Profit</p>
-                    <p className="font-semibold">{suggestedSettings.recommended.takeProfit}%</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Take Profit</p>
+                    <p className="font-bold text-lg text-green-600 dark:text-green-400">{suggestedSettings.recommended.takeProfit}%</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Risk Level</p>
-                    <p className="font-semibold capitalize">{suggestedSettings.recommended.riskLevel}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Risk Level</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.recommended.riskLevel}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Suggested Leverage</p>
-                    <p className="font-semibold">{suggestedSettings.recommended.leverage}x</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Suggested Leverage</p>
+                    <p className="font-bold text-lg text-blue-600 dark:text-blue-400">{suggestedSettings.recommended.leverage}x</p>
                   </div>
                 </div>
               </div>
