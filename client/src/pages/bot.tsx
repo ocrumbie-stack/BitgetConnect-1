@@ -1806,13 +1806,13 @@ export default function BotPage() {
                             {/* Header Row */}
                             <div className="grid grid-cols-3 gap-4 mb-4">
                               <div className="text-center">
-                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">MA Type</h4>
+                                <label className="text-xs">MA Type</label>
                               </div>
                               <div className="text-center">
-                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Period</h4>
+                                <label className="text-xs">Period</label>
                               </div>
                               <div className="text-center">
-                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Condition</h4>
+                                <label className="text-xs">Condition</label>
                               </div>
                             </div>
                             
@@ -1872,7 +1872,7 @@ export default function BotPage() {
                             {/* Comparison Section */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                               <div className="mb-2">
-                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Comparison</h4>
+                                <label className="text-xs">Comparison</label>
                               </div>
                               <div className="w-1/3">
                                 <Select 
@@ -1899,7 +1899,7 @@ export default function BotPage() {
                                 (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
                                 (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
                                 <div className="mt-3">
-                                  <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">Compare to Period</label>
+                                  <label className="text-xs block mb-1">Compare to Period</label>
                                   <Input 
                                     type="number" 
                                     value={(indicators[maKey as keyof typeof indicators] as any).period2}
