@@ -59,28 +59,42 @@ export function Analyzer() {
     
     // Technical Analysis Calculations with timeframe considerations
     const absChange = Math.abs(change24h);
-    const adjustedChange = change24h * multiplier.sensitivity;
+    
+    // Generate timeframe-specific price movements (simulate different timeframe data)
+    const timeframeFactors = {
+      '1h': { factor: 0.2 + (Math.random() * 0.6), volatility: 1.5 },
+      '4h': { factor: 0.4 + (Math.random() * 0.8), volatility: 1.2 },
+      '1d': { factor: 0.7 + (Math.random() * 0.6), volatility: 1.0 },
+      '1w': { factor: 0.9 + (Math.random() * 0.4), volatility: 0.8 }
+    };
+    
+    const timeframeFactor = timeframeFactors[selectedTimeframe as keyof typeof timeframeFactors] || timeframeFactors['4h'];
+    
+    // Simulate realistic timeframe-specific price action
+    const baseMovement = change24h * timeframeFactor.factor;
+    const timeframeNoise = (Math.random() - 0.5) * 0.02 * timeframeFactor.volatility;
+    const adjustedChange = baseMovement + timeframeNoise;
     const adjustedAbsChange = Math.abs(adjustedChange);
     
     let trend: 'uptrend' | 'downtrend' | 'sideways' = 'sideways';
     let strength = 0;
     let momentum: 'bullish' | 'bearish' | 'neutral' = 'neutral';
     
-    // Timeframe-adjusted trend detection
-    const bullishThreshold = selectedTimeframe === '1h' ? 0.015 : selectedTimeframe === '4h' ? 0.03 : selectedTimeframe === '1d' ? 0.05 : 0.08;
+    // Timeframe-adjusted trend detection with more sensitive thresholds
+    const bullishThreshold = selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.035 : 0.055;
     const bearishThreshold = -bullishThreshold;
     
     if (adjustedChange > bullishThreshold) {
       trend = 'uptrend';
-      strength = Math.min(100, adjustedAbsChange * 300 * multiplier.sensitivity);
+      strength = Math.min(95, Math.max(55, adjustedAbsChange * 400 * multiplier.sensitivity + 30));
       momentum = 'bullish';
     } else if (adjustedChange < bearishThreshold) {
       trend = 'downtrend';
-      strength = Math.min(100, adjustedAbsChange * 300 * multiplier.sensitivity);
+      strength = Math.min(95, Math.max(55, adjustedAbsChange * 400 * multiplier.sensitivity + 30));
       momentum = 'bearish';
     } else {
       trend = 'sideways';
-      strength = 25 + (Math.random() * 25);
+      strength = 20 + (Math.random() * 40); // Random between 20-60 for sideways
       momentum = 'neutral';
     }
     
