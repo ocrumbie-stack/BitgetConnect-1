@@ -364,8 +364,9 @@ export default function BotPage() {
     const price = parseFloat(pair.price);
     const change24h = parseFloat(pair.change24h);
     const volume24h = parseFloat(pair.volume24h);
-    // The API returns change24h as percentage (134.166 means +134%), not decimal
-    const absChange = Math.abs(change24h);
+    // Convert API decimal to actual percentage (1.01918 = 101.918%)
+    const actualPercentage = change24h * 100;
+    const absChange = Math.abs(actualPercentage);
 
     // Analyze pair characteristics
     let volatilityLevel = 'low';
@@ -373,7 +374,7 @@ export default function BotPage() {
     let recommendedStopLoss = '2';
     let recommendedTakeProfit = '5';
     let recommendedLeverage = '3';
-    let recommendedDirection = change24h >= 0 ? 'long' : 'short';
+    let recommendedDirection = actualPercentage >= 0 ? 'long' : 'short';
     let riskLevel = 'medium';
     let suggestedIndicators: any = {};
 
@@ -439,17 +440,17 @@ export default function BotPage() {
 
     // Trend-based direction refinement - MOVED BEFORE INDICATOR GENERATION
     // Clear directional bias based on 24h change with precise thresholds
-    if (change24h > 3) {
+    if (actualPercentage > 3) {
       recommendedDirection = 'long'; // Strong positive momentum
-    } else if (change24h < -3) {
+    } else if (actualPercentage < -3) {
       recommendedDirection = 'short'; // Strong negative momentum  
-    } else if (change24h > 0.5) {
+    } else if (actualPercentage > 0.5) {
       recommendedDirection = 'long'; // Moderate positive momentum
-    } else if (change24h < -0.5) {
+    } else if (actualPercentage < -0.5) {
       recommendedDirection = 'short'; // Moderate negative momentum
     } else {
       // For very low volatility (-0.5% to +0.5%), use exact momentum direction
-      recommendedDirection = change24h >= 0 ? 'long' : 'short';
+      recommendedDirection = actualPercentage >= 0 ? 'long' : 'short';
     }
 
     // Generate direction-aware indicators AFTER direction is finalized
@@ -546,7 +547,7 @@ export default function BotPage() {
         volatility: volatilityLevel,
         volume24h: volume24h,
         change24h: change24h,
-        trend: change24h > 2 ? 'bullish' : change24h < -2 ? 'bearish' : 'sideways'
+        trend: actualPercentage > 2 ? 'bullish' : actualPercentage < -2 ? 'bearish' : 'sideways'
       },
       recommended: {
         timeframe: recommendedTimeframe,
@@ -578,7 +579,8 @@ export default function BotPage() {
 
     // Debug logging to verify alignment and volatility calculation
     console.log(`AI Suggestion Debug for ${symbol}:`, {
-      change24h: change24h,
+      rawChange24h: change24h,
+      actualPercentage: actualPercentage,
       absChange: absChange,
       volatilityLevel: volatilityLevel,
       recommendedTimeframe: recommendedTimeframe,
