@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
 
@@ -919,6 +919,10 @@ export default function BotPage() {
                   bestFor: 'Sideways markets with regular price movements',
                   timeframe: '24/7 continuous operation',
                   indicators: ['Bollinger Bands', 'ATR', 'Volume Profile', 'Support/Resistance'],
+                  suggestedText: 'Perfect for BTCUSDT, ETHUSDT. Works best with stable coins in sideways trends.',
+                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT'],
+                  suggestedCapital: '500-2000',
+                  suggestedLeverage: '2-5'
                 },
                 {
                   id: 'dca_smart',
@@ -936,6 +940,10 @@ export default function BotPage() {
                   bestFor: 'Long-term accumulation during market downturns',
                   timeframe: 'Daily to weekly purchase intervals',
                   indicators: ['RSI', 'Moving Averages', 'Market Sentiment', 'Fear & Greed Index'],
+                  suggestedText: 'Ideal for long-term BTC, ETH accumulation. Best during market dips.',
+                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT'],
+                  suggestedCapital: '1000-5000',
+                  suggestedLeverage: '1-2'
                 },
                 {
                   id: 'momentum',
@@ -953,6 +961,10 @@ export default function BotPage() {
                   bestFor: 'Trending markets with strong directional moves',
                   timeframe: 'Seconds to minutes per trade',
                   indicators: ['MACD', 'Momentum Oscillator', 'Volume Flow', 'Price Velocity'],
+                  suggestedText: 'High-speed scalping on volatile pairs like DOGEUSDT, SHIBUSDT during breakouts.',
+                  recommendedPairs: ['DOGEUSDT', 'SHIBUSDT', 'PEPEUSDT', 'FLOKIUSDT'],
+                  suggestedCapital: '200-1000',
+                  suggestedLeverage: '5-10'
                 },
                 {
                   id: 'arbitrage',
@@ -970,6 +982,10 @@ export default function BotPage() {
                   bestFor: 'Stable markets with sufficient liquidity across exchanges',
                   timeframe: 'Milliseconds to seconds per trade',
                   indicators: ['Price Spreads', 'Liquidity Depth', 'Exchange Fees', 'Transfer Times'],
+                  suggestedText: 'Low-risk arbitrage on major pairs with high liquidity like BTC, ETH, BNB.',
+                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'USDCUSDT'],
+                  suggestedCapital: '2000-10000',
+                  suggestedLeverage: '1-3'
                 },
                 {
                   id: 'ai_trend',
@@ -987,6 +1003,10 @@ export default function BotPage() {
                   bestFor: 'Markets with clear trending patterns and momentum',
                   timeframe: 'Hours to days per trade',
                   indicators: ['AI Pattern Recognition', 'Trend Strength', 'Support/Resistance', 'Market Structure'],
+                  suggestedText: 'AI trend detection works great on trending altcoins like SOL, ADA, DOT.',
+                  recommendedPairs: ['SOLUSDT', 'ADAUSDT', 'DOTUSDT', 'LINKUSDT'],
+                  suggestedCapital: '500-3000',
+                  suggestedLeverage: '3-7'
                 },
                 {
                   id: 'volatility',
@@ -1004,6 +1024,10 @@ export default function BotPage() {
                   bestFor: 'High volatility periods and uncertainty events',
                   timeframe: 'Minutes to hours per trade cycle',
                   indicators: ['Implied Volatility', 'Historical Volatility', 'VIX', 'Option Greeks'],
+                  suggestedText: 'Harvests volatility from explosive meme coins and new listings during market events.',
+                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT'],
+                  suggestedCapital: '1000-5000',
+                  suggestedLeverage: '3-8'
                 }
               ];
               
@@ -1042,6 +1066,11 @@ export default function BotPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedStrategy({ ...bot, isAI: true });
+                                // Pre-fill with suggested defaults
+                                setPairSearch(bot.recommendedPairs[0] || 'BTCUSDT');
+                                setTradingPair(bot.recommendedPairs[0] || 'BTCUSDT');
+                                setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
+                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
                                 setShowRunDialog(true);
                               }}
                             >
@@ -1057,6 +1086,14 @@ export default function BotPage() {
                       {expandedBots[bot.id] && (
                         <div className="mt-3 space-y-3">
                           <p className="text-xs text-muted-foreground">{bot.description}</p>
+                          
+                          {/* Suggested Text */}
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-2 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-start gap-2">
+                              <Lightbulb className="h-3 w-3 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                              <p className="text-xs font-medium text-blue-700 dark:text-blue-300">{bot.suggestedText}</p>
+                            </div>
+                          </div>
                           
                           <div className="grid grid-cols-2 gap-2">
                             <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-2 text-center">
@@ -1085,6 +1122,11 @@ export default function BotPage() {
                               className={`bg-gradient-to-r ${bot.gradient} hover:opacity-90 text-white flex-1 font-medium text-xs h-8`}
                               onClick={() => {
                                 setSelectedStrategy({ ...bot, isAI: true });
+                                // Pre-fill with suggested defaults
+                                setPairSearch(bot.recommendedPairs[0] || 'BTCUSDT');
+                                setTradingPair(bot.recommendedPairs[0] || 'BTCUSDT');
+                                setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
+                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
                                 setShowRunDialog(true);
                               }}
                             >
@@ -2286,13 +2328,68 @@ export default function BotPage() {
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Recommended Pairs for this bot */}
+            {selectedStrategy?.recommendedPairs && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Recommended Pairs</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedStrategy.recommendedPairs.map((pair: string) => (
+                    <Button
+                      key={pair}
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                      onClick={() => {
+                        setPairSearch(pair);
+                        setTradingPair(pair);
+                        setShowAutoSuggest(false);
+                      }}
+                    >
+                      {pair}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div>
               <label className="text-sm font-medium">Trading Pair</label>
-              <Input
-                value={tradingPair}
-                onChange={(e) => setTradingPair(e.target.value)}
-                placeholder="BTCUSDT"
-              />
+              <div className="relative">
+                <Input
+                  value={pairSearch}
+                  onChange={(e) => handlePairSearchChange(e.target.value)}
+                  placeholder="Search trading pairs... (e.g., BTCUSDT)"
+                  className="pr-10"
+                />
+                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+              </div>
+              
+              {/* Auto-suggest dropdown */}
+              {showAutoSuggest && filteredPairs.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {filteredPairs.map((pair: any) => (
+                    <div
+                      key={pair.symbol}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                      onClick={() => {
+                        selectPair(pair);
+                        setTradingPair(pair.symbol);
+                      }}
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{pair.symbol}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">${parseFloat(pair.price).toLocaleString()}</div>
+                      </div>
+                      <div className={`text-xs font-medium ${parseFloat(pair.change24h) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">Capital Amount</label>
@@ -2300,8 +2397,11 @@ export default function BotPage() {
                 type="number"
                 value={capital}
                 onChange={(e) => setCapital(e.target.value)}
-                placeholder="1000"
+                placeholder={selectedStrategy?.suggestedCapital?.split('-')[0] || "1000"}
               />
+              {selectedStrategy?.suggestedCapital && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Suggested: {selectedStrategy.suggestedCapital} USDT</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">Leverage</label>
@@ -2309,10 +2409,13 @@ export default function BotPage() {
                 type="number"
                 value={leverage}
                 onChange={(e) => setLeverage(e.target.value)}
-                placeholder="1"
+                placeholder={selectedStrategy?.suggestedLeverage?.split('-')[0] || "1"}
                 min="1"
                 max="100"
               />
+              {selectedStrategy?.suggestedLeverage && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Suggested: {selectedStrategy.suggestedLeverage}x leverage</p>
+              )}
             </div>
           </div>
 
