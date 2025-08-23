@@ -143,7 +143,12 @@ interface TrendData {
   };
 }
 
-export function UnifiedAnalysisTools() {
+interface UnifiedAnalysisToolsProps {
+  prefilledPair?: string;
+  autoTrigger?: boolean;
+}
+
+export function UnifiedAnalysisTools({ prefilledPair, autoTrigger }: UnifiedAnalysisToolsProps) {
   const { data: marketData } = useBitgetData();
   const [tradingPair, setTradingPair] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -157,6 +162,17 @@ export function UnifiedAnalysisTools() {
 
   // Real-time price data simulation
   const [realTimePrices, setRealTimePrices] = useState<{ [key: string]: number }>({});
+
+  // Handle auto-fill when component mounts
+  useEffect(() => {
+    if (prefilledPair && autoTrigger) {
+      setTradingPair(prefilledPair);
+      // Auto-trigger analysis after a short delay
+      setTimeout(() => {
+        handleAnalyze();
+      }, 500);
+    }
+  }, [prefilledPair, autoTrigger]);
 
   useEffect(() => {
     const interval = setInterval(() => {
