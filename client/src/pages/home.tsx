@@ -738,13 +738,13 @@ export function Home() {
             {/* Social Sentiment & Fear/Greed Index */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
               <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Users className="h-5 w-5 text-purple-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-purple-500" />
                     Social Sentiment
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 pt-0">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-2xl font-bold text-purple-700 dark:text-purple-300 truncate">
@@ -785,15 +785,15 @@ export function Home() {
               </Card>
 
               <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Gauge className="h-5 w-5 text-orange-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Gauge className="h-4 w-4 text-orange-500" />
                     Fear & Greed Index
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 pt-0">
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-orange-700 dark:text-orange-300 mb-2">
+                    <div className="text-3xl font-bold text-orange-700 dark:text-orange-300 mb-2">
                       {socialSentiment.fearGreedIndex}
                     </div>
                     <div className="text-sm text-orange-600 dark:text-orange-400 mb-3">
@@ -827,50 +827,50 @@ export function Home() {
 
             {/* Market Health Dashboard */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-pink-500" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-pink-500" />
                   Market Health Dashboard
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {marketHealth.volatility.toFixed(1)}%
                     </div>
                     <div className="text-xs text-blue-500">Volatility</div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       {marketHealth.volatility > 8 ? 'High' : marketHealth.volatility > 4 ? 'Medium' : 'Low'}
                     </div>
                   </div>
                   
-                  <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
                       {marketHealth.liquidity.toFixed(1)}%
                     </div>
                     <div className="text-xs text-green-500">Liquidity</div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       {marketHealth.liquidity > 70 ? 'High' : marketHealth.liquidity > 40 ? 'Medium' : 'Low'}
                     </div>
                   </div>
                   
-                  <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                  <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
                       {marketHealth.momentum > 0 ? '+' : ''}{marketHealth.momentum.toFixed(1)}%
                     </div>
                     <div className="text-xs text-purple-500">Momentum</div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       {Math.abs(marketHealth.momentum) > 20 ? 'Strong' : Math.abs(marketHealth.momentum) > 10 ? 'Moderate' : 'Weak'}
                     </div>
                   </div>
                   
-                  <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <div className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
+                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
                       {marketHealth.stability.toFixed(1)}%
                     </div>
                     <div className="text-xs text-yellow-500">Stability</div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-muted-foreground">
                       {marketHealth.stability > 90 ? 'High' : marketHealth.stability > 80 ? 'Medium' : 'Low'}
                     </div>
                   </div>
@@ -880,23 +880,23 @@ export function Home() {
 
             {/* Market Insights */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-blue-500" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-blue-500" />
                   Market Insights
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
                   {socialSentiment.insights.map((insight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <div className="p-1 bg-blue-500 rounded-full mt-1">
-                        <Star className="h-3 w-3 text-white" />
+                    <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <div className="p-1 bg-blue-500 rounded-full mt-0.5">
+                        <Star className="h-2 w-2 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium break-words">{insight}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Updated {Math.floor(Math.random() * 30 + 1)} minutes ago
+                        <div className="text-xs text-muted-foreground">
+                          {Math.floor(Math.random() * 30 + 1)}m ago
                         </div>
                       </div>
                     </div>
