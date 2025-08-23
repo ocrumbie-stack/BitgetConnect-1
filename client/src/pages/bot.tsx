@@ -33,9 +33,9 @@ export default function BotPage() {
   const [indicators, setIndicators] = useState({
     rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
     macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50 },
-    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200 },
-    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20 },
+    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price' },
+    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price' },
+    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'ma' },
     bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
     stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
     williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -1826,7 +1826,7 @@ export default function BotPage() {
                                     [maKey]: { ...indicators[maKey as keyof typeof indicators], type: value }
                                   })}
                                 >
-                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                  <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1845,7 +1845,7 @@ export default function BotPage() {
                                     [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
                                   })}
                                   placeholder="20"
-                                  className="bg-gray-800 border-gray-700 text-center"
+                                  className="text-center"
                                 />
                               </div>
                               <div>
@@ -1856,7 +1856,7 @@ export default function BotPage() {
                                     [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
                                   })}
                                 >
-                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                  <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1876,12 +1876,15 @@ export default function BotPage() {
                               </div>
                               <div className="w-1/3">
                                 <Select 
-                                  value="price"
+                                  value={(indicators[maKey as keyof typeof indicators] as any).comparisonType || "price"}
                                   onValueChange={(value) => {
-                                    // Handle comparison type change if needed
+                                    setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], comparisonType: value }
+                                    });
                                   }}
                                 >
-                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                  <SelectTrigger>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1891,8 +1894,10 @@ export default function BotPage() {
                                 </Select>
                               </div>
                               
-                              {/* Show second period input if comparing to another MA */}
-                              {(indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down' ? (
+                              {/* Show second period input when comparing to other MA OR when using crossing conditions */}
+                              {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'ma' || 
+                                (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
+                                (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
                                 <div className="mt-3">
                                   <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">Compare to Period</label>
                                   <Input 
@@ -1903,7 +1908,7 @@ export default function BotPage() {
                                       [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
                                     })}
                                     placeholder="50"
-                                    className="bg-gray-800 border-gray-700 w-1/3"
+                                    className="w-1/3"
                                   />
                                 </div>
                               ) : null}
