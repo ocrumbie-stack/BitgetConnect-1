@@ -271,7 +271,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
           <div className="flex gap-2 relative">
             <div className="flex-1 relative">
               <Input
-                placeholder="Enter trading pair (e.g., BTCUSDT, ETHUSDT)..."
+                placeholder="Enter Trading Pair"
                 value={selectedPair}
                 onChange={(e) => {
                   setSelectedPair(e.target.value);
