@@ -235,43 +235,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   }
 
-  // Get 5-minute price changes for top movers (with caching)
-  app.get('/api/futures/5m-movers', async (req, res) => {
+  // Get market insights using existing data (no heavy API calls needed)
+  app.get('/api/futures/market-insights', async (req, res) => {
     try {
-      const currentInterval = getCurrentFiveMinInterval();
-      
-      // Check if we need to recalculate (new 5-minute interval)
-      const needsRecalculation = !fiveMinMoversCache || 
-                                fiveMinMoversCache.lastCalculatedInterval !== currentInterval;
-      
-      if (needsRecalculation) {
-        console.log(`Recalculating 5-minute movers for interval: ${new Date(currentInterval).toISOString()}`);
-        
-        try {
-          const newData = await calculate5MinMovers();
-          fiveMinMoversCache = {
-            data: newData,
-            lastCalculatedInterval: currentInterval
-          };
-        } catch (error) {
-          console.error('Error calculating 5-minute movers:', error);
-          // If calculation fails but we have cached data, return it
-          if (fiveMinMoversCache) {
-            console.log('Returning cached data due to calculation error');
-            return res.json(fiveMinMoversCache.data);
-          }
-          throw error;
-        }
-      } else {
-        console.log('Returning cached 5-minute movers data');
+      if (!bitgetAPI) {
+        return res.status(400).json({ 
+          message: 'Bitget API not configured' 
+        });
       }
 
-      res.json(fiveMinMoversCache!.data);
+      // Get current tickers (single API call)
+      const tickers = await bitgetAPI.getAllFuturesTickers();
+      const validTickers = tickers.filter(t => parseFloat(t.quoteVolume) > 0);
+
+      // Calculate various insights from existing data
+      const insights = {
+        // Volume surge detection
+        volumeSurge: validTickers
+          .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+          .slice(0, 5)
+          .map(t => ({
+            symbol: t.symbol,
+            price: t.lastPr,
+            volume24h: t.quoteVolume,
+            change24h: parseFloat(t.change24h || '0').toFixed(2) + '%'
+          })),
+
+        // High volatility pairs (biggest movers)
+        highVolatility: validTickers
+          .sort((a, b) => Math.abs(parseFloat(b.change24h || '0')) - Math.abs(parseFloat(a.change24h || '0')))
+          .slice(0, 5)
+          .map(t => ({
+            symbol: t.symbol,
+            price: t.lastPr,
+            change24h: parseFloat(t.change24h || '0').toFixed(2) + '%',
+            volume24h: t.quoteVolume
+          })),
+
+        // Price breakouts (pairs with significant moves + high volume)
+        breakouts: validTickers
+          .filter(t => Math.abs(parseFloat(t.change24h || '0')) > 0.05 && parseFloat(t.quoteVolume) > 1000000)
+          .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+          .slice(0, 5)
+          .map(t => ({
+            symbol: t.symbol,
+            price: t.lastPr,
+            change24h: parseFloat(t.change24h || '0').toFixed(2) + '%',
+            volume24h: t.quoteVolume,
+            type: parseFloat(t.change24h || '0') > 0 ? 'bullish' : 'bearish'
+          })),
+
+        // Top gainers and losers
+        topGainer: validTickers
+          .filter(t => parseFloat(t.change24h || '0') > 0)
+          .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0],
+        
+        topLoser: validTickers
+          .filter(t => parseFloat(t.change24h || '0') < 0)
+          .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0],
+
+        calculatedAt: new Date().toISOString(),
+        totalPairs: validTickers.length
+      };
+
+      res.json(insights);
       
     } catch (error: any) {
-      console.error('Error fetching 5-minute movers:', error);
+      console.error('Error fetching market insights:', error);
       res.status(500).json({ 
-        message: error.message || 'Failed to fetch 5-minute movers data' 
+        message: error.message || 'Failed to fetch market insights' 
       });
     }
   });

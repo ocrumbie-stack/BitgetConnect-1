@@ -1,23 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 
-export interface FiveMinMover {
+export interface MarketInsight {
   symbol: string;
   price: string;
-  change5m: string;
+  change24h: string;
   volume24h: string;
-  timestamp: number;
+  type?: 'bullish' | 'bearish';
 }
 
-export interface FiveMinMoversResponse {
-  topGainer: FiveMinMover | null;
-  topLoser: FiveMinMover | null;
-  allMovers: FiveMinMover[];
+export interface MarketInsightsResponse {
+  volumeSurge: MarketInsight[];
+  highVolatility: MarketInsight[];
+  breakouts: MarketInsight[];
+  topGainer: MarketInsight | null;
+  topLoser: MarketInsight | null;
+  calculatedAt: string;
+  totalPairs: number;
 }
 
-export function use5MinMovers() {
-  return useQuery<FiveMinMoversResponse>({
-    queryKey: ['/api/futures/5m-movers'],
-    refetchInterval: 60000, // Refetch every 60 seconds (data only updates every 5 minutes)
-    staleTime: 4 * 60 * 1000, // Consider data stale after 4 minutes
+export function useMarketInsights() {
+  return useQuery<MarketInsightsResponse>({
+    queryKey: ['/api/futures/market-insights'],
+    refetchInterval: 30000, // Refetch every 30 seconds (much faster than before)
+    staleTime: 25000, // Consider data stale after 25 seconds
   });
 }
