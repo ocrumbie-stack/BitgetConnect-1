@@ -8,18 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
-import { toast } from '@/hooks/use-toast';
 
-export default function Markets() {
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLocation } from 'wouter';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+
+export function Markets() {
+  const { data, isLoading } = useBitgetData();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const { data, isLoading, error } = useBitgetData();
-  
-  // Screener state
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -27,37 +28,154 @@ export default function Markets() {
   const [selectedScreener, setSelectedScreener] = useState<string>('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [selectedRiskPair, setSelectedRiskPair] = useState<string | null>(null);
-  
-  // AI Opportunities state
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
-
-  // Fetch user screeners
-  const { data: userScreeners = [] } = useQuery<any[]>({
-    queryKey: ['/api/screeners'],
-    enabled: true,
+  
+  // Fetch user screeners from API
+  const { data: userScreeners = [] } = useQuery({
+    queryKey: ['/api/screeners', 'user1'],
+    queryFn: async () => {
+      const response = await fetch('/api/screeners/user1');
+      if (!response.ok) {
+        throw new Error('Failed to fetch screeners');
+      }
+      return response.json();
+    }
   });
 
-  // Processing data similar to original Markets page
-  const filteredAndSortedData = data ? data
-    .filter(item => {
-      const searchMatch = !searchQuery || 
-        item.symbol?.toLowerCase().includes(searchQuery.toLowerCase());
+  const deleteScreenerMutation = useMutation({
+    mutationFn: async (screenerId: string) => {
+      const response = await fetch(`/api/screeners/${screenerId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete screener');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/screeners', 'user1'] });
+      setSelectedScreener('');
+      toast({
+        title: "Screener deleted",
+        description: "The screener has been successfully deleted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete screener. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleScreenerChange = (value: string) => {
+    if (value === 'create-new') {
+      setLocation('/create-screener');
+    } else {
+      setSelectedScreener(value);
+    }
+  };
+
+  const handleEditScreener = (screenerId: string) => {
+    setLocation(`/edit-screener/${screenerId}`);
+  };
+
+  const handleDeleteScreener = (screenerId: string) => {
+    deleteScreenerMutation.mutate(screenerId);
+  };
+
+  // Find the selected screener object
+  const selectedScreenerObj = userScreeners.find((s: any) => s.id === selectedScreener);
+
+  const filteredAndSortedData = data
+    ?.filter((item) => {
+      // Search filter
+      if (searchQuery && !item.symbol.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
       
-      if (!searchMatch) return false;
+      // Gainers/Losers filter
+      if (filter === 'gainers' && parseFloat(item.change24h || '0') <= 0) {
+        return false;
+      }
+      if (filter === 'losers' && parseFloat(item.change24h || '0') >= 0) {
+        return false;
+      }
       
-      if (filter === 'gainers') {
-        return parseFloat(item.change24h || '0') > 0;
-      } else if (filter === 'losers') {
-        return parseFloat(item.change24h || '0') < 0;
+      // Screener filter
+      if (selectedScreenerObj && selectedScreenerObj.criteria) {
+        const criteria = selectedScreenerObj.criteria;
+        const price = parseFloat(item.price || '0');
+        const volume = parseFloat(item.volume24h || '0');
+        const change = parseFloat(item.change24h || '0') * 100; // Convert to percentage
+        
+        // Price range
+        if (criteria.minPrice && price < criteria.minPrice) return false;
+        if (criteria.maxPrice && price > criteria.maxPrice) return false;
+        
+        // Volume range (24h)
+        if (criteria.minVolume && volume < criteria.minVolume) return false;
+        if (criteria.maxVolume && volume > criteria.maxVolume) return false;
+        
+        // Volume USD range
+        if (criteria.minVolumeUsd && (volume * price) < criteria.minVolumeUsd) return false;
+        if (criteria.maxVolumeUsd && (volume * price) > criteria.maxVolumeUsd) return false;
+        
+        // Change range
+        if (criteria.minChange && change < criteria.minChange) return false;
+        if (criteria.maxChange && change > criteria.maxChange) return false;
+        
+        // Market cap range (approximation using volume * price as proxy)
+        const marketCapProxy = volume * price;
+        if (criteria.minMarketCap && marketCapProxy < criteria.minMarketCap) return false;
+        if (criteria.maxMarketCap && marketCapProxy > criteria.maxMarketCap) return false;
+        
+        // Specific symbols
+        if (criteria.symbols && criteria.symbols.length > 0) {
+          // Split comma-separated symbols and trim whitespace
+          const symbolList = Array.isArray(criteria.symbols) 
+            ? criteria.symbols 
+            : criteria.symbols.split(',').map((s: string) => s.trim());
+          
+          const symbolMatch = symbolList.some((symbol: string) => {
+            const cleanSymbol = symbol.toLowerCase().replace(/usdt$/, '');
+            return item.symbol.toLowerCase().includes(cleanSymbol) || 
+                   item.symbol.toLowerCase().startsWith(cleanSymbol);
+          });
+          if (!symbolMatch) return false;
+        }
+        
+        // Technical indicators (basic implementation)
+        // Note: For a complete implementation, we would need historical price data
+        // For now, we'll implement basic RSI and other indicators using current price/volume data
+        
+        if (criteria.rsi) {
+          // Simplified RSI implementation based on price change
+          const priceChange = change;
+          if (criteria.rsi.operator === 'above' && priceChange <= criteria.rsi.value) return false;
+          if (criteria.rsi.operator === 'below' && priceChange >= criteria.rsi.value) return false;
+          if (criteria.rsi.operator === 'between' && 
+              (priceChange < criteria.rsi.value || priceChange > (criteria.rsi.valueMax || 100))) return false;
+        }
+        
+        if (criteria.stochastic) {
+          // Simplified stochastic implementation
+          if (criteria.stochastic.operator === 'oversold' && change >= -2) return false;
+          if (criteria.stochastic.operator === 'overbought' && change <= 2) return false;
+          if (criteria.stochastic.operator === 'above' && change <= criteria.stochastic.value) return false;
+          if (criteria.stochastic.operator === 'below' && change >= criteria.stochastic.value) return false;
+        }
       }
       
       return true;
     })
-    .sort((a, b) => {
-      let aValue: number, bValue: number;
-      
+    ?.sort((a, b) => {
+      let aValue: number;
+      let bValue: number;
+
       switch (sortBy) {
         case 'change':
           aValue = parseFloat(a.change24h || '0');
@@ -72,27 +190,41 @@ export default function Markets() {
           bValue = parseFloat(b.price || '0');
           break;
         default:
-          return 0;
+          aValue = 0;
+          bValue = 0;
       }
-      
-      return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
-    }) : [];
 
-  const selectedScreenerObj = userScreeners.find((s: any) => s.id === selectedScreener);
+      if (sortDirection === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    }) || [];
 
-  // Market stats calculation
+  const handleSort = (field: 'change' | 'volume' | 'price') => {
+    if (sortBy === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDirection('desc');
+    }
+  };
+
+  // Market statistics calculations
   const marketStats = data ? {
-    total: data.length,
+    totalMarkets: data.length,
     gainers: data.filter(item => parseFloat(item.change24h || '0') > 0).length,
     losers: data.filter(item => parseFloat(item.change24h || '0') < 0).length,
-    highVolume: data.filter(item => parseFloat(item.volume24h || '0') > 1000000).length,
     totalVolume: data.reduce((sum, item) => sum + parseFloat(item.volume24h || '0'), 0),
-    avgChange: data.reduce((sum, item) => sum + parseFloat(item.change24h || '0'), 0) / data.length
+    topGainer: data.reduce((max, item) => 
+      parseFloat(item.change24h || '0') > parseFloat(max.change24h || '0') ? item : max, data[0]
+    ),
+    topLoser: data.reduce((min, item) => 
+      parseFloat(item.change24h || '0') < parseFloat(min.change24h || '0') ? item : min, data[0]
+    )
   } : null;
 
-  // Helper functions
-  const formatVolume = (volume: string) => {
-    const num = parseFloat(volume);
+  const formatNumber = (num: number) => {
     if (num >= 1e9) return `${(num / 1e9).toFixed(1)}B`;
     if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
     if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K`;
@@ -104,45 +236,9 @@ export default function Markets() {
     return `${num >= 0 ? '+' : ''}${(num * 100).toFixed(2)}%`;
   };
 
-  // Screener handlers
-  const handleScreenerChange = (value: string) => {
-    if (value === 'create-new') {
-      setLocation('/screener-builder');
-    } else {
-      setSelectedScreener(value);
-    }
-  };
+  // AI Opportunities Logic (moved from home page)
+  const majorPairs = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'ETCUSDT'];
 
-  const handleEditScreener = (screenerId: string) => {
-    setLocation(`/screener-builder?edit=${screenerId}`);
-  };
-
-  const handleDeleteScreener = async (screenerId: string) => {
-    try {
-      const response = await fetch(`/api/screeners/${screenerId}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/screeners'] });
-        if (selectedScreener === screenerId) {
-          setSelectedScreener('');
-        }
-        toast({
-          title: "Success",
-          description: "Screener deleted successfully"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete screener",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // AI Opportunities Logic
   const generateOpportunities = (strategyType: string) => {
     if (!data || data.length === 0) return [];
     
@@ -175,15 +271,18 @@ export default function Markets() {
             confidence += 25;
             reasons.push('Strong momentum');
           }
+          
           if (volume24h > 10000000) {
             score += 30;
             confidence += 20;
             reasons.push('High volume');
           }
+          
           if (absChange >= 0.10) {
             score += 20;
             reasons.push('Explosive move');
           }
+          
           risk = 'High';
           timeframe = '1-4h';
           break;
@@ -194,10 +293,12 @@ export default function Markets() {
             confidence += 30;
             reasons.push('Volume breakout');
           }
+          
           if (change24h > 0 && change24h < 0.08) {
             score += 20;
             reasons.push('Healthy uptrend');
           }
+          
           risk = 'Medium';
           timeframe = '2-6h';
           break;
@@ -212,14 +313,17 @@ export default function Markets() {
             confidence += 20;
             reasons.push('High liquidity');
           }
+          
           if (absChange >= 0.02 && absChange <= 0.06) {
             score += 30;
             reasons.push('Ideal volatility');
           }
+          
           if (price > 0.01) {
             score += 15;
             reasons.push('Stable asset');
           }
+          
           risk = 'Low';
           timeframe = '5-30m';
           break;
@@ -229,15 +333,18 @@ export default function Markets() {
             score += 30;
             reasons.push('Swing range');
           }
+          
           if (volume24h > 2000000) {
             score += 25;
             confidence += 20;
             reasons.push('Sufficient volume');
           }
+          
           if (Math.abs(change24h) >= 0.06) {
             score += 25;
             reasons.push('Strong trend');
           }
+          
           risk = 'Medium';
           timeframe = '1-3 days';
           break;
@@ -247,6 +354,7 @@ export default function Markets() {
             score += 35;
             reasons.push('Potential reversal');
           }
+          
           if (change24h < -0.08) {
             score += 25;
             reasons.push('Oversold opportunity');
@@ -254,11 +362,13 @@ export default function Markets() {
             score += 20;
             reasons.push('Overbought reversal');
           }
+          
           if (volume24h > 3000000) {
             score += 20;
             confidence += 15;
             reasons.push('Volume support');
           }
+          
           risk = 'High';
           timeframe = '2-8h';
           break;
@@ -268,15 +378,18 @@ export default function Markets() {
             score += 40;
             reasons.push('Significant move');
           }
+          
           if (absChange >= 0.05) {
             score += 30;
             reasons.push('Major price shift');
           }
+          
           if (volume24h > 1000000) {
             score += 20;
             confidence += 15;
             reasons.push('Volume confirmation');
           }
+          
           risk = 'Variable';
           timeframe = 'Real-time';
           break;
@@ -332,17 +445,6 @@ export default function Markets() {
       [strategy]: !prev[strategy]
     }));
   };
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2">Failed to load market data</h2>
-          <p className="text-muted-foreground">Please try again later</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -467,141 +569,6 @@ export default function Markets() {
               {/* Market Overview Cards */}
               {marketStats && !isLoading && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                  {/* Total Markets */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'all' 
-                        ? 'ring-2 ring-blue-500 bg-blue-50/30 dark:bg-blue-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('all')}
-                    data-testid="card-total-markets"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Markets</p>
-                          <p className="text-2xl font-bold">{marketStats.total}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <BarChart3 className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Gainers */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'gainers' 
-                        ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('gainers')}
-                    data-testid="card-gainers"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Gainers</p>
-                          <p className="text-2xl font-bold text-green-600">{marketStats.gainers}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <TrendingUp className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Losers */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'losers' 
-                        ? 'ring-2 ring-red-500 bg-red-50/30 dark:bg-red-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('losers')}
-                    data-testid="card-losers"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Losers</p>
-                          <p className="text-2xl font-bold text-red-600">{marketStats.losers}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center">
-                          <TrendingDown className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* High Volume */}
-                  <Card 
-                    className="cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 hover:bg-gray-50 dark:hover:bg-gray-950"
-                    data-testid="card-high-volume"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">High Volume</p>
-                          <p className="text-2xl font-bold text-purple-600">{marketStats.highVolume}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
-                          <Volume2 className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Market Data Table */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Market Data</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Select value={sortBy} onValueChange={(value: 'change' | 'volume' | 'price') => setSortBy(value)}>
-                        <SelectTrigger className="w-32" data-testid="sort-by-select">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="change">24h Change</SelectItem>
-                          <SelectItem value="volume">Volume</SelectItem>
-                          <SelectItem value="price">Price</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-                        data-testid="toggle-sort-direction"
-                      >
-                        {sortDirection === 'desc' ? '↓' : '↑'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="space-y-3">
-                      {[...Array(10)].map((_, i) => (
-                        <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-                      ))}
-                    </div>
-                  ) : (
-                    <SimpleTable 
-                      data={filteredAndSortedData}
-                      onRiskAnalysis={(pair) => setSelectedRiskPair(pair)}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* AI Opportunities Tab Content */}
-            <TabsContent value="opportunities" className="space-y-4 mt-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium flex items-center gap-2">
                   <Brain className="h-5 w-5 text-blue-500" />
@@ -802,13 +769,187 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Risk Analysis Modal */}
-      {selectedRiskPair && (
-        <DynamicRiskMeter
-          pair={selectedRiskPair}
-          onClose={() => setSelectedRiskPair(null)}
-        />
+              {/* Market Overview Cards */}
+              {marketStats && !isLoading && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {/* Total Markets */}
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'all' 
+                  ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/30 dark:to-blue-700/30 border-blue-300 dark:border-blue-600 ring-2 ring-blue-400' 
+                  : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+              }`}
+              onClick={() => setFilter('all')}
+              data-testid="card-filter-all"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500 rounded-lg">
+                    <BarChart3 className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {marketStats.totalMarkets}
+                    </div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">Total Markets</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gainers */}
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'gainers' 
+                  ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/30 dark:to-green-700/30 border-green-300 dark:border-green-600 ring-2 ring-green-400' 
+                  : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+              }`}
+              onClick={() => setFilter('gainers')}
+              data-testid="card-filter-gainers"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-500 rounded-lg">
+                    <TrendingUp className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                      {marketStats.gainers}
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-400">Gainers</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Losers */}
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'losers' 
+                  ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800/30 dark:to-red-700/30 border-red-300 dark:border-red-600 ring-2 ring-red-400' 
+                  : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
+              }`}
+              onClick={() => setFilter('losers')}
+              data-testid="card-filter-losers"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500 rounded-lg">
+                    <TrendingDown className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-red-700 dark:text-red-300">
+                      {marketStats.losers}
+                    </div>
+                    <div className="text-xs text-red-600 dark:text-red-400">Losers</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Volume - Not clickable for filtering */}
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <Volume2 className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                      ${formatNumber(marketStats.totalVolume)}
+                    </div>
+                    <div className="text-xs text-purple-600 dark:text-purple-400">24h Volume</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Performers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Top Gainer */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  Top Gainer
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-lg">{marketStats.topGainer.symbol}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ${parseFloat(marketStats.topGainer.price).toFixed(4)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="default" className="bg-green-500 text-white">
+                      {formatChange(marketStats.topGainer.change24h || '0')}
+                    </Badge>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Vol: {formatNumber(parseFloat(marketStats.topGainer.volume24h || '0'))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Loser */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-red-500" />
+                  Top Loser
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-lg">{marketStats.topLoser.symbol}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ${parseFloat(marketStats.topLoser.price).toFixed(4)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="destructive">
+                      {formatChange(marketStats.topLoser.change24h || '0')}
+                    </Badge>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Vol: {formatNumber(parseFloat(marketStats.topLoser.volume24h || '0'))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
+
+      {/* Market Data */}
+      <SimpleTable 
+        data={filteredAndSortedData} 
+        isLoading={isLoading}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        onRiskAnalysis={setSelectedRiskPair}
+      />
+
+      {/* Dynamic Risk Meter Overlay */}
+      <DynamicRiskMeter
+        pair={selectedRiskPair || ''}
+        isOpen={!!selectedRiskPair}
+        onClose={() => setSelectedRiskPair(null)}
+        onNavigateToTrade={() => {
+          setLocation('/trade');
+          setSelectedRiskPair(null);
+        }}
+        onNavigateToAnalyzer={() => {
+          setLocation(`/analyzer?pair=${selectedRiskPair}&autoFill=true`);
+          setSelectedRiskPair(null);
+        }}
+      />
     </div>
   );
 }
