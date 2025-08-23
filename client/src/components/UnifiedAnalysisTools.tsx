@@ -226,12 +226,36 @@ export function UnifiedAnalysisTools() {
           ]
         },
         supportResistance: {
-          support: [currentPrice * 0.98, currentPrice * 0.95, currentPrice * 0.92],
-          resistance: [currentPrice * 1.02, currentPrice * 1.05, currentPrice * 1.08],
+          support: timeframe === '5m' ? 
+            [currentPrice * 0.9995, currentPrice * 0.998, currentPrice * 0.9965] :
+          timeframe === '1h' ? 
+            [currentPrice * 0.996, currentPrice * 0.992, currentPrice * 0.988] :
+          timeframe === '4h' ? 
+            [currentPrice * 0.985, currentPrice * 0.97, currentPrice * 0.955] :
+          timeframe === '1d' ? 
+            [currentPrice * 0.98, currentPrice * 0.95, currentPrice * 0.92] :
+            [currentPrice * 0.97, currentPrice * 0.93, currentPrice * 0.88],
+          resistance: timeframe === '5m' ? 
+            [currentPrice * 1.0005, currentPrice * 1.002, currentPrice * 1.0035] :
+          timeframe === '1h' ? 
+            [currentPrice * 1.004, currentPrice * 1.008, currentPrice * 1.012] :
+          timeframe === '4h' ? 
+            [currentPrice * 1.015, currentPrice * 1.03, currentPrice * 1.045] :
+          timeframe === '1d' ? 
+            [currentPrice * 1.02, currentPrice * 1.05, currentPrice * 1.08] :
+            [currentPrice * 1.03, currentPrice * 1.07, currentPrice * 1.12],
           nearestLevel: {
             type: direction === 'up' ? 'resistance' : 'support',
-            price: direction === 'up' ? currentPrice * 1.02 : currentPrice * 0.98,
-            distance: 2
+            price: direction === 'up' ? 
+              (timeframe === '5m' ? currentPrice * 1.0005 :
+               timeframe === '1h' ? currentPrice * 1.004 :
+               timeframe === '4h' ? currentPrice * 1.015 :
+               timeframe === '1d' ? currentPrice * 1.02 : currentPrice * 1.03) :
+              (timeframe === '5m' ? currentPrice * 0.9995 :
+               timeframe === '1h' ? currentPrice * 0.996 :
+               timeframe === '4h' ? currentPrice * 0.985 :
+               timeframe === '1d' ? currentPrice * 0.98 : currentPrice * 0.97),
+            distance: timeframe === '5m' ? 0.05 : timeframe === '1h' ? 0.4 : timeframe === '4h' ? 1.5 : timeframe === '1d' ? 2 : 3
           }
         },
         confidenceFactors: {
