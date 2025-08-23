@@ -624,8 +624,6 @@ export default function BotPage() {
 
   // Handle pair search input changes and filter suggestions
   const handlePairSearchChange = (value: string) => {
-    console.log('handlePairSearchChange called with:', value);
-    console.log('futuresData available:', futuresData && Array.isArray(futuresData) ? futuresData.length : 'No data');
     setPairSearch(value);
     
     if (value.length > 0 && futuresData && Array.isArray(futuresData)) {
@@ -645,7 +643,6 @@ export default function BotPage() {
           return parseFloat(b.volume24h) - parseFloat(a.volume24h);
         });
       
-      console.log('Filtered pairs:', filtered.length, filtered.map(p => p.symbol));
       setFilteredPairs(filtered);
       setShowAutoSuggest(filtered.length > 0);
     } else {
@@ -2340,11 +2337,9 @@ export default function BotPage() {
                   placeholder="Search trading pairs... (e.g., BTCUSDT)"
                   className="pr-10"
                   onFocus={() => {
-                    console.log('Deploy dialog input focused, filteredPairs length:', filteredPairs.length);
                     if (filteredPairs.length > 0) setShowAutoSuggest(true);
                   }}
                   onBlur={() => {
-                    console.log('Deploy dialog input blurred');
                     // Delay hiding to allow clicking on suggestions
                     setTimeout(() => setShowAutoSuggest(false), 200);
                   }}
@@ -2354,13 +2349,14 @@ export default function BotPage() {
               
               {/* Auto-suggest dropdown */}
               {showAutoSuggest && filteredPairs.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   {filteredPairs.map((pair: any, index: number) => (
                     <div
                       key={pair.symbol}
                       onClick={() => {
                         selectPair(pair);
                         setTradingPair(pair.symbol);
+                        setShowAutoSuggest(false);
                       }}
                       className="px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors"
                     >
