@@ -47,6 +47,8 @@ export default function BotPage() {
   const [capital, setCapital] = useState('1000');
   const [leverage, setLeverage] = useState('1');
   const [pairSearch, setPairSearch] = useState('');
+  const [showAutoSuggest, setShowAutoSuggest] = useState(false);
+  const [filteredPairs, setFilteredPairs] = useState<any[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [showAlertCenter, setShowAlertCenter] = useState(false);
@@ -329,12 +331,32 @@ export default function BotPage() {
       return;
     }
 
-    const pair = (futuresData as any[]).find((coin: any) => coin.symbol === symbol);
+    // Enhanced pair matching logic
+    const searchSymbol = symbol.toUpperCase();
+    const pair = (futuresData as any[]).find((coin: any) => {
+      const coinSymbol = coin.symbol.toUpperCase();
+      return (
+        coinSymbol === searchSymbol || 
+        coinSymbol === searchSymbol + 'USDT' || 
+        coinSymbol === searchSymbol.replace('USDT', '') + 'USDT' ||
+        coinSymbol.replace('USDT', '') === searchSymbol ||
+        coinSymbol.replace('USDT', '') === searchSymbol.replace('USDT', '')
+      );
+    });
     console.log('Found pair:', pair);
     
     if (!pair) {
       console.log('Pair not found');
-      alert(`Trading pair ${symbol} not found. Please check the symbol and try again.`);
+      // Try to find similar pairs
+      const similarPairs = (futuresData as any[])
+        .filter((coin: any) => coin.symbol.includes(symbol.replace('USDT', '')))
+        .slice(0, 3);
+      
+      if (similarPairs.length > 0) {
+        alert(`Pair ${symbol} not found. Did you mean: ${similarPairs.map(p => p.symbol).join(', ')}?`);
+      } else {
+        alert(`Trading pair ${symbol} not found. Please check the symbol and try again.`);
+      }
       setSuggestedSettings(null);
       return;
     }
@@ -484,6 +506,42 @@ export default function BotPage() {
 
     setShowSuggestions(false);
     alert('Suggested settings applied successfully!');
+  };
+
+  // Handle pair search input changes and filter suggestions
+  const handlePairSearchChange = (value: string) => {
+    setPairSearch(value);
+    
+    if (value.length > 0 && futuresData && Array.isArray(futuresData)) {
+      const filtered = (futuresData as any[])
+        .filter((coin: any) => 
+          coin.symbol.toLowerCase().includes(value.toLowerCase()) ||
+          coin.symbol.replace('USDT', '').toLowerCase().includes(value.toLowerCase())
+        )
+        .slice(0, 8) // Show max 8 suggestions
+        .sort((a, b) => {
+          // Prioritize exact matches and popular pairs
+          const aExact = a.symbol.toLowerCase().startsWith(value.toLowerCase()) ? 0 : 1;
+          const bExact = b.symbol.toLowerCase().startsWith(value.toLowerCase()) ? 0 : 1;
+          if (aExact !== bExact) return aExact - bExact;
+          
+          // Then sort by volume (popularity)
+          return parseFloat(b.volume24h) - parseFloat(a.volume24h);
+        });
+      
+      setFilteredPairs(filtered);
+      setShowAutoSuggest(filtered.length > 0);
+    } else {
+      setFilteredPairs([]);
+      setShowAutoSuggest(false);
+    }
+  };
+
+  // Select a pair from auto-suggestions
+  const selectPair = (pair: any) => {
+    setPairSearch(pair.symbol);
+    setShowAutoSuggest(false);
+    setFilteredPairs([]);
   };
 
 
@@ -1308,13 +1366,58 @@ export default function BotPage() {
                 </div>
               </div>
               
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Enter pair (e.g., BTCUSDT)" 
-                  value={pairSearch}
-                  onChange={(e) => setPairSearch(e.target.value.toUpperCase())}
-                  className="flex-1"
-                />
+              <div className="relative flex gap-2">
+                <div className="flex-1 relative">
+                  <Input 
+                    placeholder="Enter pair (e.g., BTCUSDT, ENA, SOL)" 
+                    value={pairSearch}
+                    onChange={(e) => handlePairSearchChange(e.target.value.toUpperCase())}
+                    className="pr-10"
+                    onFocus={() => {
+                      if (filteredPairs.length > 0) setShowAutoSuggest(true);
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow clicking on suggestions
+                      setTimeout(() => setShowAutoSuggest(false), 200);
+                    }}
+                  />
+                  
+                  {/* Auto-suggest dropdown */}
+                  {showAutoSuggest && filteredPairs.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredPairs.map((pair: any, index: number) => (
+                        <div
+                          key={pair.symbol}
+                          onClick={() => selectPair(pair)}
+                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                {pair.symbol}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                ${parseFloat(pair.price).toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-sm font-medium ${
+                                parseFloat(pair.change24h) >= 0 
+                                  ? 'text-green-600 dark:text-green-400' 
+                                  : 'text-red-600 dark:text-red-400'
+                              }`}>
+                                {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Vol: ${(parseFloat(pair.volume24h) / 1000000).toFixed(1)}M
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <Button 
                   type="button"
                   onClick={() => generateBotSuggestions(pairSearch)}
