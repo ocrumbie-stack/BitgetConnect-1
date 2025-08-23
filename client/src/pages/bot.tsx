@@ -415,7 +415,22 @@ export default function BotPage() {
       recommendedStopLoss = (parseFloat(recommendedStopLoss) + 0.5).toString();
     }
 
-    // Generate direction-aware indicators first
+    // Trend-based direction refinement - MOVED BEFORE INDICATOR GENERATION
+    // Clear directional bias based on 24h change with precise thresholds
+    if (change24h > 3) {
+      recommendedDirection = 'long'; // Strong positive momentum
+    } else if (change24h < -3) {
+      recommendedDirection = 'short'; // Strong negative momentum  
+    } else if (change24h > 0.5) {
+      recommendedDirection = 'long'; // Moderate positive momentum
+    } else if (change24h < -0.5) {
+      recommendedDirection = 'short'; // Moderate negative momentum
+    } else {
+      // For very low volatility (-0.5% to +0.5%), use exact momentum direction
+      recommendedDirection = change24h >= 0 ? 'long' : 'short';
+    }
+
+    // Generate direction-aware indicators AFTER direction is finalized
     const generateDirectionAwareIndicators = (direction: string, pairType: 'btc' | 'eth' | 'alt') => {
       if (direction === 'long') {
         // Long position indicators - looking for bullish signals
@@ -462,7 +477,7 @@ export default function BotPage() {
       }
     };
 
-    // Pair-specific optimizations
+    // Pair-specific optimizations - NOW using the finalized direction
     if (symbol.includes('BTC')) {
       // Bitcoin pairs - more conservative
       recommendedStopLoss = (parseFloat(recommendedStopLoss) * 0.8).toFixed(1);
@@ -476,16 +491,6 @@ export default function BotPage() {
       recommendedLeverage = Math.min(parseInt(recommendedLeverage) + 2, 10).toString();
       recommendedTakeProfit = (parseFloat(recommendedTakeProfit) * 1.2).toFixed(1);
       suggestedIndicators = generateDirectionAwareIndicators(recommendedDirection, 'alt');
-    }
-
-    // Trend-based direction refinement
-    if (change24h > 5) {
-      recommendedDirection = 'long';
-    } else if (change24h < -5) {
-      recommendedDirection = 'short';
-    } else {
-      // For sideways movement, suggest based on overall market sentiment
-      recommendedDirection = Math.random() > 0.5 ? 'long' : 'short';
     }
 
     const suggestions = {
@@ -514,6 +519,17 @@ export default function BotPage() {
         `${recommendedTimeframe} timeframe optimal for ${volatilityLevel} volatility environment with ${recommendedStopLoss}% stop loss and ${recommendedTakeProfit}% take profit`
       ]
     };
+
+    // Debug logging to verify alignment
+    console.log(`AI Suggestion Debug for ${symbol}:`, {
+      change24h: change24h,
+      recommendedDirection: recommendedDirection,
+      indicators: Object.keys(suggestedIndicators).map(key => ({
+        indicator: key,
+        condition: suggestedIndicators[key].condition,
+        enabled: suggestedIndicators[key].enabled
+      }))
+    });
 
     setSuggestedSettings(suggestions);
     setShowSuggestions(true);
