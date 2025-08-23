@@ -16,6 +16,7 @@ import { EditScreener } from "@/pages/edit-screener";
 import FoldersPage from "@/pages/folders";
 import FolderDetailPage from "@/pages/folder-detail";
 import { Analyzer } from "@/pages/analyzer";
+import { StrategyRecommender } from "@/pages/strategy-recommender";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
         <Route path="/trade" component={Trade} />
         <Route path="/bot" component={BotPage} />
         <Route path="/analyzer" component={Analyzer} />
+        <Route path="/strategy-recommender" component={StrategyRecommender} />
         <Route path="/folders" component={FoldersPage} />
         <Route path="/folders/:id" component={FolderDetailPage} />
         <Route path="/create-screener" component={CreateScreener} />

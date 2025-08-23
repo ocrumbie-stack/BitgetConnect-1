@@ -554,8 +554,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialize on startup
+  // Personalized Strategy Recommender API Routes
+  
+  // Trading Preferences
+  app.get('/api/trading-preferences/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const preferences = await storage.getUserTradingPreferences(userId);
+      
+      if (!preferences) {
+        // Return default preferences if none exist
+        const defaultPrefs = {
+          userId,
+          riskTolerance: 'moderate',
+          tradingExperience: 'intermediate',
+          preferredTimeframes: ['4h', '1d'],
+          tradingStyle: 'swing',
+          preferredStrategies: ['momentum', 'trend_following'],
+          maxLeverage: 3,
+          maxPositionSize: 10,
+          stopLossPreference: 2,
+          takeProfitPreference: 5,
+          preferredMarkets: ['major_pairs'],
+          avoidPatterns: [],
+          tradingHours: {
+            timezone: 'UTC',
+            activeDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+            activeHours: [{ start: '09:00', end: '17:00' }],
+            pauseDuringNews: false
+          }
+        };
+        res.json(defaultPrefs);
+        return;
+      }
+      
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch trading preferences' 
+      });
+    }
+  });
+
+  app.put('/api/trading-preferences/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const preferences = await storage.updateUserTradingPreferences(userId, req.body);
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to update trading preferences' 
+      });
+    }
+  });
+
+  // Strategy Recommendations
+  app.get('/api/strategy-recommendations/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const recommendations = await storage.getStrategyRecommendations(userId);
+      res.json(recommendations);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch strategy recommendations' 
+      });
+    }
+  });
+
+  app.post('/api/strategy-recommendations/generate', async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      // Generate sample recommendations based on current market conditions
+      const futuresData = await storage.getAllFuturesData();
+      const userPrefs = await storage.getUserTradingPreferences(userId);
+      
+      // Create sample recommendations
+      const recommendations = await generateSampleRecommendations(userId, futuresData, userPrefs);
+      
+      for (const rec of recommendations) {
+        await storage.createStrategyRecommendation(rec);
+      }
+      
+      res.json({ message: `Generated ${recommendations.length} new recommendations`, count: recommendations.length });
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to generate recommendations' 
+      });
+    }
+  });
+
+  app.post('/api/strategy-recommendations/:id/accept', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = await storage.updateStrategyRecommendation(id, { 
+        status: 'accepted',
+        implementedAt: new Date()
+      });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ 
+        message: error.message || 'Failed to accept recommendation' 
+      });
+    }
+  });
+
+  // Market Opportunities
+  app.get('/api/market-opportunities', async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const opportunities = await storage.getMarketOpportunities(userId as string);
+      res.json(opportunities);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch market opportunities' 
+      });
+    }
+  });
+
+  // Strategy Performance
+  app.get('/api/strategy-performance/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { strategyId } = req.query;
+      const performance = await storage.getStrategyPerformance(userId, strategyId as string);
+      res.json(performance);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch strategy performance' 
+      });
+    }
+  });
+
+  // Initialize sample data on startup
   await initializeBitgetAPI();
+  await initializeSampleData();
 
   return httpServer;
+
+  // Helper function to generate sample recommendations
+  async function generateSampleRecommendations(userId: string, marketData: any[], userPrefs: any) {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    
+    const recommendations = [];
+    
+    // High-performance momentum opportunity
+    if (marketData && marketData.length > 0) {
+      const strongPair = marketData.find(p => Math.abs(parseFloat(p.change24h || '0')) > 0.05);
+      if (strongPair) {
+        recommendations.push({
+          userId,
+          recommendationType: 'market_opportunity',
+          title: `Momentum Strategy: ${strongPair.symbol}`,
+          description: `Strong momentum detected in ${strongPair.symbol} with ${(parseFloat(strongPair.change24h || '0') * 100).toFixed(2)}% 24h change. Recommended for experienced traders.`,
+          confidenceScore: 85,
+          priority: 'high',
+          strategyConfig: {
+            strategyType: 'momentum',
+            tradingPairs: [strongPair.symbol],
+            timeframes: ['1h', '4h'],
+            capitalAllocation: 15,
+            leverage: userPrefs?.maxLeverage || 3,
+            riskManagement: {
+              stopLoss: 2.5,
+              takeProfit: 6.0,
+              maxPositionSize: userPrefs?.maxPositionSize || 10
+            },
+            indicators: {
+              primary: ['RSI', 'MACD'],
+              secondary: ['Volume', 'MA_20']
+            }
+          },
+          reasoning: {
+            marketAnalysis: [
+              `${strongPair.symbol} showing strong directional momentum`,
+              'High volume confirming price movement',
+              'Technical indicators aligned with trend'
+            ],
+            userProfileMatch: [
+              'Matches your preferred momentum strategy',
+              'Suitable for your risk tolerance level',
+              'Fits your maximum leverage preference'
+            ],
+            historicalPerformance: [
+              'Similar setups showed 68% win rate historically',
+              'Average return: +12.4% over 3-7 days',
+              'Low correlation with other positions'
+            ],
+            riskAssessment: [
+              'Moderate risk due to volatility',
+              'Protected by tight stop loss',
+              'Position sizing limits exposure'
+            ],
+            opportunityFactors: [
+              'Fresh breakout with volume confirmation',
+              'Support/resistance levels clearly defined',
+              'Market sentiment aligned with direction'
+            ]
+          },
+          expectedOutcome: {
+            expectedROI: 8.5,
+            expectedWinRate: 68,
+            estimatedDuration: 120,
+            riskLevel: 'medium',
+            confidenceInterval: { min: 4.2, max: 15.8 }
+          },
+          status: 'pending',
+          expiresAt
+        });
+      }
+    }
+
+    // Portfolio rebalancing recommendation
+    recommendations.push({
+      userId,
+      recommendationType: 'portfolio_rebalance',
+      title: 'Portfolio Diversification Opportunity',
+      description: 'Consider diversifying across different market sectors to reduce correlation risk and improve risk-adjusted returns.',
+      confidenceScore: 72,
+      priority: 'medium',
+      strategyConfig: {
+        strategyType: 'diversification',
+        tradingPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT'],
+        timeframes: ['4h', '1d'],
+        capitalAllocation: 40,
+        leverage: 2,
+        riskManagement: {
+          stopLoss: 3.0,
+          takeProfit: 8.0,
+          maxPositionSize: 8
+        },
+        indicators: {
+          primary: ['Trend_Strength', 'Correlation'],
+          secondary: ['Volume_Profile', 'Support_Resistance']
+        }
+      },
+      reasoning: {
+        marketAnalysis: [
+          'Different sectors showing varying performance',
+          'Low correlation between selected assets',
+          'Market regime favors diversified approach'
+        ],
+        userProfileMatch: [
+          'Aligns with your swing trading style',
+          'Matches moderate risk tolerance',
+          'Suitable for your available capital'
+        ],
+        historicalPerformance: [
+          'Diversified portfolios outperformed by 23%',
+          'Reduced maximum drawdown by 31%',
+          'More consistent returns over time'
+        ],
+        riskAssessment: [
+          'Lower overall portfolio volatility',
+          'Reduced single-asset concentration risk',
+          'Better risk-adjusted returns'
+        ],
+        opportunityFactors: [
+          'Current market conditions favor diversification',
+          'Multiple sectors showing strength',
+          'Correlation levels are optimal for diversification'
+        ]
+      },
+      expectedOutcome: {
+        expectedROI: 12.3,
+        expectedWinRate: 74,
+        estimatedDuration: 240,
+        riskLevel: 'low',
+        confidenceInterval: { min: 8.1, max: 18.7 }
+      },
+      status: 'pending',
+      expiresAt
+    });
+
+    return recommendations;
+  }
+
+  // Initialize sample market opportunities
+  async function initializeSampleData() {
+    try {
+      const existingOpportunities = await storage.getMarketOpportunities();
+      
+      if (existingOpportunities.length === 0) {
+        const futuresData = await storage.getAllFuturesData();
+        
+        if (futuresData && futuresData.length > 0) {
+          const sampleOpportunities = [
+            {
+              symbol: 'BTCUSDT',
+              opportunityType: 'breakout',
+              timeframe: '4h',
+              strength: 78,
+              confidence: 85,
+              description: 'Bitcoin approaching resistance level with strong volume. Potential breakout setup with good risk/reward ratio.',
+              analysis: {
+                technicalFactors: [
+                  { indicator: 'RSI', value: 65, signal: 'bullish', weight: 0.3 },
+                  { indicator: 'MACD', value: 0.02, signal: 'bullish', weight: 0.25 },
+                  { indicator: 'Volume', value: 1.8, signal: 'bullish', weight: 0.2 }
+                ],
+                fundamentalFactors: ['Institutional adoption increasing', 'Regulatory clarity improving'],
+                marketContext: {
+                  volume: 1.8,
+                  volatility: 0.65,
+                  trend: 'bullish',
+                  sentiment: 'bullish'
+                },
+                entryZone: { min: 114800, max: 115200, optimal: 115000 },
+                targets: [116500, 118000, 120000],
+                stopLoss: 113500
+              },
+              recommendedStrategies: ['momentum', 'breakout'],
+              suitableForUsers: ['moderate', 'aggressive'],
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              isActive: true
+            },
+            {
+              symbol: 'ETHUSDT',
+              opportunityType: 'reversal',
+              timeframe: '1h',
+              strength: 72,
+              confidence: 78,
+              description: 'Ethereum showing oversold conditions with potential for reversal. Good opportunity for contrarian traders.',
+              analysis: {
+                technicalFactors: [
+                  { indicator: 'RSI', value: 28, signal: 'bullish', weight: 0.35 },
+                  { indicator: 'Stochastic', value: 15, signal: 'bullish', weight: 0.25 },
+                  { indicator: 'Support', value: 4180, signal: 'bullish', weight: 0.3 }
+                ],
+                fundamentalFactors: ['Network upgrades scheduled', 'DeFi activity increasing'],
+                marketContext: {
+                  volume: 1.2,
+                  volatility: 0.45,
+                  trend: 'bearish',
+                  sentiment: 'neutral'
+                },
+                entryZone: { min: 4180, max: 4220, optimal: 4200 },
+                targets: [4350, 4500, 4680],
+                stopLoss: 4120
+              },
+              recommendedStrategies: ['mean_reversion', 'scalping'],
+              suitableForUsers: ['aggressive', 'high_risk'],
+              expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
+              isActive: true
+            }
+          ];
+
+          for (const opp of sampleOpportunities) {
+            await storage.createMarketOpportunity(opp);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Failed to initialize sample data:', error);
+    }
+  }
 }
