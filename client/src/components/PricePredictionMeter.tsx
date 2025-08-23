@@ -245,8 +245,8 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-purple-500" />
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Brain className="h-4 w-4 text-purple-500" />
           AI Price Prediction
         </CardTitle>
       </CardHeader>
@@ -255,7 +255,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
         <div className="space-y-4">
           {/* Trading Pair Input */}
           <div className="space-y-3 relative">
-            <div className="text-sm font-medium">Enter Trading Pair</div>
+            <div className="text-xs font-medium">Enter Trading Pair</div>
             <div className="relative">
               <Input
                 placeholder="Start typing... e.g., ETH, BTC, SOL"
@@ -300,18 +300,18 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
               <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-200/30 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                    <span className="font-semibold text-purple-600 dark:text-purple-400">Selected Pair:</span>
-                    <span className="font-bold text-lg">{tradingPair}</span>
+                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span className="font-medium text-xs text-purple-600 dark:text-purple-400">Selected Pair:</span>
+                    <span className="font-bold text-sm">{tradingPair}</span>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
                       Current Price 
                       {getRealTimePrice(tradingPair) > 0 && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                       )}
                     </div>
-                    <div className="font-bold text-lg">${getCurrentPrice(tradingPair).toFixed(4)}</div>
+                    <div className="font-bold text-sm">${getCurrentPrice(tradingPair).toFixed(4)}</div>
                     {getRealTimePrice(tradingPair) > 0 && (
                       <div className="text-xs text-green-500 font-medium">LIVE</div>
                     )}
@@ -324,9 +324,9 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
           {/* Timeframe and Generate */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Clock className="h-3 w-3 text-muted-foreground" />
               <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -341,17 +341,17 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
             <Button 
               onClick={generatePrediction} 
               disabled={isGenerating || !tradingPair.trim()}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-8 text-xs"
               data-testid="button-generate-prediction"
             >
               {isGenerating ? (
                 <>
-                  <Zap className="h-4 w-4 animate-spin" />
+                  <Zap className="h-3 w-3 animate-spin" />
                   Analyzing {tradingPair}...
                 </>
               ) : (
                 <>
-                  <Zap className="h-4 w-4" />
+                  <Zap className="h-3 w-3" />
                   Generate Prediction
                 </>
               )}
@@ -365,9 +365,9 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
             {/* Prediction Header with Selected Pair */}
             <div className="p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-300/50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-lg font-bold">AI Prediction for {prediction.symbol}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-bold">AI Prediction for {prediction.symbol}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge 
