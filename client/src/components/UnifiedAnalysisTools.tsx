@@ -200,7 +200,7 @@ export function UnifiedAnalysisTools() {
     const trend = Math.random() - 0.5;
     const confidence = Math.random() * 40 + 60; // 60-100% confidence
     
-    const changePercent = trend * volatility * (timeframe === '1h' ? 0.5 : timeframe === '4h' ? 1 : timeframe === '1d' ? 2 : 4);
+    const changePercent = trend * volatility * (timeframe === '5m' ? 0.2 : timeframe === '1h' ? 0.5 : timeframe === '4h' ? 1 : timeframe === '1d' ? 2 : 4);
     const predictedPrice = currentPrice * (1 + changePercent / 100);
     const change = predictedPrice - currentPrice;
     
@@ -300,11 +300,11 @@ export function UnifiedAnalysisTools() {
     const stochastic = Math.round(Math.random() * 100);
     const adx = Math.round(Math.random() * 80 + 20);
     
-    // Generate performance data
-    const day1 = Math.round((Math.random() - 0.5) * 20 * 100) / 100;
-    const week1 = Math.round((Math.random() - 0.5) * 50 * 100) / 100;
-    const month1 = Math.round((Math.random() - 0.5) * 100 * 100) / 100;
-    const month3 = Math.round((Math.random() - 0.5) * 200 * 100) / 100;
+    // Generate performance data (timeframe-specific)
+    const day1 = Math.round((Math.random() - 0.5) * (timeframe === '5m' ? 5 : 20) * 100) / 100;
+    const week1 = Math.round((Math.random() - 0.5) * (timeframe === '5m' ? 15 : 50) * 100) / 100;
+    const month1 = Math.round((Math.random() - 0.5) * (timeframe === '5m' ? 40 : 100) * 100) / 100;
+    const month3 = Math.round((Math.random() - 0.5) * (timeframe === '5m' ? 80 : 200) * 100) / 100;
     
     // Generate technical signals
     const indicators = ['RSI', 'MACD', 'Bollinger Bands', 'Moving Average', 'Volume Profile'];
@@ -321,24 +321,28 @@ export function UnifiedAnalysisTools() {
         direction: trendDirection,
         strength: trendStrength,
         timeframe,
-        duration: `${Math.round(Math.random() * 14 + 1)} days`
+        duration: timeframe === '5m' ? `${Math.round(Math.random() * 45 + 5)} minutes` : 
+                  timeframe === '1h' ? `${Math.round(Math.random() * 12 + 2)} hours` : 
+                  timeframe === '4h' ? `${Math.round(Math.random() * 3 + 1)} days` : 
+                  timeframe === '1d' ? `${Math.round(Math.random() * 14 + 1)} days` : 
+                  `${Math.round(Math.random() * 8 + 1)} weeks`
       },
       statistics: {
         volatility: {
-          daily: Math.round(Math.random() * 15 + 2),
-          weekly: Math.round(Math.random() * 30 + 5),
-          monthly: Math.round(Math.random() * 60 + 10)
+          daily: timeframe === '5m' ? Math.round(Math.random() * 8 + 1) : Math.round(Math.random() * 15 + 2),
+          weekly: timeframe === '5m' ? Math.round(Math.random() * 15 + 3) : Math.round(Math.random() * 30 + 5),
+          monthly: timeframe === '5m' ? Math.round(Math.random() * 30 + 5) : Math.round(Math.random() * 60 + 10)
         },
         volume: {
-          average24h: Math.round(Math.random() * 1000000 + 100000),
+          average24h: timeframe === '5m' ? Math.round(Math.random() * 200000 + 50000) : Math.round(Math.random() * 1000000 + 100000),
           trend: (['increasing', 'decreasing', 'stable'] as const)[Math.floor(Math.random() * 3)],
-          percentChange: Math.round((Math.random() - 0.5) * 80 * 100) / 100
+          percentChange: timeframe === '5m' ? Math.round((Math.random() - 0.5) * 40 * 100) / 100 : Math.round((Math.random() - 0.5) * 80 * 100) / 100
         },
         priceAction: {
-          high24h: currentPrice * (1 + Math.random() * 0.1),
-          low24h: currentPrice * (1 - Math.random() * 0.1),
-          range: currentPrice * Math.random() * 0.2,
-          rangePercent: Math.round(Math.random() * 20 * 100) / 100
+          high24h: currentPrice * (1 + Math.random() * (timeframe === '5m' ? 0.05 : 0.1)),
+          low24h: currentPrice * (1 - Math.random() * (timeframe === '5m' ? 0.05 : 0.1)),
+          range: currentPrice * Math.random() * (timeframe === '5m' ? 0.1 : 0.2),
+          rangePercent: Math.round(Math.random() * (timeframe === '5m' ? 10 : 20) * 100) / 100
         },
         momentum: {
           rsi,
@@ -513,6 +517,7 @@ export function UnifiedAnalysisTools() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="5m">5M</SelectItem>
                 <SelectItem value="1h">1H</SelectItem>
                 <SelectItem value="4h">4H</SelectItem>
                 <SelectItem value="1d">1D</SelectItem>
