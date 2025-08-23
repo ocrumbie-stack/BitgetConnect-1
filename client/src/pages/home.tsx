@@ -16,10 +16,25 @@ export function Home() {
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
 
-  // Market analysis
+  // Define major pairs to filter out for more diverse results
+  const majorPairs = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'MATICUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'ETCUSDT'];
+
+  // Market analysis with improved filtering for diverse results
   const bullishPairs = data?.filter(item => parseFloat(item.change24h || '0') > 0.05) || [];
   const bearishPairs = data?.filter(item => parseFloat(item.change24h || '0') < -0.05) || [];
   const stablePairs = data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) <= 0.02) || [];
+
+  // Top gainers excluding major pairs, sorted by percentage change
+  const topGainers = data
+    ?.filter(item => parseFloat(item.change24h || '0') > 0 && !majorPairs.includes(item.symbol))
+    ?.sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))
+    ?.slice(0, 5) || [];
+
+  // Top losers excluding major pairs, sorted by percentage change  
+  const topLosers = data
+    ?.filter(item => parseFloat(item.change24h || '0') < 0 && !majorPairs.includes(item.symbol))
+    ?.sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))
+    ?.slice(0, 5) || [];
   
   const highVolatilityPairs = data
     ?.sort((a, b) => Math.abs(parseFloat(b.change24h || '0')) - Math.abs(parseFloat(a.change24h || '0')))
@@ -896,24 +911,31 @@ export function Home() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {bullishPairs.slice(0, 5).map((pair, index) => (
-                    <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          {index + 1}
+                  {topGainers.length > 0 ? (
+                    topGainers.map((pair, index) => (
+                      <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {index + 1}
+                          </div>
+                          <span className="font-medium text-sm">{pair.symbol}</span>
                         </div>
-                        <span className="font-medium text-sm">{pair.symbol}</span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">
+                            {formatChange(pair.change24h)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            ${parseFloat(pair.price).toFixed(4)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-600">
-                          {formatChange(pair.change24h)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          ${parseFloat(pair.price).toFixed(4)}
-                        </div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No significant gainers found</p>
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
 
@@ -925,24 +947,31 @@ export function Home() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {bearishPairs.slice(0, 5).map((pair, index) => (
-                    <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          {index + 1}
+                  {topLosers.length > 0 ? (
+                    topLosers.map((pair, index) => (
+                      <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {index + 1}
+                          </div>
+                          <span className="font-medium text-sm">{pair.symbol}</span>
                         </div>
-                        <span className="font-medium text-sm">{pair.symbol}</span>
+                        <div className="text-right">
+                          <div className="font-bold text-red-600">
+                            {formatChange(pair.change24h)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            ${parseFloat(pair.price).toFixed(4)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-red-600">
-                          {formatChange(pair.change24h)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          ${parseFloat(pair.price).toFixed(4)}
-                        </div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <TrendingDown className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No significant losers found</p>
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
             </div>
