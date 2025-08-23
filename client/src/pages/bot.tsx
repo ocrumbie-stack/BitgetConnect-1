@@ -1801,71 +1801,113 @@ export default function BotPage() {
                         </label>
                       </div>
                       {(indicators[maKey as keyof typeof indicators] as any).enabled && (
-                        <div className="ml-6">
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-xs">Type</label>
-                              <Select 
-                                value={(indicators[maKey as keyof typeof indicators] as any).type} 
-                                onValueChange={(value) => setIndicators({
-                                  ...indicators,
-                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], type: value }
-                                })}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="sma">SMA</SelectItem>
-                                  <SelectItem value="ema">EMA</SelectItem>
-                                  <SelectItem value="wma">WMA</SelectItem>
-                                </SelectContent>
-                              </Select>
+                        <div className="ml-2">
+                          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
+                            {/* Header Row */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="text-center">
+                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">MA Type</h4>
+                              </div>
+                              <div className="text-center">
+                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Period</h4>
+                              </div>
+                              <div className="text-center">
+                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Condition</h4>
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs">Period 1</label>
-                              <Input 
-                                type="number" 
-                                value={(indicators[maKey as keyof typeof indicators] as any).period1}
-                                onChange={(e) => setIndicators({
-                                  ...indicators,
-                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
-                                })}
-                                placeholder="20"
-                              />
+                            
+                            {/* Values Row */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div>
+                                <Select 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).type} 
+                                  onValueChange={(value) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], type: value }
+                                  })}
+                                >
+                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="sma">SMA</SelectItem>
+                                    <SelectItem value="ema">EMA</SelectItem>
+                                    <SelectItem value="wma">WMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Input 
+                                  type="number" 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).period1}
+                                  onChange={(e) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
+                                  })}
+                                  placeholder="20"
+                                  className="bg-gray-800 border-gray-700 text-center"
+                                />
+                              </div>
+                              <div>
+                                <Select 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).condition} 
+                                  onValueChange={(value) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
+                                  })}
+                                >
+                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="above">Above</SelectItem>
+                                    <SelectItem value="below">Below</SelectItem>
+                                    <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                    <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs">Period 2</label>
-                              <Input 
-                                type="number" 
-                                value={(indicators[maKey as keyof typeof indicators] as any).period2}
-                                onChange={(e) => setIndicators({
-                                  ...indicators,
-                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
-                                })}
-                                placeholder="50"
-                              />
+
+                            {/* Comparison Section */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                              <div className="mb-2">
+                                <h4 className="font-semibold text-gray-700 dark:text-gray-300">Comparison</h4>
+                              </div>
+                              <div className="w-1/3">
+                                <Select 
+                                  value="price"
+                                  onValueChange={(value) => {
+                                    // Handle comparison type change if needed
+                                  }}
+                                >
+                                  <SelectTrigger className="bg-gray-800 border-gray-700">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="price">Price</SelectItem>
+                                    <SelectItem value="ma">Other MA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              {/* Show second period input if comparing to another MA */}
+                              {(indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down' ? (
+                                <div className="mt-3">
+                                  <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">Compare to Period</label>
+                                  <Input 
+                                    type="number" 
+                                    value={(indicators[maKey as keyof typeof indicators] as any).period2}
+                                    onChange={(e) => setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
+                                    })}
+                                    placeholder="50"
+                                    className="bg-gray-800 border-gray-700 w-1/3"
+                                  />
+                                </div>
+                              ) : null}
                             </div>
-                          </div>
-                          <div className="mt-2">
-                            <label className="text-xs">Condition</label>
-                            <Select 
-                              value={(indicators[maKey as keyof typeof indicators] as any).condition} 
-                              onValueChange={(value) => setIndicators({
-                                ...indicators,
-                                [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
-                              })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="above">Above</SelectItem>
-                                <SelectItem value="below">Below</SelectItem>
-                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
-                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
-                              </SelectContent>
-                            </Select>
                           </div>
                         </div>
                       )}
