@@ -5,14 +5,14 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Enhanced prediction screens with close functionality and improved input methods
-  - Added close button (X) to AI Price Prediction results screen for better UX
-  - Added close button (X) to Dynamic Risk Analysis results screen for consistency
-  - Updated Dynamic Risk Visualizer to use text input with autocomplete suggestions instead of dropdown
-  - Implemented smart autocomplete with live price data and 24h change indicators
-  - Both prediction tools now support typing any trading pair with intelligent suggestions
-  - Close buttons positioned in top-right corner with proper hover effects and styling
-  - Improved user control allowing easy return to input screens after viewing results
+- **August 23, 2025**: Unified AI Analysis Components and Enhanced Text Consistency
+  - Combined AI Price Prediction and Dynamic Risk Visualizer into single "AI Analysis Hub" component
+  - Integrated both price prediction and risk analysis with tabbed interface for seamless switching
+  - Unified search functionality with consistent "Enter Trading Pair" placeholder across all components
+  - Standardized all text sizing to text-xs for compact, professional interface design
+  - Added unified close button and analysis controls for streamlined user experience
+  - Enhanced real-time price data integration with live indicators and autocomplete suggestions
+  - Improved component reusability and reduced code duplication for better maintainability
 
 # System Architecture
 
@@ -44,7 +44,7 @@ The application includes:
 - **Trading Pair Management**: Folder-based organization with bulk bot deployment, manual pair addition, and context menus for adding pairs from the Markets page.
 - **Bulk Bot Deployment**: Deploying strategies to all pairs within a folder simultaneously, with individual capital allocation, leverage settings, and investment calculation.
 - **AI-Powered Recommendations**: Recommendations based on daily movement patterns, liquidity, and trading patterns, with detailed display of movement percentage and AI scores.
-- **Interactive Price Prediction Confidence Meter**: Advanced AI-powered price prediction system for any trading pair with real-time Bitget API integration, featuring smart autocomplete with live prices, multi-timeframe analysis (1H, 4H, 1D, 1W), confidence scoring (0-100%), technical indicator analysis (RSI, MACD, Bollinger Bands, Volume), market sentiment assessment, support/resistance level detection, risk evaluation, and historical accuracy tracking. All prices are fetched live from Bitget API with 3-second refresh intervals.
+- **Unified AI Analysis Hub**: Combined price prediction and risk analysis system with tabbed interface, featuring real-time Bitget API integration, smart autocomplete with live prices, multi-timeframe analysis (1H, 4H, 1D, 1W), confidence scoring (0-100%), technical indicator analysis, market sentiment assessment, support/resistance level detection, comprehensive risk evaluation with volatility/liquidity/technical risk scoring, position sizing recommendations, and historical accuracy tracking. All data fetched live from Bitget API with 3-second refresh intervals.
 - **Analyzer Page**: Advanced technical analysis tool with trend detection, support/resistance levels, entry/exit recommendations, multi-timeframe analysis, and direct trading execution.
 - **Comprehensive Alert System**: Complete notification system with 8+ alert categories (PnL gains/losses, screener matches, trend changes, volume spikes, price breakouts, technical signals, support/resistance levels, unusual activity, market news), intelligent auto-suggest functionality for trading pairs with live price data and keyboard navigation, distinction between alert settings (configurations) and alerts (actual notifications), real-time monitoring with 5-second refresh intervals, and proper light/dark mode support.
 

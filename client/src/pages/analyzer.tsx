@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, TrendingDown, Target, AlertTriangle, Activity, BarChart3, Search, Brain, ArrowUp, ArrowDown, Minus, Gauge } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { PricePredictionMeter } from '@/components/PricePredictionMeter';
-import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
+import { UnifiedAnalysisTools } from '@/components/UnifiedAnalysisTools';
 
 
 interface TechnicalAnalysis {
@@ -225,19 +224,8 @@ export function Analyzer() {
       </div>
 
       <div className="p-4 space-y-6">
-        {/* AI Price Prediction Section */}
-        <PricePredictionMeter 
-          onPredictionGenerated={(prediction) => {
-            console.log('Analyzer prediction generated:', prediction);
-          }}
-        />
-
-        {/* Dynamic Risk Visualization Meter */}
-        <DynamicRiskMeter 
-          onRiskAnalyzed={(risk) => {
-            console.log('Risk analysis completed:', risk);
-          }}
-        />
+        {/* Unified AI Analysis Tools */}
+        <UnifiedAnalysisTools />
 
         {/* Pair Selection */}
         <Card>
