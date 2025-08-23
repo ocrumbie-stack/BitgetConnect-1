@@ -231,6 +231,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Screener API routes
+  app.get('/api/screeners', async (req, res) => {
+    try {
+      const userId = 'user1'; // Default user for now
+      const screeners = await storage.getUserScreeners(userId);
+      res.json(screeners);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: error.message || 'Failed to fetch screeners' 
+      });
+    }
+  });
+
   app.get('/api/screeners/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
