@@ -5,17 +5,16 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Enhanced Analysis Hub with 5-Minute Timeframe and Dynamic Support/Resistance
-  - Added 5-minute timeframe option to both Analyzer page and Analysis Hub for ultra-short scalping
-  - Implemented timeframe-specific support and resistance calculations with realistic price levels
-  - Enhanced trend duration display (5M shows minutes, 1H shows hours, 4H+ shows days/weeks)
-  - Adjusted volatility, volume, and performance metrics for granular 5-minute analysis
-  - Fixed support/resistance levels to dynamically reflect chosen timeframe (0.05%-12% ranges)
-  - Combined AI Price Prediction and Dynamic Risk Visualizer into unified "AI Analysis Hub" component
-  - Added comprehensive trend and statistics analysis as third tab with technical indicators
-  - Integrated close buttons (X) across all analysis tools for improved user control
-  - Enhanced trend calculations with timeframe-specific factors and sensitivity adjustments
-  - Improved real-time price data integration with live indicators and autocomplete suggestions
+- **August 23, 2025**: Enhanced Market Overview with Diverse Data Insights
+  - Fixed horizontal scrolling layout issues on home page with proper container constraints
+  - Replaced "High Volume Activity" with "Volume Surge" showing diverse altcoins with highest trading activity
+  - Improved top gainers/losers to exclude major pairs and show more interesting opportunities
+  - Added filtering for major pairs (BTC, ETH, etc.) to surface diverse altcoin opportunities
+  - Enhanced market sentiment analysis with social sentiment, Fear & Greed Index, and market health dashboard
+  - Implemented three distinct market analysis sections: Top Gainers, Top Losers, Volume Surge
+  - Added proper sorting algorithms for meaningful data insights and empty state handling
+  - Enhanced social sentiment with trending topics, community mood, and AI market insights
+  - Fixed responsive design issues and prevented horizontal page movement during scrolling
 
 # System Architecture
 
