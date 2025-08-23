@@ -1554,10 +1554,10 @@ export default function BotPage() {
                           className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-semibold text-white">
+                            <div className="text-sm font-medium text-white">
                               {pair.symbol}
                             </div>
-                            <div className={`text-sm font-semibold ${
+                            <div className={`text-xs font-medium ${
                               parseFloat(pair.change24h) >= 0 
                                 ? 'text-green-400' 
                                 : 'text-red-400'
@@ -2357,10 +2357,10 @@ export default function BotPage() {
                       className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="font-semibold text-white">
+                        <div className="text-sm font-medium text-white">
                           {pair.symbol}
                         </div>
-                        <div className={`text-sm font-semibold ${
+                        <div className={`text-xs font-medium ${
                           parseFloat(pair.change24h) >= 0 
                             ? 'text-green-400' 
                             : 'text-red-400'
