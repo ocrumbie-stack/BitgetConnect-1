@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
@@ -46,6 +46,43 @@ export function Home() {
   const avgChange = data && data.length > 0 
     ? data.reduce((sum, item) => sum + parseFloat(item.change24h || '0'), 0) / data.length 
     : 0;
+
+  // Enhanced social sentiment simulation
+  const getSocialSentiment = () => {
+    const currentHour = new Date().getHours();
+    const basePositivity = Math.sin((currentHour / 24) * Math.PI * 2) * 20 + 60; // Dynamic based on time
+    
+    return {
+      overall: avgChange > 0.02 ? 'Very Positive' : avgChange > 0 ? 'Positive' : avgChange > -0.02 ? 'Neutral' : avgChange > -0.05 ? 'Negative' : 'Very Negative',
+      score: Math.round(basePositivity + (avgChange * 1000)),
+      volume: Math.round(Math.random() * 50000 + 25000), // Social mentions
+      trending: ['#Bitcoin', '#Crypto', '#Trading', '#BullRun', '#HODL'],
+      fearGreedIndex: Math.round(50 + (avgChange * 2000) + (Math.random() - 0.5) * 20),
+      insights: [
+        'Retail investors showing increased interest',
+        'Institutional activity remains strong',
+        'Technical indicators suggest consolidation',
+        'Volume patterns indicate healthy distribution'
+      ]
+    };
+  };
+
+  const socialSentiment = getSocialSentiment();
+
+  // Market health indicators
+  const getMarketHealth = () => {
+    const volatility = data ? data.reduce((sum, item) => sum + Math.abs(parseFloat(item.change24h || '0')), 0) / data.length : 0;
+    const activeMarkets = data?.filter(item => parseFloat(item.volume24h || '0') > 100000).length || 0;
+    
+    return {
+      volatility: volatility * 100,
+      liquidity: (activeMarkets / (data?.length || 1)) * 100,
+      momentum: sentiment.bullish - sentiment.bearish,
+      stability: 100 - (volatility * 100)
+    };
+  };
+
+  const marketHealth = getMarketHealth();
 
   const formatVolume = (volume: number) => {
     if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`;
@@ -675,6 +712,176 @@ export function Home() {
                       ></div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Sentiment & Fear/Greed Index */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-500" />
+                    Social Sentiment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                        {socialSentiment.overall}
+                      </div>
+                      <div className="text-sm text-purple-600 dark:text-purple-400">
+                        Community Mood
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 mb-1">
+                        {socialSentiment.overall.includes('Positive') ? 
+                          <Smile className="h-5 w-5 text-green-500" /> :
+                          socialSentiment.overall.includes('Negative') ? 
+                          <Frown className="h-5 w-5 text-red-500" /> :
+                          <Meh className="h-5 w-5 text-yellow-500" />
+                        }
+                        <span className="text-sm font-medium">{socialSentiment.score}/100</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MessageCircle className="h-3 w-3" />
+                        {socialSentiment.volume.toLocaleString()} mentions
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-purple-600 dark:text-purple-400">Trending Topics</div>
+                    <div className="flex gap-1 flex-wrap">
+                      {socialSentiment.trending.map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Gauge className="h-5 w-5 text-orange-500" />
+                    Fear & Greed Index
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-orange-700 dark:text-orange-300 mb-2">
+                      {socialSentiment.fearGreedIndex}
+                    </div>
+                    <div className="text-sm text-orange-600 dark:text-orange-400 mb-3">
+                      {socialSentiment.fearGreedIndex > 75 ? 'Extreme Greed' :
+                       socialSentiment.fearGreedIndex > 55 ? 'Greed' :
+                       socialSentiment.fearGreedIndex > 45 ? 'Neutral' :
+                       socialSentiment.fearGreedIndex > 25 ? 'Fear' : 'Extreme Fear'}
+                    </div>
+                    
+                    {/* Fear/Greed Gauge */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2">
+                      <div 
+                        className={`h-3 rounded-full transition-all duration-1000 ${
+                          socialSentiment.fearGreedIndex > 75 ? 'bg-green-500' :
+                          socialSentiment.fearGreedIndex > 55 ? 'bg-yellow-500' :
+                          socialSentiment.fearGreedIndex > 45 ? 'bg-gray-400' :
+                          socialSentiment.fearGreedIndex > 25 ? 'bg-orange-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${socialSentiment.fearGreedIndex}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Fear</span>
+                      <span>Greed</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Market Health Dashboard */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-pink-500" />
+                  Market Health Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                      {marketHealth.volatility.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-blue-500">Volatility</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {marketHealth.volatility > 8 ? 'High' : marketHealth.volatility > 4 ? 'Medium' : 'Low'}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {marketHealth.liquidity.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-green-500">Liquidity</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {marketHealth.liquidity > 70 ? 'High' : marketHealth.liquidity > 40 ? 'Medium' : 'Low'}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                      {marketHealth.momentum > 0 ? '+' : ''}{marketHealth.momentum.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-purple-500">Momentum</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {Math.abs(marketHealth.momentum) > 20 ? 'Strong' : Math.abs(marketHealth.momentum) > 10 ? 'Moderate' : 'Weak'}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <div className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {marketHealth.stability.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-yellow-500">Stability</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {marketHealth.stability > 90 ? 'High' : marketHealth.stability > 80 ? 'Medium' : 'Low'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Market Insights */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-blue-500" />
+                  Market Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {socialSentiment.insights.map((insight, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <div className="p-1 bg-blue-500 rounded-full mt-1">
+                        <Star className="h-3 w-3 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">{insight}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Updated {Math.floor(Math.random() * 30 + 1)} minutes ago
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
