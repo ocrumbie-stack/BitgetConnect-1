@@ -508,11 +508,20 @@ export function Analyzer() {
                       key={pair.symbol} 
                       className="flex items-center justify-between p-3 rounded border cursor-pointer hover:bg-accent/50"
                       onClick={() => setSelectedPair(pair.symbol)}
+                      onDoubleClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
                       data-testid={`quick-analysis-${pair.symbol}`}
                     >
                       <div className="flex items-center gap-3">
                         <div>
-                          <div className="font-medium">{pair.symbol}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-blue-500 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLocation(`/trade?pair=${pair.symbol}`);
+                            }}
+                          >
+                            {pair.symbol}
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             ${parseFloat(pair.price).toFixed(4)}
                           </div>

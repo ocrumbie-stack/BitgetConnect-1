@@ -915,7 +915,12 @@ export function Home() {
                 <CardContent className="space-y-2">
                   {topGainers.length > 0 ? (
                     topGainers.map((pair, index) => (
-                      <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20">
+                      <div 
+                        key={pair.symbol} 
+                        className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                        onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                        data-testid={`top-gainer-${pair.symbol}`}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                             {index + 1}
@@ -951,7 +956,12 @@ export function Home() {
                 <CardContent className="space-y-2">
                   {topLosers.length > 0 ? (
                     topLosers.map((pair, index) => (
-                      <div key={pair.symbol} className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20">
+                      <div 
+                        key={pair.symbol} 
+                        className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                        onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                        data-testid={`top-loser-${pair.symbol}`}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                             {index + 1}
@@ -989,7 +999,12 @@ export function Home() {
               <CardContent>
                 <div className="space-y-3">
                   {volumeSurgePairs.map((pair, index) => (
-                    <div key={pair.symbol} className="flex items-center justify-between p-3 rounded border hover:bg-accent/50 transition-colors">
+                    <div 
+                      key={pair.symbol} 
+                      className="flex items-center justify-between p-3 rounded border hover:bg-accent/50 transition-colors cursor-pointer"
+                      onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                      data-testid={`volume-surge-${pair.symbol}`}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                           {index + 1}
