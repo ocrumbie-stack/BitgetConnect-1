@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrendingUp, TrendingDown, Target, AlertTriangle, Activity, BarChart3, Search, Brain, ArrowUp, ArrowDown, Minus, Gauge } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { PricePredictionMeter } from '@/components/PricePredictionMeter';
+import { BackButton } from '@/components/BackButton';
 
 interface TechnicalAnalysis {
   trend: 'uptrend' | 'downtrend' | 'sideways';
@@ -182,7 +183,10 @@ export function Analyzer() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-        <h1 className="text-lg font-semibold text-foreground mb-2">Pair Analyzer</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <BackButton to="/" label="Home" />
+          <h1 className="text-lg font-semibold text-foreground">Pair Analyzer</h1>
+        </div>
         <p className="text-sm text-muted-foreground">Advanced technical analysis and trading recommendations</p>
       </div>
 

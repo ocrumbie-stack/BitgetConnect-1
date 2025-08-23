@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye } from 'lucide-react';
+import { BackButton } from '@/components/BackButton';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from 'wouter';
@@ -235,7 +236,10 @@ export function Markets() {
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold">Markets</h1>
+            <div className="flex items-center gap-3">
+              <BackButton to="/" label="Home" />
+              <h1 className="text-lg font-semibold">Markets</h1>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"

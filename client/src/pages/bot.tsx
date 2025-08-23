@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
+import { BackButton } from '@/components/BackButton';
 
 export default function BotPage() {
   const [activeTab, setActiveTab] = useState('ai');
@@ -437,14 +438,17 @@ export default function BotPage() {
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
-              <Bot className="h-6 w-6" />
-              Trading Bots
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Create reusable trading strategies and run them on any trading pair
-            </p>
+          <div className="flex items-center gap-3">
+            <BackButton to="/" label="Home" />
+            <div>
+              <h1 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Bot className="h-6 w-6" />
+                Trading Bots
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Create reusable trading strategies and run them on any trading pair
+              </p>
+            </div>
           </div>
           <Button
             variant="outline"
