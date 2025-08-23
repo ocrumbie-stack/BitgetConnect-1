@@ -1067,10 +1067,13 @@ export default function BotPage() {
                                 e.stopPropagation();
                                 setSelectedStrategy({ ...bot, isAI: true });
                                 // Pre-fill with suggested defaults
-                                setPairSearch(bot.recommendedPairs[0] || 'BTCUSDT');
-                                setTradingPair(bot.recommendedPairs[0] || 'BTCUSDT');
+                                const defaultPair = bot.recommendedPairs[0] || 'BTCUSDT';
+                                setPairSearch(defaultPair);
+                                setTradingPair(defaultPair);
                                 setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
                                 setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
+                                // Trigger auto-suggest filtering for the pre-filled pair
+                                handlePairSearchChange(defaultPair);
                                 setShowRunDialog(true);
                               }}
                             >
@@ -1123,10 +1126,13 @@ export default function BotPage() {
                               onClick={() => {
                                 setSelectedStrategy({ ...bot, isAI: true });
                                 // Pre-fill with suggested defaults
-                                setPairSearch(bot.recommendedPairs[0] || 'BTCUSDT');
-                                setTradingPair(bot.recommendedPairs[0] || 'BTCUSDT');
+                                const defaultPair = bot.recommendedPairs[0] || 'BTCUSDT';
+                                setPairSearch(defaultPair);
+                                setTradingPair(defaultPair);
                                 setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
                                 setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
+                                // Trigger auto-suggest filtering for the pre-filled pair
+                                handlePairSearchChange(defaultPair);
                                 setShowRunDialog(true);
                               }}
                             >
