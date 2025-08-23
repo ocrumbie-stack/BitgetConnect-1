@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
@@ -34,28 +34,30 @@ export function Trade() {
   }) : '113,554.2';
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
-  // Mock order book data based on current price
-  const basePrice = currentMarket ? parseFloat(currentMarket.price) : 113554;
-  const orderBook = {
-    asks: [
-      { price: (basePrice + 2).toFixed(1), quantity: '24.03K' },
-      { price: (basePrice + 1.5).toFixed(1), quantity: '39.57K' },
-      { price: (basePrice + 1).toFixed(1), quantity: '260.01K' },
-      { price: (basePrice + 0.5).toFixed(1), quantity: '795.0000' },
-      { price: (basePrice + 0.3).toFixed(1), quantity: '245.83K' },
-      { price: (basePrice + 0.1).toFixed(1), quantity: '455.0000' },
-      { price: (basePrice - 0.1).toFixed(1), quantity: '3.75M' },
-    ],
-    bids: [
-      { price: (basePrice - 0.3).toFixed(1), quantity: '978.30K' },
-      { price: (basePrice - 0.5).toFixed(1), quantity: '1.14K' },
-      { price: (basePrice - 1).toFixed(1), quantity: '262.27K' },
-      { price: (basePrice - 1.5).toFixed(1), quantity: '2.96K' },
-      { price: (basePrice - 2).toFixed(1), quantity: '511.39K' },
-      { price: (basePrice - 2.5).toFixed(1), quantity: '245.83K' },
-      { price: (basePrice - 3).toFixed(1), quantity: '455.0000' },
-    ]
-  };
+  // Memoized order book data to prevent re-calculations
+  const orderBook = useMemo(() => {
+    const basePrice = currentMarket ? parseFloat(currentMarket.price) : 113554;
+    return {
+      asks: [
+        { price: (basePrice + 2).toFixed(1), quantity: '24.03K' },
+        { price: (basePrice + 1.5).toFixed(1), quantity: '39.57K' },
+        { price: (basePrice + 1).toFixed(1), quantity: '260.01K' },
+        { price: (basePrice + 0.5).toFixed(1), quantity: '795.0000' },
+        { price: (basePrice + 0.3).toFixed(1), quantity: '245.83K' },
+        { price: (basePrice + 0.1).toFixed(1), quantity: '455.0000' },
+        { price: (basePrice - 0.1).toFixed(1), quantity: '3.75M' },
+      ].reverse(), // Pre-reverse to avoid mutating on render
+      bids: [
+        { price: (basePrice - 0.3).toFixed(1), quantity: '978.30K' },
+        { price: (basePrice - 0.5).toFixed(1), quantity: '1.14K' },
+        { price: (basePrice - 1).toFixed(1), quantity: '262.27K' },
+        { price: (basePrice - 1.5).toFixed(1), quantity: '2.96K' },
+        { price: (basePrice - 2).toFixed(1), quantity: '511.39K' },
+        { price: (basePrice - 2.5).toFixed(1), quantity: '245.83K' },
+        { price: (basePrice - 3).toFixed(1), quantity: '455.0000' },
+      ]
+    };
+  }, [currentMarket]);
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
@@ -91,9 +93,10 @@ export function Trade() {
 
       </div>
 
-      <div className="flex">
+      {/* Main Content Container */}
+      <div className="flex flex-col lg:flex-row">
         {/* Left Side - Order Book */}
-        <div className="flex-1 border-r border-border">
+        <div className="flex-1 lg:border-r border-border">
           {/* Order Book Header */}
           <div className="flex items-center justify-between p-3 text-xs text-muted-foreground border-b border-border">
             <span>Price (USDT)</span>
@@ -102,7 +105,7 @@ export function Trade() {
 
           {/* Asks (Red) */}
           <div className="space-y-0">
-            {orderBook.asks.reverse().map((ask, index) => (
+            {orderBook.asks.map((ask, index) => (
               <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-muted/50">
                 <span className="text-red-500">{ask.price}</span>
                 <span className="text-muted-foreground">{ask.quantity}</span>
@@ -144,7 +147,7 @@ export function Trade() {
         </div>
 
         {/* Right Side - Trading Form */}
-        <div className="w-80">
+        <div className="w-full lg:w-80 lg:border-t-0 border-t border-border">
           {/* Trading Tabs */}
           <div className="flex border-b border-border">
             <button className="flex-1 px-4 py-3 text-sm bg-muted text-foreground border-b-2 border-primary">
