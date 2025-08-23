@@ -834,7 +834,7 @@ export default function Markets() {
                                 <div
                                   key={`${opp.symbol}-${index}`}
                                   className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
-                                  onClick={() => setLocation(`/analyzer?pair=${opp.symbol}&autoFill=true`)}
+                                  onClick={() => setLocation(`/trade?pair=${opp.symbol}`)}
                                 >
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">

@@ -306,19 +306,30 @@ export function Analyzer() {
                 <h4 className="text-sm font-medium">Available Pairs:</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {filteredPairs.map((pair) => (
-                    <Button
-                      key={pair.symbol}
-                      variant={selectedPair === pair.symbol ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedPair(pair.symbol)}
-                      className="justify-between"
-                      data-testid={`button-select-${pair.symbol}`}
-                    >
-                      <span>{pair.symbol}</span>
-                      <Badge variant={parseFloat(pair.change24h || '0') >= 0 ? 'default' : 'destructive'} className="text-xs">
-                        {((parseFloat(pair.change24h || '0')) * 100).toFixed(2)}%
-                      </Badge>
-                    </Button>
+                    <div key={pair.symbol} className="flex gap-1">
+                      <Button
+                        variant={selectedPair === pair.symbol ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedPair(pair.symbol)}
+                        className="justify-between flex-1"
+                        data-testid={`button-select-${pair.symbol}`}
+                      >
+                        <span>{pair.symbol}</span>
+                        <Badge variant={parseFloat(pair.change24h || '0') >= 0 ? 'default' : 'destructive'} className="text-xs">
+                          {((parseFloat(pair.change24h || '0')) * 100).toFixed(2)}%
+                        </Badge>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                        className="px-2"
+                        data-testid={`button-trade-${pair.symbol}`}
+                        title="Trade this pair"
+                      >
+                        <BarChart3 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>
