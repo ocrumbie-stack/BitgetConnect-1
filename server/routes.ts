@@ -185,14 +185,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Get current tickers first
     const tickers = await bitgetAPI.getAllFuturesTickers();
-    const topSymbols = tickers
-      .filter(t => parseFloat(t.quoteVolume) > 1000000) // Filter by volume
-      .slice(0, 20); // Limit to top 20 by volume
+    // Include all pairs instead of just major ones
+    const allSymbols = tickers
+      .filter(t => parseFloat(t.quoteVolume) > 0) // Only filter out pairs with no volume
+      .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)); // Sort by volume for better performance
+    
+    console.log(`Processing ${allSymbols.length} trading pairs for 5-minute movers (was limited to 20 before)`);
 
     const fiveMinMovers: any[] = [];
 
-    // Get 5-minute data for each symbol
-    for (const ticker of topSymbols) {
+    // Get 5-minute data for each symbol (all pairs)
+    for (const ticker of allSymbols) {
       try {
         const candleData = await bitgetAPI.getCandlestickData(ticker.symbol, '5m', 2);
         if (candleData.length >= 2) {
