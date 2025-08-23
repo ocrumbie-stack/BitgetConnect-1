@@ -626,24 +626,19 @@ export default function Markets() {
                 <div className="grid grid-cols-2 gap-3 mb-4 max-w-md mx-auto">
                   {/* Top Gainer */}
                   {(() => {
-                    // Use 5m data if available, fallback to 24h for now while building history
-                    const hasChange5m = filteredAndSortedData.some(item => item.change5m && parseFloat(item.change5m) !== 0);
-                    const changeField = hasChange5m ? 'change5m' : 'change24h';
-                    const timeLabel = hasChange5m ? '(5m)' : '(24h - building 5m history)';
-                    
                     const topGainer = filteredAndSortedData
-                      .filter(item => parseFloat(item[changeField] || '0') > 0)
-                      .sort((a, b) => parseFloat(b[changeField] || '0') - parseFloat(a[changeField] || '0'))[0];
+                      .filter(item => parseFloat(item.change24h || '0') > 0)
+                      .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0];
                     
                     return topGainer ? (
                       <Card className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer {timeLabel}</p>
+                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (24h)</p>
                           <p className="text-sm font-bold text-green-800 dark:text-green-200">{topGainer.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingUp className="h-3 w-3 text-green-600" />
                             <span className="text-sm font-bold text-green-600">
-                              +{hasChange5m ? (parseFloat(topGainer[changeField] || '0') * 100).toFixed(2) : parseFloat(topGainer[changeField] || '0').toFixed(2)}%
+                              +{parseFloat(topGainer.change24h || '0').toFixed(2)}%
                             </span>
                           </div>
                         </div>
@@ -653,24 +648,19 @@ export default function Markets() {
 
                   {/* Top Loser */}
                   {(() => {
-                    // Use same logic as top gainer for consistency
-                    const hasChange5m = filteredAndSortedData.some(item => item.change5m && parseFloat(item.change5m) !== 0);
-                    const changeField = hasChange5m ? 'change5m' : 'change24h';
-                    const timeLabel = hasChange5m ? '(5m)' : '(24h - building 5m history)';
-                    
                     const topLoser = filteredAndSortedData
-                      .filter(item => parseFloat(item[changeField] || '0') < 0)
-                      .sort((a, b) => parseFloat(a[changeField] || '0') - parseFloat(b[changeField] || '0'))[0];
+                      .filter(item => parseFloat(item.change24h || '0') < 0)
+                      .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0];
                     
                     return topLoser ? (
                       <Card className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser {timeLabel}</p>
+                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (24h)</p>
                           <p className="text-sm font-bold text-red-800 dark:text-red-200">{topLoser.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingDown className="h-3 w-3 text-red-600" />
                             <span className="text-sm font-bold text-red-600">
-                              {hasChange5m ? (parseFloat(topLoser[changeField] || '0') * 100).toFixed(2) : parseFloat(topLoser[changeField] || '0').toFixed(2)}%
+                              {parseFloat(topLoser.change24h || '0').toFixed(2)}%
                             </span>
                           </div>
                         </div>
