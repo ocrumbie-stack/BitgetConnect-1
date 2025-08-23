@@ -72,14 +72,13 @@ export default function BotPage() {
     queryKey: ['/api/bot-executions']
   });
 
+  // Fetch futures data for AI suggestions
+  const { data: futuresData = [], isLoading: futuresLoading } = useQuery({
+    queryKey: ['/api/futures']
+  });
+
   // Filter only active executions in frontend
   const activeExecutions = allExecutions.filter((execution: any) => execution.status === 'active');
-
-  // Fetch futures data for trading pairs
-  const { data: futuresData = [] } = useQuery({
-    queryKey: ['/api/futures'],
-    refetchInterval: 10000
-  });
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
@@ -320,13 +319,22 @@ export default function BotPage() {
 
   // Generate AI-powered bot settings suggestions for specific trading pairs
   const generateBotSuggestions = (symbol: string) => {
+    console.log('Generating suggestions for:', symbol);
+    console.log('Futures data:', futuresData);
+    
     if (!futuresData || !Array.isArray(futuresData) || futuresData.length === 0) {
+      console.log('No futures data available');
+      alert('No market data available. Please wait for data to load and try again.');
       setSuggestedSettings(null);
       return;
     }
 
     const pair = (futuresData as any[]).find((coin: any) => coin.symbol === symbol);
+    console.log('Found pair:', pair);
+    
     if (!pair) {
+      console.log('Pair not found');
+      alert(`Trading pair ${symbol} not found. Please check the symbol and try again.`);
       setSuggestedSettings(null);
       return;
     }
