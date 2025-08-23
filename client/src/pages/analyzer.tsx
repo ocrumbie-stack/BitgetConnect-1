@@ -49,6 +49,7 @@ export function Analyzer() {
     
     // Timeframe-specific analysis adjustments
     const timeframeMultipliers = {
+      '5m': { sensitivity: 3.5, volatility: 2.2, confidence: 0.5 },
       '1h': { sensitivity: 2.5, volatility: 1.8, confidence: 0.7 },
       '4h': { sensitivity: 1.5, volatility: 1.2, confidence: 1.0 },
       '1d': { sensitivity: 1.0, volatility: 1.0, confidence: 1.2 },
@@ -62,6 +63,7 @@ export function Analyzer() {
     
     // Generate timeframe-specific price movements (simulate different timeframe data)
     const timeframeFactors = {
+      '5m': { factor: 0.1 + (Math.random() * 0.4), volatility: 2.0 },
       '1h': { factor: 0.2 + (Math.random() * 0.6), volatility: 1.5 },
       '4h': { factor: 0.4 + (Math.random() * 0.8), volatility: 1.2 },
       '1d': { factor: 0.7 + (Math.random() * 0.6), volatility: 1.0 },
@@ -81,7 +83,7 @@ export function Analyzer() {
     let momentum: 'bullish' | 'bearish' | 'neutral' = 'neutral';
     
     // Timeframe-adjusted trend detection with more sensitive thresholds
-    const bullishThreshold = selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.035 : 0.055;
+    const bullishThreshold = selectedTimeframe === '5m' ? 0.003 : selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.035 : 0.055;
     const bearishThreshold = -bullishThreshold;
     
     if (adjustedChange > bullishThreshold) {
@@ -100,7 +102,7 @@ export function Analyzer() {
     
     // Support and Resistance Levels (adjusted for timeframe)
     const volatility = adjustedAbsChange * multiplier.volatility;
-    const supportResistanceRange = selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.015 : selectedTimeframe === '1d' ? 0.025 : 0.04;
+    const supportResistanceRange = selectedTimeframe === '5m' ? 0.004 : selectedTimeframe === '1h' ? 0.008 : selectedTimeframe === '4h' ? 0.015 : selectedTimeframe === '1d' ? 0.025 : 0.04;
     const support = price * (1 - (volatility + supportResistanceRange));
     const resistance = price * (1 + (volatility + supportResistanceRange));
     
@@ -113,7 +115,9 @@ export function Analyzer() {
     const signals: string[] = [];
     
     // Timeframe-specific signals
-    if (selectedTimeframe === '1h') {
+    if (selectedTimeframe === '5m') {
+      signals.push('Ultra-short scalping opportunities');
+    } else if (selectedTimeframe === '1h') {
       signals.push('Short-term scalping opportunities');
     } else if (selectedTimeframe === '4h') {
       signals.push('Intraday swing trading setup');
@@ -125,8 +129,8 @@ export function Analyzer() {
     
     // Volume Analysis (adjusted for timeframe)
     const volumeThresholds = {
-      high: selectedTimeframe === '1h' ? 3000000 : selectedTimeframe === '4h' ? 5000000 : 8000000,
-      medium: selectedTimeframe === '1h' ? 800000 : selectedTimeframe === '4h' ? 1000000 : 2000000
+      high: selectedTimeframe === '5m' ? 1500000 : selectedTimeframe === '1h' ? 3000000 : selectedTimeframe === '4h' ? 5000000 : 8000000,
+      medium: selectedTimeframe === '5m' ? 400000 : selectedTimeframe === '1h' ? 800000 : selectedTimeframe === '4h' ? 1000000 : 2000000
     };
     
     const volumeStrength = volume24h > volumeThresholds.high ? 'high' : volume24h > volumeThresholds.medium ? 'medium' : 'low';
@@ -139,8 +143,8 @@ export function Analyzer() {
     }
     
     // Momentum Signals (timeframe-adjusted thresholds)
-    const strongMomentumThreshold = selectedTimeframe === '1h' ? 0.025 : selectedTimeframe === '4h' ? 0.05 : selectedTimeframe === '1d' ? 0.08 : 0.12;
-    const moderateMomentumThreshold = selectedTimeframe === '1h' ? 0.01 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.04 : 0.06;
+    const strongMomentumThreshold = selectedTimeframe === '5m' ? 0.015 : selectedTimeframe === '1h' ? 0.025 : selectedTimeframe === '4h' ? 0.05 : selectedTimeframe === '1d' ? 0.08 : 0.12;
+    const moderateMomentumThreshold = selectedTimeframe === '5m' ? 0.005 : selectedTimeframe === '1h' ? 0.01 : selectedTimeframe === '4h' ? 0.02 : selectedTimeframe === '1d' ? 0.04 : 0.06;
     
     if (adjustedAbsChange > strongMomentumThreshold) {
       if (adjustedChange > 0) {
@@ -169,8 +173,8 @@ export function Analyzer() {
     }
     
     // Oversold/Overbought Detection (timeframe-specific)
-    const oversoldThreshold = selectedTimeframe === '1h' ? -0.05 : selectedTimeframe === '4h' ? -0.10 : selectedTimeframe === '1d' ? -0.15 : -0.25;
-    const overboughtThreshold = selectedTimeframe === '1h' ? 0.05 : selectedTimeframe === '4h' ? 0.15 : selectedTimeframe === '1d' ? 0.20 : 0.30;
+    const oversoldThreshold = selectedTimeframe === '5m' ? -0.03 : selectedTimeframe === '1h' ? -0.05 : selectedTimeframe === '4h' ? -0.10 : selectedTimeframe === '1d' ? -0.15 : -0.25;
+    const overboughtThreshold = selectedTimeframe === '5m' ? 0.03 : selectedTimeframe === '1h' ? 0.05 : selectedTimeframe === '4h' ? 0.15 : selectedTimeframe === '1d' ? 0.20 : 0.30;
     
     if (adjustedChange < oversoldThreshold) {
       signals.push(`${selectedTimeframe} oversold - reversal opportunity`);
@@ -188,12 +192,13 @@ export function Analyzer() {
     }
     
     // Risk Management (timeframe-adjusted)
-    const stopLossDistance = selectedTimeframe === '1h' ? (volatility > 0.02 ? 0.03 : 0.02) :
+    const stopLossDistance = selectedTimeframe === '5m' ? (volatility > 0.01 ? 0.015 : 0.01) :
+                             selectedTimeframe === '1h' ? (volatility > 0.02 ? 0.03 : 0.02) :
                              selectedTimeframe === '4h' ? (volatility > 0.05 ? 0.08 : 0.05) :
                              selectedTimeframe === '1d' ? (volatility > 0.08 ? 0.12 : 0.08) :
                              (volatility > 0.12 ? 0.18 : 0.12);
                              
-    const targetDistance = stopLossDistance * (selectedTimeframe === '1h' ? 1.5 : selectedTimeframe === '4h' ? 2.0 : selectedTimeframe === '1d' ? 2.5 : 3.0);
+    const targetDistance = stopLossDistance * (selectedTimeframe === '5m' ? 1.2 : selectedTimeframe === '1h' ? 1.5 : selectedTimeframe === '4h' ? 2.0 : selectedTimeframe === '1d' ? 2.5 : 3.0);
     
     const exit = {
       target: entryType === 'long' 
@@ -263,6 +268,7 @@ export function Analyzer() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="5m">5M</SelectItem>
                   <SelectItem value="1h">1H</SelectItem>
                   <SelectItem value="4h">4H</SelectItem>
                   <SelectItem value="1d">1D</SelectItem>
