@@ -358,8 +358,9 @@ export function Home() {
 
       <div className="p-4 max-w-full overflow-x-hidden">
         <Tabs defaultValue="overview" className="w-full max-w-full">
-          <TabsList className="grid w-full grid-cols-1">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="overview" className="truncate">Market Overview</TabsTrigger>
+            <TabsTrigger value="opportunities" className="truncate">AI Opportunities</TabsTrigger>
           </TabsList>
 
           {/* AI Opportunities Tab */}
