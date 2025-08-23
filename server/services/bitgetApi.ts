@@ -107,7 +107,7 @@ export class BitgetAPI {
         'ACCESS-PASSPHRASE': this.config.apiPassphrase,
         'Content-Type': 'application/json',
         'locale': 'en-US'
-      };
+      } as any;
 
       return config;
     });
