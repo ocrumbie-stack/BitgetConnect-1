@@ -14,6 +14,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { toast } from '@/hooks/use-toast';
 
+// Type extension for 5-minute change data
+type ExtendedFuturesData = {
+  symbol: string;
+  price: string;
+  change24h?: string;
+  change5m?: string;
+  volume24h?: string;
+  [key: string]: any;
+};
+
 export default function Markets() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -617,18 +627,18 @@ export default function Markets() {
                   {/* Top Gainer */}
                   {(() => {
                     const topGainer = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') > 0)
-                      .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0];
+                      .filter(item => parseFloat(item.change5m || '0') > 0)
+                      .sort((a, b) => parseFloat(b.change5m || '0') - parseFloat(a.change5m || '0'))[0];
                     
                     return topGainer ? (
                       <Card className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer</p>
+                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (5m)</p>
                           <p className="text-sm font-bold text-green-800 dark:text-green-200">{topGainer.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingUp className="h-3 w-3 text-green-600" />
                             <span className="text-sm font-bold text-green-600">
-                              +{parseFloat(topGainer.change24h || '0').toFixed(2)}%
+                              +{(parseFloat(topGainer.change5m || '0') * 100).toFixed(2)}%
                             </span>
                           </div>
                         </div>
@@ -639,18 +649,18 @@ export default function Markets() {
                   {/* Top Loser */}
                   {(() => {
                     const topLoser = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') < 0)
-                      .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0];
+                      .filter(item => parseFloat(item.change5m || '0') < 0)
+                      .sort((a, b) => parseFloat(a.change5m || '0') - parseFloat(b.change5m || '0'))[0];
                     
                     return topLoser ? (
                       <Card className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser</p>
+                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (5m)</p>
                           <p className="text-sm font-bold text-red-800 dark:text-red-200">{topLoser.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingDown className="h-3 w-3 text-red-600" />
                             <span className="text-sm font-bold text-red-600">
-                              {parseFloat(topLoser.change24h || '0').toFixed(2)}%
+                              {(parseFloat(topLoser.change5m || '0') * 100).toFixed(2)}%
                             </span>
                           </div>
                         </div>
