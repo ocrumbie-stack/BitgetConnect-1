@@ -2334,7 +2334,7 @@ export default function BotPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <label className="text-sm font-medium">Trading Pair</label>
               <div className="relative">
                 <Input
