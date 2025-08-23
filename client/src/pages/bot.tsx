@@ -57,6 +57,8 @@ export default function BotPage() {
   const [showBotInfo, setShowBotInfo] = useState(false);
   const [selectedBotInfo, setSelectedBotInfo] = useState<any>(null);
   const [expandedBots, setExpandedBots] = useState<{[key: string]: boolean}>({});
+  const [suggestedSettings, setSuggestedSettings] = useState<any>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
 
 
@@ -314,6 +316,166 @@ export default function BotPage() {
     if (window.confirm('Are you sure you want to delete this strategy?')) {
       deleteStrategyMutation.mutate(strategyId);
     }
+  };
+
+  // Generate AI-powered bot settings suggestions for specific trading pairs
+  const generateBotSuggestions = (symbol: string) => {
+    if (!futuresData || !Array.isArray(futuresData) || futuresData.length === 0) {
+      setSuggestedSettings(null);
+      return;
+    }
+
+    const pair = (futuresData as any[]).find((coin: any) => coin.symbol === symbol);
+    if (!pair) {
+      setSuggestedSettings(null);
+      return;
+    }
+
+    const price = parseFloat(pair.price);
+    const change24h = parseFloat(pair.change24h);
+    const volume24h = parseFloat(pair.volume24h);
+    const absChange = Math.abs(change24h);
+
+    // Analyze pair characteristics
+    let volatilityLevel = 'low';
+    let recommendedTimeframe = '1h';
+    let recommendedStopLoss = '2';
+    let recommendedTakeProfit = '5';
+    let recommendedLeverage = '3';
+    let recommendedDirection = change24h >= 0 ? 'long' : 'short';
+    let riskLevel = 'medium';
+    let suggestedIndicators: any = {};
+
+    // Volatility analysis
+    if (absChange >= 10) {
+      volatilityLevel = 'extreme';
+      recommendedTimeframe = '15m';
+      recommendedStopLoss = '1.5';
+      recommendedTakeProfit = '3';
+      recommendedLeverage = '2';
+      riskLevel = 'high';
+    } else if (absChange >= 5) {
+      volatilityLevel = 'high';
+      recommendedTimeframe = '30m';
+      recommendedStopLoss = '2';
+      recommendedTakeProfit = '4';
+      recommendedLeverage = '3';
+      riskLevel = 'medium';
+    } else if (absChange >= 2) {
+      volatilityLevel = 'medium';
+      recommendedTimeframe = '1h';
+      recommendedStopLoss = '2.5';
+      recommendedTakeProfit = '5';
+      recommendedLeverage = '5';
+      riskLevel = 'low';
+    } else {
+      volatilityLevel = 'low';
+      recommendedTimeframe = '4h';
+      recommendedStopLoss = '3';
+      recommendedTakeProfit = '6';
+      recommendedLeverage = '3';
+      riskLevel = 'low';
+    }
+
+    // Volume-based adjustments
+    if (volume24h > 1000000000) { // High volume pairs
+      recommendedLeverage = Math.min(parseInt(recommendedLeverage) + 1, 10).toString();
+    } else if (volume24h < 100000000) { // Low volume pairs
+      recommendedLeverage = Math.max(parseInt(recommendedLeverage) - 1, 1).toString();
+      recommendedStopLoss = (parseFloat(recommendedStopLoss) + 0.5).toString();
+    }
+
+    // Pair-specific optimizations
+    if (symbol.includes('BTC')) {
+      // Bitcoin pairs - more conservative
+      recommendedStopLoss = (parseFloat(recommendedStopLoss) * 0.8).toFixed(1);
+      recommendedTakeProfit = (parseFloat(recommendedTakeProfit) * 0.9).toFixed(1);
+      suggestedIndicators = {
+        rsi: { enabled: true, period: 14, condition: 'oversold', value: 30 },
+        macd: { enabled: true, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+        ma1: { enabled: true, type: 'ema', period1: 21, condition: 'above', period2: 50 }
+      };
+    } else if (symbol.includes('ETH')) {
+      // Ethereum pairs - moderate settings
+      suggestedIndicators = {
+        rsi: { enabled: true, period: 14, condition: 'overbought', value: 70 },
+        bollinger: { enabled: true, period: 20, stdDev: 2, condition: 'above_upper' },
+        volume: { enabled: true, condition: 'above_average', multiplier: 1.5 }
+      };
+    } else if (symbol.includes('USDT') && !symbol.includes('BTC') && !symbol.includes('ETH')) {
+      // Alt-USDT pairs - more aggressive for opportunities
+      recommendedLeverage = Math.min(parseInt(recommendedLeverage) + 2, 10).toString();
+      recommendedTakeProfit = (parseFloat(recommendedTakeProfit) * 1.2).toFixed(1);
+      suggestedIndicators = {
+        rsi: { enabled: true, period: 7, condition: 'oversold', value: 25 },
+        macd: { enabled: true, fastPeriod: 8, slowPeriod: 21, signalPeriod: 5, condition: 'bullish_crossover' },
+        ma1: { enabled: true, type: 'ema', period1: 9, condition: 'above', period2: 21 }
+      };
+    }
+
+    // Trend-based direction refinement
+    if (change24h > 5) {
+      recommendedDirection = 'long';
+    } else if (change24h < -5) {
+      recommendedDirection = 'short';
+    } else {
+      // For sideways movement, suggest based on overall market sentiment
+      recommendedDirection = Math.random() > 0.5 ? 'long' : 'short';
+    }
+
+    const suggestions = {
+      pair: symbol,
+      analysis: {
+        volatility: volatilityLevel,
+        volume24h: volume24h,
+        change24h: change24h,
+        trend: change24h > 2 ? 'bullish' : change24h < -2 ? 'bearish' : 'sideways'
+      },
+      recommended: {
+        timeframe: recommendedTimeframe,
+        direction: recommendedDirection,
+        stopLoss: recommendedStopLoss,
+        takeProfit: recommendedTakeProfit,
+        leverage: recommendedLeverage,
+        riskLevel: riskLevel
+      },
+      indicators: suggestedIndicators,
+      confidence: Math.min(95, Math.max(60, 75 + (absChange * 2))), // Higher confidence for more volatile pairs
+      reasoning: [
+        `${volatilityLevel.charAt(0).toUpperCase() + volatilityLevel.slice(1)} volatility detected (${absChange.toFixed(2)}% 24h change)`,
+        `${volume24h > 500000000 ? 'High' : volume24h > 100000000 ? 'Medium' : 'Low'} trading volume suggests ${volume24h > 500000000 ? 'strong liquidity' : volume24h > 100000000 ? 'adequate liquidity' : 'careful position sizing'}`,
+        `${change24h > 0 ? 'Positive' : 'Negative'} momentum indicates ${recommendedDirection} bias`,
+        `${recommendedTimeframe} timeframe optimal for ${volatilityLevel} volatility environment`
+      ]
+    };
+
+    setSuggestedSettings(suggestions);
+    setShowSuggestions(true);
+  };
+
+  // Apply suggested settings to current form
+  const applySuggestions = () => {
+    if (!suggestedSettings) return;
+
+    setTimeframe(suggestedSettings.recommended.timeframe);
+    setPositionDirection(suggestedSettings.recommended.direction);
+    setStopLoss(suggestedSettings.recommended.stopLoss);
+    setTakeProfit(suggestedSettings.recommended.takeProfit);
+    setRiskLevel(suggestedSettings.recommended.riskLevel);
+
+    // Apply suggested indicators
+    if (suggestedSettings.indicators) {
+      setIndicators(prev => ({
+        ...prev,
+        ...Object.keys(suggestedSettings.indicators).reduce((acc: any, key: string) => {
+          acc[key] = { ...prev[key as keyof typeof prev], ...suggestedSettings.indicators[key] };
+          return acc;
+        }, {})
+      }));
+    }
+
+    setShowSuggestions(false);
+    alert('Suggested settings applied successfully!');
   };
 
 
@@ -1126,6 +1288,37 @@ export default function BotPage() {
               />
             </div>
 
+            {/* AI Settings Suggestions */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-1">AI Settings Suggestions</h4>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">Get optimized settings for specific trading pairs</p>
+                </div>
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+                  <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Enter pair (e.g., BTCUSDT)" 
+                  value={pairSearch}
+                  onChange={(e) => setPairSearch(e.target.value.toUpperCase())}
+                  className="flex-1"
+                />
+                <Button 
+                  type="button"
+                  onClick={() => generateBotSuggestions(pairSearch)}
+                  disabled={!pairSearch.trim()}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Get AI Suggestions
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">Timeframe</label>
@@ -1592,6 +1785,132 @@ export default function BotPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Suggestions Dialog */}
+      <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              AI Bot Settings Suggestions
+            </DialogTitle>
+            <DialogDescription>
+              Optimized settings for {suggestedSettings?.pair} based on market analysis
+            </DialogDescription>
+          </DialogHeader>
+
+          {suggestedSettings && (
+            <div className="space-y-6 overflow-y-auto max-h-96">
+              {/* Market Analysis */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3">Market Analysis</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">24h Change</p>
+                    <p className={`font-semibold ${suggestedSettings.analysis.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {suggestedSettings.analysis.change24h >= 0 ? '+' : ''}{suggestedSettings.analysis.change24h.toFixed(2)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Volatility</p>
+                    <p className="font-semibold capitalize">{suggestedSettings.analysis.volatility}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Trend</p>
+                    <p className="font-semibold capitalize">{suggestedSettings.analysis.trend}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Confidence</p>
+                    <p className="font-semibold text-blue-600">{suggestedSettings.confidence}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommended Settings */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">Recommended Settings</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Direction</p>
+                    <p className={`font-semibold capitalize ${suggestedSettings.recommended.direction === 'long' ? 'text-green-600' : 'text-red-600'}`}>
+                      {suggestedSettings.recommended.direction}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Timeframe</p>
+                    <p className="font-semibold">{suggestedSettings.recommended.timeframe}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Stop Loss</p>
+                    <p className="font-semibold">{suggestedSettings.recommended.stopLoss}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Take Profit</p>
+                    <p className="font-semibold">{suggestedSettings.recommended.takeProfit}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Risk Level</p>
+                    <p className="font-semibold capitalize">{suggestedSettings.recommended.riskLevel}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Suggested Leverage</p>
+                    <p className="font-semibold">{suggestedSettings.recommended.leverage}x</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Suggested Indicators */}
+              {Object.keys(suggestedSettings.indicators || {}).length > 0 && (
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 p-4 rounded-lg border">
+                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-3">Suggested Technical Indicators</h4>
+                  <div className="space-y-2">
+                    {Object.entries(suggestedSettings.indicators).map(([key, config]: [string, any]) => (
+                      <div key={key} className="flex items-center justify-between p-2 bg-white/50 dark:bg-gray-900/50 rounded">
+                        <span className="font-medium">
+                          {key.toUpperCase()}: {config.condition}
+                          {config.period && ` (${config.period})`}
+                          {config.value && ` = ${config.value}`}
+                        </span>
+                        <Badge variant="secondary" className="text-xs">Enabled</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Reasoning */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-amber-700 dark:text-amber-300 mb-3">AI Analysis & Reasoning</h4>
+                <ul className="space-y-2">
+                  {suggestedSettings.reasoning.map((reason: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button 
+                  onClick={applySuggestions}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Apply All Suggestions
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowSuggestions(false)}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
