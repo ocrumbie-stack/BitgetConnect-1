@@ -661,6 +661,12 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private memStorage: MemStorage;
+
+  constructor() {
+    this.memStorage = new MemStorage();
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -680,46 +686,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {
-    // Implement as needed
-    return undefined;
+    return this.memStorage.getBitgetCredentials(userId);
   }
 
   async saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials> {
-    // Implement as needed
-    throw new Error("Not implemented");
+    return this.memStorage.saveBitgetCredentials(credentials);
   }
 
   async getAllFuturesData(): Promise<FuturesData[]> {
-    // Keep using MemStorage for futures data as it's real-time
-    return [];
+    return this.memStorage.getAllFuturesData();
   }
 
   async updateFuturesData(data: InsertFuturesData[]): Promise<void> {
-    // Keep using MemStorage for futures data as it's real-time
+    return this.memStorage.updateFuturesData(data);
   }
 
   async getFuturesDataBySymbol(symbol: string): Promise<FuturesData | undefined> {
-    // Keep using MemStorage for futures data as it's real-time
-    return undefined;
+    return this.memStorage.getFuturesDataBySymbol(symbol);
   }
 
   async getUserPositions(userId: string): Promise<UserPosition[]> {
-    // Implement as needed
-    return [];
+    return this.memStorage.getUserPositions(userId);
   }
 
   async updateUserPositions(userId: string, positions: InsertUserPosition[]): Promise<void> {
-    // Implement as needed
+    return this.memStorage.updateUserPositions(userId, positions);
   }
 
   async getAccountInfo(userId: string): Promise<AccountInfo | undefined> {
-    // Implement as needed
-    return undefined;
+    return this.memStorage.getAccountInfo(userId);
   }
 
   async updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo> {
-    // Implement as needed
-    throw new Error("Not implemented");
+    return this.memStorage.updateAccountInfo(userId, info);
   }
 
   async getBotStrategies(userId: string): Promise<BotStrategy[]> {
