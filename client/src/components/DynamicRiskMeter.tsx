@@ -61,6 +61,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
   const [riskData, setRiskData] = useState<RiskMetrics | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Fetch real-time market data
   const { data: marketData, isLoading: marketLoading } = useQuery({
@@ -73,6 +74,15 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
   const getAllPairs = () => {
     if (!marketData || !Array.isArray(marketData)) return [];
     return marketData.map((item: any) => item.symbol).sort();
+  };
+
+  // Filter suggestions based on input
+  const getSuggestions = () => {
+    if (!selectedPair.trim()) return [];
+    const allPairs = getAllPairs();
+    return allPairs.filter(pair => 
+      pair.toLowerCase().includes(selectedPair.toLowerCase())
+    ).slice(0, 8);
   };
 
   // Calculate risk metrics based on market data
@@ -202,18 +212,21 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
 
   // Analyze risk for selected pair
   const analyzeRisk = async () => {
-    if (!selectedPair || !marketData) {
-      alert('Please select a trading pair first');
+    const targetSymbol = selectedPair.trim().toUpperCase();
+    
+    if (!targetSymbol || !marketData) {
+      alert('Please enter a valid trading pair (e.g., ETHUSDT, BTCUSDT)');
       return;
     }
 
     setIsAnalyzing(true);
+    setShowSuggestions(false);
     
     // Simulate analysis time
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     try {
-      const metrics = calculateRiskMetrics(selectedPair);
+      const metrics = calculateRiskMetrics(targetSymbol);
       setRiskData(metrics);
       onRiskAnalyzed?.(metrics);
     } catch (error) {
@@ -255,20 +268,61 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
       <CardContent className="space-y-6">
         {/* Pair Selection */}
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <Select value={selectedPair} onValueChange={setSelectedPair}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Select trading pair to analyze..." />
-              </SelectTrigger>
-              <SelectContent>
-                {getAllPairs().map(pair => (
-                  <SelectItem key={pair} value={pair}>{pair}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2 relative">
+            <div className="flex-1 relative">
+              <Input
+                placeholder="Enter trading pair (e.g., BTCUSDT, ETHUSDT)..."
+                value={selectedPair}
+                onChange={(e) => {
+                  setSelectedPair(e.target.value);
+                  setShowSuggestions(e.target.value.length > 0);
+                }}
+                onFocus={() => setShowSuggestions(selectedPair.length > 0)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="pr-10"
+                data-testid="input-risk-pair"
+              />
+              
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && getSuggestions().length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
+                  {getSuggestions().map((pair, index) => {
+                    const pairData = marketData?.find((item: any) => item.symbol === pair);
+                    const price = pairData ? parseFloat(pairData.price).toLocaleString('en-US', { 
+                      minimumFractionDigits: 2, 
+                      maximumFractionDigits: 6 
+                    }) : 'N/A';
+                    const change = pairData ? parseFloat(pairData.change24h || '0') * 100 : 0;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between px-3 py-2 hover:bg-muted cursor-pointer border-b last:border-b-0"
+                        onClick={() => {
+                          setSelectedPair(pair);
+                          setShowSuggestions(false);
+                        }}
+                        data-testid={`suggestion-${pair}`}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">{pair}</span>
+                          <span className="text-xs text-muted-foreground">${price}</span>
+                        </div>
+                        <span className={`text-xs font-medium ${
+                          change > 0 ? 'text-green-500' : change < 0 ? 'text-red-500' : 'text-muted-foreground'
+                        }`}>
+                          {change > 0 ? '+' : ''}{change.toFixed(2)}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
             <Button 
               onClick={analyzeRisk} 
-              disabled={isAnalyzing || !selectedPair}
+              disabled={isAnalyzing || !selectedPair.trim()}
               className="gap-2"
             >
               {isAnalyzing ? (
