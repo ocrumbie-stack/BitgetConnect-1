@@ -106,11 +106,7 @@ export default function Markets() {
 
   // Screener handlers
   const handleScreenerChange = (value: string) => {
-    if (value === 'create-new') {
-      setLocation('/screener-builder');
-    } else {
-      setSelectedScreener(value);
-    }
+    setSelectedScreener(value);
   };
 
   const handleEditScreener = (screenerId: string) => {
@@ -384,38 +380,48 @@ export default function Markets() {
 
             {/* Screener Tab Content */}
             <TabsContent value="screener" className="space-y-4 mt-4">
-              {/* Search */}
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search markets..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  data-testid="input-search-markets"
-                />
+              {/* Search and Create Screener */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search markets..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                    data-testid="input-search-markets"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-muted-foreground">Custom Screeners</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLocation('/create-screener')}
+                    className="flex items-center gap-2"
+                    data-testid="button-create-screener"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Screener
+                  </Button>
+                </div>
               </div>
 
-              {/* Screener Dropdown */}
+              {/* Active Screener Selection */}
               <div className="space-y-2">
                 {selectedScreenerObj && (
                   <div className="text-xs text-muted-foreground">
                     Active: {selectedScreenerObj.name} ({filteredAndSortedData.length} results)
                   </div>
                 )}
-                <div className="w-48">
+                <div className="w-full max-w-md">
                 <Select value={selectedScreener} onValueChange={handleScreenerChange}>
                   <SelectTrigger className="w-full" data-testid="screener-select">
-                    <SelectValue placeholder="Screener" />
+                    <SelectValue placeholder="Select a screener or view all markets" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Markets</SelectItem>
-                    <SelectItem value="create-new">
-                      <div className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create New Screener
-                      </div>
-                    </SelectItem>
                     {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
                       <SelectItem key={screener.id} value={screener.id}>
                         <div className="flex items-center justify-between w-full">
