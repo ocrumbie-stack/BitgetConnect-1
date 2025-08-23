@@ -517,6 +517,65 @@ export default function Markets() {
                 )}
               </div>
 
+              {/* Top Movers Cards */}
+              {filteredAndSortedData && filteredAndSortedData.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Top Gainer */}
+                  {(() => {
+                    const topGainer = filteredAndSortedData
+                      .filter(item => parseFloat(item.change24h || '0') > 0)
+                      .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0];
+                    
+                    return topGainer ? (
+                      <Card className="p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-green-700 dark:text-green-300">Top Gainer</p>
+                            <p className="text-lg font-bold text-green-800 dark:text-green-200">{topGainer.symbol}</p>
+                            <p className="text-sm text-green-600 dark:text-green-400">${parseFloat(topGainer.price || '0').toFixed(4)}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1">
+                              <TrendingUp className="h-4 w-4 text-green-600" />
+                              <span className="text-lg font-bold text-green-600">
+                                +{parseFloat(topGainer.change24h || '0').toFixed(2)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null;
+                  })()}
+
+                  {/* Top Loser */}
+                  {(() => {
+                    const topLoser = filteredAndSortedData
+                      .filter(item => parseFloat(item.change24h || '0') < 0)
+                      .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0];
+                    
+                    return topLoser ? (
+                      <Card className="p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-red-700 dark:text-red-300">Top Loser</p>
+                            <p className="text-lg font-bold text-red-800 dark:text-red-200">{topLoser.symbol}</p>
+                            <p className="text-sm text-red-600 dark:text-red-400">${parseFloat(topLoser.price || '0').toFixed(4)}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1">
+                              <TrendingDown className="h-4 w-4 text-red-600" />
+                              <span className="text-lg font-bold text-red-600">
+                                {parseFloat(topLoser.change24h || '0').toFixed(2)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : null;
+                  })()}
+                </div>
+              )}
+
               {/* Market Overview Cards */}
               {marketStats && !isLoading && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
