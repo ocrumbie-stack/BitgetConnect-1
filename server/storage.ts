@@ -131,6 +131,9 @@ export class MemStorage implements IStorage {
   private strategyPerformance: Map<string, StrategyPerformance>;
   private strategyRecommendations: Map<string, StrategyRecommendation>;
   private marketOpportunities: Map<string, MarketOpportunity>;
+  
+  // Price history for calculating 5-minute changes
+  private priceHistory: Map<string, Array<{ price: number; timestamp: number }>>;
 
   constructor() {
     this.users = new Map();
@@ -148,6 +151,7 @@ export class MemStorage implements IStorage {
     this.strategyPerformance = new Map();
     this.strategyRecommendations = new Map();
     this.marketOpportunities = new Map();
+    this.priceHistory = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -187,9 +191,36 @@ export class MemStorage implements IStorage {
   }
 
   async updateFuturesData(data: InsertFuturesData[]): Promise<void> {
+    const now = Date.now();
+    
     data.forEach(item => {
       const id = randomUUID();
-      const futuresItem: FuturesData = {
+      const currentPrice = parseFloat(item.price);
+      
+      // Store price history for 5-minute change calculation
+      if (!this.priceHistory.has(item.symbol)) {
+        this.priceHistory.set(item.symbol, []);
+      }
+      
+      const history = this.priceHistory.get(item.symbol)!;
+      history.push({ price: currentPrice, timestamp: now });
+      
+      // Keep only last 10 minutes of data (for safety margin)
+      const tenMinutesAgo = now - (10 * 60 * 1000);
+      const filteredHistory = history.filter(h => h.timestamp > tenMinutesAgo);
+      this.priceHistory.set(item.symbol, filteredHistory);
+      
+      // Calculate 5-minute change
+      const fiveMinutesAgo = now - (5 * 60 * 1000);
+      const fiveMinutePrice = filteredHistory.find(h => h.timestamp <= fiveMinutesAgo + 30000); // 30s tolerance
+      
+      let change5m = '0';
+      if (fiveMinutePrice) {
+        const changePercent = ((currentPrice - fiveMinutePrice.price) / fiveMinutePrice.price);
+        change5m = changePercent.toString();
+      }
+      
+      const futuresItem: FuturesData & { change5m?: string } = {
         ...item,
         id,
         change24h: item.change24h || null,
@@ -197,7 +228,9 @@ export class MemStorage implements IStorage {
         fundingRate: item.fundingRate || null,
         openInterest: item.openInterest || null,
         contractType: item.contractType || null,
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        // Add 5-minute change as a custom field
+        change5m: change5m
       };
       this.futuresData.set(item.symbol, futuresItem);
     });
