@@ -20,7 +20,15 @@ import {
   type Alert,
   type InsertAlert,
   type PricePrediction,
-  type InsertPricePrediction
+  type InsertPricePrediction,
+  type UserTradingPreferences,
+  type InsertUserTradingPreferences,
+  type StrategyPerformance,
+  type InsertStrategyPerformance,
+  type StrategyRecommendation,
+  type InsertStrategyRecommendation,
+  type MarketOpportunity,
+  type InsertMarketOpportunity
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -74,6 +82,24 @@ export interface IStorage {
   getPricePredictions(symbol?: string): Promise<PricePrediction[]>;
   updatePricePrediction(id: string, updates: Partial<PricePrediction>): Promise<boolean>;
   deletePricePrediction(id: string): Promise<boolean>;
+
+  // Personalized Strategy Recommender
+  getUserTradingPreferences(userId: string): Promise<UserTradingPreferences | undefined>;
+  createUserTradingPreferences(preferences: InsertUserTradingPreferences): Promise<UserTradingPreferences>;
+  updateUserTradingPreferences(userId: string, preferences: Partial<InsertUserTradingPreferences>): Promise<UserTradingPreferences>;
+  
+  getStrategyPerformance(userId: string, strategyId?: string): Promise<StrategyPerformance[]>;
+  createStrategyPerformance(performance: InsertStrategyPerformance): Promise<StrategyPerformance>;
+  
+  getStrategyRecommendations(userId: string): Promise<StrategyRecommendation[]>;
+  createStrategyRecommendation(recommendation: InsertStrategyRecommendation): Promise<StrategyRecommendation>;
+  updateStrategyRecommendation(id: string, updates: Partial<InsertStrategyRecommendation>): Promise<StrategyRecommendation>;
+  deleteStrategyRecommendation(id: string): Promise<void>;
+  
+  getMarketOpportunities(userId?: string): Promise<MarketOpportunity[]>;
+  createMarketOpportunity(opportunity: InsertMarketOpportunity): Promise<MarketOpportunity>;
+  updateMarketOpportunity(id: string, updates: Partial<InsertMarketOpportunity>): Promise<MarketOpportunity>;
+  deleteMarketOpportunity(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -88,6 +114,10 @@ export class MemStorage implements IStorage {
   private alertSettings: Map<string, AlertSetting>;
   private alerts: Map<string, Alert>;
   private pricePredictions: Map<string, PricePrediction>;
+  private userTradingPreferences: Map<string, UserTradingPreferences>;
+  private strategyPerformance: Map<string, StrategyPerformance>;
+  private strategyRecommendations: Map<string, StrategyRecommendation>;
+  private marketOpportunities: Map<string, MarketOpportunity>;
 
   constructor() {
     this.users = new Map();
@@ -101,6 +131,10 @@ export class MemStorage implements IStorage {
     this.alertSettings = new Map();
     this.alerts = new Map();
     this.pricePredictions = new Map();
+    this.userTradingPreferences = new Map();
+    this.strategyPerformance = new Map();
+    this.strategyRecommendations = new Map();
+    this.marketOpportunities = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -458,6 +492,158 @@ export class MemStorage implements IStorage {
 
   async deletePricePrediction(id: string): Promise<boolean> {
     return this.pricePredictions.delete(id);
+  }
+
+  // Personalized Strategy Recommender Methods
+  async getUserTradingPreferences(userId: string): Promise<UserTradingPreferences | undefined> {
+    return Array.from(this.userTradingPreferences.values()).find(pref => pref.userId === userId);
+  }
+
+  async createUserTradingPreferences(preferences: InsertUserTradingPreferences): Promise<UserTradingPreferences> {
+    const id = randomUUID();
+    const newPreferences: UserTradingPreferences = {
+      id,
+      userId: preferences.userId,
+      riskTolerance: preferences.riskTolerance || 'medium',
+      tradingExperience: preferences.tradingExperience || 'intermediate',
+      availableCapital: preferences.availableCapital || null,
+      preferredTimeframes: preferences.preferredTimeframes || null,
+      tradingStyle: preferences.tradingStyle || 'swing',
+      preferredStrategies: preferences.preferredStrategies || null,
+      maxLeverage: preferences.maxLeverage || null,
+      maxPositionSize: preferences.maxPositionSize || null,
+      stopLossPreference: preferences.stopLossPreference || null,
+      takeProfitPreference: preferences.takeProfitPreference || null,
+      preferredMarkets: preferences.preferredMarkets || null,
+      avoidPatterns: preferences.avoidPatterns || null,
+      tradingHours: preferences.tradingHours || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.userTradingPreferences.set(id, newPreferences);
+    return newPreferences;
+  }
+
+  async updateUserTradingPreferences(userId: string, preferences: Partial<InsertUserTradingPreferences>): Promise<UserTradingPreferences> {
+    const existing = Array.from(this.userTradingPreferences.values()).find(pref => pref.userId === userId);
+    if (!existing) {
+      // Create new preferences if none exist
+      return this.createUserTradingPreferences({ ...preferences, userId } as InsertUserTradingPreferences);
+    }
+    
+    const updated: UserTradingPreferences = {
+      ...existing,
+      ...preferences,
+      updatedAt: new Date(),
+    };
+    this.userTradingPreferences.set(existing.id, updated);
+    return updated;
+  }
+
+  async getStrategyPerformance(userId: string, strategyId?: string): Promise<StrategyPerformance[]> {
+    const performances = Array.from(this.strategyPerformance.values()).filter(perf => perf.userId === userId);
+    if (strategyId) {
+      return performances.filter(perf => perf.strategyId === strategyId);
+    }
+    return performances;
+  }
+
+  async createStrategyPerformance(performance: InsertStrategyPerformance): Promise<StrategyPerformance> {
+    const id = randomUUID();
+    const newPerformance: StrategyPerformance = {
+      id,
+      ...performance,
+      createdAt: new Date(),
+    };
+    this.strategyPerformance.set(id, newPerformance);
+    return newPerformance;
+  }
+
+  async getStrategyRecommendations(userId: string): Promise<StrategyRecommendation[]> {
+    return Array.from(this.strategyRecommendations.values())
+      .filter(rec => rec.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createStrategyRecommendation(recommendation: InsertStrategyRecommendation): Promise<StrategyRecommendation> {
+    const id = randomUUID();
+    const newRecommendation: StrategyRecommendation = {
+      id,
+      ...recommendation,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.strategyRecommendations.set(id, newRecommendation);
+    return newRecommendation;
+  }
+
+  async updateStrategyRecommendation(id: string, updates: Partial<InsertStrategyRecommendation>): Promise<StrategyRecommendation> {
+    const existing = this.strategyRecommendations.get(id);
+    if (!existing) {
+      throw new Error(`Strategy recommendation with id ${id} not found`);
+    }
+    
+    const updated: StrategyRecommendation = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.strategyRecommendations.set(id, updated);
+    return updated;
+  }
+
+  async deleteStrategyRecommendation(id: string): Promise<void> {
+    this.strategyRecommendations.delete(id);
+  }
+
+  async getMarketOpportunities(userId?: string): Promise<MarketOpportunity[]> {
+    const opportunities = Array.from(this.marketOpportunities.values())
+      .filter(opp => opp.isActive && opp.expiresAt > new Date())
+      .sort((a, b) => b.strength - a.strength);
+    
+    if (userId) {
+      // Filter opportunities based on user preferences if userId is provided
+      const userPrefs = await this.getUserTradingPreferences(userId);
+      if (userPrefs) {
+        return opportunities.filter(opp => {
+          return opp.suitableForUsers?.includes(userPrefs.riskTolerance) || 
+                 opp.suitableForUsers?.includes('all');
+        });
+      }
+    }
+    
+    return opportunities;
+  }
+
+  async createMarketOpportunity(opportunity: InsertMarketOpportunity): Promise<MarketOpportunity> {
+    const id = randomUUID();
+    const newOpportunity: MarketOpportunity = {
+      id,
+      ...opportunity,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.marketOpportunities.set(id, newOpportunity);
+    return newOpportunity;
+  }
+
+  async updateMarketOpportunity(id: string, updates: Partial<InsertMarketOpportunity>): Promise<MarketOpportunity> {
+    const existing = this.marketOpportunities.get(id);
+    if (!existing) {
+      throw new Error(`Market opportunity with id ${id} not found`);
+    }
+    
+    const updated: MarketOpportunity = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.marketOpportunities.set(id, updated);
+    return updated;
+  }
+
+  async deleteMarketOpportunity(id: string): Promise<void> {
+    this.marketOpportunities.delete(id);
   }
 }
 

@@ -441,3 +441,204 @@ export const insertPricePredictionSchema = createInsertSchema(pricePredictions).
 
 export type InsertPricePrediction = z.infer<typeof insertPricePredictionSchema>;
 export type PricePrediction = typeof pricePredictions.$inferSelect;
+
+// User Trading Preferences for Personalized Strategy Recommendations
+export const userTradingPreferences = pgTable("user_trading_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  riskTolerance: text("risk_tolerance").notNull().default('medium'), // 'conservative', 'moderate', 'aggressive', 'high_risk'
+  tradingExperience: text("trading_experience").notNull().default('intermediate'), // 'beginner', 'intermediate', 'advanced', 'expert'
+  availableCapital: decimal("available_capital", { precision: 20, scale: 8 }),
+  preferredTimeframes: text("preferred_timeframes").array().default(['4h', '1d']), // ['1m', '5m', '15m', '1h', '4h', '1d', '1w']
+  tradingStyle: text("trading_style").notNull().default('swing'), // 'scalping', 'day_trading', 'swing', 'position'
+  preferredStrategies: text("preferred_strategies").array().default(['momentum', 'trend_following']), // ['momentum', 'mean_reversion', 'breakout', 'trend_following', 'scalping', 'arbitrage']
+  maxLeverage: decimal("max_leverage", { precision: 5, scale: 2 }).default('3.00'),
+  maxPositionSize: decimal("max_position_size", { precision: 5, scale: 2 }).default('10.00'), // percentage
+  stopLossPreference: decimal("stop_loss_preference", { precision: 5, scale: 2 }).default('2.00'), // percentage
+  takeProfitPreference: decimal("take_profit_preference", { precision: 5, scale: 2 }).default('5.00'), // percentage
+  preferredMarkets: text("preferred_markets").array().default(['major_pairs']), // ['major_pairs', 'altcoins', 'defi', 'meme_coins', 'new_listings']
+  avoidPatterns: text("avoid_patterns").array().default([]), // ['high_volatility', 'low_volume', 'new_tokens', 'leveraged_tokens']
+  tradingHours: jsonb("trading_hours").$type<{
+    timezone: string;
+    activeDays: string[]; // ['monday', 'tuesday', etc.]
+    activeHours: { start: string; end: string }[]; // [{ start: '09:00', end: '17:00' }]
+    pauseDuringNews: boolean;
+  }>().default({
+    timezone: 'UTC',
+    activeDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+    activeHours: [{ start: '09:00', end: '17:00' }],
+    pauseDuringNews: false
+  }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Strategy Performance History for ML-based Recommendations
+export const strategyPerformance = pgTable("strategy_performance", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  strategyId: varchar("strategy_id").notNull().references(() => botStrategies.id, { onDelete: 'cascade' }),
+  tradingPair: text("trading_pair").notNull(),
+  timeframe: text("timeframe").notNull(),
+  marketConditions: jsonb("market_conditions").$type<{
+    volatility: 'low' | 'medium' | 'high';
+    trend: 'bullish' | 'bearish' | 'sideways';
+    volume: 'low' | 'medium' | 'high';
+    sentiment: 'bullish' | 'bearish' | 'neutral';
+  }>().notNull(),
+  performance: jsonb("performance").$type<{
+    totalReturn: number;
+    roi: number;
+    winRate: number;
+    avgWin: number;
+    avgLoss: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    profitFactor: number;
+    totalTrades: number;
+    winningTrades: number;
+    losingTrades: number;
+    avgHoldTime: number; // in hours
+    maxConsecutiveWins: number;
+    maxConsecutiveLosses: number;
+  }>().notNull(),
+  duration: integer("duration").notNull(), // in hours
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  isCompleted: boolean("is_completed").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Personalized Strategy Recommendations
+export const strategyRecommendations = pgTable("strategy_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  recommendationType: text("recommendation_type").notNull(), // 'market_opportunity', 'portfolio_rebalance', 'risk_adjustment', 'performance_optimization'
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  confidenceScore: integer("confidence_score").notNull(), // 0-100
+  priority: text("priority").notNull().default('medium'), // 'low', 'medium', 'high', 'critical'
+  strategyConfig: jsonb("strategy_config").$type<{
+    strategyType: string;
+    tradingPairs: string[];
+    timeframes: string[];
+    capitalAllocation: number; // percentage
+    leverage: number;
+    riskManagement: {
+      stopLoss: number;
+      takeProfit: number;
+      maxPositionSize: number;
+    };
+    indicators: {
+      primary: string[];
+      secondary: string[];
+    };
+    entryConditions: Array<{
+      indicator: string;
+      operator: string;
+      value: number;
+      weight: number;
+    }>;
+    exitConditions: Array<{
+      indicator: string;
+      operator: string;
+      value: number;
+      weight: number;
+    }>;
+  }>().notNull(),
+  reasoning: jsonb("reasoning").$type<{
+    marketAnalysis: string[];
+    userProfileMatch: string[];
+    historicalPerformance: string[];
+    riskAssessment: string[];
+    opportunityFactors: string[];
+  }>().notNull(),
+  expectedOutcome: jsonb("expected_outcome").$type<{
+    expectedROI: number;
+    expectedWinRate: number;
+    estimatedDuration: number; // in hours
+    riskLevel: 'low' | 'medium' | 'high';
+    confidenceInterval: { min: number; max: number };
+  }>().notNull(),
+  status: text("status").default('pending'), // 'pending', 'accepted', 'rejected', 'implemented', 'expired'
+  implementedAt: timestamp("implemented_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Market Opportunity Scanner
+export const marketOpportunities = pgTable("market_opportunities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  symbol: text("symbol").notNull(),
+  opportunityType: text("opportunity_type").notNull(), // 'breakout', 'reversal', 'momentum', 'arbitrage', 'volatility', 'news_driven'
+  timeframe: text("timeframe").notNull(),
+  strength: integer("strength").notNull(), // 0-100
+  confidence: integer("confidence").notNull(), // 0-100
+  description: text("description").notNull(),
+  analysis: jsonb("analysis").$type<{
+    technicalFactors: Array<{
+      indicator: string;
+      value: number;
+      signal: 'bullish' | 'bearish' | 'neutral';
+      weight: number;
+    }>;
+    fundamentalFactors: string[];
+    marketContext: {
+      volume: number;
+      volatility: number;
+      trend: string;
+      sentiment: string;
+    };
+    entryZone: {
+      min: number;
+      max: number;
+      optimal: number;
+    };
+    targets: number[];
+    stopLoss: number;
+  }>().notNull(),
+  recommendedStrategies: text("recommended_strategies").array(),
+  suitableForUsers: text("suitable_for_users").array(), // risk tolerance levels
+  expiresAt: timestamp("expires_at").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for new tables
+export const insertUserTradingPreferencesSchema = createInsertSchema(userTradingPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStrategyPerformanceSchema = createInsertSchema(strategyPerformance).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStrategyRecommendationSchema = createInsertSchema(strategyRecommendations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMarketOpportunitySchema = createInsertSchema(marketOpportunities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for new tables
+export type InsertUserTradingPreferences = z.infer<typeof insertUserTradingPreferencesSchema>;
+export type UserTradingPreferences = typeof userTradingPreferences.$inferSelect;
+
+export type InsertStrategyPerformance = z.infer<typeof insertStrategyPerformanceSchema>;
+export type StrategyPerformance = typeof strategyPerformance.$inferSelect;
+
+export type InsertStrategyRecommendation = z.infer<typeof insertStrategyRecommendationSchema>;
+export type StrategyRecommendation = typeof strategyRecommendations.$inferSelect;
+
+export type InsertMarketOpportunity = z.infer<typeof insertMarketOpportunitySchema>;
+export type MarketOpportunity = typeof marketOpportunities.$inferSelect;
