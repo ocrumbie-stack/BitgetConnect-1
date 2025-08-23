@@ -5,6 +5,14 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
+- **August 23, 2025**: Collapsible Market Screeners & Clean Interface Design - COMPLETED ✓
+  - Implemented collapsible Market Screeners section with toggle functionality
+  - Added chevron up/down icons to indicate collapse state
+  - Maintained "Create New Screener" button visibility when collapsed
+  - Removed complex screener dropdown and "Custom Screeners" header per user request
+  - Market Screener tab now contains both screener management AND market overview functionality
+  - Clean interface with search at top, collapsible screener management, market cards, and data table
+  
 - **August 23, 2025**: Dynamic Risk Visualization Meter & AI Scalping Recommendations - COMPLETED ✓
   - Created comprehensive Dynamic Risk Visualization Meter component with real-time risk assessment
   - Implemented color-coded risk indicators (Extreme/High/Medium/Low/Very Low) with visual progress bars
