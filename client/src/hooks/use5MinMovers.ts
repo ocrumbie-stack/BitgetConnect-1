@@ -17,7 +17,7 @@ export interface FiveMinMoversResponse {
 export function use5MinMovers() {
   return useQuery<FiveMinMoversResponse>({
     queryKey: ['/api/futures/5m-movers'],
-    refetchInterval: 30000, // Refetch every 30 seconds
-    staleTime: 25000, // Consider data stale after 25 seconds
+    refetchInterval: 60000, // Refetch every 60 seconds (data only updates every 5 minutes)
+    staleTime: 4 * 60 * 1000, // Consider data stale after 4 minutes
   });
 }

@@ -156,60 +156,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get 5-minute price changes for top movers
+  // Cache for 5-minute movers data
+  let fiveMinMoversCache: {
+    data: any;
+    lastCalculatedInterval: number;
+  } | null = null;
+
+  // Helper function to get current 5-minute interval
+  function getCurrentFiveMinInterval(): number {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    // Calculate which 5-minute interval we're in (0, 5, 10, 15, etc.)
+    const interval = Math.floor(minutes / 5) * 5;
+    // Return timestamp of the start of this interval
+    const intervalStart = new Date(now);
+    intervalStart.setMinutes(interval, 0, 0); // Set to start of interval (seconds = 0, ms = 0)
+    return intervalStart.getTime();
+  }
+
+  // Function to calculate 5-minute movers
+  async function calculate5MinMovers() {
+    if (!bitgetAPI) {
+      throw new Error('Bitget API not configured');
+    }
+
+    console.log('Calculating 5-minute movers...');
+    
+    // Get current tickers first
+    const tickers = await bitgetAPI.getAllFuturesTickers();
+    const topSymbols = tickers
+      .filter(t => parseFloat(t.quoteVolume) > 1000000) // Filter by volume
+      .slice(0, 20); // Limit to top 20 by volume
+
+    const fiveMinMovers: any[] = [];
+
+    // Get 5-minute data for each symbol
+    for (const ticker of topSymbols) {
+      try {
+        const candleData = await bitgetAPI.getCandlestickData(ticker.symbol, '5m', 2);
+        if (candleData.length >= 2) {
+          const current = parseFloat(candleData[0].close);
+          const previous = parseFloat(candleData[1].close);
+          const change5m = ((current - previous) / previous);
+          
+          fiveMinMovers.push({
+            symbol: ticker.symbol,
+            price: ticker.lastPr,
+            change5m: change5m.toString(),
+            volume24h: ticker.quoteVolume,
+            timestamp: Date.now()
+          });
+        }
+      } catch (error) {
+        // Skip this symbol if candlestick data fails
+        console.log(`Skipping ${ticker.symbol} - candlestick data unavailable`);
+      }
+    }
+
+    // Sort and get top gainer/loser
+    const gainers = fiveMinMovers
+      .filter(m => parseFloat(m.change5m) > 0)
+      .sort((a, b) => parseFloat(b.change5m) - parseFloat(a.change5m));
+    
+    const losers = fiveMinMovers
+      .filter(m => parseFloat(m.change5m) < 0)
+      .sort((a, b) => parseFloat(a.change5m) - parseFloat(b.change5m));
+
+    return {
+      topGainer: gainers[0] || null,
+      topLoser: losers[0] || null,
+      allMovers: fiveMinMovers,
+      calculatedAt: new Date().toISOString()
+    };
+  }
+
+  // Get 5-minute price changes for top movers (with caching)
   app.get('/api/futures/5m-movers', async (req, res) => {
     try {
-      if (!bitgetAPI) {
-        return res.status(400).json({ 
-          message: 'Bitget API not configured' 
-        });
-      }
-
-      // Get current tickers first
-      const tickers = await bitgetAPI.getAllFuturesTickers();
-      const topSymbols = tickers
-        .filter(t => parseFloat(t.quoteVolume) > 1000000) // Filter by volume
-        .slice(0, 20); // Limit to top 20 by volume
-
-      const fiveMinMovers: any[] = [];
-
-      // Get 5-minute data for each symbol
-      for (const ticker of topSymbols) {
-        try {
-          const candleData = await bitgetAPI.getCandlestickData(ticker.symbol, '5m', 2);
-          if (candleData.length >= 2) {
-            const current = parseFloat(candleData[0].close);
-            const previous = parseFloat(candleData[1].close);
-            const change5m = ((current - previous) / previous);
-            
-            fiveMinMovers.push({
-              symbol: ticker.symbol,
-              price: ticker.lastPr,
-              change5m: change5m.toString(),
-              volume24h: ticker.quoteVolume,
-              timestamp: Date.now()
-            });
-          }
-        } catch (error) {
-          // Skip this symbol if candlestick data fails
-          console.log(`Skipping ${ticker.symbol} - candlestick data unavailable`);
-        }
-      }
-
-      // Sort and get top gainer/loser
-      const gainers = fiveMinMovers
-        .filter(m => parseFloat(m.change5m) > 0)
-        .sort((a, b) => parseFloat(b.change5m) - parseFloat(a.change5m));
+      const currentInterval = getCurrentFiveMinInterval();
       
-      const losers = fiveMinMovers
-        .filter(m => parseFloat(m.change5m) < 0)
-        .sort((a, b) => parseFloat(a.change5m) - parseFloat(b.change5m));
+      // Check if we need to recalculate (new 5-minute interval)
+      const needsRecalculation = !fiveMinMoversCache || 
+                                fiveMinMoversCache.lastCalculatedInterval !== currentInterval;
+      
+      if (needsRecalculation) {
+        console.log(`Recalculating 5-minute movers for interval: ${new Date(currentInterval).toISOString()}`);
+        
+        try {
+          const newData = await calculate5MinMovers();
+          fiveMinMoversCache = {
+            data: newData,
+            lastCalculatedInterval: currentInterval
+          };
+        } catch (error) {
+          console.error('Error calculating 5-minute movers:', error);
+          // If calculation fails but we have cached data, return it
+          if (fiveMinMoversCache) {
+            console.log('Returning cached data due to calculation error');
+            return res.json(fiveMinMoversCache.data);
+          }
+          throw error;
+        }
+      } else {
+        console.log('Returning cached 5-minute movers data');
+      }
 
-      res.json({
-        topGainer: gainers[0] || null,
-        topLoser: losers[0] || null,
-        allMovers: fiveMinMovers
-      });
+      res.json(fiveMinMoversCache!.data);
       
     } catch (error: any) {
       console.error('Error fetching 5-minute movers:', error);
