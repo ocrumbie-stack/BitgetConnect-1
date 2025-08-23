@@ -5,14 +5,16 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Enhanced bot page user experience with professional visual design
+- **August 23, 2025**: Enhanced bot page user experience with professional visual design and collapsible functionality
   - Added statistics overview cards showing bot counts and performance metrics
-  - Redesigned AI Bots tab with 2-column grid layout and gradient-themed cards  
+  - Redesigned AI Bots tab with 3-column grid layout and gradient-themed cards  
   - Enhanced each bot card with custom icons, gradient backgrounds, and improved visual hierarchy
   - Updated "My Strategies" tab with improved card layout and better empty state design
   - Fixed AI bot settings button functionality with comprehensive configuration dialog
-  - Added hover effects, scaling animations, and professional color-coded badges
-  - Maintained all existing functionality while dramatically improving user experience
+  - Added comprehensive info buttons with detailed strategy explanations for each AI bot
+  - Implemented collapsible AI bot cards with compact collapsed state and detailed expanded view
+  - Added smooth chevron rotation animations and maintained quick deploy access in both states
+  - Optimized space utilization while preserving all functionality and visual appeal
 
 # System Architecture
 
