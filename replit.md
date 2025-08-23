@@ -5,6 +5,14 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
+- **August 23, 2025**: Fixed "Building data..." Issue & Enhanced Trading Pair Navigation - COMPLETED ✓
+  - Fixed Markets page "Top Gainers (5M)" always showing "Building data..." by using available 24h data instead of non-existent 5m data
+  - Changed labels to "Top Gainer" and "Top Loser" to reflect actual data source (24h changes)
+  - Made top mover cards clickable to navigate to Trade page with selected pair
+  - Added proper fallback messages when no gainers/losers are found
+  - Enhanced trading pair navigation throughout app: added Trade buttons to Analyzer page pairs, updated Markets strategy opportunities to navigate to Trade page
+  - Ensured all trading pairs consistently navigate to /trade?pair={symbol} when clicked
+
 - **August 23, 2025**: Unified Auto-Suggest Dropdown Styling - COMPLETED ✓
   - Applied consistent black background with white text to all auto-suggest dropdowns across the app
   - Updated Bot page auto-suggest dropdowns (both "My Strategy" and "AI bots" sections)
