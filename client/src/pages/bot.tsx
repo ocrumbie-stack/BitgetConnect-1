@@ -543,7 +543,7 @@ export default function BotPage() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
                 {
                   id: 'grid',
@@ -651,82 +651,86 @@ export default function BotPage() {
                 const IconComponent = bot.icon;
                 return (
                   <Card key={bot.id} className="hover:shadow-lg transition-all duration-300 hover:scale-102 overflow-hidden">
-                    <div className={`h-2 bg-gradient-to-r ${bot.gradient}`} />
-                    <CardContent className="p-5">
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className={`p-3 rounded-xl bg-gradient-to-r ${bot.gradient}`}>
-                          <IconComponent className="h-6 w-6 text-white" />
+                    <div className={`h-1 bg-gradient-to-r ${bot.gradient}`} />
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className={`p-2 rounded-lg bg-gradient-to-r ${bot.gradient}`}>
+                          <IconComponent className="h-4 w-4 text-white" />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-semibold text-lg mb-1">{bot.name}</h4>
-                              <p className="text-sm text-muted-foreground mb-3">{bot.description}</p>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-base mb-1 truncate">{bot.name}</h4>
+                              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{bot.description}</p>
                             </div>
-                            <Badge variant={bot.risk === 'Low' ? 'secondary' : bot.risk === 'Medium' ? 'outline' : 'destructive'} className="ml-2">
-                              {bot.risk} Risk
+                            <Badge variant={bot.risk === 'Low' ? 'secondary' : bot.risk === 'Medium' ? 'outline' : 'destructive'} className="ml-2 text-xs">
+                              {bot.risk}
                             </Badge>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
-                          <div className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
-                          <div className="text-2xl font-bold text-green-700 dark:text-green-300">{bot.winRate}</div>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-md p-2 text-center">
+                          <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
+                          <div className="text-lg font-bold text-green-700 dark:text-green-300">{bot.winRate}</div>
                         </div>
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
-                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Expected Return</div>
-                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{bot.avgReturn}</div>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-2 text-center">
+                          <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Return</div>
+                          <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{bot.avgReturn}</div>
                         </div>
                       </div>
                       
-                      <div className="mb-4">
-                        <div className="text-sm font-medium mb-2">Key Features:</div>
+                      <div className="mb-3">
                         <div className="flex flex-wrap gap-1">
-                          {bot.features.map((feature, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800">
+                          {bot.features.slice(0, 2).map((feature, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5">
                               {feature}
                             </Badge>
                           ))}
+                          {bot.features.length > 2 && (
+                            <Badge variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5">
+                              +{bot.features.length - 2} more
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <Button 
                           size="sm" 
-                          className={`bg-gradient-to-r ${bot.gradient} hover:opacity-90 text-white flex-1 font-medium`}
+                          className={`bg-gradient-to-r ${bot.gradient} hover:opacity-90 text-white flex-1 font-medium text-xs h-8`}
                           onClick={() => {
                             setSelectedStrategy({ ...bot, isAI: true });
                             setShowRunDialog(true);
                           }}
                         >
-                          <Play className="h-4 w-4 mr-2" />
-                          Deploy Bot
+                          <Play className="h-3 w-3 mr-1" />
+                          Deploy
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="px-3"
+                          className="px-2 h-8"
                           onClick={() => {
                             setSelectedBotInfo(bot);
                             setShowBotInfo(true);
                           }}
                           data-testid={`button-info-${bot.id}`}
                         >
-                          <Info className="h-4 w-4" />
+                          <Info className="h-3 w-3" />
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="px-3"
+                          className="px-2 h-8"
                           onClick={() => {
                             setSelectedBot(bot);
                             setShowBotSettings(true);
                           }}
                           data-testid={`button-settings-${bot.id}`}
                         >
-                          <Settings className="h-4 w-4" />
+                          <Settings className="h-3 w-3" />
                         </Button>
                       </div>
                     </CardContent>
