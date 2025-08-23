@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 
-export default function Markets() {
+export function Markets() {
   const { data, isLoading } = useBitgetData();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
