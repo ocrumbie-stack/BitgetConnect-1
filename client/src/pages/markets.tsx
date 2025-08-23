@@ -402,8 +402,7 @@ export default function Markets() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-muted-foreground">Custom Screeners</h3>
+                <div className="flex items-center justify-end">
                   <Button
                     variant="outline"
                     size="sm"
@@ -414,68 +413,6 @@ export default function Markets() {
                     <Plus className="h-4 w-4" />
                     Create Screener
                   </Button>
-                </div>
-              </div>
-
-              {/* Active Screener Selection */}
-              <div className="space-y-2">
-                {selectedScreenerObj && (
-                  <div className="text-xs text-muted-foreground">
-                    Active: {selectedScreenerObj.name} ({filteredAndSortedData.length} results)
-                  </div>
-                )}
-                <div className="w-full max-w-md">
-                <Select value={selectedScreener} onValueChange={handleScreenerChange}>
-                  <SelectTrigger className="w-full" data-testid="screener-select">
-                    <SelectValue placeholder="Select a screener or view all markets" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Markets</SelectItem>
-                    {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
-                      <SelectItem key={screener.id} value={screener.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{screener.name}</span>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0 ml-2"
-                                onClick={(e) => e.stopPropagation()}
-                                data-testid={`screener-menu-${screener.id}`}
-                              >
-                                <MoreVertical className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditScreener(screener.id);
-                                }}
-                                data-testid={`edit-screener-${screener.id}`}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteScreener(screener.id);
-                                }}
-                                className="text-red-600"
-                                data-testid={`delete-screener-${screener.id}`}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 </div>
               </div>
               
