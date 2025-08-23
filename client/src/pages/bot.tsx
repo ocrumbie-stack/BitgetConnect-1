@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 
 export default function BotPage() {
@@ -453,6 +453,75 @@ export default function BotPage() {
         </div>
       </div>
 
+      {/* Bot Statistics Overview */}
+      <div className="p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500 rounded-lg">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    {(userStrategies as any[]).length}
+                  </div>
+                  <div className="text-xs text-blue-600 dark:text-blue-400">My Strategies</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-500 rounded-lg">
+                  <Activity className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                    {(activeExecutions as any[]).length}
+                  </div>
+                  <div className="text-xs text-green-600 dark:text-green-400">Active Bots</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500 rounded-lg">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                    6
+                  </div>
+                  <div className="text-xs text-purple-600 dark:text-purple-400">AI Bots</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <TrendingUp className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                    78%
+                  </div>
+                  <div className="text-xs text-orange-600 dark:text-orange-400">Avg Win Rate</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -465,9 +534,12 @@ export default function BotPage() {
           <TabsContent value="ai" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">AI Trading Bots</h3>
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                6 Professional Bots Available
+              </Badge>
             </div>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 {
                   id: 'grid',
@@ -478,6 +550,8 @@ export default function BotPage() {
                   features: ['Auto-grid adjustment', 'Volume-based spacing', 'Profit protection'],
                   winRate: '78%',
                   avgReturn: '15-25%/month',
+                  icon: BarChart3,
+                  gradient: 'from-blue-500 to-cyan-500',
                 },
                 {
                   id: 'dca_smart',
@@ -488,6 +562,8 @@ export default function BotPage() {
                   features: ['Market sentiment analysis', 'Dynamic entry timing', 'Risk management'],
                   winRate: '85%',
                   avgReturn: '8-15%/month',
+                  icon: TrendingUp,
+                  gradient: 'from-green-500 to-emerald-500',
                 },
                 {
                   id: 'momentum',
@@ -498,6 +574,8 @@ export default function BotPage() {
                   features: ['Real-time sentiment', '50+ indicators', 'Auto-scaling'],
                   winRate: '72%',
                   avgReturn: '25-50%/month',
+                  icon: Zap,
+                  gradient: 'from-orange-500 to-red-500',
                 },
                 {
                   id: 'arbitrage',
@@ -508,6 +586,8 @@ export default function BotPage() {
                   features: ['Multi-exchange monitoring', 'Instant execution', 'Low risk'],
                   winRate: '92%',
                   avgReturn: '5-12%/month',
+                  icon: Target,
+                  gradient: 'from-indigo-500 to-purple-500',
                 },
                 {
                   id: 'ai_trend',
@@ -518,6 +598,8 @@ export default function BotPage() {
                   features: ['Neural networks', 'Pattern recognition', 'Adaptive strategies'],
                   winRate: '81%',
                   avgReturn: '18-35%/month',
+                  icon: Trend,
+                  gradient: 'from-purple-500 to-pink-500',
                 },
                 {
                   id: 'volatility',
@@ -528,149 +610,181 @@ export default function BotPage() {
                   features: ['Volatility prediction', 'Dynamic hedging', 'Options strategies'],
                   winRate: '76%',
                   avgReturn: '30-45%/month',
+                  icon: Activity,
+                  gradient: 'from-pink-500 to-rose-500',
                 }
-              ].map((bot) => (
-                <Card key={bot.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-foreground">{bot.name}</h4>
-                          <Badge variant={bot.risk === 'Low' ? 'secondary' : bot.risk === 'Medium' ? 'outline' : 'destructive'}>
-                            {bot.risk} Risk
-                          </Badge>
+              ].map((bot) => {
+                const IconComponent = bot.icon;
+                return (
+                  <Card key={bot.id} className="hover:shadow-lg transition-all duration-300 hover:scale-102 overflow-hidden">
+                    <div className={`h-2 bg-gradient-to-r ${bot.gradient}`} />
+                    <CardContent className="p-5">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className={`p-3 rounded-xl bg-gradient-to-r ${bot.gradient}`}>
+                          <IconComponent className="h-6 w-6 text-white" />
                         </div>
-                        <p className="text-sm text-muted-foreground mb-3">{bot.description}</p>
-                        
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div>
-                            <div className="text-sm font-medium text-green-600 dark:text-green-400">Win Rate</div>
-                            <div className="text-lg font-bold">{bot.winRate}</div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-blue-600 dark:text-blue-400">Expected Return</div>
-                            <div className="text-lg font-bold">{bot.avgReturn}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-3">
-                          <div className="text-sm font-medium mb-1">Key Features:</div>
-                          <div className="flex flex-wrap gap-1">
-                            {bot.features.map((feature, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {feature}
-                              </Badge>
-                            ))}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-semibold text-lg mb-1">{bot.name}</h4>
+                              <p className="text-sm text-muted-foreground mb-3">{bot.description}</p>
+                            </div>
+                            <Badge variant={bot.risk === 'Low' ? 'secondary' : bot.risk === 'Medium' ? 'outline' : 'destructive'} className="ml-2">
+                              {bot.risk} Risk
+                            </Badge>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="bg-green-600 hover:bg-green-700 flex-1"
-                        onClick={() => {
-                          // For AI bots, we'll show a simplified run dialog
-                          setSelectedStrategy({ ...bot, isAI: true });
-                          setShowRunDialog(true);
-                        }}
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        Deploy Bot
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                          <div className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
+                          <div className="text-2xl font-bold text-green-700 dark:text-green-300">{bot.winRate}</div>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                          <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Expected Return</div>
+                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{bot.avgReturn}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <div className="text-sm font-medium mb-2">Key Features:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {bot.features.map((feature, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          className={`bg-gradient-to-r ${bot.gradient} hover:opacity-90 text-white flex-1 font-medium`}
+                          onClick={() => {
+                            setSelectedStrategy({ ...bot, isAI: true });
+                            setShowRunDialog(true);
+                          }}
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Deploy Bot
+                        </Button>
+                        <Button size="sm" variant="outline" className="px-3">
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
           {/* Strategies Tab */}
           <TabsContent value="strategies" className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Trading Strategies</h3>
-              <Button onClick={() => setShowCreateForm(true)}>
-                <Plus className="h-4 w-4 mr-1" />
+              <h3 className="text-lg font-semibold">My Trading Strategies</h3>
+              <Button onClick={() => setShowCreateForm(true)} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                <Plus className="h-4 w-4 mr-2" />
                 Create Strategy
               </Button>
             </div>
 
             {strategiesLoading ? (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1, 2, 3].map(i => (
-                  <Card key={i}>
+                  <Card key={i} className="h-40">
                     <CardContent className="p-4">
                       <div className="animate-pulse space-y-3">
                         <div className="h-4 bg-muted rounded w-1/3"></div>
                         <div className="h-3 bg-muted rounded w-2/3"></div>
+                        <div className="h-3 bg-muted rounded w-1/2"></div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : (userStrategies as any[]).length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No strategies created yet</p>
-                  <Button onClick={() => setShowCreateForm(true)} className="mt-3">
-                    Create Your First Strategy
+              <Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
+                <CardContent className="p-8 text-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <Bot className="h-10 w-10 text-blue-500" />
+                  </div>
+                  <h4 className="font-semibold mb-2">Create Your First Strategy</h4>
+                  <p className="text-muted-foreground mb-4">Build custom trading strategies with technical indicators and risk management</p>
+                  <Button onClick={() => setShowCreateForm(true)} className="bg-gradient-to-r from-blue-500 to-purple-500">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Get Started
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(userStrategies as any[]).map((strategy: any) => (
-                  <Card key={strategy.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="font-medium mb-1">{strategy.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">
+                  <Card key={strategy.id} className="hover:shadow-lg transition-all duration-300 hover:scale-102">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                              <Settings className="h-4 w-4 text-white" />
+                            </div>
+                            <h4 className="font-semibold text-lg">{strategy.name}</h4>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">
                             {strategy.description}
                           </p>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" className={
-                              strategy.config?.positionDirection === 'long' 
-                                ? 'border-green-500 text-green-600' 
-                                : 'border-red-500 text-red-600'
-                            }>
-                              {strategy.config?.positionDirection === 'long' ? (
-                                <><TrendingUp className="h-3 w-3 mr-1" />Long</>
-                              ) : (
-                                <><TrendingDown className="h-3 w-3 mr-1" />Short</>
-                              )}
-                            </Badge>
-                            <Badge variant="secondary">{strategy.config?.timeframe}</Badge>
-                            <Badge variant="outline">{strategy.riskLevel} Risk</Badge>
-                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button 
-                            size="sm" 
-                            onClick={() => {
-                              setSelectedStrategy(strategy);
-                              setShowRunDialog(true);
-                            }}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Play className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDeleteStrategy(strategy.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Badge variant="outline" className={
+                          strategy.config?.positionDirection === 'long' 
+                            ? 'border-green-500 text-green-600 bg-green-50 dark:bg-green-900/20' 
+                            : 'border-red-500 text-red-600 bg-red-50 dark:bg-red-900/20'
+                        }>
+                          {strategy.config?.positionDirection === 'long' ? (
+                            <><TrendingUp className="h-3 w-3 mr-1" />Long Position</>
+                          ) : (
+                            <><TrendingDown className="h-3 w-3 mr-1" />Short Position</>
+                          )}
+                        </Badge>
+                        <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                          {strategy.config?.timeframe}
+                        </Badge>
+                        <Badge variant="outline" className={
+                          strategy.riskLevel === 'low' ? 'border-green-300 text-green-600' :
+                          strategy.riskLevel === 'medium' ? 'border-yellow-300 text-yellow-600' :
+                          'border-red-300 text-red-600'
+                        }>
+                          {strategy.riskLevel} Risk
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedStrategy(strategy);
+                            setShowRunDialog(true);
+                          }}
+                          className="bg-green-600 hover:bg-green-700 flex-1"
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Deploy
+                        </Button>
+                        <Button size="sm" variant="outline" className="px-3">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDeleteStrategy(strategy.id)}
+                          className="px-3 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
