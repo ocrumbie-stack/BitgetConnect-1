@@ -619,18 +619,18 @@ export function Home() {
           {/* Market Overview Tab - Main Focus */}
           <TabsContent value="overview" className="space-y-6 mt-4 overflow-x-hidden">
             {/* Market Statistics Cards */}
-            <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-2 gap-3 w-full">
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-white" />
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-blue-500 rounded-lg">
+                      <DollarSign className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300" data-testid="total-volume">
+                      <div className="text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="total-volume">
                         {isLoading ? '...' : formatVolume(totalVolume)}
                       </div>
-                      <div className="text-sm text-blue-600 dark:text-blue-400">Total Volume (24h)</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">Total Volume (24h)</div>
                     </div>
                   </div>
                 </CardContent>
@@ -640,22 +640,22 @@ export function Home() {
                 ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
                 : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
               }`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${avgChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`}>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1.5 rounded-lg ${avgChange >= 0 ? 'bg-green-500' : 'bg-red-500'}`}>
                       {avgChange >= 0 ? 
-                        <TrendingUp className="h-5 w-5 text-white" /> : 
-                        <TrendingDown className="h-5 w-5 text-white" />
+                        <TrendingUp className="h-4 w-4 text-white" /> : 
+                        <TrendingDown className="h-4 w-4 text-white" />
                       }
                     </div>
                     <div>
-                      <div className={`text-2xl font-bold ${avgChange >= 0 
+                      <div className={`text-lg font-bold ${avgChange >= 0 
                         ? 'text-green-700 dark:text-green-300' 
                         : 'text-red-700 dark:text-red-300'
                       }`} data-testid="avg-change">
                         {isLoading ? '...' : formatChange(avgChange.toString())}
                       </div>
-                      <div className={`text-sm ${avgChange >= 0 
+                      <div className={`text-xs ${avgChange >= 0 
                         ? 'text-green-600 dark:text-green-400' 
                         : 'text-red-600 dark:text-red-400'
                       }`}>Market Average (24h)</div>
@@ -667,18 +667,18 @@ export function Home() {
 
             {/* Market Sentiment Visualization */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
                   Market Sentiment Analysis
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-lg font-bold capitalize flex items-center gap-2">
-                    {marketTrend === 'bullish' && <TrendingUp className="h-5 w-5 text-green-500" />}
-                    {marketTrend === 'bearish' && <TrendingDown className="h-5 w-5 text-red-500" />}
-                    {marketTrend === 'neutral' && <Activity className="h-5 w-5 text-yellow-500" />}
+              <CardContent className="space-y-3 pt-0">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-base font-bold capitalize flex items-center gap-2">
+                    {marketTrend === 'bullish' && <TrendingUp className="h-4 w-4 text-green-500" />}
+                    {marketTrend === 'bearish' && <TrendingDown className="h-4 w-4 text-red-500" />}
+                    {marketTrend === 'neutral' && <Activity className="h-4 w-4 text-yellow-500" />}
                     <span className={`${
                       marketTrend === 'bullish' ? 'text-green-500' : 
                       marketTrend === 'bearish' ? 'text-red-500' : 'text-yellow-500'
@@ -692,7 +692,7 @@ export function Home() {
                 </div>
 
                 {/* Sentiment Progress Bars */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-green-500 font-medium">Bullish Pairs</span>
@@ -906,15 +906,15 @@ export function Home() {
             </Card>
 
             {/* Top Gainers & Losers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-green-600">
+                  <CardTitle className="text-base flex items-center gap-2 text-green-600">
                     <TrendingUp className="h-4 w-4" />
                     Top Gainers (24h)
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-2 pt-0">
                   {topGainers.length > 0 ? (
                     topGainers.map((pair, index) => (
                       <div 
@@ -963,12 +963,12 @@ export function Home() {
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                  <CardTitle className="text-base flex items-center gap-2 text-red-600">
                     <TrendingDown className="h-4 w-4" />
                     Top Losers (24h)
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-2 pt-0">
                   {topLosers.length > 0 ? (
                     topLosers.map((pair, index) => (
                       <div 
@@ -1018,23 +1018,23 @@ export function Home() {
 
             {/* Volume Surge */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Volume2 className="h-5 w-5 text-purple-500" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Volume2 className="h-4 w-4 text-purple-500" />
                   Volume Surge
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2">
                   {volumeSurgePairs.map((pair, index) => (
                     <div 
                       key={pair.symbol} 
-                      className="flex items-center justify-between p-3 rounded border hover:bg-accent/50 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-2 rounded border hover:bg-accent/50 transition-colors cursor-pointer"
                       onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
                       data-testid={`volume-surge-${pair.symbol}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                           {index + 1}
                         </div>
                         <div>
@@ -1072,12 +1072,12 @@ export function Home() {
             </Card>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <Link href="/trade" data-testid="button-start-trading">
                 <Card className="cursor-pointer hover:bg-accent transition-colors bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
-                  <CardContent className="p-4 text-center">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                    <div className="font-medium">Start Trading</div>
+                  <CardContent className="p-3 text-center">
+                    <BarChart3 className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                    <div className="font-medium text-sm">Start Trading</div>
                     <div className="text-xs text-purple-600 dark:text-purple-400">Open positions</div>
                   </CardContent>
                 </Card>
@@ -1085,9 +1085,9 @@ export function Home() {
 
               <Link href="/analyzer" data-testid="button-analyze-pairs">
                 <Card className="cursor-pointer hover:bg-accent transition-colors bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
-                  <CardContent className="p-4 text-center">
-                    <Brain className="h-8 w-8 mx-auto mb-2 text-orange-600" />
-                    <div className="font-medium">Analyze Pairs</div>
+                  <CardContent className="p-3 text-center">
+                    <Brain className="h-6 w-6 mx-auto mb-2 text-orange-600" />
+                    <div className="font-medium text-sm">Analyze Pairs</div>
                     <div className="text-xs text-orange-600 dark:text-orange-400">Technical analysis</div>
                   </CardContent>
                 </Card>
