@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrendingUp, TrendingDown, Target, AlertTriangle, Activity, BarChart3, Search, Brain, ArrowUp, ArrowDown, Minus, Gauge } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { PricePredictionMeter } from '@/components/PricePredictionMeter';
+import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
 
 
 interface TechnicalAnalysis {
@@ -228,6 +229,13 @@ export function Analyzer() {
         <PricePredictionMeter 
           onPredictionGenerated={(prediction) => {
             console.log('Analyzer prediction generated:', prediction);
+          }}
+        />
+
+        {/* Dynamic Risk Visualization Meter */}
+        <DynamicRiskMeter 
+          onRiskAnalyzed={(risk) => {
+            console.log('Risk analysis completed:', risk);
           }}
         />
 
