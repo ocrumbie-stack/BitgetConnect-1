@@ -458,7 +458,7 @@ export function Markets() {
                   </div>
                   <div className="text-right">
                     <Badge variant="default" className="bg-green-500 text-white">
-                      {formatChange(marketStats.topGainer.change24h)}
+                      {formatChange(marketStats.topGainer.change24h || '0')}
                     </Badge>
                     <div className="text-xs text-muted-foreground mt-1">
                       Vol: {formatNumber(parseFloat(marketStats.topGainer.volume24h || '0'))}
@@ -486,7 +486,7 @@ export function Markets() {
                   </div>
                   <div className="text-right">
                     <Badge variant="destructive">
-                      {formatChange(marketStats.topLoser.change24h)}
+                      {formatChange(marketStats.topLoser.change24h || '0')}
                     </Badge>
                     <div className="text-xs text-muted-foreground mt-1">
                       Vol: {formatNumber(parseFloat(marketStats.topLoser.volume24h || '0'))}
@@ -519,7 +519,7 @@ export function Markets() {
           setSelectedRiskPair(null);
         }}
         onNavigateToAnalyzer={() => {
-          setLocation('/analyzer');
+          setLocation(`/analyzer?pair=${selectedRiskPair}&autoFill=true`);
           setSelectedRiskPair(null);
         }}
       />

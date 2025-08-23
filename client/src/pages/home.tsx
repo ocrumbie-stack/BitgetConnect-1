@@ -1111,7 +1111,7 @@ export function Home() {
             setSelectedRiskPair(null);
           }}
           onNavigateToAnalyzer={() => {
-            setLocation('/analyzer');
+            setLocation(`/analyzer?pair=${selectedRiskPair}&autoFill=true`);
             setSelectedRiskPair(null);
           }}
         />
