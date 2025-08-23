@@ -1546,21 +1546,21 @@ export default function BotPage() {
                   
                   {/* Auto-suggest dropdown */}
                   {showAutoSuggest && filteredPairs.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                       {filteredPairs.map((pair: any, index: number) => (
                         <div
                           key={pair.symbol}
                           onClick={() => selectPair(pair)}
-                          className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors"
+                          className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100">
+                            <div className="font-semibold text-white">
                               {pair.symbol}
                             </div>
                             <div className={`text-sm font-semibold ${
                               parseFloat(pair.change24h) >= 0 
-                                ? 'text-green-600 dark:text-green-400' 
-                                : 'text-red-500 dark:text-red-400'
+                                ? 'text-green-400' 
+                                : 'text-red-400'
                             }`}>
                               {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
                             </div>
@@ -2345,7 +2345,7 @@ export default function BotPage() {
               
               {/* Auto-suggest dropdown */}
               {showAutoSuggest && filteredPairs.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   {filteredPairs.map((pair: any, index: number) => (
                     <div
                       key={pair.symbol}
@@ -2354,16 +2354,16 @@ export default function BotPage() {
                         setTradingPair(pair.symbol);
                         setShowAutoSuggest(false);
                       }}
-                      className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors"
+                      className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                        <div className="font-semibold text-white">
                           {pair.symbol}
                         </div>
                         <div className={`text-sm font-semibold ${
                           parseFloat(pair.change24h) >= 0 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-red-500 dark:text-red-400'
+                            ? 'text-green-400' 
+                            : 'text-red-400'
                         }`}>
                           {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
                         </div>
