@@ -115,168 +115,164 @@ export function Trade() {
         </div>
       </div>
 
-      {/* Main Trading Interface */}
-      <div className="p-4 space-y-4">
-        {/* Trading Cards Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Order Book Card */}
-          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
-            <div className="p-3">
-              <h3 className="font-medium mb-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <BarChart3 className="h-3.5 w-3.5" />
-                Order Book
-              </h3>
-              
-              {/* Order Book Header */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-1">
-                <span>Price</span>
-                <span>Size</span>
-              </div>
-
-              {/* Asks (Red) */}
-              <div className="space-y-0 mb-1">
-                {orderBook.asks.slice(0, 4).map((ask, index) => (
-                  <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
-                    <span className="text-red-400/80 text-xs">{ask.price}</span>
-                    <span className="text-muted-foreground/60 text-xs">{ask.quantity}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Current Price */}
-              <div className="flex items-center justify-center py-1.5 bg-muted/10 mb-1">
-                <div className="text-sm font-medium text-foreground">{currentPrice}</div>
-                <TrendingUp className="h-3 w-3 ml-1 text-green-400/60" />
-              </div>
-
-              {/* Bids (Green) */}
-              <div className="space-y-0">
-                {orderBook.bids.slice(0, 4).map((bid, index) => (
-                  <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
-                    <span className="text-green-400/80 text-xs">{bid.price}</span>
-                    <span className="text-muted-foreground/60 text-xs">{bid.quantity}</span>
-                  </div>
-                ))}
-              </div>
+      {/* Main Trading Interface - Horizontal Layout */}
+      <div className="flex h-full">
+        {/* Left Side - Order Book */}
+        <div className="w-80 border-r border-border">
+          <div className="p-3">
+            <h3 className="font-medium mb-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Order Book
+            </h3>
+            
+            {/* Order Book Header */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-1">
+              <span>Price</span>
+              <span>Size</span>
             </div>
-          </div>
 
-          {/* Price Chart Placeholder */}
-          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
-            <div className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Price Chart
-              </h3>
-              <div className="h-64 bg-muted/20 rounded-md flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <TrendingUp className="h-8 w-8 mx-auto mb-2" />
-                  <p>Chart will be implemented</p>
-                  <p className="text-xs">Real-time price data available</p>
+            {/* Asks (Red) */}
+            <div className="space-y-0 mb-1">
+              {orderBook.asks.slice(0, 4).map((ask, index) => (
+                <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                  <span className="text-red-400/80 text-xs">{ask.price}</span>
+                  <span className="text-muted-foreground/60 text-xs">{ask.quantity}</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Trading Form Card */}
-          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
-            <div className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Quick Trade
-              </h3>
-
-              {/* Buy/Sell Tabs */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <button className="py-2 px-4 bg-green-500/10 border border-green-500/20 rounded-md text-green-500 font-medium hover:bg-green-500/20 transition-colors">
-                  Buy / Long
-                </button>
-                <button className="py-2 px-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 font-medium hover:bg-red-500/20 transition-colors">
-                  Sell / Short
-                </button>
-              </div>
-
-              {/* Trading Form */}
-              <div className="space-y-4">
-            {/* Order Type Selector */}
-            <div className="relative">
-              <button className="w-full flex items-center justify-between p-3 bg-muted rounded text-left">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                  <span>Market</span>
-                </div>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Price Input (for limit orders) */}
-            <div>
-              <Input
-                placeholder="Fill at market price"
-                className="bg-muted border-border text-foreground placeholder-muted-foreground"
-                disabled
-              />
-            </div>
-
-            {/* Cost Input */}
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Cost (USDT)</div>
-              <div className="relative">
-                <Input
-                  placeholder="25%"
-                  className="bg-muted border-border text-foreground"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
-                  ≈0.00 / 0.00 BTC
-                </div>
-              </div>
-            </div>
-
-            {/* Percentage Buttons */}
-            <div className="flex gap-2">
-              {['25%', '50%', '75%', '100%'].map((percent) => (
-                <Button
-                  key={percent}
-                  variant="outline"
-                  size="sm"
-                  className={`flex-1 border-gray-700 text-gray-400 hover:bg-gray-800 ${
-                    percent === '25%' ? 'bg-gray-800 text-white' : ''
-                  }`}
-                  onClick={() => {
-                    // Mock calculation based on percentage
-                    const mockBalance = 1000;
-                    const percentage = parseFloat(percent) / 100;
-                    setAmount((mockBalance * percentage).toString());
-                  }}
-                >
-                  {percent}
-                </Button>
               ))}
             </div>
 
-            {/* TP/SL Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch />
-              <span className="text-sm text-gray-400">TP/SL</span>
+            {/* Current Price */}
+            <div className="flex items-center justify-center py-1.5 bg-muted/10 mb-1">
+              <div className="text-sm font-medium text-foreground">{currentPrice}</div>
+              <TrendingUp className="h-3 w-3 ml-1 text-green-400/60" />
             </div>
 
-            {/* Long Button */}
-            <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium py-4 flex flex-col">
-              <span>Open long</span>
-              <span className="text-xs opacity-70">0.00 USDT</span>
-            </Button>
-
-            {/* Short Button */}
-            <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
-              <span>Open short</span>
-              <span className="text-xs opacity-70">0.00 USDT</span>
-            </Button>
+            {/* Bids (Green) */}
+            <div className="space-y-0">
+              {orderBook.bids.slice(0, 4).map((bid, index) => (
+                <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                  <span className="text-green-400/80 text-xs">{bid.price}</span>
+                  <span className="text-muted-foreground/60 text-xs">{bid.quantity}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
+        {/* Middle - Chart Area */}
+        <div className="flex-1 border-r border-border">
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Price Chart
+            </h3>
+            <div className="h-96 bg-muted/20 rounded-md flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+                <p>Chart will be implemented</p>
+                <p className="text-xs">Real-time price data available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Trading Form */}
+        <div className="w-80">
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Quick Trade
+            </h3>
+
+            {/* Buy/Sell Tabs */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button className="py-2 px-4 bg-green-500/10 border border-green-500/20 rounded-md text-green-500 font-medium hover:bg-green-500/20 transition-colors">
+                Buy / Long
+              </button>
+              <button className="py-2 px-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 font-medium hover:bg-red-500/20 transition-colors">
+                Sell / Short
+              </button>
+            </div>
+
+            {/* Trading Form */}
+            <div className="space-y-4">
+              {/* Order Type Selector */}
+              <div className="relative">
+                <button className="w-full flex items-center justify-between p-3 bg-muted rounded text-left">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    <span>Market</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Price Input (for limit orders) */}
+              <div>
+                <Input
+                  placeholder="Fill at market price"
+                  className="bg-muted border-border text-foreground placeholder-muted-foreground"
+                  disabled
+                />
+              </div>
+
+              {/* Cost Input */}
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Cost (USDT)</div>
+                <div className="relative">
+                  <Input
+                    placeholder="25%"
+                    className="bg-muted border-border text-foreground"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                    ≈0.00 / 0.00 BTC
+                  </div>
+                </div>
+              </div>
+
+              {/* Percentage Buttons */}
+              <div className="flex gap-2">
+                {['25%', '50%', '75%', '100%'].map((percent) => (
+                  <Button
+                    key={percent}
+                    variant="outline"
+                    size="sm"
+                    className={`flex-1 border-border text-muted-foreground hover:bg-muted ${
+                      percent === '25%' ? 'bg-muted text-foreground' : ''
+                    }`}
+                    onClick={() => {
+                      // Mock calculation based on percentage
+                      const mockBalance = 1000;
+                      const percentage = parseFloat(percent) / 100;
+                      setAmount((mockBalance * percentage).toString());
+                    }}
+                  >
+                    {percent}
+                  </Button>
+                ))}
+              </div>
+
+              {/* TP/SL Toggle */}
+              <div className="flex items-center gap-2">
+                <Switch />
+                <span className="text-sm text-muted-foreground">TP/SL</span>
+              </div>
+
+              {/* Long Button */}
+              <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-4 flex flex-col">
+                <span>Open long</span>
+                <span className="text-xs opacity-70">0.00 USDT</span>
+              </Button>
+
+              {/* Short Button */}
+              <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
+                <span>Open short</span>
+                <span className="text-xs opacity-70">0.00 USDT</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
