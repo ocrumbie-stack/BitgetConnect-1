@@ -45,6 +45,16 @@ export function DynamicRiskMeter({
     calculateRiskMetrics();
   }, [symbol, price, change24h, volume24h]);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (onClose) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [onClose]);
+
   const calculateRiskMetrics = () => {
     const priceNum = parseFloat(price);
     const changeNum = Math.abs(parseFloat(change24h || '0'));
