@@ -256,18 +256,18 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-6 w-6" />
-          Dynamic Risk Visualization Meter
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Shield className="h-4 w-4 text-blue-500" />
+          Dynamic Risk Visualizer
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Comprehensive risk analysis with real-time market data integration
         </p>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Pair Selection */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex gap-2 relative">
             <div className="flex-1 relative">
               <Input
@@ -323,16 +323,16 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
             <Button 
               onClick={analyzeRisk} 
               disabled={isAnalyzing || !selectedPair.trim()}
-              className="gap-2"
+              className="gap-2 h-8 text-xs"
             >
               {isAnalyzing ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <RefreshCw className="h-3 w-3 animate-spin" />
                   Analyzing...
                 </>
               ) : (
                 <>
-                  <Gauge className="h-4 w-4" />
+                  <Gauge className="h-3 w-3" />
                   Analyze Risk
                 </>
               )}
@@ -342,11 +342,11 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
 
         {/* Risk Analysis Results */}
         {riskData && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Overall Risk Score */}
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3">
               <div className="relative">
-                <div className="w-32 h-32 mx-auto">
+                <div className="w-24 h-24 mx-auto">
                   <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
                     <path
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -367,7 +367,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getRiskColor(riskData.overallRiskScore)}`}>
+                      <div className={`text-lg font-bold ${getRiskColor(riskData.overallRiskScore)}`}>
                         {riskData.overallRiskScore}
                       </div>
                       <div className="text-xs text-muted-foreground">Risk Score</div>
@@ -385,7 +385,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                     >
                       {riskData.riskLevel} Risk
                     </Badge>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {riskData.symbol} Risk Assessment
                     </p>
                   </div>
