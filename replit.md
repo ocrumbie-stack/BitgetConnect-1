@@ -5,6 +5,14 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
+- **August 23, 2025**: Unified Auto-Suggest Dropdown Styling - COMPLETED ✓
+  - Applied consistent black background with white text to all auto-suggest dropdowns across the app
+  - Updated Bot page auto-suggest dropdowns (both "My Strategy" and "AI bots" sections)
+  - Updated AlertCenter trading pair auto-suggest dropdown
+  - Implemented smaller font sizes: text-sm for pair names, text-xs for percentages
+  - Added consistent gray hover effects and border styling
+  - Created unified dark appearance that's less visually overpowering
+
 - **August 23, 2025**: Database-Persistent Screener System & Hybrid Storage Architecture - COMPLETED ✓
   - Successfully implemented PostgreSQL database integration for permanent screener storage
   - Created hybrid storage architecture: screeners in database, real-time market data in memory
