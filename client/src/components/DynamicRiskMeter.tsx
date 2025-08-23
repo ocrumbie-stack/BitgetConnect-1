@@ -243,7 +243,7 @@ export function DynamicRiskMeter({
           <Button 
             variant="outline" 
             className="flex-1"
-            onClick={() => setLocation(`/analyzer?pair=${symbol}`)}
+            onClick={() => setLocation(`/analyzer?pair=${symbol}&autoFill=true`)}
           >
             Analyze
           </Button>

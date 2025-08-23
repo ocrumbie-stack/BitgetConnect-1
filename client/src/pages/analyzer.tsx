@@ -38,6 +38,25 @@ export function Analyzer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [timeframe, setTimeframe] = useState('4h');
 
+  // Handle URL parameters for auto-fill
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pairParam = urlParams.get('pair');
+    const autoFillParam = urlParams.get('autoFill');
+    
+    if (pairParam && autoFillParam === 'true') {
+      setSelectedPair(pairParam);
+      setSearchQuery(pairParam);
+      // Trigger analysis for the pair
+      setTimeout(() => {
+        const analysisSection = document.getElementById('ai-analysis-hub');
+        if (analysisSection) {
+          analysisSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, []);
+
   const filteredPairs = data?.filter(pair => 
     pair.symbol.toLowerCase().includes(searchQuery.toLowerCase())
   ).slice(0, 10) || [];
@@ -244,7 +263,12 @@ export function Analyzer() {
 
       <div className="p-4 space-y-6">
         {/* Unified AI Analysis Tools */}
-        <UnifiedAnalysisTools />
+        <div id="ai-analysis-hub">
+          <UnifiedAnalysisTools 
+            prefilledPair={selectedPair} 
+            autoTrigger={new URLSearchParams(window.location.search).get('autoFill') === 'true'}
+          />
+        </div>
 
         {/* Pair Selection */}
         <Card>
