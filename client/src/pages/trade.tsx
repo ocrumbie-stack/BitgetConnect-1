@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot } from 'lucide-react';
+import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot, BarChart3, Activity } from 'lucide-react';
 
 
 export function Trade() {
@@ -61,124 +61,143 @@ export function Trade() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
-      {/* Header */}
+      {/* Enhanced Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{currentPair}</span>
-              <ChevronDown className="h-4 w-4" />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold">{currentPair}</span>
+                <ChevronDown className="h-4 w-4" />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Perpetual Futures
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Perpetual <span className="text-red-500">{change24h}%</span>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-xl font-bold">{currentPrice}</div>
+                <div className={`text-sm ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">0.00%</div>
-            </div>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-2" data-testid="button-bot-trading">
                 <Bot className="h-4 w-4" />
-                Bot
+                Bot Trading
               </Button>
             </Link>
-            <div className="flex gap-2">
-              <div className="w-6 h-6 bg-muted rounded"></div>
-              <MoreHorizontal className="h-5 w-5" />
-            </div>
+            <MoreHorizontal className="h-5 w-5" />
           </div>
         </div>
-        
 
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-4 gap-4 text-center">
+          <div>
+            <div className="text-xs text-muted-foreground">24h High</div>
+            <div className="text-sm font-medium">{(parseFloat(currentPrice.replace(/,/g, '')) * 1.02).toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">24h Low</div>
+            <div className="text-sm font-medium">{(parseFloat(currentPrice.replace(/,/g, '')) * 0.98).toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">24h Volume</div>
+            <div className="text-sm font-medium">{currentMarket ? parseFloat(currentMarket.volume24h || '0').toLocaleString() : '0'}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Open Interest</div>
+            <div className="text-sm font-medium">245.2M</div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="flex flex-col lg:flex-row">
-        {/* Left Side - Order Book */}
-        <div className="flex-1 lg:border-r border-border">
-          {/* Order Book Header */}
-          <div className="flex items-center justify-between p-3 text-xs text-muted-foreground border-b border-border">
-            <span>Price (USDT)</span>
-            <span>Quantity (USDT)</span>
-          </div>
-
-          {/* Asks (Red) */}
-          <div className="space-y-0">
-            {orderBook.asks.map((ask, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-muted/50">
-                <span className="text-red-500">{ask.price}</span>
-                <span className="text-muted-foreground">{ask.quantity}</span>
+      {/* Main Trading Interface */}
+      <div className="p-4 space-y-4">
+        {/* Trading Cards Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Order Book Card */}
+          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
+            <div className="p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Order Book
+              </h3>
+              
+              {/* Order Book Header */}
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                <span>Price (USDT)</span>
+                <span>Size</span>
               </div>
-            ))}
-          </div>
 
-          {/* Current Price */}
-          <div className="flex items-center justify-center py-2 border-y border-border">
-            <div className="text-lg font-bold text-green-500">{currentPrice}</div>
-            <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
-          </div>
-
-          {/* Bids (Green) */}
-          <div className="space-y-0">
-            {orderBook.bids.map((bid, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-muted/50">
-                <span className="text-green-500">{bid.price}</span>
-                <span className="text-muted-foreground">{bid.quantity}</span>
+              {/* Asks (Red) */}
+              <div className="space-y-0 mb-2">
+                {orderBook.asks.slice(0, 6).map((ask, index) => (
+                  <div key={index} className="flex items-center justify-between py-1 text-xs hover:bg-muted/30 rounded px-1">
+                    <span className="text-red-500 font-mono">{ask.price}</span>
+                    <span className="text-muted-foreground">{ask.quantity}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Volume Indicator */}
-          <div className="p-3 border-t border-border">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-primary">B 29%</span>
-              <div className="flex-1 mx-2 h-1 bg-muted rounded">
-                <div className="w-3/10 h-full bg-primary rounded"></div>
+              {/* Current Price */}
+              <div className="flex items-center justify-center py-2 border border-border rounded-md bg-muted/20 mb-2">
+                <div className="text-base font-bold text-green-500">{currentPrice}</div>
+                <TrendingUp className="h-3 w-3 ml-2 text-green-500" />
               </div>
-              <span className="text-destructive">71% S</span>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <div className="w-2 h-2 bg-primary rounded"></div>
-              <span className="text-lg font-bold">0.1</span>
-              <ChevronDown className="h-4 w-4" />
+
+              {/* Bids (Green) */}
+              <div className="space-y-0">
+                {orderBook.bids.slice(0, 6).map((bid, index) => (
+                  <div key={index} className="flex items-center justify-between py-1 text-xs hover:bg-muted/30 rounded px-1">
+                    <span className="text-green-500 font-mono">{bid.price}</span>
+                    <span className="text-muted-foreground">{bid.quantity}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side - Trading Form */}
-        <div className="w-full lg:w-80 lg:border-t-0 border-t border-border">
-          {/* Trading Tabs */}
-          <div className="flex border-b border-border">
-            <button className="flex-1 px-4 py-3 text-sm bg-muted text-foreground border-b-2 border-primary">
-              Cross
-            </button>
-            <button className="flex-1 px-4 py-3 text-sm text-muted-foreground">
-              {leverage}x
-            </button>
-            <button className="flex-1 px-4 py-3 text-sm text-muted-foreground">
-              S
-            </button>
+          {/* Price Chart Placeholder */}
+          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
+            <div className="p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Price Chart
+              </h3>
+              <div className="h-64 bg-muted/20 rounded-md flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+                  <p>Chart will be implemented</p>
+                  <p className="text-xs">Real-time price data available</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Order Type Tabs */}
-          <div className="flex border-b border-border">
-            <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'open' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
-              onClick={() => setActiveTab('open')}
-            >
-              Open
-            </button>
-            <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'close' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
-              onClick={() => setActiveTab('close')}
-            >
-              Close
-            </button>
-          </div>
+          {/* Trading Form Card */}
+          <div className="lg:col-span-1 bg-card border border-border rounded-lg">
+            <div className="p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Quick Trade
+              </h3>
 
-          {/* Order Form */}
-          <div className="p-4 space-y-4">
+              {/* Buy/Sell Tabs */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button className="py-2 px-4 bg-green-500/10 border border-green-500/20 rounded-md text-green-500 font-medium hover:bg-green-500/20 transition-colors">
+                  Buy / Long
+                </button>
+                <button className="py-2 px-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 font-medium hover:bg-red-500/20 transition-colors">
+                  Sell / Short
+                </button>
+              </div>
+
+              {/* Trading Form */}
+              <div className="space-y-4">
             {/* Order Type Selector */}
             <div className="relative">
               <button className="w-full flex items-center justify-between p-3 bg-muted rounded text-left">
@@ -258,35 +277,38 @@ export function Trade() {
         </div>
       </div>
 
-      {/* Bottom Tabs */}
-      <div className="border-t border-gray-800">
+        </div>
+      </div>
+
+      {/* Bottom Trading Activity */}
+      <div className="border-t border-border bg-card">
         <Tabs defaultValue="positions" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
-            <TabsTrigger value="positions" className="text-xs text-gray-400 data-[state=active]:text-white">
+            <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions(0)
             </TabsTrigger>
-            <TabsTrigger value="orders" className="text-xs text-gray-400 data-[state=active]:text-white">
+            <TabsTrigger value="orders" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Orders(0)
             </TabsTrigger>
-            <TabsTrigger value="bots" className="text-xs text-gray-400 data-[state=active]:text-white">
+            <TabsTrigger value="bots" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Bots (1)
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="positions" className="p-4">
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-muted-foreground py-8">
               <div>No open positions</div>
             </div>
           </TabsContent>
           
           <TabsContent value="orders" className="p-4">
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-muted-foreground py-8">
               <div>No open orders</div>
             </div>
           </TabsContent>
           
           <TabsContent value="bots" className="p-4">
-            <div className="text-center text-gray-400 py-8">
+            <div className="text-center text-muted-foreground py-8">
               <div>1 active bot</div>
             </div>
           </TabsContent>
