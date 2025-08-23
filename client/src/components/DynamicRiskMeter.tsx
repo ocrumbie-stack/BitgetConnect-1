@@ -367,7 +367,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <div className={`text-lg font-bold ${getRiskColor(riskData.overallRiskScore)}`}>
+                      <div className={`text-sm font-bold ${getRiskColor(riskData.overallRiskScore)}`}>
                         {riskData.overallRiskScore}
                       </div>
                       <div className="text-xs text-muted-foreground">Risk Score</div>
@@ -405,7 +405,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
             {/* Risk Breakdown */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span>Volatility Risk</span>
                   <span className={getRiskColor(riskData.volatilityRisk)}>
                     {riskData.volatilityRisk}%
@@ -415,7 +415,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
               </div>
               
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span>Liquidity Risk</span>
                   <span className={getRiskColor(riskData.liquidityRisk)}>
                     {riskData.liquidityRisk}%
@@ -425,7 +425,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
               </div>
               
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span>Market Cap Risk</span>
                   <span className={getRiskColor(riskData.marketCapRisk)}>
                     {riskData.marketCapRisk}%
@@ -435,7 +435,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
               </div>
               
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span>Technical Risk</span>
                   <span className={getRiskColor(riskData.technicalRisk)}>
                     {riskData.technicalRisk}%
@@ -448,22 +448,22 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
             {/* Recommendations */}
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Target className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium">
+                  <Target className="h-3 w-3" />
                   Position Size
                 </div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-sm font-bold text-primary">
                   {riskData.recommendations.positionSize}%
                 </div>
                 <div className="text-xs text-muted-foreground">of portfolio</div>
               </div>
               
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <AlertTriangle className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs font-medium">
+                  <AlertTriangle className="h-3 w-3" />
                   Stop Loss
                 </div>
-                <div className="text-lg font-bold text-destructive">
+                <div className="text-sm font-bold text-destructive">
                   {riskData.recommendations.stopLoss}%
                 </div>
                 <div className="text-xs text-muted-foreground">recommended</div>
@@ -492,34 +492,34 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                 <TabsContent value="factors" className="space-y-4">
                   <div className="grid gap-4">
                     <div className="space-y-3">
-                      <h4 className="font-medium text-green-600 dark:text-green-400">Positive Factors</h4>
+                      <h4 className="font-medium text-xs text-green-600 dark:text-green-400">Positive Factors</h4>
                       {riskData.factors.positive.length > 0 ? (
                         <ul className="space-y-1">
                           {riskData.factors.positive.map((factor, index) => (
-                            <li key={index} className="text-sm flex items-start gap-2">
+                            <li key={index} className="text-xs flex items-start gap-2">
                               <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0" />
                               {factor}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No significant positive factors identified</p>
+                        <p className="text-xs text-muted-foreground">No significant positive factors identified</p>
                       )}
                     </div>
                     
                     <div className="space-y-3">
-                      <h4 className="font-medium text-red-600 dark:text-red-400">Risk Factors</h4>
+                      <h4 className="font-medium text-xs text-red-600 dark:text-red-400">Risk Factors</h4>
                       {riskData.factors.negative.length > 0 ? (
                         <ul className="space-y-1">
                           {riskData.factors.negative.map((factor, index) => (
-                            <li key={index} className="text-sm flex items-start gap-2">
+                            <li key={index} className="text-xs flex items-start gap-2">
                               <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 flex-shrink-0" />
                               {factor}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No significant risk factors identified</p>
+                        <p className="text-xs text-muted-foreground">No significant risk factors identified</p>
                       )}
                     </div>
                   </div>
@@ -528,29 +528,29 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                 <TabsContent value="historical" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <div className="text-sm font-medium">Max Drawdown</div>
-                      <div className="text-2xl font-bold text-red-500">
+                      <div className="text-xs font-medium">Max Drawdown</div>
+                      <div className="text-sm font-bold text-red-500">
                         {riskData.historicalData.maxDrawdown.toFixed(1)}%
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="text-sm font-medium">30d Volatility</div>
-                      <div className="text-2xl font-bold text-orange-500">
+                      <div className="text-xs font-medium">30d Volatility</div>
+                      <div className="text-sm font-bold text-orange-500">
                         {riskData.historicalData.volatility30d.toFixed(1)}%
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="text-sm font-medium">Sharpe Ratio</div>
-                      <div className={`text-2xl font-bold ${riskData.historicalData.sharpeRatio > 1 ? 'text-green-500' : riskData.historicalData.sharpeRatio > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      <div className="text-xs font-medium">Sharpe Ratio</div>
+                      <div className={`text-sm font-bold ${riskData.historicalData.sharpeRatio > 1 ? 'text-green-500' : riskData.historicalData.sharpeRatio > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
                         {riskData.historicalData.sharpeRatio.toFixed(2)}
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="text-sm font-medium">Beta</div>
-                      <div className={`text-2xl font-bold ${riskData.historicalData.beta < 1 ? 'text-green-500' : riskData.historicalData.beta < 1.5 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      <div className="text-xs font-medium">Beta</div>
+                      <div className={`text-sm font-bold ${riskData.historicalData.beta < 1 ? 'text-green-500' : riskData.historicalData.beta < 1.5 ? 'text-yellow-500' : 'text-red-500'}`}>
                         {riskData.historicalData.beta.toFixed(2)}
                       </div>
                     </div>
@@ -560,20 +560,20 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                 <TabsContent value="recommendations" className="space-y-4">
                   <div className="space-y-4">
                     <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2">Time Horizon</h4>
+                      <h4 className="font-medium text-xs mb-2">Time Horizon</h4>
                       <Badge variant="outline">{riskData.recommendations.timeHorizon} Term</Badge>
                     </div>
                     
                     <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2">Diversification</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-medium text-xs mb-2">Diversification</h4>
+                      <p className="text-xs text-muted-foreground">
                         {riskData.recommendations.diversification}
                       </p>
                     </div>
                     
                     <div className="p-4 border rounded-lg bg-muted/50">
-                      <h4 className="font-medium mb-2">Risk Management Tips</h4>
-                      <ul className="text-sm space-y-1 text-muted-foreground">
+                      <h4 className="font-medium text-xs mb-2">Risk Management Tips</h4>
+                      <ul className="text-xs space-y-1 text-muted-foreground">
                         <li>• Never risk more than you can afford to lose</li>
                         <li>• Use proper position sizing based on your risk tolerance</li>
                         <li>• Set stop-loss orders before entering positions</li>
@@ -592,8 +592,8 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
         {!riskData && !isAnalyzing && (
           <div className="text-center py-12 space-y-3">
             <Gauge className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="font-medium">Risk Analysis Ready</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-medium text-sm">Risk Analysis Ready</h3>
+            <p className="text-xs text-muted-foreground">
               Select a trading pair and click "Analyze Risk" to get comprehensive risk metrics
             </p>
           </div>
