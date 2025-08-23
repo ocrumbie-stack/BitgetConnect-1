@@ -866,21 +866,21 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-md shadow-lg max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               type="button"
-              className={`w-full text-left px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors ${
-                index === selectedIndex ? 'bg-accent text-accent-foreground' : ''
+              className={`w-full text-left px-3 py-2 hover:bg-gray-800 transition-colors border-b border-gray-700 last:border-b-0 ${
+                index === selectedIndex ? 'bg-gray-800' : ''
               }`}
               onClick={() => handleSuggestionClick(suggestion)}
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium">{suggestion}</span>
+                <span className="text-sm font-medium text-white">{suggestion}</span>
                 {futuresData.find((f: any) => f.symbol === suggestion) && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-gray-400">
                     ${futuresData.find((f: any) => f.symbol === suggestion)?.price || 'N/A'}
                   </span>
                 )}
