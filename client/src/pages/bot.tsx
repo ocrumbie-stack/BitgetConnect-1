@@ -27,7 +27,20 @@ export default function BotPage() {
   const [riskLevel, setRiskLevel] = useState('medium');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
-  // Removed showAdvancedIndicators and indicators state as they serve no purpose
+  const [showAdvancedIndicators, setShowAdvancedIndicators] = useState(false);
+  
+  // Technical Indicators state
+  const [indicators, setIndicators] = useState({
+    rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
+    macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50 },
+    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200 },
+    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20 },
+    bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
+    stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
+    williams: { enabled: false, period: 14, condition: 'above', value: -20 },
+    volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
+  });
   
   // Bot execution form
   const [tradingPair, setTradingPair] = useState('BTCUSDT');
@@ -1203,6 +1216,373 @@ export default function BotPage() {
                   onChange={(e) => setTakeProfit(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-end">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowAdvancedIndicators(!showAdvancedIndicators)}
+                >
+                  {showAdvancedIndicators ? 'Hide' : 'Show'} Advanced
+                </Button>
+              </div>
+
+              {showAdvancedIndicators && (
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                  <h4 className="font-medium text-sm">Entry Conditions</h4>
+                  
+                  {/* RSI */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="rsi"
+                        checked={indicators.rsi.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          rsi: { ...indicators.rsi, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="rsi" className="text-sm font-medium">RSI (Relative Strength Index)</label>
+                    </div>
+                    {indicators.rsi.enabled && (
+                      <div className="grid grid-cols-3 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Period</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.rsi.period}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, period: parseInt(e.target.value) || 14 }
+                            })}
+                            placeholder="14"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.rsi.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above</SelectItem>
+                              <SelectItem value="below">Below</SelectItem>
+                              <SelectItem value="between">Between</SelectItem>
+                              <SelectItem value="oversold">Oversold (&lt;30)</SelectItem>
+                              <SelectItem value="overbought">Overbought (&gt;70)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-xs">Value</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.rsi.value}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, value: parseInt(e.target.value) || 70 }
+                            })}
+                            placeholder="70"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* MACD */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="macd"
+                        checked={indicators.macd.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          macd: { ...indicators.macd, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="macd" className="text-sm font-medium">MACD</label>
+                    </div>
+                    {indicators.macd.enabled && (
+                      <div className="space-y-2 ml-6">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs">Fast Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.fastPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, fastPeriod: parseInt(e.target.value) || 12 }
+                              })}
+                              placeholder="12"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Slow Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.slowPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                              })}
+                              placeholder="26"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Signal Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.signalPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, signalPeriod: parseInt(e.target.value) || 9 }
+                              })}
+                              placeholder="9"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.macd.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              macd: { ...indicators.macd, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
+                              <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                              <SelectItem value="above_signal">Above Signal</SelectItem>
+                              <SelectItem value="below_signal">Below Signal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Moving Averages */}
+                  {['ma1', 'ma2', 'ma3'].map((maKey) => (
+                    <div key={maKey} className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={maKey}
+                          checked={(indicators[maKey as keyof typeof indicators] as any).enabled}
+                          onChange={(e) => setIndicators({
+                            ...indicators,
+                            [maKey]: { ...indicators[maKey as keyof typeof indicators], enabled: e.target.checked }
+                          })}
+                        />
+                        <label htmlFor={maKey} className="text-sm font-medium">
+                          {maKey === 'ma1' ? 'Moving Average 1' : maKey === 'ma2' ? 'Moving Average 2' : 'Moving Average 3'}
+                        </label>
+                      </div>
+                      {(indicators[maKey as keyof typeof indicators] as any).enabled && (
+                        <div className="ml-6">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-xs">Type</label>
+                              <Select 
+                                value={(indicators[maKey as keyof typeof indicators] as any).type} 
+                                onValueChange={(value) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], type: value }
+                                })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="sma">SMA</SelectItem>
+                                  <SelectItem value="ema">EMA</SelectItem>
+                                  <SelectItem value="wma">WMA</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs">Period 1</label>
+                              <Input 
+                                type="number" 
+                                value={(indicators[maKey as keyof typeof indicators] as any).period1}
+                                onChange={(e) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
+                                })}
+                                placeholder="20"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs">Period 2</label>
+                              <Input 
+                                type="number" 
+                                value={(indicators[maKey as keyof typeof indicators] as any).period2}
+                                onChange={(e) => setIndicators({
+                                  ...indicators,
+                                  [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
+                                })}
+                                placeholder="50"
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <label className="text-xs">Condition</label>
+                            <Select 
+                              value={(indicators[maKey as keyof typeof indicators] as any).condition} 
+                              onValueChange={(value) => setIndicators({
+                                ...indicators,
+                                [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
+                              })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="above">Above</SelectItem>
+                                <SelectItem value="below">Below</SelectItem>
+                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Bollinger Bands */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="bollinger"
+                        checked={indicators.bollinger.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          bollinger: { ...indicators.bollinger, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="bollinger" className="text-sm font-medium">Bollinger Bands</label>
+                    </div>
+                    {indicators.bollinger.enabled && (
+                      <div className="grid grid-cols-3 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Period</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.bollinger.period}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, period: parseInt(e.target.value) || 20 }
+                            })}
+                            placeholder="20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Std Dev</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.bollinger.stdDev}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, stdDev: parseFloat(e.target.value) || 2 }
+                            })}
+                            placeholder="2"
+                            step="0.1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.bollinger.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_upper">Above Upper</SelectItem>
+                              <SelectItem value="below_lower">Below Lower</SelectItem>
+                              <SelectItem value="between_bands">Between Bands</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Volume */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="volume"
+                        checked={indicators.volume.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          volume: { ...indicators.volume, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="volume" className="text-sm font-medium">Volume Analysis</label>
+                    </div>
+                    {indicators.volume.enabled && (
+                      <div className="grid grid-cols-2 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.volume.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              volume: { ...indicators.volume, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_average">Above Average</SelectItem>
+                              <SelectItem value="spike">Volume Spike</SelectItem>
+                              <SelectItem value="increasing">Increasing</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-xs">Multiplier</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.volume.multiplier}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              volume: { ...indicators.volume, multiplier: parseFloat(e.target.value) || 1.5 }
+                            })}
+                            placeholder="1.5"
+                            step="0.1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
