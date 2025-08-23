@@ -1,7 +1,7 @@
 import { SimpleTable } from '@/components/SimpleTable';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { useState } from 'react';
-import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
+import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -510,27 +510,19 @@ export function Markets() {
       />
 
       {/* Dynamic Risk Meter Overlay */}
-      {selectedRiskPair && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto"
-          onClick={() => setSelectedRiskPair(null)}
-        >
-          <div className="min-h-screen w-full flex items-center justify-center p-4">
-            <div 
-              className="max-w-md w-full my-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <DynamicRiskMeter
-                symbol={selectedRiskPair}
-                price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
-                change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
-                volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
-                onClose={() => setSelectedRiskPair(null)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <DynamicRiskMeter
+        pair={selectedRiskPair || ''}
+        isOpen={!!selectedRiskPair}
+        onClose={() => setSelectedRiskPair(null)}
+        onNavigateToTrade={() => {
+          setLocation('/trade');
+          setSelectedRiskPair(null);
+        }}
+        onNavigateToAnalyzer={() => {
+          setLocation('/analyzer');
+          setSelectedRiskPair(null);
+        }}
+      />
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, 
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
-import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
+import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 
 export function Home() {
   const { data, isLoading } = useBitgetData();
@@ -1101,28 +1101,20 @@ export function Home() {
           </TabsContent>
         </Tabs>
 
-        {/* Dynamic Risk Meter Overlay */}
-        {selectedRiskPair && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto"
-            onClick={() => setSelectedRiskPair(null)}
-          >
-            <div className="min-h-screen w-full flex items-center justify-center p-4">
-              <div 
-                className="max-w-md w-full my-8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DynamicRiskMeter
-                  symbol={selectedRiskPair}
-                  price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
-                  change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
-                  volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
-                  onClose={() => setSelectedRiskPair(null)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Dynamic Risk Meter Dialog */}
+        <DynamicRiskMeter
+          pair={selectedRiskPair || ''}
+          isOpen={!!selectedRiskPair}
+          onClose={() => setSelectedRiskPair(null)}
+          onNavigateToTrade={() => {
+            setLocation('/trade');
+            setSelectedRiskPair(null);
+          }}
+          onNavigateToAnalyzer={() => {
+            setLocation('/analyzer');
+            setSelectedRiskPair(null);
+          }}
+        />
       </div>
     </div>
   );
