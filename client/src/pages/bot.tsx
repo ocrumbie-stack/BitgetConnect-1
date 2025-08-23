@@ -1802,7 +1802,7 @@ export default function BotPage() {
                       </div>
                       {(indicators[maKey as keyof typeof indicators] as any).enabled && (
                         <div className="ml-2">
-                          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
+                          <div className="p-4 rounded-lg border border-gray-300 dark:border-gray-600">
                             {/* Header Row */}
                             <div className="grid grid-cols-3 gap-4 mb-4">
                               <div className="text-center">
