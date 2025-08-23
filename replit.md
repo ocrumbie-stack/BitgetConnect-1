@@ -5,7 +5,7 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Dynamic Risk Visualization Meter Implementation
+- **August 23, 2025**: Dynamic Risk Visualization Meter & AI Scalping Recommendations
   - Created comprehensive Dynamic Risk Visualization Meter component with real-time risk assessment
   - Implemented color-coded risk indicators (Extreme/High/Medium/Low/Very Low) with visual progress bars
   - Added detailed risk breakdown analysis: Volatility, Volume Risk, Trend Risk, Support Level, Liquidity Risk
@@ -15,6 +15,15 @@ Preferred communication style: Simple, everyday language.
   - Implemented action buttons for direct navigation to Trade and Analyzer pages
   - Added intelligent risk scoring algorithm with weighted factors and personalized trading recommendations
   - Enhanced user experience with click-to-analyze functionality and professional risk assessment display
+  
+  **AI Scalping Recommendations System:**
+  - Fixed critical percentage calculation bug: API decimals (1.00992) now properly convert to actual percentages (100.99%)
+  - Added prominent SCALPING RECOMMENDATION section with clear GO LONG/SHORT direction
+  - Implemented volatility-based scalping timeframes: 1m for extreme, 3m for very high, 5m for high, 15m for medium/low
+  - Created intelligent scalping settings: dynamic stop loss (0.5-2.0%), take profit (0.8-2.0%), leverage (3-7x)
+  - Added entry condition guidance: RSI + MACD signal combinations for quick scalping trades
+  - Enhanced debug logging with raw API values vs actual percentages for volatility verification
+  - Calibrated realistic crypto volatility thresholds: ≥20% extreme, ≥10% very high, ≥5% high, ≥3% medium, ≥1.5% low
 
 # System Architecture
 
