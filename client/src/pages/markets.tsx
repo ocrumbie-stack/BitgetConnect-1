@@ -499,6 +499,115 @@ export default function Markets() {
                   </Card>
                 )}
               </div>
+
+              {/* Market Overview Cards */}
+              {marketStats && !isLoading && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {/* Total Markets */}
+                  <Card 
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                      filter === 'all' 
+                        ? 'ring-2 ring-blue-500 bg-blue-50/30 dark:bg-blue-950/20' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
+                    }`}
+                    onClick={() => setFilter('all')}
+                    data-testid="card-total-markets"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Total Markets</p>
+                          <p className="text-2xl font-bold">{marketStats.total}</p>
+                        </div>
+                        <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <BarChart3 className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Gainers */}
+                  <Card 
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                      filter === 'gainers' 
+                        ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
+                    }`}
+                    onClick={() => setFilter('gainers')}
+                    data-testid="card-gainers"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Gainers</p>
+                          <p className="text-2xl font-bold text-green-600">{marketStats.gainers}</p>
+                        </div>
+                        <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <TrendingUp className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Losers */}
+                  <Card 
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                      filter === 'losers' 
+                        ? 'ring-2 ring-red-500 bg-red-50/30 dark:bg-red-950/20' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
+                    }`}
+                    onClick={() => setFilter('losers')}
+                    data-testid="card-losers"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Losers</p>
+                          <p className="text-2xl font-bold text-red-600">{marketStats.losers}</p>
+                        </div>
+                        <div className="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center">
+                          <TrendingDown className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* High Volume */}
+                  <Card 
+                    className="cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 hover:bg-gray-50 dark:hover:bg-gray-950"
+                    data-testid="card-high-volume"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">High Volume</p>
+                          <p className="text-2xl font-bold text-purple-600">{marketStats.highVolume}</p>
+                        </div>
+                        <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
+                          <Volume2 className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Market Table */}
+              {isLoading ? (
+                <div className="space-y-3 p-4">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : (
+                <SimpleTable 
+                  data={filteredAndSortedData}
+                  onSort={handleSort}
+                  sortBy={sortBy}
+                  sortDirection={sortDirection}
+                  onRiskAnalysis={(pair) => setSelectedRiskPair(pair)}
+                />
+              )}
             </TabsContent>
             
             {/* AI Opportunities Tab Content */}
