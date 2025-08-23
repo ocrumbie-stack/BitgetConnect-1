@@ -21,8 +21,8 @@ export function Home() {
   const bearishPairs = data?.filter(item => parseFloat(item.change24h || '0') < -0.05) || [];
   const stablePairs = data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) <= 0.02) || [];
   
-  const highVolumePairs = data
-    ?.sort((a, b) => parseFloat(b.volume24h || '0') - parseFloat(a.volume24h || '0'))
+  const highVolatilityPairs = data
+    ?.sort((a, b) => Math.abs(parseFloat(b.change24h || '0')) - Math.abs(parseFloat(a.change24h || '0')))
     ?.slice(0, 5) || [];
 
   const marketTrend = bullishPairs.length > bearishPairs.length ? 'bullish' : 
@@ -947,17 +947,17 @@ export function Home() {
               </Card>
             </div>
 
-            {/* High Volume Activity */}
+            {/* High Volatility */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-purple-500" />
-                  High Volume Activity
+                  <Activity className="h-5 w-5 text-purple-500" />
+                  High Volatility
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {highVolumePairs.slice(0, 6).map((pair, index) => (
+                  {highVolatilityPairs.slice(0, 6).map((pair, index) => (
                     <div key={pair.symbol} className="flex items-center justify-between p-3 rounded border hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
@@ -971,11 +971,11 @@ export function Home() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-purple-600">
-                          {formatVolume(parseFloat(pair.volume24h || '0'))}
-                        </div>
-                        <div className={`text-sm ${parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <div className={`font-bold ${parseFloat(pair.change24h || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                           {formatChange(pair.change24h)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {Math.abs(parseFloat(pair.change24h || '0')).toFixed(2)}% volatility
                         </div>
                       </div>
                     </div>
