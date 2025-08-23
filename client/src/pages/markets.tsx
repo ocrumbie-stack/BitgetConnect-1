@@ -511,16 +511,23 @@ export function Markets() {
 
       {/* Dynamic Risk Meter Overlay */}
       {selectedRiskPair && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-md w-full">
-            <DynamicRiskMeter
-              symbol={selectedRiskPair}
-              price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
-              change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
-              volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
-              onClose={() => setSelectedRiskPair(null)}
-              className="max-h-[90vh] overflow-y-auto"
-            />
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto"
+          onClick={() => setSelectedRiskPair(null)}
+        >
+          <div className="min-h-screen w-full flex items-center justify-center p-4">
+            <div 
+              className="max-w-md w-full my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DynamicRiskMeter
+                symbol={selectedRiskPair}
+                price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
+                change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
+                volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
+                onClose={() => setSelectedRiskPair(null)}
+              />
+            </div>
           </div>
         </div>
       )}
