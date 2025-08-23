@@ -633,7 +633,7 @@ export default function Markets() {
                     return fiveMinGainer ? (
                       <Card className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">5m Gainers</p>
+                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainers (5M)</p>
                           <p className="text-sm font-bold text-green-800 dark:text-green-200">{fiveMinGainer.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingUp className="h-3 w-3 text-green-600" />
@@ -646,7 +646,7 @@ export default function Markets() {
                     ) : (
                       <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-gray-500 mb-1">5m Gainers</p>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Top Gainers (5M)</p>
                           <p className="text-sm text-gray-400">Building data...</p>
                         </div>
                       </Card>
@@ -662,7 +662,7 @@ export default function Markets() {
                     return fiveMinLoser ? (
                       <Card className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">5m Losers</p>
+                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Losers (5M)</p>
                           <p className="text-sm font-bold text-red-800 dark:text-red-200">{fiveMinLoser.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingDown className="h-3 w-3 text-red-600" />
@@ -675,7 +675,7 @@ export default function Markets() {
                     ) : (
                       <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-gray-500 mb-1">5m Losers</p>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Top Losers (5M)</p>
                           <p className="text-sm text-gray-400">Building data...</p>
                         </div>
                       </Card>
