@@ -33,9 +33,9 @@ export default function BotPage() {
   const [indicators, setIndicators] = useState({
     rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
     macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price' },
-    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price' },
-    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'ma' },
+    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
+    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
+    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
     bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
     stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
     williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -197,9 +197,9 @@ export default function BotPage() {
     setIndicators({
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
       macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price' },
-      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price' },
-      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'ma' },
+      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -1803,7 +1803,7 @@ export default function BotPage() {
                       {(indicators[maKey as keyof typeof indicators] as any).enabled && (
                         <div className="ml-2">
                           <div className="p-4 rounded-lg border border-gray-300 dark:border-gray-600">
-                            {/* Header Row */}
+                            {/* First Row Headers */}
                             <div className="grid grid-cols-3 gap-4 mb-4">
                               <div className="text-center">
                                 <label className="text-xs">MA Type</label>
@@ -1816,8 +1816,8 @@ export default function BotPage() {
                               </div>
                             </div>
                             
-                            {/* Values Row */}
-                            <div className="grid grid-cols-3 gap-4 mb-4">
+                            {/* First Row Values */}
+                            <div className="grid grid-cols-3 gap-4 mb-6">
                               <div>
                                 <Select 
                                   value={(indicators[maKey as keyof typeof indicators] as any).type} 
@@ -1869,12 +1869,22 @@ export default function BotPage() {
                               </div>
                             </div>
 
-                            {/* Comparison Section */}
-                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                              <div className="mb-2">
+                            {/* Second Row Headers */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="text-center">
                                 <label className="text-xs">Comparison</label>
                               </div>
-                              <div className="w-1/3">
+                              <div className="text-center">
+                                <label className="text-xs">Comparison MA Type</label>
+                              </div>
+                              <div className="text-center">
+                                <label className="text-xs">Comparison Period</label>
+                              </div>
+                            </div>
+                            
+                            {/* Second Row Values */}
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
                                 <Select 
                                   value={(indicators[maKey as keyof typeof indicators] as any).comparisonType || "price"}
                                   onValueChange={(value) => {
@@ -1888,18 +1898,45 @@ export default function BotPage() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="price">Price</SelectItem>
-                                    <SelectItem value="ma">Other MA</SelectItem>
+                                    <SelectItem value="price">Another MA</SelectItem>
+                                    <SelectItem value="ma">Price</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                               
-                              {/* Show second period input when comparing to other MA OR when using crossing conditions */}
-                              {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'ma' || 
-                                (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
-                                (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
-                                <div className="mt-3">
-                                  <label className="text-xs block mb-1">Compare to Period</label>
+                              {/* Comparison MA Type - only show when comparing to another MA */}
+                              <div>
+                                {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'price' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
+                                  <Select 
+                                    value={(indicators[maKey as keyof typeof indicators] as any).comparisonMAType || 'sma'}
+                                    onValueChange={(value) => setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], comparisonMAType: value }
+                                    })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="sma">SMA</SelectItem>
+                                      <SelectItem value="ema">EMA</SelectItem>
+                                      <SelectItem value="wma">WMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded border flex items-center justify-center text-sm text-gray-500">
+                                    N/A
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Comparison Period */}
+                              <div>
+                                {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'price' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
                                   <Input 
                                     type="number" 
                                     value={(indicators[maKey as keyof typeof indicators] as any).period2}
@@ -1908,10 +1945,14 @@ export default function BotPage() {
                                       [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
                                     })}
                                     placeholder="50"
-                                    className="w-1/3"
+                                    className="text-center"
                                   />
-                                </div>
-                              ) : null}
+                                ) : (
+                                  <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded border flex items-center justify-center text-sm text-gray-500">
+                                    N/A
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
