@@ -13,7 +13,7 @@ export function Trade() {
   const { data } = useBitgetData();
   const [leverage, setLeverage] = useState('10');
   const [amount, setAmount] = useState('');
-  const [activeTab, setActiveTab] = useState('open');
+  const [activeTab, setActiveTab] = useState('buy');
   const [orderType, setOrderType] = useState('market');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
 
@@ -58,22 +58,23 @@ export function Trade() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{currentPair}</span>
-              <ChevronDown className="h-4 w-4" />
+              <span className="text-lg font-semibold text-foreground">{currentPair}</span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-sm text-gray-400">
-              Perpetual <span className="text-red-500">{change24h}%</span>
+            <div className="text-sm text-muted-foreground">
+              Perpetual · <span className={`${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>{change24h}%</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-xs text-gray-400">0.00%</div>
+              <div className="text-2xl font-bold text-foreground">${currentPrice}</div>
+              <div className="text-xs text-muted-foreground">Mark Price</div>
             </div>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-2" data-testid="button-bot-trading">
@@ -81,220 +82,237 @@ export function Trade() {
                 Bot
               </Button>
             </Link>
-            <div className="flex gap-2">
-              <div className="w-6 h-6 bg-gray-800 rounded"></div>
-              <MoreHorizontal className="h-5 w-5" />
-            </div>
+            <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
           </div>
         </div>
         
 
       </div>
 
-      <div className="flex">
-        {/* Left Side - Order Book */}
-        <div className="flex-1 border-r border-gray-800">
-          {/* Order Book Header */}
-          <div className="flex items-center justify-between p-3 text-xs text-gray-400 border-b border-gray-800">
-            <span>Price (USDT)</span>
-            <span>Quantity (USDT)</span>
-          </div>
-
-          {/* Asks (Red) */}
-          <div className="space-y-0">
-            {orderBook.asks.reverse().map((ask, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
-                <span className="text-red-500">{ask.price}</span>
-                <span className="text-gray-400">{ask.quantity}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Current Price */}
-          <div className="flex items-center justify-center py-2 border-y border-gray-800">
-            <div className="text-lg font-bold text-green-500">{currentPrice}</div>
-            <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
-          </div>
-
-          {/* Bids (Green) */}
-          <div className="space-y-0">
-            {orderBook.bids.map((bid, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
-                <span className="text-green-500">{bid.price}</span>
-                <span className="text-gray-400">{bid.quantity}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Volume Indicator */}
-          <div className="p-3 border-t border-gray-800">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-blue-400">B 29%</span>
-              <div className="flex-1 mx-2 h-1 bg-gray-800 rounded">
-                <div className="w-3/10 h-full bg-blue-500 rounded"></div>
-              </div>
-              <span className="text-red-400">71% S</span>
+      <div className="p-4">
+        {/* Order Book */}
+        <div className="mb-6">
+          <div className="bg-card rounded-lg border">
+            {/* Order Book Header */}
+            <div className="flex items-center justify-between p-4 text-sm font-medium text-muted-foreground border-b">
+              <span>Price (USDT)</span>
+              <span>Quantity</span>
             </div>
-            <div className="flex items-center justify-between mt-2">
-              <div className="w-2 h-2 bg-blue-500 rounded"></div>
-              <span className="text-lg font-bold">0.1</span>
-              <ChevronDown className="h-4 w-4" />
-            </div>
-          </div>
-        </div>
 
-        {/* Right Side - Trading Form */}
-        <div className="w-80">
-          {/* Trading Tabs */}
-          <div className="flex border-b border-gray-800">
-            <button className="flex-1 px-4 py-3 text-sm bg-gray-900 text-white border-b-2 border-blue-500">
-              Cross
-            </button>
-            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
-              {leverage}x
-            </button>
-            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
-              S
-            </button>
-          </div>
-
-          {/* Order Type Tabs */}
-          <div className="flex border-b border-gray-800">
-            <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'open' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
-              onClick={() => setActiveTab('open')}
-            >
-              Open
-            </button>
-            <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'close' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
-              onClick={() => setActiveTab('close')}
-            >
-              Close
-            </button>
-          </div>
-
-          {/* Order Form */}
-          <div className="p-4 space-y-4">
-            {/* Order Type Selector */}
-            <div className="relative">
-              <button className="w-full flex items-center justify-between p-3 bg-gray-900 rounded text-left">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                  <span>Market</span>
+            {/* Asks (Red) */}
+            <div className="space-y-0">
+              {orderBook.asks.reverse().map((ask, index) => (
+                <div key={index} className="flex items-center justify-between px-4 py-2 text-sm hover:bg-accent/50 transition-colors">
+                  <span className="text-red-500 font-mono">{ask.price}</span>
+                  <span className="text-muted-foreground">{ask.quantity}</span>
                 </div>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Price Input (for limit orders) */}
-            <div>
-              <Input
-                placeholder="Fill at market price"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500"
-                disabled
-              />
-            </div>
-
-            {/* Cost Input */}
-            <div>
-              <div className="text-xs text-gray-400 mb-1">Cost (USDT)</div>
-              <div className="relative">
-                <Input
-                  placeholder="25%"
-                  className="bg-gray-900 border-gray-700 text-white"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
-                  ≈0.00 / 0.00 BTC
-                </div>
-              </div>
-            </div>
-
-            {/* Percentage Buttons */}
-            <div className="flex gap-2">
-              {['25%', '50%', '75%', '100%'].map((percent) => (
-                <Button
-                  key={percent}
-                  variant="outline"
-                  size="sm"
-                  className={`flex-1 border-gray-700 text-gray-400 hover:bg-gray-800 ${
-                    percent === '25%' ? 'bg-gray-800 text-white' : ''
-                  }`}
-                  onClick={() => {
-                    // Mock calculation based on percentage
-                    const mockBalance = 1000;
-                    const percentage = parseFloat(percent) / 100;
-                    setAmount((mockBalance * percentage).toString());
-                  }}
-                >
-                  {percent}
-                </Button>
               ))}
             </div>
 
-            {/* TP/SL Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch />
-              <span className="text-sm text-gray-400">TP/SL</span>
+            {/* Current Price */}
+            <div className="flex items-center justify-center py-3 border-y bg-accent/30">
+              <div className={`text-lg font-bold ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                ${currentPrice}
+              </div>
+              {parseFloat(change24h) >= 0 ? 
+                <TrendingUp className="h-4 w-4 ml-2 text-green-500" /> : 
+                <TrendingDown className="h-4 w-4 ml-2 text-red-500" />
+              }
             </div>
 
-
-
-            {/* Long Button */}
-            <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium py-4 flex flex-col">
-              <span>Open long</span>
-              <span className="text-xs opacity-70">0.00 USDT</span>
-            </Button>
-
-
-
-            {/* Short Button */}
-            <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
-              <span>Open short</span>
-              <span className="text-xs opacity-70">0.00 USDT</span>
-            </Button>
+            {/* Bids (Green) */}
+            <div className="space-y-0">
+              {orderBook.bids.map((bid, index) => (
+                <div key={index} className="flex items-center justify-between px-4 py-2 text-sm hover:bg-accent/50 transition-colors">
+                  <span className="text-green-500 font-mono">{bid.price}</span>
+                  <span className="text-muted-foreground">{bid.quantity}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        
+        {/* Trading Interface */}
+        <div className="bg-card rounded-lg border p-4">
+          <h3 className="text-lg font-semibold mb-4">Trade {currentPair}</h3>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="buy" className="text-green-600 data-[state=active]:bg-green-100 dark:data-[state=active]:bg-green-900/20">
+                Buy / Long
+              </TabsTrigger>
+              <TabsTrigger value="sell" className="text-red-600 data-[state=active]:bg-red-100 dark:data-[state=active]:bg-red-900/20">
+                Sell / Short
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="buy" className="space-y-4">
+              {/* Order Type */}
+              <div>
+                <Select value={orderType} onValueChange={setOrderType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Order Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="market">Market</SelectItem>
+                    <SelectItem value="limit">Limit</SelectItem>
+                    <SelectItem value="stop">Stop</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Amount (USDT)</label>
+                <Input
+                  type="number"
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Leverage */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Leverage</label>
+                <Select value={leverage} onValueChange={setLeverage}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['1', '2', '5', '10', '20', '50', '100'].map((lev) => (
+                      <SelectItem key={lev} value={lev}>{lev}x</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {['25%', '50%', '75%', '100%'].map((percent) => (
+                  <Button
+                    key={percent}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const mockBalance = 1000;
+                      const percentage = parseFloat(percent) / 100;
+                      setAmount((mockBalance * percentage).toString());
+                    }}
+                  >
+                    {percent}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Buy Button */}
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3">
+                Buy / Long {currentPair}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="sell" className="space-y-4">
+              {/* Order Type */}
+              <div>
+                <Select value={orderType} onValueChange={setOrderType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Order Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="market">Market</SelectItem>
+                    <SelectItem value="limit">Limit</SelectItem>
+                    <SelectItem value="stop">Stop</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Amount (USDT)</label>
+                <Input
+                  type="number"
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Leverage */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Leverage</label>
+                <Select value={leverage} onValueChange={setLeverage}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['1', '2', '5', '10', '20', '50', '100'].map((lev) => (
+                      <SelectItem key={lev} value={lev}>{lev}x</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {['25%', '50%', '75%', '100%'].map((percent) => (
+                  <Button
+                    key={percent}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const mockBalance = 1000;
+                      const percentage = parseFloat(percent) / 100;
+                      setAmount((mockBalance * percentage).toString());
+                    }}
+                  >
+                    {percent}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Sell Button */}
+              <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3">
+                Sell / Short {currentPair}
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        
+        {/* Positions & Orders */}
+        <div className="bg-card rounded-lg border p-4 mt-6">
+          <h3 className="text-lg font-semibold mb-4">Positions & Orders</h3>
+          
+          <Tabs defaultValue="positions" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="positions">Positions</TabsTrigger>
+              <TabsTrigger value="orders">Orders</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="positions" className="mt-4">
+              <div className="text-center py-8 text-muted-foreground">
+                No open positions
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="orders" className="mt-4">
+              <div className="text-center py-8 text-muted-foreground">
+                No active orders
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-4">
+              <div className="text-center py-8 text-muted-foreground">
+                No trading history
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      {/* Bottom Tabs */}
-      <div className="border-t border-gray-800">
-        <Tabs defaultValue="positions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
-            <TabsTrigger value="positions" className="text-xs text-gray-400 data-[state=active]:text-white">
-              Positions(0)
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="text-xs text-gray-400 data-[state=active]:text-white">
-              Orders(0)
-            </TabsTrigger>
-            <TabsTrigger value="bots" className="text-xs text-gray-400 data-[state=active]:text-white">
-              Bots (1)
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="positions" className="p-4">
-            <div className="text-center text-gray-400 py-8">
-              <div>No open positions</div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="orders" className="p-4">
-            <div className="text-center text-gray-400 py-8">
-              <div>No open orders</div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="bots" className="p-4">
-            <div className="text-center text-gray-400 py-8">
-              <div>1 active bot</div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-
     </div>
   );
 }
