@@ -5,14 +5,15 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Unified AI Analysis Components and Enhanced Text Consistency
-  - Combined AI Price Prediction and Dynamic Risk Visualizer into single "AI Analysis Hub" component
-  - Integrated both price prediction and risk analysis with tabbed interface for seamless switching
-  - Unified search functionality with consistent "Enter Trading Pair" placeholder across all components
-  - Standardized all text sizing to text-xs for compact, professional interface design
-  - Added unified close button and analysis controls for streamlined user experience
-  - Enhanced real-time price data integration with live indicators and autocomplete suggestions
-  - Improved component reusability and reduced code duplication for better maintainability
+- **August 23, 2025**: Enhanced Analysis Hub with Dynamic Trend Functionality and Close Controls
+  - Combined AI Price Prediction and Dynamic Risk Visualizer into unified "AI Analysis Hub" component
+  - Added comprehensive trend and statistics analysis as third tab with technical indicators
+  - Integrated close buttons (X) across all analysis tools for improved user control
+  - Fixed timeframe-responsive trend analysis - now properly updates when switching between 1H/4H/1D/1W
+  - Enhanced trend calculations with timeframe-specific factors and sensitivity adjustments
+  - Added volatility statistics, performance history, technical signals, and market sentiment analysis
+  - Improved real-time price data integration with live indicators and autocomplete suggestions
+  - Standardized text sizing and interface consistency across all analysis components
 
 # System Architecture
 
