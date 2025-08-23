@@ -258,7 +258,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
             <div className="text-xs font-medium">Enter Trading Pair</div>
             <div className="relative">
               <Input
-                placeholder="Start typing... e.g., ETH, BTC, SOL"
+                placeholder="Enter Trading Pair"
                 value={tradingPair}
                 onChange={(e) => {
                   setTradingPair(e.target.value.toUpperCase());
