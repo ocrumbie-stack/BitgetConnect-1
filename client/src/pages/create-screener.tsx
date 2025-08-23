@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const screenerFormSchema = z.object({
   name: z.string().min(1, 'Screener name is required'),
+  timeframe: z.enum(['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w']).optional(),
   // Basic filters
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
@@ -105,6 +106,7 @@ export function CreateScreener() {
     resolver: zodResolver(screenerFormSchema),
     defaultValues: {
       name: '',
+      timeframe: '1h',
       minPrice: '',
       maxPrice: '',
       minVolume: '',
@@ -293,6 +295,7 @@ export function CreateScreener() {
 
       const screenerData = {
         name: data.name,
+        timeframe: data.timeframe || '1h',
         userId: 'user1', // Mock user ID
         criteria,
       };
@@ -366,6 +369,35 @@ export function CreateScreener() {
                           {...field}
                           data-testid="input-screener-name"
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Timeframe */}
+                <FormField
+                  control={form.control}
+                  name="timeframe"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Timeframe</FormLabel>
+                      <FormControl>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger data-testid="select-timeframe">
+                            <SelectValue placeholder="Select timeframe" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1m">1 Minute</SelectItem>
+                            <SelectItem value="5m">5 Minutes</SelectItem>
+                            <SelectItem value="15m">15 Minutes</SelectItem>
+                            <SelectItem value="30m">30 Minutes</SelectItem>
+                            <SelectItem value="1h">1 Hour</SelectItem>
+                            <SelectItem value="4h">4 Hours</SelectItem>
+                            <SelectItem value="1d">1 Day</SelectItem>
+                            <SelectItem value="1w">1 Week</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
