@@ -49,6 +49,8 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [showBotSettings, setShowBotSettings] = useState(false);
+  const [selectedBot, setSelectedBot] = useState<any>(null);
 
 
 
@@ -670,7 +672,16 @@ export default function BotPage() {
                           <Play className="h-4 w-4 mr-2" />
                           Deploy Bot
                         </Button>
-                        <Button size="sm" variant="outline" className="px-3">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="px-3"
+                          onClick={() => {
+                            setSelectedBot(bot);
+                            setShowBotSettings(true);
+                          }}
+                          data-testid={`button-settings-${bot.id}`}
+                        >
                           <Settings className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1654,6 +1665,117 @@ export default function BotPage() {
               Close
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Settings Dialog */}
+      <Dialog open={showBotSettings} onOpenChange={setShowBotSettings}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              {selectedBot?.name} Settings
+            </DialogTitle>
+            <DialogDescription>
+              Configure parameters for this AI trading bot
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBot && (
+            <div className="space-y-6 py-4">
+              {/* Bot Info */}
+              <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${selectedBot.gradient}`}>
+                    {selectedBot.icon && (
+                      <selectedBot.icon className="h-5 w-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">{selectedBot.name}</h4>
+                    <p className="text-sm text-muted-foreground">{selectedBot.description}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Risk Level:</span>
+                    <div className="font-medium">{selectedBot.risk}</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Win Rate:</span>
+                    <div className="font-medium text-green-600">{selectedBot.winRate}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Configuration Options */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Risk Management</label>
+                  <Select defaultValue="medium">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select risk level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="conservative">Conservative</SelectItem>
+                      <SelectItem value="medium">Medium (Default)</SelectItem>
+                      <SelectItem value="aggressive">Aggressive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Position Size (%)</label>
+                  <Input type="number" defaultValue="10" placeholder="10" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Percentage of capital to use per trade
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Stop Loss (%)</label>
+                  <Input type="number" defaultValue="2" placeholder="2" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Maximum loss per trade
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Take Profit (%)</label>
+                  <Input type="number" defaultValue="5" placeholder="5" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Target profit per trade
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium">Auto-Rebalancing</label>
+                    <p className="text-xs text-muted-foreground">
+                      Automatically adjust position sizes
+                    </p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowBotSettings(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowBotSettings(false);
+                    // Here you could save the settings
+                  }} 
+                  className="flex-1"
+                >
+                  Save Settings
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
