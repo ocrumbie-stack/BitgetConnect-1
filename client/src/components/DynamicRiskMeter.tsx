@@ -20,7 +20,8 @@ import {
   DollarSign,
   Zap,
   Eye,
-  RefreshCw
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 interface RiskMetrics {
@@ -321,16 +322,29 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Badge 
-                  variant="outline" 
-                  className={`${getRiskColor(riskData.overallRiskScore)} border-current`}
-                >
-                  {riskData.riskLevel} Risk
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  {riskData.symbol} Risk Assessment
-                </p>
+              <div className="space-y-2 relative">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <Badge 
+                      variant="outline" 
+                      className={`${getRiskColor(riskData.overallRiskScore)} border-current`}
+                    >
+                      {riskData.riskLevel} Risk
+                    </Badge>
+                    <p className="text-sm text-muted-foreground">
+                      {riskData.symbol} Risk Assessment
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRiskData(null)}
+                    className="h-8 w-8 p-0 absolute top-0 right-0"
+                    data-testid="button-close-risk-analysis"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
