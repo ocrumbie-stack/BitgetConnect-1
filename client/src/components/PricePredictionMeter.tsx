@@ -265,7 +265,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="flex-1"
+                className="flex-1 text-xs placeholder:text-xs"
                 data-testid="input-trading-pair"
               />
               

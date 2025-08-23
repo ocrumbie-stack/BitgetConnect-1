@@ -279,7 +279,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                 }}
                 onFocus={() => setShowSuggestions(selectedPair.length > 0)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="pr-10"
+                className="pr-10 text-xs placeholder:text-xs"
                 data-testid="input-risk-pair"
               />
               
