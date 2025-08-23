@@ -389,7 +389,7 @@ export default function Markets() {
 
             {/* Screener Tab Content */}
             <TabsContent value="screener" className="space-y-4 mt-4">
-              {/* Search and Create Screener */}
+              {/* Search Functionality */}
               <div className="space-y-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -401,129 +401,104 @@ export default function Markets() {
                     data-testid="input-search-markets"
                   />
                 </div>
-                
-                <div className="flex items-center justify-end">
+              </div>
+
+              {/* Screener Management */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Market Screeners</h3>
                   <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => setLocation('/create-screener')}
                     className="flex items-center gap-2"
                     data-testid="button-create-screener"
                   >
                     <Plus className="h-4 w-4" />
-                    Create Screener
+                    Create New Screener
                   </Button>
                 </div>
+
+                {/* Existing Screeners List */}
+                {userScreeners.length > 0 ? (
+                  <div className="grid gap-3">
+                    {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
+                      <Card key={screener.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                              <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{screener.name}</h4>
+                              <p className="text-sm text-muted-foreground">Custom screener</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditScreener(screener.id)}
+                              data-testid={`edit-screener-${screener.id}`}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  data-testid={`screener-menu-${screener.id}`}
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleEditScreener(screener.id)}
+                                  data-testid={`edit-screener-menu-${screener.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit Screener
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteScreener(screener.id)}
+                                  className="text-red-600"
+                                  data-testid={`delete-screener-${screener.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center">
+                        <BarChart3 className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">No Screeners Yet</h4>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Create your first market screener to filter and analyze trading pairs
+                        </p>
+                        <Button
+                          onClick={() => setLocation('/create-screener')}
+                          className="flex items-center gap-2"
+                          data-testid="button-create-first-screener"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Create Your First Screener
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                )}
               </div>
-              
-              {/* Market Overview Cards */}
-              {marketStats && !isLoading && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                  {/* Total Markets */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'all' 
-                        ? 'ring-2 ring-blue-500 bg-blue-50/30 dark:bg-blue-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('all')}
-                    data-testid="card-total-markets"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Markets</p>
-                          <p className="text-2xl font-bold">{marketStats.total}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <BarChart3 className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Gainers */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'gainers' 
-                        ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('gainers')}
-                    data-testid="card-gainers"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Gainers</p>
-                          <p className="text-2xl font-bold text-green-600">{marketStats.gainers}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <TrendingUp className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Losers */}
-                  <Card 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
-                      filter === 'losers' 
-                        ? 'ring-2 ring-red-500 bg-red-50/30 dark:bg-red-950/20' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
-                    }`}
-                    onClick={() => setFilter('losers')}
-                    data-testid="card-losers"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Losers</p>
-                          <p className="text-2xl font-bold text-red-600">{marketStats.losers}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center">
-                          <TrendingDown className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* High Volume */}
-                  <Card 
-                    className="cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 hover:bg-gray-50 dark:hover:bg-gray-950"
-                    data-testid="card-high-volume"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">High Volume</p>
-                          <p className="text-2xl font-bold text-purple-600">{marketStats.highVolume}</p>
-                        </div>
-                        <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
-                          <Volume2 className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Market Table */}
-              {isLoading ? (
-                <div className="space-y-3 p-4">
-                  {[...Array(10)].map((_, i) => (
-                    <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-                  ))}
-                </div>
-              ) : (
-                <SimpleTable 
-                  data={filteredAndSortedData}
-                  onSort={handleSort}
-                  sortBy={sortBy}
-                  sortDirection={sortDirection}
-                  onRiskAnalysis={(pair) => setSelectedRiskPair(pair)}
-                />
-              )}
             </TabsContent>
             
             {/* AI Opportunities Tab Content */}
