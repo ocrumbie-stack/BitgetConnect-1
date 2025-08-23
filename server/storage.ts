@@ -28,9 +28,22 @@ import {
   type StrategyRecommendation,
   type InsertStrategyRecommendation,
   type MarketOpportunity,
-  type InsertMarketOpportunity
+  type InsertMarketOpportunity,
+  users,
+  screeners,
+  botStrategies,
+  botExecutions,
+  alertSettings,
+  alerts,
+  pricePredictions,
+  userTradingPreferences,
+  strategyPerformance,
+  strategyRecommendations,
+  marketOpportunities
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -647,4 +660,316 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {
+    // Implement as needed
+    return undefined;
+  }
+
+  async saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials> {
+    // Implement as needed
+    throw new Error("Not implemented");
+  }
+
+  async getAllFuturesData(): Promise<FuturesData[]> {
+    // Keep using MemStorage for futures data as it's real-time
+    return [];
+  }
+
+  async updateFuturesData(data: InsertFuturesData[]): Promise<void> {
+    // Keep using MemStorage for futures data as it's real-time
+  }
+
+  async getFuturesDataBySymbol(symbol: string): Promise<FuturesData | undefined> {
+    // Keep using MemStorage for futures data as it's real-time
+    return undefined;
+  }
+
+  async getUserPositions(userId: string): Promise<UserPosition[]> {
+    // Implement as needed
+    return [];
+  }
+
+  async updateUserPositions(userId: string, positions: InsertUserPosition[]): Promise<void> {
+    // Implement as needed
+  }
+
+  async getAccountInfo(userId: string): Promise<AccountInfo | undefined> {
+    // Implement as needed
+    return undefined;
+  }
+
+  async updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo> {
+    // Implement as needed
+    throw new Error("Not implemented");
+  }
+
+  async getBotStrategies(userId: string): Promise<BotStrategy[]> {
+    return await db.select().from(botStrategies).where(eq(botStrategies.userId, userId));
+  }
+
+  async createBotStrategy(strategy: InsertBotStrategy): Promise<BotStrategy> {
+    const [created] = await db
+      .insert(botStrategies)
+      .values(strategy)
+      .returning();
+    return created;
+  }
+
+  async updateBotStrategy(id: string, strategy: Partial<InsertBotStrategy>): Promise<BotStrategy> {
+    const [updated] = await db
+      .update(botStrategies)
+      .set({ ...strategy, updatedAt: new Date() })
+      .where(eq(botStrategies.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBotStrategy(id: string): Promise<void> {
+    await db.delete(botStrategies).where(eq(botStrategies.id, id));
+  }
+
+  async getBotExecutions(userId: string): Promise<BotExecution[]> {
+    return await db.select().from(botExecutions).where(eq(botExecutions.userId, userId));
+  }
+
+  async createBotExecution(execution: InsertBotExecution): Promise<BotExecution> {
+    const [created] = await db
+      .insert(botExecutions)
+      .values(execution)
+      .returning();
+    return created;
+  }
+
+  async updateBotExecution(id: string, execution: Partial<InsertBotExecution>): Promise<BotExecution> {
+    const [updated] = await db
+      .update(botExecutions)
+      .set({ ...execution, updatedAt: new Date() })
+      .where(eq(botExecutions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBotExecution(id: string): Promise<void> {
+    await db.delete(botExecutions).where(eq(botExecutions.id, id));
+  }
+
+  async getUserScreeners(userId: string): Promise<Screener[]> {
+    return await db.select().from(screeners).where(eq(screeners.userId, userId));
+  }
+
+  async createScreener(screener: InsertScreener): Promise<Screener> {
+    const [created] = await db
+      .insert(screeners)
+      .values(screener)
+      .returning();
+    return created;
+  }
+
+  async updateScreener(id: string, screener: InsertScreener): Promise<Screener> {
+    const [updated] = await db
+      .update(screeners)
+      .set({ ...screener, updatedAt: new Date() })
+      .where(eq(screeners.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteScreener(id: string): Promise<void> {
+    await db.delete(screeners).where(eq(screeners.id, id));
+  }
+
+  // Alert System - implementing basic structure
+  async getUserAlertSettings(userId: string): Promise<AlertSetting[]> {
+    return await db.select().from(alertSettings).where(eq(alertSettings.userId, userId));
+  }
+
+  async createAlertSetting(setting: InsertAlertSetting): Promise<AlertSetting> {
+    const [created] = await db
+      .insert(alertSettings)
+      .values(setting)
+      .returning();
+    return created;
+  }
+
+  async updateAlertSetting(id: string, setting: Partial<InsertAlertSetting>): Promise<AlertSetting> {
+    const [updated] = await db
+      .update(alertSettings)
+      .set({ ...setting, updatedAt: new Date() })
+      .where(eq(alertSettings.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAlertSetting(id: string): Promise<void> {
+    await db.delete(alertSettings).where(eq(alertSettings.id, id));
+  }
+
+  async getUserAlerts(userId: string): Promise<Alert[]> {
+    return await db.select().from(alerts).where(eq(alerts.userId, userId));
+  }
+
+  async createAlert(alert: InsertAlert): Promise<Alert> {
+    const [created] = await db
+      .insert(alerts)
+      .values(alert)
+      .returning();
+    return created;
+  }
+
+  async markAlertAsRead(id: string): Promise<void> {
+    await db
+      .update(alerts)
+      .set({ isRead: true })
+      .where(eq(alerts.id, id));
+  }
+
+  async markAllAlertsAsRead(userId: string): Promise<void> {
+    await db
+      .update(alerts)
+      .set({ isRead: true })
+      .where(eq(alerts.userId, userId));
+  }
+
+  async deleteAlert(id: string): Promise<void> {
+    await db.delete(alerts).where(eq(alerts.id, id));
+  }
+
+  // Price Predictions - implementing basic structure
+  async createPricePrediction(prediction: InsertPricePrediction): Promise<PricePrediction> {
+    const [created] = await db
+      .insert(pricePredictions)
+      .values(prediction)
+      .returning();
+    return created;
+  }
+
+  async getPricePredictions(symbol?: string): Promise<PricePrediction[]> {
+    if (symbol) {
+      return await db.select().from(pricePredictions).where(eq(pricePredictions.symbol, symbol));
+    }
+    return await db.select().from(pricePredictions);
+  }
+
+  async updatePricePrediction(id: string, updates: Partial<PricePrediction>): Promise<boolean> {
+    const result = await db
+      .update(pricePredictions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(pricePredictions.id, id));
+    return result.count > 0;
+  }
+
+  async deletePricePrediction(id: string): Promise<boolean> {
+    const result = await db.delete(pricePredictions).where(eq(pricePredictions.id, id));
+    return result.count > 0;
+  }
+
+  // Strategy Recommender - implementing basic structure
+  async getUserTradingPreferences(userId: string): Promise<UserTradingPreferences | undefined> {
+    const [prefs] = await db.select().from(userTradingPreferences).where(eq(userTradingPreferences.userId, userId));
+    return prefs || undefined;
+  }
+
+  async createUserTradingPreferences(preferences: InsertUserTradingPreferences): Promise<UserTradingPreferences> {
+    const [created] = await db
+      .insert(userTradingPreferences)
+      .values(preferences)
+      .returning();
+    return created;
+  }
+
+  async updateUserTradingPreferences(userId: string, preferences: Partial<InsertUserTradingPreferences>): Promise<UserTradingPreferences> {
+    const [updated] = await db
+      .update(userTradingPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(userTradingPreferences.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async getStrategyPerformance(userId: string, strategyId?: string): Promise<StrategyPerformance[]> {
+    if (strategyId) {
+      return await db.select().from(strategyPerformance)
+        .where(eq(strategyPerformance.userId, userId));
+    }
+    return await db.select().from(strategyPerformance).where(eq(strategyPerformance.userId, userId));
+  }
+
+  async createStrategyPerformance(performance: InsertStrategyPerformance): Promise<StrategyPerformance> {
+    const [created] = await db
+      .insert(strategyPerformance)
+      .values(performance)
+      .returning();
+    return created;
+  }
+
+  async getStrategyRecommendations(userId: string): Promise<StrategyRecommendation[]> {
+    return await db.select().from(strategyRecommendations).where(eq(strategyRecommendations.userId, userId));
+  }
+
+  async createStrategyRecommendation(recommendation: InsertStrategyRecommendation): Promise<StrategyRecommendation> {
+    const [created] = await db
+      .insert(strategyRecommendations)
+      .values(recommendation)
+      .returning();
+    return created;
+  }
+
+  async updateStrategyRecommendation(id: string, updates: Partial<InsertStrategyRecommendation>): Promise<StrategyRecommendation> {
+    const [updated] = await db
+      .update(strategyRecommendations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(strategyRecommendations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteStrategyRecommendation(id: string): Promise<void> {
+    await db.delete(strategyRecommendations).where(eq(strategyRecommendations.id, id));
+  }
+
+  async getMarketOpportunities(userId?: string): Promise<MarketOpportunity[]> {
+    return await db.select().from(marketOpportunities);
+  }
+
+  async createMarketOpportunity(opportunity: InsertMarketOpportunity): Promise<MarketOpportunity> {
+    const [created] = await db
+      .insert(marketOpportunities)
+      .values(opportunity)
+      .returning();
+    return created;
+  }
+
+  async updateMarketOpportunity(id: string, updates: Partial<InsertMarketOpportunity>): Promise<MarketOpportunity> {
+    const [updated] = await db
+      .update(marketOpportunities)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(marketOpportunities.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMarketOpportunity(id: string): Promise<void> {
+    await db.delete(marketOpportunities).where(eq(marketOpportunities.id, id));
+  }
+}
+
+export const storage = new DatabaseStorage();
