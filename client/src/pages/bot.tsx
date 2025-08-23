@@ -364,6 +364,7 @@ export default function BotPage() {
     const price = parseFloat(pair.price);
     const change24h = parseFloat(pair.change24h);
     const volume24h = parseFloat(pair.volume24h);
+    // The API returns change24h as percentage (134.166 means +134%), not decimal
     const absChange = Math.abs(change24h);
 
     // Analyze pair characteristics
