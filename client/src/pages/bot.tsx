@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
 
 export default function BotPage() {
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('ai');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRunDialog, setShowRunDialog] = useState(false);
@@ -997,7 +999,15 @@ export default function BotPage() {
                                   {executions.map((execution: any) => (
                                     <div key={execution.id} className="flex items-center justify-between p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-medium text-white">{execution.tradingPair}</span>
+                                        <span 
+                                          className="font-medium text-white cursor-pointer hover:text-blue-400 transition-colors"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setLocation(`/trade?pair=${execution.tradingPair}`);
+                                          }}
+                                        >
+                                          {execution.tradingPair}
+                                        </span>
                                         <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
                                           {execution.status}
                                         </Badge>
@@ -1039,7 +1049,12 @@ export default function BotPage() {
                             <div className="flex items-start justify-between mb-3">
                               <div>
                                 <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium">{execution.tradingPair}</h4>
+                                  <h4 
+                                    className="font-medium cursor-pointer hover:text-blue-500 transition-colors"
+                                    onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}
+                                  >
+                                    {execution.tradingPair}
+                                  </h4>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
                                   Capital: ${execution.capital} | Leverage: {execution.leverage}x
@@ -1711,6 +1726,7 @@ export default function BotPage() {
                   setTradingPair(rec.symbol);
                   setShowRecommendations(false);
                 }}
+                onDoubleClick={() => setLocation(`/trade?pair=${rec.symbol}`)}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
