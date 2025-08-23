@@ -546,7 +546,7 @@ export default function BotPage() {
       analysis: {
         volatility: volatilityLevel,
         volume24h: volume24h,
-        change24h: change24h,
+        change24h: actualPercentage, // Display actual percentage, not raw API value
         trend: actualPercentage > 2 ? 'bullish' : actualPercentage < -2 ? 'bearish' : 'sideways'
       },
       recommended: {
