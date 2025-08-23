@@ -32,6 +32,7 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
+  const [isScreenersCollapsed, setIsScreenersCollapsed] = useState(false);
 
   // Fetch user screeners
   const { data: userScreeners = [] } = useQuery<any[]>({
@@ -406,7 +407,18 @@ export default function Markets() {
               {/* Screener Management */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Market Screeners</h3>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsScreenersCollapsed(!isScreenersCollapsed)}
+                    className="flex items-center gap-2 text-lg font-semibold p-0 h-auto hover:bg-transparent"
+                  >
+                    <h3 className="text-lg font-semibold">Market Screeners</h3>
+                    {isScreenersCollapsed ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Button
                     onClick={() => setLocation('/create-screener')}
                     className="flex items-center gap-2"
@@ -417,86 +429,91 @@ export default function Markets() {
                   </Button>
                 </div>
 
-                {/* Existing Screeners List */}
-                {userScreeners.length > 0 ? (
-                  <div className="grid gap-3">
-                    {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
-                      <Card key={screener.id} className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                              <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium">{screener.name}</h4>
-                              <p className="text-sm text-muted-foreground">Custom screener</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditScreener(screener.id)}
-                              data-testid={`edit-screener-${screener.id}`}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                {/* Collapsible Screeners Content */}
+                {!isScreenersCollapsed && (
+                  <>
+                    {/* Existing Screeners List */}
+                    {userScreeners.length > 0 ? (
+                      <div className="grid gap-3">
+                        {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
+                          <Card key={screener.id} className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                  <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">{screener.name}</h4>
+                                  <p className="text-sm text-muted-foreground">Custom screener</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
                                 <Button
-                                  variant="ghost"
+                                  variant="outline"
                                   size="sm"
-                                  data-testid={`screener-menu-${screener.id}`}
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
                                   onClick={() => handleEditScreener(screener.id)}
-                                  data-testid={`edit-screener-menu-${screener.id}`}
+                                  data-testid={`edit-screener-${screener.id}`}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
-                                  Edit Screener
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteScreener(screener.id)}
-                                  className="text-red-600"
-                                  data-testid={`delete-screener-${screener.id}`}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  Edit
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      data-testid={`screener-menu-${screener.id}`}
+                                    >
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleEditScreener(screener.id)}
+                                      data-testid={`edit-screener-menu-${screener.id}`}
+                                    >
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit Screener
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDeleteScreener(screener.id)}
+                                      className="text-red-600"
+                                      data-testid={`delete-screener-${screener.id}`}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="p-8 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center">
+                            <BarChart3 className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium mb-2">No Screeners Yet</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Create your first market screener to filter and analyze trading pairs
+                            </p>
+                            <Button
+                              onClick={() => setLocation('/create-screener')}
+                              className="flex items-center gap-2"
+                              data-testid="button-create-first-screener"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Create Your First Screener
+                            </Button>
                           </div>
                         </div>
                       </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <Card className="p-8 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center">
-                        <BarChart3 className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-2">No Screeners Yet</h4>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Create your first market screener to filter and analyze trading pairs
-                        </p>
-                        <Button
-                          onClick={() => setLocation('/create-screener')}
-                          className="flex items-center gap-2"
-                          data-testid="button-create-first-screener"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Create Your First Screener
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
+                    )}
+                  </>
                 )}
               </div>
 
