@@ -329,6 +329,15 @@ export default function Markets() {
     }));
   };
 
+  const handleSort = (field: 'change' | 'volume' | 'price') => {
+    if (sortBy === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortDirection('desc');
+    }
+  };
+
   if (error) {
     return (
       <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
@@ -562,48 +571,22 @@ export default function Markets() {
                 </div>
               )}
 
-              {/* Market Data Table */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Market Data</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Select value={sortBy} onValueChange={(value: 'change' | 'volume' | 'price') => setSortBy(value)}>
-                        <SelectTrigger className="w-32" data-testid="sort-by-select">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="change">24h Change</SelectItem>
-                          <SelectItem value="volume">Volume</SelectItem>
-                          <SelectItem value="price">Price</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-                        data-testid="toggle-sort-direction"
-                      >
-                        {sortDirection === 'desc' ? '↓' : '↑'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="space-y-3">
-                      {[...Array(10)].map((_, i) => (
-                        <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-                      ))}
-                    </div>
-                  ) : (
-                    <SimpleTable 
-                      data={filteredAndSortedData}
-                      onRiskAnalysis={(pair) => setSelectedRiskPair(pair)}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+              {/* Market Table */}
+              {isLoading ? (
+                <div className="space-y-3 p-4">
+                  {[...Array(10)].map((_, i) => (
+                    <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : (
+                <SimpleTable 
+                  data={filteredAndSortedData}
+                  onSort={handleSort}
+                  sortBy={sortBy}
+                  sortDirection={sortDirection}
+                  onRiskAnalysis={(pair) => setSelectedRiskPair(pair)}
+                />
+              )}
             </TabsContent>
             
             {/* AI Opportunities Tab Content */}
