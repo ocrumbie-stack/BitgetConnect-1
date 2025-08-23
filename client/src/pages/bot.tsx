@@ -2271,6 +2271,143 @@ export default function BotPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bot Run Dialog */}
+      <Dialog open={showRunDialog} onOpenChange={setShowRunDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              Deploy {selectedStrategy?.name || 'AI Trading Bot'}
+            </DialogTitle>
+            <DialogDescription>
+              Configure trading parameters for your bot deployment
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Trading Pair</label>
+              <Input
+                value={tradingPair}
+                onChange={(e) => setTradingPair(e.target.value)}
+                placeholder="BTCUSDT"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Capital Amount</label>
+              <Input
+                type="number"
+                value={capital}
+                onChange={(e) => setCapital(e.target.value)}
+                placeholder="1000"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Leverage</label>
+              <Input
+                type="number"
+                value={leverage}
+                onChange={(e) => setLeverage(e.target.value)}
+                placeholder="1"
+                min="1"
+                max="100"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRunDialog(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle bot deployment
+                alert(`Deploying ${selectedStrategy?.name || 'AI Bot'} with ${capital} USDT on ${tradingPair} at ${leverage}x leverage`);
+                setShowRunDialog(false);
+              }}
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Deploy Bot
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Settings Dialog */}
+      <Dialog open={showBotSettings} onOpenChange={setShowBotSettings}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-gray-600" />
+              Bot Settings - {selectedBot?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Configure advanced settings for your trading bot
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Risk Level</label>
+              <Select defaultValue="medium">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Risk</SelectItem>
+                  <SelectItem value="medium">Medium Risk</SelectItem>
+                  <SelectItem value="high">High Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Stop Loss %</label>
+              <Input
+                type="number"
+                placeholder="2.0"
+                step="0.1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Take Profit %</label>
+              <Input
+                type="number"
+                placeholder="5.0"
+                step="0.1"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="autoReinvest" />
+              <label htmlFor="autoReinvest" className="text-sm">Auto-reinvest profits</label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBotSettings(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                alert('Bot settings updated successfully!');
+                setShowBotSettings(false);
+              }}
+              className="flex-1"
+            >
+              Save Settings
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
