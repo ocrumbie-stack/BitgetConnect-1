@@ -517,7 +517,18 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    78%
+                    {(() => {
+                      const aiBots = [
+                        { winRate: '78%' },
+                        { winRate: '85%' },
+                        { winRate: '72%' },
+                        { winRate: '92%' },
+                        { winRate: '81%' },
+                        { winRate: '76%' }
+                      ];
+                      const avgWinRate = aiBots.reduce((sum, bot) => sum + parseInt(bot.winRate), 0) / aiBots.length;
+                      return Math.round(avgWinRate) + '%';
+                    })()}
                   </div>
                   <div className="text-xs text-orange-600 dark:text-orange-400">Avg Win Rate</div>
                 </div>
@@ -544,8 +555,8 @@ export default function BotPage() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[
+            {(() => {
+              const aiBots = [
                 {
                   id: 'grid',
                   name: 'Grid Trading Pro',
@@ -648,7 +659,11 @@ export default function BotPage() {
                   timeframe: 'Minutes to hours per trade cycle',
                   indicators: ['Implied Volatility', 'Historical Volatility', 'VIX', 'Option Greeks'],
                 }
-              ].map((bot) => {
+              ];
+              
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {aiBots.map((bot) => {
                 const IconComponent = bot.icon;
                 return (
                   <Card key={bot.id} className="hover:shadow-lg transition-all duration-300 hover:scale-102 overflow-hidden">
@@ -761,7 +776,9 @@ export default function BotPage() {
                   </Card>
                 );
               })}
-            </div>
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Strategies Tab */}
