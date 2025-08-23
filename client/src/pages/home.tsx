@@ -330,22 +330,22 @@ export function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
         <h1 className="text-lg font-semibold text-foreground mb-2">Welcome Back</h1>
         <p className="text-sm text-muted-foreground">Discover AI-powered trading opportunities and market insights</p>
       </div>
 
-      <div className="p-4">
-        <Tabs defaultValue="overview" className="w-full">
+      <div className="p-4 max-w-full overflow-x-hidden">
+        <Tabs defaultValue="overview" className="w-full max-w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Market Overview</TabsTrigger>
-            <TabsTrigger value="opportunities">AI Opportunities</TabsTrigger>
+            <TabsTrigger value="overview" className="truncate">Market Overview</TabsTrigger>
+            <TabsTrigger value="opportunities" className="truncate">AI Opportunities</TabsTrigger>
           </TabsList>
 
           {/* AI Opportunities Tab */}
-          <TabsContent value="opportunities" className="space-y-4 mt-4">
+          <TabsContent value="opportunities" className="space-y-4 mt-4 overflow-x-hidden">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-medium flex items-center gap-2">
                 <Brain className="h-5 w-5 text-blue-500" />
@@ -368,7 +368,7 @@ export function Home() {
             </div>
 
             {/* Trading Strategy Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 w-full">
               {[
                 { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
                 { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
@@ -598,9 +598,9 @@ export function Home() {
           </TabsContent>
 
           {/* Market Overview Tab - Main Focus */}
-          <TabsContent value="overview" className="space-y-6 mt-4">
+          <TabsContent value="overview" className="space-y-6 mt-4 overflow-x-hidden">
             {/* Market Statistics Cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 w-full">
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -717,7 +717,7 @@ export function Home() {
             </Card>
 
             {/* Social Sentiment & Fear/Greed Index */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
               <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -728,7 +728,7 @@ export function Home() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                      <div className="text-2xl font-bold text-purple-700 dark:text-purple-300 truncate">
                         {socialSentiment.overall}
                       </div>
                       <div className="text-sm text-purple-600 dark:text-purple-400">
@@ -747,16 +747,16 @@ export function Home() {
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MessageCircle className="h-3 w-3" />
-                        {socialSentiment.volume.toLocaleString()} mentions
+                        <span className="truncate">{socialSentiment.volume.toLocaleString()} mentions</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="text-xs font-medium text-purple-600 dark:text-purple-400">Trending Topics</div>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 flex-wrap overflow-hidden">
                       {socialSentiment.trending.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                        <Badge key={index} variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200 shrink-0">
                           {tag}
                         </Badge>
                       ))}
@@ -815,7 +815,7 @@ export function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
                   <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
                       {marketHealth.volatility.toFixed(1)}%
@@ -868,14 +868,14 @@ export function Home() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                   {socialSentiment.insights.map((insight, index) => (
                     <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                       <div className="p-1 bg-blue-500 rounded-full mt-1">
                         <Star className="h-3 w-3 text-white" />
                       </div>
-                      <div>
-                        <div className="text-sm font-medium">{insight}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium break-words">{insight}</div>
                         <div className="text-xs text-muted-foreground mt-1">
                           Updated {Math.floor(Math.random() * 30 + 1)} minutes ago
                         </div>
