@@ -5,15 +5,17 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
-- **August 23, 2025**: Enhanced Analysis Hub with Dynamic Trend Functionality and Close Controls
+- **August 23, 2025**: Enhanced Analysis Hub with 5-Minute Timeframe and Dynamic Support/Resistance
+  - Added 5-minute timeframe option to both Analyzer page and Analysis Hub for ultra-short scalping
+  - Implemented timeframe-specific support and resistance calculations with realistic price levels
+  - Enhanced trend duration display (5M shows minutes, 1H shows hours, 4H+ shows days/weeks)
+  - Adjusted volatility, volume, and performance metrics for granular 5-minute analysis
+  - Fixed support/resistance levels to dynamically reflect chosen timeframe (0.05%-12% ranges)
   - Combined AI Price Prediction and Dynamic Risk Visualizer into unified "AI Analysis Hub" component
   - Added comprehensive trend and statistics analysis as third tab with technical indicators
   - Integrated close buttons (X) across all analysis tools for improved user control
-  - Fixed timeframe-responsive trend analysis - now properly updates when switching between 1H/4H/1D/1W
   - Enhanced trend calculations with timeframe-specific factors and sensitivity adjustments
-  - Added volatility statistics, performance history, technical signals, and market sentiment analysis
   - Improved real-time price data integration with live indicators and autocomplete suggestions
-  - Standardized text sizing and interface consistency across all analysis components
 
 # System Architecture
 
