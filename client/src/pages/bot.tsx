@@ -2342,22 +2342,37 @@ export default function BotPage() {
               
               {/* Auto-suggest dropdown */}
               {showAutoSuggest && filteredPairs.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {filteredPairs.map((pair: any) => (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                  {filteredPairs.map((pair: any, index: number) => (
                     <div
                       key={pair.symbol}
-                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
                       onClick={() => {
                         selectPair(pair);
                         setTradingPair(pair.symbol);
                       }}
+                      className="px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors"
                     >
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{pair.symbol}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">${parseFloat(pair.price).toLocaleString()}</div>
-                      </div>
-                      <div className={`text-xs font-medium ${parseFloat(pair.change24h) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-gray-100">
+                            {pair.symbol}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                            ${parseFloat(pair.price).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm font-semibold ${
+                            parseFloat(pair.change24h) >= 0 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-red-500 dark:text-red-400'
+                          }`}>
+                            {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            Vol: ${(parseFloat(pair.volume24h) / 1000000).toFixed(1)}M
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
