@@ -22,6 +22,16 @@ export interface FuturesTickerData {
   indexPrice: string;
 }
 
+export interface CandlestickData {
+  timestamp: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+  quoteVolume: string;
+}
+
 export interface AccountData {
   marginCoin: string;
   available: string;
@@ -112,6 +122,33 @@ export class BitgetAPI {
     } catch (error) {
       console.error('Error fetching futures tickers:', error);
       throw new Error('Failed to fetch futures tickers from Bitget API');
+    }
+  }
+
+  async getCandlestickData(symbol: string, granularity: string = '5m', limit: number = 100): Promise<CandlestickData[]> {
+    try {
+      const response = await this.client.get('/api/v2/mix/market/candles', {
+        params: {
+          symbol,
+          granularity,
+          productType: 'USDT-FUTURES',
+          limit
+        }
+      });
+      
+      const rawData = response.data.data || [];
+      return rawData.map((candle: string[]) => ({
+        timestamp: candle[0],
+        open: candle[1],
+        high: candle[2],
+        low: candle[3],
+        close: candle[4],
+        volume: candle[5],
+        quoteVolume: candle[6]
+      }));
+    } catch (error) {
+      console.error(`Error fetching ${granularity} candlestick data for ${symbol}:`, error);
+      throw new Error(`Failed to fetch candlestick data for ${symbol}`);
     }
   }
 
