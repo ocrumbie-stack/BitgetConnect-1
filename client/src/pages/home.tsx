@@ -375,6 +375,15 @@ export function Home() {
                   Live Analysis
                 </Badge>
                 <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setLocation('/strategy-recommender')}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Brain className="h-4 w-4" />
+                  Strategy AI
+                </Button>
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => window.location.reload()}
