@@ -1,6 +1,6 @@
 import { FuturesData } from '@shared/schema';
 import { useLocation } from 'wouter';
-import { ChevronUp, ChevronDown, Plus, FolderPlus } from 'lucide-react';
+import { ChevronUp, ChevronDown, Plus, FolderPlus, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
@@ -16,9 +16,10 @@ interface SimpleTableProps {
   sortBy?: 'change' | 'volume' | 'price';
   sortDirection?: 'asc' | 'desc';
   onSort?: (field: 'change' | 'volume' | 'price') => void;
+  onRiskAnalysis?: (symbol: string) => void;
 }
 
-export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: SimpleTableProps) {
+export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, onRiskAnalysis }: SimpleTableProps) {
   const [, setLocation] = useLocation();
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
   const [showAddToFolderDialog, setShowAddToFolderDialog] = useState(false);
@@ -224,11 +225,27 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort }: 
 
                 {/* Change Column */}
                 <div className="text-right">
-                  <div 
-                    className={`inline-block px-2 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
-                    data-testid={`change-${item.symbol}`}
-                  >
-                    {formatChange(item.change24h)}
+                  <div className="flex items-center justify-end gap-2">
+                    <div 
+                      className={`inline-block px-2 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
+                      data-testid={`change-${item.symbol}`}
+                    >
+                      {formatChange(item.change24h)}
+                    </div>
+                    {onRiskAnalysis && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRiskAnalysis(item.symbol);
+                        }}
+                        title="Risk Analysis"
+                      >
+                        <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

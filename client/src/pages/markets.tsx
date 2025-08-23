@@ -1,6 +1,7 @@
 import { SimpleTable } from '@/components/SimpleTable';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { useState } from 'react';
+import { DynamicRiskMeter } from '@/components/DynamicRiskMeter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ export function Markets() {
   const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
   const [selectedScreener, setSelectedScreener] = useState<string>('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [selectedRiskPair, setSelectedRiskPair] = useState<string | null>(null);
   
   // Fetch user screeners from API
   const { data: userScreeners = [] } = useQuery({
@@ -504,7 +506,24 @@ export function Markets() {
         sortBy={sortBy}
         sortDirection={sortDirection}
         onSort={handleSort}
+        onRiskAnalysis={setSelectedRiskPair}
       />
+
+      {/* Dynamic Risk Meter Overlay */}
+      {selectedRiskPair && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-md w-full">
+            <DynamicRiskMeter
+              symbol={selectedRiskPair}
+              price={data?.find(p => p.symbol === selectedRiskPair)?.price || '0'}
+              change24h={data?.find(p => p.symbol === selectedRiskPair)?.change24h || '0'}
+              volume24h={data?.find(p => p.symbol === selectedRiskPair)?.volume24h || '0'}
+              onClose={() => setSelectedRiskPair(null)}
+              className="max-h-[90vh] overflow-y-auto"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
