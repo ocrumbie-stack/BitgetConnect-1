@@ -197,9 +197,9 @@ export default function BotPage() {
     setIndicators({
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
       macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50 },
-      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200 },
-      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20 },
+      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price' },
+      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price' },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'ma' },
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
