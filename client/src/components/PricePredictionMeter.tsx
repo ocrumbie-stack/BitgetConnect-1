@@ -81,19 +81,19 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
     staleTime: 1000
   });
 
-  // Common trading pairs for autocomplete
-  const commonPairs = [
-    'BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'SOLUSDT', 'DOTUSDT', 'MATICUSDT',
-    'LINKUSDT', 'UNIUSDT', 'AVAXUSDT', 'ATOMUSDT', 'XLMUSDT', 'VETUSDT',
-    'LTCUSDT', 'BCHUSDT', 'XRPUSDT', 'DOGEUSDT', 'SHIBUSDT', 'FTMUSDT'
-  ];
+  // Get all available trading pairs from market data
+  const getAllAvailablePairs = () => {
+    if (!marketData || !Array.isArray(marketData)) return [];
+    return marketData.map((item: any) => item.symbol).sort();
+  };
 
-  // Filter suggestions based on input
+  // Filter suggestions based on input - now uses all available pairs
   const getSuggestions = () => {
     if (!tradingPair.trim()) return [];
-    return commonPairs.filter(pair => 
+    const allPairs = getAllAvailablePairs();
+    return allPairs.filter(pair => 
       pair.toLowerCase().includes(tradingPair.toLowerCase())
-    ).slice(0, 6);
+    ).slice(0, 8); // Show more suggestions since we have more pairs
   };
 
   // Get real-time price from Bitget API data
@@ -106,21 +106,15 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
     return pair ? parseFloat(pair.price) : 0;
   };
 
-  // Get current price with real-time data or fallback
+  // Get current price with real-time data - prioritize real market data
   const getCurrentPrice = (symbol: string) => {
     const realPrice = getRealTimePrice(symbol);
     if (realPrice > 0) {
       return realPrice;
     }
     
-    // Fallback pricing only if real data isn't available
-    const basePrices: { [key: string]: number } = {
-      'BTC': 40000, 'ETH': 2500, 'ADA': 0.45, 'SOL': 85, 'DOT': 7.5,
-      'MATIC': 0.85, 'LINK': 15, 'UNI': 6.5, 'AVAX': 25, 'ATOM': 12
-    };
-    
-    const baseSymbol = symbol.replace('USDT', '').replace('USD', '').replace('BUSD', '');
-    return basePrices[baseSymbol] || 100;
+    // If no real-time data available, return 0 to indicate unavailable pair
+    return 0;
   };
 
   // AI prediction generation with real-time data
