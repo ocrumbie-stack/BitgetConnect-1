@@ -250,7 +250,7 @@ export function Analyzer() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Search pairs (e.g., BTCUSDT)"
+                placeholder="Enter Trading Pair"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
