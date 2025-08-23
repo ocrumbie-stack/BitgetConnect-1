@@ -255,7 +255,6 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
         <div className="space-y-3">
           {/* Trading Pair Input */}
           <div className="space-y-2 relative">
-            <div className="text-xs font-medium">Enter Trading Pair</div>
             <div className="relative">
               <Input
                 placeholder="Enter Trading Pair"
