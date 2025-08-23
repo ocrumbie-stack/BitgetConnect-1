@@ -266,37 +266,7 @@ export function Markets() {
             />
           </div>
 
-          {/* Filters */}
-          <div className="flex gap-2 mb-3">
-            <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('all')}
-              data-testid="button-filter-all"
-            >
-              All
-            </Button>
-            <Button
-              variant={filter === 'gainers' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('gainers')}
-              data-testid="button-filter-gainers"
-              className="flex items-center gap-1"
-            >
-              <TrendingUp className="h-3 w-3" />
-              Gainers
-            </Button>
-            <Button
-              variant={filter === 'losers' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('losers')}
-              data-testid="button-filter-losers"
-              className="flex items-center gap-1"
-            >
-              <TrendingDown className="h-3 w-3" />
-              Losers
-            </Button>
-          </div>
+
 
           {/* Screener Dropdown */}
           <div className="space-y-2">
@@ -373,7 +343,15 @@ export function Markets() {
         <div className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {/* Total Markets */}
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'all' 
+                  ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/30 dark:to-blue-700/30 border-blue-300 dark:border-blue-600 ring-2 ring-blue-400' 
+                  : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+              }`}
+              onClick={() => setFilter('all')}
+              data-testid="card-filter-all"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-500 rounded-lg">
@@ -390,7 +368,15 @@ export function Markets() {
             </Card>
 
             {/* Gainers */}
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'gainers' 
+                  ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/30 dark:to-green-700/30 border-green-300 dark:border-green-600 ring-2 ring-green-400' 
+                  : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+              }`}
+              onClick={() => setFilter('gainers')}
+              data-testid="card-filter-gainers"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-500 rounded-lg">
@@ -407,7 +393,15 @@ export function Markets() {
             </Card>
 
             {/* Losers */}
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
+            <Card 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                filter === 'losers' 
+                  ? 'bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800/30 dark:to-red-700/30 border-red-300 dark:border-red-600 ring-2 ring-red-400' 
+                  : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
+              }`}
+              onClick={() => setFilter('losers')}
+              data-testid="card-filter-losers"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-500 rounded-lg">
@@ -423,7 +417,7 @@ export function Markets() {
               </CardContent>
             </Card>
 
-            {/* Total Volume */}
+            {/* Total Volume - Not clickable for filtering */}
             <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
