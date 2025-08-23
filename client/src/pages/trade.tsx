@@ -58,22 +58,22 @@ export function Trade() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
+    <div className="min-h-screen bg-background text-foreground pb-16">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{currentPair}</span>
               <ChevronDown className="h-4 w-4" />
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-muted-foreground">
               Perpetual <span className="text-red-500">{change24h}%</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-xs text-gray-400">0.00%</div>
+              <div className="text-xs text-muted-foreground">0.00%</div>
             </div>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-2" data-testid="button-bot-trading">
@@ -82,7 +82,7 @@ export function Trade() {
               </Button>
             </Link>
             <div className="flex gap-2">
-              <div className="w-6 h-6 bg-gray-800 rounded"></div>
+              <div className="w-6 h-6 bg-muted rounded"></div>
               <MoreHorizontal className="h-5 w-5" />
             </div>
           </div>
@@ -93,9 +93,9 @@ export function Trade() {
 
       <div className="flex">
         {/* Left Side - Order Book */}
-        <div className="flex-1 border-r border-gray-800">
+        <div className="flex-1 border-r border-border">
           {/* Order Book Header */}
-          <div className="flex items-center justify-between p-3 text-xs text-gray-400 border-b border-gray-800">
+          <div className="flex items-center justify-between p-3 text-xs text-muted-foreground border-b border-border">
             <span>Price (USDT)</span>
             <span>Quantity (USDT)</span>
           </div>
@@ -103,15 +103,15 @@ export function Trade() {
           {/* Asks (Red) */}
           <div className="space-y-0">
             {orderBook.asks.reverse().map((ask, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
+              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-muted/50">
                 <span className="text-red-500">{ask.price}</span>
-                <span className="text-gray-400">{ask.quantity}</span>
+                <span className="text-muted-foreground">{ask.quantity}</span>
               </div>
             ))}
           </div>
 
           {/* Current Price */}
-          <div className="flex items-center justify-center py-2 border-y border-gray-800">
+          <div className="flex items-center justify-center py-2 border-y border-border">
             <div className="text-lg font-bold text-green-500">{currentPrice}</div>
             <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
           </div>
@@ -119,24 +119,24 @@ export function Trade() {
           {/* Bids (Green) */}
           <div className="space-y-0">
             {orderBook.bids.map((bid, index) => (
-              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-gray-900">
+              <div key={index} className="flex items-center justify-between px-3 py-1 text-xs hover:bg-muted/50">
                 <span className="text-green-500">{bid.price}</span>
-                <span className="text-gray-400">{bid.quantity}</span>
+                <span className="text-muted-foreground">{bid.quantity}</span>
               </div>
             ))}
           </div>
 
           {/* Volume Indicator */}
-          <div className="p-3 border-t border-gray-800">
+          <div className="p-3 border-t border-border">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-blue-400">B 29%</span>
-              <div className="flex-1 mx-2 h-1 bg-gray-800 rounded">
-                <div className="w-3/10 h-full bg-blue-500 rounded"></div>
+              <span className="text-primary">B 29%</span>
+              <div className="flex-1 mx-2 h-1 bg-muted rounded">
+                <div className="w-3/10 h-full bg-primary rounded"></div>
               </div>
-              <span className="text-red-400">71% S</span>
+              <span className="text-destructive">71% S</span>
             </div>
             <div className="flex items-center justify-between mt-2">
-              <div className="w-2 h-2 bg-blue-500 rounded"></div>
+              <div className="w-2 h-2 bg-primary rounded"></div>
               <span className="text-lg font-bold">0.1</span>
               <ChevronDown className="h-4 w-4" />
             </div>
@@ -146,28 +146,28 @@ export function Trade() {
         {/* Right Side - Trading Form */}
         <div className="w-80">
           {/* Trading Tabs */}
-          <div className="flex border-b border-gray-800">
-            <button className="flex-1 px-4 py-3 text-sm bg-gray-900 text-white border-b-2 border-blue-500">
+          <div className="flex border-b border-border">
+            <button className="flex-1 px-4 py-3 text-sm bg-muted text-foreground border-b-2 border-primary">
               Cross
             </button>
-            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
+            <button className="flex-1 px-4 py-3 text-sm text-muted-foreground">
               {leverage}x
             </button>
-            <button className="flex-1 px-4 py-3 text-sm text-gray-400">
+            <button className="flex-1 px-4 py-3 text-sm text-muted-foreground">
               S
             </button>
           </div>
 
           {/* Order Type Tabs */}
-          <div className="flex border-b border-gray-800">
+          <div className="flex border-b border-border">
             <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'open' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
+              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'open' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
               onClick={() => setActiveTab('open')}
             >
               Open
             </button>
             <button 
-              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'close' ? 'bg-gray-900 text-white' : 'text-gray-400'}`}
+              className={`flex-1 px-4 py-3 text-sm ${activeTab === 'close' ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
               onClick={() => setActiveTab('close')}
             >
               Close
@@ -178,9 +178,9 @@ export function Trade() {
           <div className="p-4 space-y-4">
             {/* Order Type Selector */}
             <div className="relative">
-              <button className="w-full flex items-center justify-between p-3 bg-gray-900 rounded text-left">
+              <button className="w-full flex items-center justify-between p-3 bg-muted rounded text-left">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
                   <span>Market</span>
                 </div>
                 <ChevronDown className="h-4 w-4" />
@@ -191,18 +191,18 @@ export function Trade() {
             <div>
               <Input
                 placeholder="Fill at market price"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500"
+                className="bg-muted border-border text-foreground placeholder-muted-foreground"
                 disabled
               />
             </div>
 
             {/* Cost Input */}
             <div>
-              <div className="text-xs text-gray-400 mb-1">Cost (USDT)</div>
+              <div className="text-xs text-muted-foreground mb-1">Cost (USDT)</div>
               <div className="relative">
                 <Input
                   placeholder="25%"
-                  className="bg-gray-900 border-gray-700 text-white"
+                  className="bg-muted border-border text-foreground"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
