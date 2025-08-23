@@ -1546,7 +1546,7 @@ export default function BotPage() {
                   
                   {/* Auto-suggest dropdown */}
                   {showAutoSuggest && filteredPairs.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                       {filteredPairs.map((pair: any, index: number) => (
                         <div
                           key={pair.symbol}
@@ -2345,7 +2345,7 @@ export default function BotPage() {
               
               {/* Auto-suggest dropdown */}
               {showAutoSuggest && filteredPairs.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   {filteredPairs.map((pair: any, index: number) => (
                     <div
                       key={pair.symbol}
