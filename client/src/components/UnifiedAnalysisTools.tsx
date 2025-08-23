@@ -19,7 +19,8 @@ import {
   CheckCircle,
   RefreshCw,
   X,
-  Eye
+  Eye,
+  BarChart3
 } from 'lucide-react';
 
 interface PredictionData {
@@ -81,6 +82,67 @@ interface RiskData {
   };
 }
 
+interface TrendData {
+  symbol: string;
+  trend: {
+    direction: 'bullish' | 'bearish' | 'neutral';
+    strength: number; // 0-100
+    timeframe: string;
+    duration: string; // how long the trend has been active
+  };
+  statistics: {
+    volatility: {
+      daily: number;
+      weekly: number;
+      monthly: number;
+    };
+    volume: {
+      average24h: number;
+      trend: 'increasing' | 'decreasing' | 'stable';
+      percentChange: number;
+    };
+    priceAction: {
+      high24h: number;
+      low24h: number;
+      range: number;
+      rangePercent: number;
+    };
+    momentum: {
+      rsi: number;
+      macd: number;
+      stochastic: number;
+      adx: number; // trend strength
+    };
+    performance: {
+      day1: number;
+      week1: number;
+      month1: number;
+      month3: number;
+    };
+    correlation: {
+      btc: number;
+      eth: number;
+      market: number;
+    };
+  };
+  signals: {
+    technical: Array<{
+      indicator: string;
+      signal: 'buy' | 'sell' | 'neutral';
+      strength: number;
+      description: string;
+    }>;
+    volume: {
+      signal: 'high' | 'low' | 'normal';
+      description: string;
+    };
+    sentiment: {
+      score: number; // -100 to 100
+      label: 'extremely_bearish' | 'bearish' | 'neutral' | 'bullish' | 'extremely_bullish';
+    };
+  };
+}
+
 export function UnifiedAnalysisTools() {
   const { data: marketData } = useBitgetData();
   const [tradingPair, setTradingPair] = useState('');
@@ -89,6 +151,7 @@ export function UnifiedAnalysisTools() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [prediction, setPrediction] = useState<PredictionData | null>(null);
   const [riskData, setRiskData] = useState<RiskData | null>(null);
+  const [trendData, setTrendData] = useState<TrendData | null>(null);
   const [activeTab, setActiveTab] = useState('prediction');
   const [showDetails, setShowDetails] = useState(false);
 
@@ -223,19 +286,107 @@ export function UnifiedAnalysisTools() {
     };
   };
 
+  const generateTrendAnalysis = async (pair: string, timeframe: string): Promise<TrendData> => {
+    const currentPrice = getCurrentPrice(pair);
+    
+    // Generate realistic trend data
+    const trendStrength = Math.round(Math.random() * 60 + 20); // 20-80
+    const directions = ['bullish', 'bearish', 'neutral'] as const;
+    const trendDirection = directions[Math.floor(Math.random() * 3)];
+    
+    // Generate momentum indicators
+    const rsi = Math.round(Math.random() * 100);
+    const macd = Math.round((Math.random() - 0.5) * 20 * 100) / 100;
+    const stochastic = Math.round(Math.random() * 100);
+    const adx = Math.round(Math.random() * 80 + 20);
+    
+    // Generate performance data
+    const day1 = Math.round((Math.random() - 0.5) * 20 * 100) / 100;
+    const week1 = Math.round((Math.random() - 0.5) * 50 * 100) / 100;
+    const month1 = Math.round((Math.random() - 0.5) * 100 * 100) / 100;
+    const month3 = Math.round((Math.random() - 0.5) * 200 * 100) / 100;
+    
+    // Generate technical signals
+    const indicators = ['RSI', 'MACD', 'Bollinger Bands', 'Moving Average', 'Volume Profile'];
+    const signals = indicators.map(indicator => ({
+      indicator,
+      signal: (['buy', 'sell', 'neutral'] as const)[Math.floor(Math.random() * 3)],
+      strength: Math.round(Math.random() * 100),
+      description: `${indicator} ${Math.random() > 0.5 ? 'shows bullish divergence' : 'indicates consolidation'}`
+    }));
+    
+    return {
+      symbol: pair,
+      trend: {
+        direction: trendDirection,
+        strength: trendStrength,
+        timeframe,
+        duration: `${Math.round(Math.random() * 14 + 1)} days`
+      },
+      statistics: {
+        volatility: {
+          daily: Math.round(Math.random() * 15 + 2),
+          weekly: Math.round(Math.random() * 30 + 5),
+          monthly: Math.round(Math.random() * 60 + 10)
+        },
+        volume: {
+          average24h: Math.round(Math.random() * 1000000 + 100000),
+          trend: (['increasing', 'decreasing', 'stable'] as const)[Math.floor(Math.random() * 3)],
+          percentChange: Math.round((Math.random() - 0.5) * 80 * 100) / 100
+        },
+        priceAction: {
+          high24h: currentPrice * (1 + Math.random() * 0.1),
+          low24h: currentPrice * (1 - Math.random() * 0.1),
+          range: currentPrice * Math.random() * 0.2,
+          rangePercent: Math.round(Math.random() * 20 * 100) / 100
+        },
+        momentum: {
+          rsi,
+          macd,
+          stochastic,
+          adx
+        },
+        performance: {
+          day1,
+          week1,
+          month1,
+          month3
+        },
+        correlation: {
+          btc: Math.round((Math.random() * 2 - 1) * 100) / 100,
+          eth: Math.round((Math.random() * 2 - 1) * 100) / 100,
+          market: Math.round((Math.random() * 2 - 1) * 100) / 100
+        }
+      },
+      signals: {
+        technical: signals,
+        volume: {
+          signal: (['high', 'low', 'normal'] as const)[Math.floor(Math.random() * 3)],
+          description: 'Volume analysis indicates increased institutional interest'
+        },
+        sentiment: {
+          score: Math.round((Math.random() - 0.5) * 200),
+          label: (['extremely_bearish', 'bearish', 'neutral', 'bullish', 'extremely_bullish'] as const)[Math.floor(Math.random() * 5)]
+        }
+      }
+    };
+  };
+
   const handleAnalyze = async () => {
     if (!tradingPair.trim()) return;
     
     setIsAnalyzing(true);
     
     try {
-      const [predictionData, riskAnalysis] = await Promise.all([
+      const [predictionData, riskAnalysis, trendAnalysis] = await Promise.all([
         generatePrediction(tradingPair, selectedTimeframe),
-        generateRiskAnalysis(tradingPair)
+        generateRiskAnalysis(tradingPair),
+        generateTrendAnalysis(tradingPair, selectedTimeframe)
       ]);
       
       setPrediction(predictionData);
       setRiskData(riskAnalysis);
+      setTrendData(trendAnalysis);
     } catch (error) {
       console.error('Analysis failed:', error);
     } finally {
@@ -269,6 +420,7 @@ export function UnifiedAnalysisTools() {
   const closeAnalysis = () => {
     setPrediction(null);
     setRiskData(null);
+    setTrendData(null);
     setActiveTab('prediction');
     setShowDetails(false);
   };
@@ -389,13 +541,13 @@ export function UnifiedAnalysisTools() {
         </div>
 
         {/* Analysis Results */}
-        {(prediction || riskData) && (
+        {(prediction || riskData || trendData) && (
           <div className="space-y-4">
             {/* Header with close button */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-bold">Analysis Results for {prediction?.symbol || riskData?.symbol}</span>
+                <span className="text-xs font-bold">Analysis Results for {prediction?.symbol || riskData?.symbol || trendData?.symbol}</span>
               </div>
               <Button
                 variant="ghost"
@@ -410,9 +562,10 @@ export function UnifiedAnalysisTools() {
 
             {/* Analysis Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="prediction" className="text-xs">Price Prediction</TabsTrigger>
-                <TabsTrigger value="risk" className="text-xs">Risk Analysis</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="prediction" className="text-xs">Prediction</TabsTrigger>
+                <TabsTrigger value="risk" className="text-xs">Risk</TabsTrigger>
+                <TabsTrigger value="trend" className="text-xs">Trend & Stats</TabsTrigger>
               </TabsList>
 
               {/* Price Prediction Tab */}
@@ -605,6 +758,293 @@ export function UnifiedAnalysisTools() {
                   </>
                 )}
               </TabsContent>
+
+              {/* Trend & Statistics Tab */}
+              <TabsContent value="trend" className="space-y-4">
+                {trendData && (
+                  <>
+                    {/* Trend Overview */}
+                    <Card className={`border-2 ${
+                      trendData.trend.direction === 'bullish' ? 'border-green-200 bg-green-50 dark:bg-green-900/20' :
+                      trendData.trend.direction === 'bearish' ? 'border-red-200 bg-red-50 dark:bg-red-900/20' :
+                      'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
+                    }`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            {trendData.trend.direction === 'bullish' ? (
+                              <TrendingUp className="h-8 w-8 text-green-500" />
+                            ) : trendData.trend.direction === 'bearish' ? (
+                              <TrendingDown className="h-8 w-8 text-red-500" />
+                            ) : (
+                              <Activity className="h-8 w-8 text-yellow-500" />
+                            )}
+                            <div>
+                              <div className="text-lg font-bold capitalize">
+                                {trendData.trend.direction} Trend
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Active for {trendData.trend.duration}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="text-xs text-muted-foreground mb-1">Strength</div>
+                            <div className="flex items-center gap-2">
+                              <Gauge className="h-4 w-4" />
+                              <span className="text-lg font-bold">
+                                {trendData.trend.strength}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Trend Strength Meter */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span>Trend Strength</span>
+                            <span className="font-medium">
+                              {trendData.trend.strength >= 70 ? 'Strong' : 
+                               trendData.trend.strength >= 50 ? 'Moderate' : 'Weak'}
+                            </span>
+                          </div>
+                          <Progress value={trendData.trend.strength} className="h-3" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Statistics Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Volatility */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                            <Activity className="h-3 w-3" />
+                            Volatility
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                              <span>Daily</span>
+                              <span className="font-medium">{trendData.statistics.volatility.daily}%</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span>Weekly</span>
+                              <span className="font-medium">{trendData.statistics.volatility.weekly}%</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span>Monthly</span>
+                              <span className="font-medium">{trendData.statistics.volatility.monthly}%</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Volume Analysis */}
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                            <BarChart3 className="h-3 w-3" />
+                            Volume
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="text-xs">
+                              <div className="text-muted-foreground">24h Average</div>
+                              <div className="font-medium">{trendData.statistics.volume.average24h.toLocaleString()}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={
+                                trendData.statistics.volume.trend === 'increasing' ? 'default' :
+                                trendData.statistics.volume.trend === 'decreasing' ? 'destructive' : 'secondary'
+                              } className="text-xs">
+                                {trendData.statistics.volume.trend}
+                              </Badge>
+                              <span className={`text-xs font-medium ${
+                                trendData.statistics.volume.percentChange > 0 ? 'text-green-500' : 'text-red-500'
+                              }`}>
+                                {trendData.statistics.volume.percentChange > 0 ? '+' : ''}{trendData.statistics.volume.percentChange.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Performance Statistics */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                          <TrendingUp className="h-3 w-3" />
+                          Performance History
+                        </h4>
+                        <div className="grid grid-cols-4 gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-muted-foreground">1 Day</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.performance.day1 > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.performance.day1 > 0 ? '+' : ''}{trendData.statistics.performance.day1.toFixed(2)}%
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-muted-foreground">1 Week</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.performance.week1 > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.performance.week1 > 0 ? '+' : ''}{trendData.statistics.performance.week1.toFixed(2)}%
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-muted-foreground">1 Month</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.performance.month1 > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.performance.month1 > 0 ? '+' : ''}{trendData.statistics.performance.month1.toFixed(2)}%
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-muted-foreground">3 Months</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.performance.month3 > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.performance.month3 > 0 ? '+' : ''}{trendData.statistics.performance.month3.toFixed(2)}%
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Technical Indicators */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                          <Gauge className="h-3 w-3" />
+                          Technical Indicators
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                              <span>RSI</span>
+                              <span className={`font-medium ${
+                                trendData.statistics.momentum.rsi > 70 ? 'text-red-500' :
+                                trendData.statistics.momentum.rsi < 30 ? 'text-green-500' : 'text-yellow-500'
+                              }`}>
+                                {trendData.statistics.momentum.rsi}
+                              </span>
+                            </div>
+                            <Progress 
+                              value={trendData.statistics.momentum.rsi} 
+                              className="h-2"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                              <span>Stochastic</span>
+                              <span className={`font-medium ${
+                                trendData.statistics.momentum.stochastic > 80 ? 'text-red-500' :
+                                trendData.statistics.momentum.stochastic < 20 ? 'text-green-500' : 'text-yellow-500'
+                              }`}>
+                                {trendData.statistics.momentum.stochastic}
+                              </span>
+                            </div>
+                            <Progress 
+                              value={trendData.statistics.momentum.stochastic} 
+                              className="h-2"
+                            />
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="text-xs font-medium">MACD</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.momentum.macd > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.momentum.macd.toFixed(2)}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="text-xs font-medium">ADX (Trend Strength)</div>
+                            <div className={`text-sm font-bold ${
+                              trendData.statistics.momentum.adx > 50 ? 'text-green-500' :
+                              trendData.statistics.momentum.adx > 25 ? 'text-yellow-500' : 'text-red-500'
+                            }`}>
+                              {trendData.statistics.momentum.adx}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Technical Signals */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                          <Target className="h-3 w-3" />
+                          Technical Signals
+                        </h4>
+                        <div className="space-y-2">
+                          {trendData.signals.technical.map((signal, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={
+                                  signal.signal === 'buy' ? 'default' :
+                                  signal.signal === 'sell' ? 'destructive' : 'secondary'
+                                } className="text-xs">
+                                  {signal.signal.toUpperCase()}
+                                </Badge>
+                                <span className="text-xs font-medium">{signal.indicator}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {signal.strength}% strength
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Market Sentiment */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium text-xs mb-3 flex items-center gap-2">
+                          <Brain className="h-3 w-3" />
+                          Market Sentiment
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs">Sentiment Score</span>
+                            <Badge variant={
+                              trendData.signals.sentiment.label.includes('bullish') ? 'default' :
+                              trendData.signals.sentiment.label.includes('bearish') ? 'destructive' : 'secondary'
+                            }>
+                              {trendData.signals.sentiment.label.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Bearish</span>
+                              <span>Neutral</span>
+                              <span>Bullish</span>
+                            </div>
+                            <div className="relative h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full">
+                              <div 
+                                className="absolute top-0 w-2 h-3 bg-white border-2 border-black rounded-full transform -translate-x-1"
+                                style={{ 
+                                  left: `${Math.max(0, Math.min(100, ((trendData.signals.sentiment.score + 100) / 200) * 100))}%` 
+                                }}
+                              />
+                            </div>
+                            <div className="text-center text-xs font-medium">
+                              {trendData.signals.sentiment.score}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </TabsContent>
             </Tabs>
 
             {/* Toggle Details */}
@@ -669,7 +1109,7 @@ export function UnifiedAnalysisTools() {
         )}
 
         {/* Empty State */}
-        {!prediction && !riskData && !isAnalyzing && (
+        {!prediction && !riskData && !trendData && !isAnalyzing && (
           <div className="text-center py-12 space-y-3">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Brain className="h-8 w-8 text-purple-500" />
