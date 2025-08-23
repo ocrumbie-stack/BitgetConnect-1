@@ -413,7 +413,7 @@ export default function BotPage() {
       recommendedTakeProfit = '6';
       recommendedLeverage = '5';
       riskLevel = 'medium';
-    } else if (absChange >= 0.5) {
+    } else if (absChange >= 0.3) {
       volatilityLevel = 'low';
       recommendedTimeframe = '4h';
       recommendedStopLoss = '3.5';
@@ -515,6 +515,31 @@ export default function BotPage() {
       suggestedIndicators = generateDirectionAwareIndicators(recommendedDirection, 'alt');
     }
 
+    // Generate scalping-specific settings
+    const getScalpingSettings = () => {
+      let scalpSettings = {
+        timeframe: '5m',
+        stopLoss: '0.8',
+        takeProfit: '1.2',
+        leverage: '5'
+      };
+
+      if (volatilityLevel === 'extreme') {
+        scalpSettings = { timeframe: '1m', stopLoss: '0.5', takeProfit: '0.8', leverage: '3' };
+      } else if (volatilityLevel === 'very high') {
+        scalpSettings = { timeframe: '3m', stopLoss: '0.6', takeProfit: '1.0', leverage: '4' };
+      } else if (volatilityLevel === 'high') {
+        scalpSettings = { timeframe: '5m', stopLoss: '0.8', takeProfit: '1.2', leverage: '5' };
+      } else if (volatilityLevel === 'medium') {
+        scalpSettings = { timeframe: '15m', stopLoss: '1.0', takeProfit: '1.5', leverage: '6' };
+      } else {
+        scalpSettings = { timeframe: '15m', stopLoss: '1.2', takeProfit: '2.0', leverage: '7' };
+      }
+      return scalpSettings;
+    };
+
+    const scalpingSettings = getScalpingSettings();
+
     const suggestions = {
       pair: symbol,
       analysis: {
@@ -531,14 +556,23 @@ export default function BotPage() {
         leverage: recommendedLeverage,
         riskLevel: riskLevel
       },
+      scalping: {
+        direction: recommendedDirection,
+        timeframe: scalpingSettings.timeframe,
+        stopLoss: scalpingSettings.stopLoss,
+        takeProfit: scalpingSettings.takeProfit,
+        leverage: scalpingSettings.leverage,
+        strategy: `${recommendedDirection.toUpperCase()} scalping`,
+        entryCondition: recommendedDirection === 'long' ? 'RSI < 35 + MACD bullish crossover' : 'RSI > 65 + MACD bearish crossover'
+      },
       indicators: suggestedIndicators,
-      confidence: Math.min(95, Math.max(60, 75 + (absChange * 2))), // Higher confidence for more volatile pairs
+      confidence: Math.min(95, Math.max(60, 75 + (absChange * 2))),
       reasoning: [
-        `${volatilityLevel.charAt(0).toUpperCase() + volatilityLevel.slice(1)} volatility detected (${absChange.toFixed(2)}% 24h change)`,
-        `${volume24h > 500000000 ? 'High' : volume24h > 100000000 ? 'Medium' : 'Low'} trading volume suggests ${volume24h > 500000000 ? 'strong liquidity' : volume24h > 100000000 ? 'adequate liquidity' : 'careful position sizing'}`,
-        `${change24h > 0 ? 'Positive' : 'Negative'} momentum (${change24h.toFixed(2)}%) indicates ${recommendedDirection} bias with ${recommendedDirection === 'long' ? 'bullish' : 'bearish'} indicators`,
-        `Technical indicators configured for ${recommendedDirection} positions: ${recommendedDirection === 'long' ? 'RSI oversold, MACD bullish crossover, price above moving averages' : 'RSI overbought, MACD bearish crossover, price below moving averages'}`,
-        `${recommendedTimeframe} timeframe optimal for ${volatilityLevel} volatility environment with ${recommendedStopLoss}% stop loss and ${recommendedTakeProfit}% take profit`
+        `🎯 SCALPING RECOMMENDATION: Go ${recommendedDirection.toUpperCase()} on ${symbol}`,
+        `⏰ Use ${scalpingSettings.timeframe} timeframe for quick entries/exits`,
+        `🛡️ Set ${scalpingSettings.stopLoss}% stop loss and ${scalpingSettings.takeProfit}% take profit`,
+        `💪 Apply ${scalpingSettings.leverage}x leverage for this ${volatilityLevel} volatility pair`,
+        `📊 Entry: ${recommendedDirection === 'long' ? 'RSI oversold + MACD bullish' : 'RSI overbought + MACD bearish'}`
       ]
     };
 
@@ -2017,9 +2051,54 @@ export default function BotPage() {
                 </div>
               </div>
 
+              {/* SCALPING RECOMMENDATION - MOST PROMINENT */}
+              {suggestedSettings.scalping && (
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30 p-6 rounded-lg border-2 border-yellow-300 dark:border-yellow-600">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xl text-yellow-800 dark:text-yellow-200">SCALPING RECOMMENDATION</h4>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">Quick trade setup for fast profits</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-4">
+                    <p className="text-lg font-bold text-center mb-2">
+                      <span className={`${suggestedSettings.scalping.direction === 'long' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        GO {suggestedSettings.scalping.direction.toUpperCase()}
+                      </span> on {suggestedSettings.pair}
+                    </p>
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {suggestedSettings.scalping.entryCondition}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/30 rounded">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">TIMEFRAME</p>
+                        <p className="font-bold text-blue-800 dark:text-blue-200">{suggestedSettings.scalping.timeframe}</p>
+                      </div>
+                      <div className="text-center p-2 bg-purple-50 dark:bg-purple-950/30 rounded">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">LEVERAGE</p>
+                        <p className="font-bold text-purple-800 dark:text-purple-200">{suggestedSettings.scalping.leverage}x</p>
+                      </div>
+                      <div className="text-center p-2 bg-red-50 dark:bg-red-950/30 rounded">
+                        <p className="text-xs text-red-600 dark:text-red-400 font-semibold">STOP LOSS</p>
+                        <p className="font-bold text-red-800 dark:text-red-200">{suggestedSettings.scalping.stopLoss}%</p>
+                      </div>
+                      <div className="text-center p-2 bg-green-50 dark:bg-green-950/30 rounded">
+                        <p className="text-xs text-green-600 dark:text-green-400 font-semibold">TAKE PROFIT</p>
+                        <p className="font-bold text-green-800 dark:text-green-200">{suggestedSettings.scalping.takeProfit}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Recommended Settings */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-4 rounded-lg border">
-                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">Recommended Settings</h4>
+                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">Alternative Settings</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Direction</p>
