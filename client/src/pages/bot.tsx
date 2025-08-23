@@ -1091,7 +1091,7 @@ export default function BotPage() {
                           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-2 border border-blue-200 dark:border-blue-800">
                             <div className="flex items-start gap-2">
                               <Lightbulb className="h-3 w-3 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                              <p className="text-xs font-medium text-blue-700 dark:text-blue-300">{bot.suggestedText}</p>
+                              <p className="text-xs font-medium text-gray-700 dark:text-gray-200">{bot.suggestedText}</p>
                             </div>
                           </div>
                           
@@ -2328,33 +2328,6 @@ export default function BotPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Recommended Pairs for this bot */}
-            {selectedStrategy?.recommendedPairs && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Recommended Pairs</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {selectedStrategy.recommendedPairs.map((pair: string) => (
-                    <Button
-                      key={pair}
-                      size="sm"
-                      variant="outline"
-                      className="h-6 text-xs bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
-                      onClick={() => {
-                        setPairSearch(pair);
-                        setTradingPair(pair);
-                        setShowAutoSuggest(false);
-                      }}
-                    >
-                      {pair}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             <div>
               <label className="text-sm font-medium">Trading Pair</label>
               <div className="relative">
