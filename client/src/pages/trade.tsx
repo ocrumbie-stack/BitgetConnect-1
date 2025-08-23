@@ -121,40 +121,40 @@ export function Trade() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Order Book Card */}
           <div className="lg:col-span-1 bg-card border border-border rounded-lg">
-            <div className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
+            <div className="p-3">
+              <h3 className="font-medium mb-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <BarChart3 className="h-3.5 w-3.5" />
                 Order Book
               </h3>
               
               {/* Order Book Header */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                <span>Price (USDT)</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-1">
+                <span>Price</span>
                 <span>Size</span>
               </div>
 
               {/* Asks (Red) */}
-              <div className="space-y-0 mb-2">
-                {orderBook.asks.slice(0, 6).map((ask, index) => (
-                  <div key={index} className="flex items-center justify-between py-1 text-xs hover:bg-muted/30 rounded px-1">
-                    <span className="text-red-500 font-mono">{ask.price}</span>
-                    <span className="text-muted-foreground">{ask.quantity}</span>
+              <div className="space-y-0 mb-1">
+                {orderBook.asks.slice(0, 4).map((ask, index) => (
+                  <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                    <span className="text-red-400/80 text-xs">{ask.price}</span>
+                    <span className="text-muted-foreground/60 text-xs">{ask.quantity}</span>
                   </div>
                 ))}
               </div>
 
               {/* Current Price */}
-              <div className="flex items-center justify-center py-2 border border-border rounded-md bg-muted/20 mb-2">
-                <div className="text-base font-bold text-green-500">{currentPrice}</div>
-                <TrendingUp className="h-3 w-3 ml-2 text-green-500" />
+              <div className="flex items-center justify-center py-1.5 bg-muted/10 mb-1">
+                <div className="text-sm font-medium text-foreground">{currentPrice}</div>
+                <TrendingUp className="h-3 w-3 ml-1 text-green-400/60" />
               </div>
 
               {/* Bids (Green) */}
               <div className="space-y-0">
-                {orderBook.bids.slice(0, 6).map((bid, index) => (
-                  <div key={index} className="flex items-center justify-between py-1 text-xs hover:bg-muted/30 rounded px-1">
-                    <span className="text-green-500 font-mono">{bid.price}</span>
-                    <span className="text-muted-foreground">{bid.quantity}</span>
+                {orderBook.bids.slice(0, 4).map((bid, index) => (
+                  <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                    <span className="text-green-400/80 text-xs">{bid.price}</span>
+                    <span className="text-muted-foreground/60 text-xs">{bid.quantity}</span>
                   </div>
                 ))}
               </div>
