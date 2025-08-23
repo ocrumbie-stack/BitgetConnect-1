@@ -18,7 +18,8 @@ import {
   AlertCircle,
   CheckCircle,
   BarChart3,
-  Gauge
+  Gauge,
+  X
 } from 'lucide-react';
 
 interface PricePrediction {
@@ -368,17 +369,28 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                   <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
                   <span className="text-lg font-bold">AI Prediction for {prediction.symbol}</span>
                 </div>
-                <Badge 
-                  className={`${
-                    prediction.confidence >= 80 
-                      ? 'bg-green-500' 
-                      : prediction.confidence >= 60 
-                      ? 'bg-yellow-500' 
-                      : 'bg-red-500'
-                  } text-white text-sm px-3 py-1`}
-                >
-                  {prediction.confidence}% Confidence
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Badge 
+                    className={`${
+                      prediction.confidence >= 80 
+                        ? 'bg-green-500' 
+                        : prediction.confidence >= 60 
+                        ? 'bg-yellow-500' 
+                        : 'bg-red-500'
+                    } text-white text-sm px-3 py-1`}
+                  >
+                    {prediction.confidence}% Confidence
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPrediction(null)}
+                    className="h-8 w-8 p-0 hover:bg-white/20"
+                    data-testid="button-close-prediction"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center gap-6 text-sm">
                 <span>Timeframe: <strong>{selectedTimeframe.toUpperCase()}</strong></span>
