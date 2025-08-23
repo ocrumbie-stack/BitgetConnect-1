@@ -25,6 +25,14 @@ Preferred communication style: Simple, everyday language.
   - Enhanced debug logging with raw API values vs actual percentages for volatility verification
   - Calibrated realistic crypto volatility thresholds: ≥20% extreme, ≥10% very high, ≥5% high, ≥3% medium, ≥1.5% low
 
+  **Bot Strategy UI Refinements:**
+  - Updated Moving Average settings with clean screener-style layout matching user preferences
+  - Implemented structured "MA Type", "Period", "Condition", "Comparison" column headers
+  - Fixed "Other MA" dropdown functionality with proper state management and comparisonType tracking
+  - Removed background colors for cleaner transparent layout with border-only design
+  - Standardized font sizes and color schemes across all technical indicators to match RSI styling
+  - Enhanced moving average comparison logic for price vs other MA period configurations
+
 # System Architecture
 
 ## Frontend Architecture
