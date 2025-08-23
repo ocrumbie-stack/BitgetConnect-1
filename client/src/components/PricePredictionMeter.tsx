@@ -301,7 +301,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
                     <span className="font-medium text-xs text-purple-600 dark:text-purple-400">Selected Pair:</span>
-                    <span className="font-bold text-sm">{tradingPair}</span>
+                    <span className="font-bold text-xs">{tradingPair}</span>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
@@ -310,7 +310,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                       )}
                     </div>
-                    <div className="font-bold text-sm">${getCurrentPrice(tradingPair).toFixed(4)}</div>
+                    <div className="font-bold text-xs">${getCurrentPrice(tradingPair).toFixed(4)}</div>
                     {getRealTimePrice(tradingPair) > 0 && (
                       <div className="text-xs text-green-500 font-medium">LIVE</div>
                     )}
@@ -366,7 +366,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-bold">AI Prediction for {prediction.symbol}</span>
+                  <span className="text-xs font-bold">AI Prediction for {prediction.symbol}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge 
@@ -391,11 +391,11 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-6 text-xs">
                 <span>Timeframe: <strong>{selectedTimeframe.toUpperCase()}</strong></span>
                 <span>Current: <strong>${prediction.currentPrice.toFixed(4)}</strong></span>
                 <span>Predicted: <strong>${prediction.predictedPrice.toFixed(4)}</strong></span>
-                <span className={`font-bold ${prediction.changePercent > 0 ? 'text-green-500' : prediction.changePercent < 0 ? 'text-red-500' : 'text-yellow-500'}`}>
+                <span className={`font-bold text-xs ${prediction.changePercent > 0 ? 'text-green-500' : prediction.changePercent < 0 ? 'text-red-500' : 'text-yellow-500'}`}>
                   {prediction.changePercent > 0 ? '+' : ''}{prediction.changePercent.toFixed(2)}%
                 </span>
               </div>
@@ -418,10 +418,10 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                       <Activity className="h-8 w-8 text-yellow-500" />
                     )}
                     <div>
-                      <div className="text-2xl font-bold">
+                      <div className="text-lg font-bold">
                         {formatPrice(prediction.predictedPrice)}
                       </div>
-                      <div className={`text-sm ${
+                      <div className={`text-xs ${
                         prediction.direction === 'up' ? 'text-green-600' :
                         prediction.direction === 'down' ? 'text-red-600' : 'text-yellow-600'
                       }`}>
@@ -431,10 +431,10 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-sm text-muted-foreground mb-1">Confidence</div>
+                    <div className="text-xs text-muted-foreground mb-1">Confidence</div>
                     <div className="flex items-center gap-2">
-                      <Gauge className={`h-5 w-5 ${getConfidenceColor(prediction.confidence)}`} />
-                      <span className={`text-2xl font-bold ${getConfidenceColor(prediction.confidence)}`}>
+                      <Gauge className={`h-4 w-4 ${getConfidenceColor(prediction.confidence)}`} />
+                      <span className={`text-lg font-bold ${getConfidenceColor(prediction.confidence)}`}>
                         {prediction.confidence}%
                       </span>
                     </div>
@@ -443,7 +443,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
 
                 {/* Confidence Meter */}
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs">
                     <span>Confidence Level</span>
                     <span className={`font-medium ${getConfidenceColor(prediction.confidence)}`}>
                       {prediction.confidence >= 80 ? 'High' : prediction.confidence >= 60 ? 'Medium' : 'Low'}
@@ -475,8 +475,8 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
               <TabsContent value="analysis" className="space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Target className="h-4 w-4" />
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Target className="h-3 w-3" />
                       Market Sentiment Analysis
                     </CardTitle>
                   </CardHeader>
@@ -486,13 +486,13 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                                    prediction.aiAnalysis.marketSentiment.overall === 'bearish' ? 'destructive' : 'secondary'}>
                         {prediction.aiAnalysis.marketSentiment.overall.toUpperCase()}
                       </Badge>
-                      <span className="text-sm font-medium">{prediction.aiAnalysis.marketSentiment.strength}% Strength</span>
+                      <span className="text-xs font-medium">{prediction.aiAnalysis.marketSentiment.strength}% Strength</span>
                     </div>
                     <Progress value={prediction.aiAnalysis.marketSentiment.strength} className="h-2 mb-3" />
                     <div className="space-y-1">
-                      <div className="text-sm font-medium">Key Factors:</div>
+                      <div className="text-xs font-medium">Key Factors:</div>
                       {prediction.aiAnalysis.marketSentiment.factors.map((factor, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
+                        <div key={index} className="flex items-center gap-2 text-xs">
                           <CheckCircle className="h-3 w-3 text-green-500" />
                           {factor}
                         </div>
@@ -503,24 +503,24 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Support & Resistance Levels</CardTitle>
+                    <CardTitle className="text-sm">Support & Resistance Levels</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-sm font-medium text-red-600 mb-2">Resistance</div>
+                        <div className="text-xs font-medium text-red-600 mb-2">Resistance</div>
                         {prediction.aiAnalysis.supportResistance.resistance.map((level, index) => (
-                          <div key={index} className="text-sm">{formatPrice(level)}</div>
+                          <div key={index} className="text-xs">{formatPrice(level)}</div>
                         ))}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-green-600 mb-2">Support</div>
+                        <div className="text-xs font-medium text-green-600 mb-2">Support</div>
                         {prediction.aiAnalysis.supportResistance.support.map((level, index) => (
-                          <div key={index} className="text-sm">{formatPrice(level)}</div>
+                          <div key={index} className="text-xs">{formatPrice(level)}</div>
                         ))}
                       </div>
                     </div>
-                    <div className="mt-3 p-2 bg-accent/50 rounded text-sm">
+                    <div className="mt-3 p-2 bg-accent/50 rounded text-xs">
                       <span className="font-medium">Nearest Level: </span>
                       {prediction.aiAnalysis.supportResistance.nearestLevel.type} at {formatPrice(prediction.aiAnalysis.supportResistance.nearestLevel.price)} 
                       ({prediction.aiAnalysis.supportResistance.nearestLevel.distance.toFixed(2)}% away)
