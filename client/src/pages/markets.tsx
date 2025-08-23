@@ -1,6 +1,6 @@
 import { SimpleTable } from '@/components/SimpleTable';
 import { useBitgetData } from '@/hooks/useBitgetData';
-import { use5MinMovers } from '@/hooks/use5MinMovers';
+import { useMarketInsights } from '@/hooks/use5MinMovers';
 import { useState } from 'react';
 import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export default function Markets() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useBitgetData();
-  const { data: fiveMinData, isLoading: fiveMinLoading } = use5MinMovers();
+  const { data: marketInsights, isLoading: insightsLoading } = useMarketInsights();
   
   // Screener state
   const [searchQuery, setSearchQuery] = useState('');
@@ -626,7 +626,7 @@ export default function Markets() {
               {/* Top Movers Cards - Real 5-minute data from Bitget API */}
               <div className="grid grid-cols-2 gap-3 mb-4 max-w-md mx-auto">
                 {/* Top Gainer (5M) */}
-                {fiveMinLoading ? (
+                {insightsLoading ? (
                   <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <div className="text-center">
                       <p className="text-xs font-medium text-gray-500 mb-1">Top Gainer (5M)</p>
@@ -636,18 +636,18 @@ export default function Markets() {
                       </div>
                     </div>
                   </Card>
-                ) : fiveMinData?.topGainer ? (
+                ) : marketInsights?.topGainer ? (
                   <Card 
                     className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setLocation(`/trade?pair=${fiveMinData.topGainer!.symbol}`)}
+                    onClick={() => setLocation(`/trade?pair=${marketInsights.topGainer!.symbol}`)}
                   >
                     <div className="text-center">
-                      <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (5M)</p>
-                      <p className="text-sm font-bold text-green-800 dark:text-green-200">{fiveMinData.topGainer.symbol}</p>
+                      <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (24H)</p>
+                      <p className="text-sm font-bold text-green-800 dark:text-green-200">{marketInsights.topGainer.symbol}</p>
                       <div className="flex items-center justify-center gap-1 mt-1">
                         <TrendingUp className="h-3 w-3 text-green-600" />
                         <span className="text-sm font-bold text-green-600">
-                          +{(parseFloat(fiveMinData.topGainer.change5m) * 100).toFixed(2)}%
+                          {marketInsights.topGainer.change24h}
                         </span>
                       </div>
                     </div>
@@ -662,7 +662,7 @@ export default function Markets() {
                 )}
 
                 {/* Top Loser (5M) */}
-                {fiveMinLoading ? (
+                {insightsLoading ? (
                   <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <div className="text-center">
                       <p className="text-xs font-medium text-gray-500 mb-1">Top Loser (5M)</p>
@@ -672,18 +672,18 @@ export default function Markets() {
                       </div>
                     </div>
                   </Card>
-                ) : fiveMinData?.topLoser ? (
+                ) : marketInsights?.topLoser ? (
                   <Card 
                     className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setLocation(`/trade?pair=${fiveMinData.topLoser!.symbol}`)}
+                    onClick={() => setLocation(`/trade?pair=${marketInsights.topLoser!.symbol}`)}
                   >
                     <div className="text-center">
-                      <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (5M)</p>
-                      <p className="text-sm font-bold text-red-800 dark:text-red-200">{fiveMinData.topLoser.symbol}</p>
+                      <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (24H)</p>
+                      <p className="text-sm font-bold text-red-800 dark:text-red-200">{marketInsights.topLoser.symbol}</p>
                       <div className="flex items-center justify-center gap-1 mt-1">
                         <TrendingDown className="h-3 w-3 text-red-600" />
                         <span className="text-sm font-bold text-red-600">
-                          {(parseFloat(fiveMinData.topLoser.change5m) * 100).toFixed(2)}%
+                          {marketInsights.topLoser.change24h}
                         </span>
                       </div>
                     </div>
