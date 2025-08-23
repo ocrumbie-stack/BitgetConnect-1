@@ -376,34 +376,55 @@ export default function BotPage() {
     let riskLevel = 'medium';
     let suggestedIndicators: any = {};
 
-    // Volatility analysis
-    if (absChange >= 10) {
+    // Volatility analysis - FIXED to handle extreme cases properly
+    if (absChange >= 50) {
+      volatilityLevel = 'extreme';
+      recommendedTimeframe = '5m';
+      recommendedStopLoss = '1';
+      recommendedTakeProfit = '2';
+      recommendedLeverage = '2';
+      riskLevel = 'extreme';
+    } else if (absChange >= 20) {
       volatilityLevel = 'extreme';
       recommendedTimeframe = '15m';
       recommendedStopLoss = '1.5';
       recommendedTakeProfit = '3';
       recommendedLeverage = '2';
       riskLevel = 'high';
-    } else if (absChange >= 5) {
-      volatilityLevel = 'high';
+    } else if (absChange >= 10) {
+      volatilityLevel = 'very high';
       recommendedTimeframe = '30m';
       recommendedStopLoss = '2';
       recommendedTakeProfit = '4';
       recommendedLeverage = '3';
-      riskLevel = 'medium';
-    } else if (absChange >= 2) {
-      volatilityLevel = 'medium';
+      riskLevel = 'high';
+    } else if (absChange >= 5) {
+      volatilityLevel = 'high';
       recommendedTimeframe = '1h';
       recommendedStopLoss = '2.5';
       recommendedTakeProfit = '5';
-      recommendedLeverage = '5';
-      riskLevel = 'low';
-    } else {
-      volatilityLevel = 'low';
-      recommendedTimeframe = '4h';
+      recommendedLeverage = '4';
+      riskLevel = 'medium';
+    } else if (absChange >= 2) {
+      volatilityLevel = 'medium';
+      recommendedTimeframe = '2h';
       recommendedStopLoss = '3';
       recommendedTakeProfit = '6';
+      recommendedLeverage = '5';
+      riskLevel = 'medium';
+    } else if (absChange >= 0.5) {
+      volatilityLevel = 'low';
+      recommendedTimeframe = '4h';
+      recommendedStopLoss = '3.5';
+      recommendedTakeProfit = '7';
       recommendedLeverage = '3';
+      riskLevel = 'low';
+    } else {
+      volatilityLevel = 'very low';
+      recommendedTimeframe = '8h';
+      recommendedStopLoss = '4';
+      recommendedTakeProfit = '8';
+      recommendedLeverage = '2';
       riskLevel = 'low';
     }
 
@@ -520,10 +541,14 @@ export default function BotPage() {
       ]
     };
 
-    // Debug logging to verify alignment
+    // Debug logging to verify alignment and volatility calculation
     console.log(`AI Suggestion Debug for ${symbol}:`, {
       change24h: change24h,
+      absChange: absChange,
+      volatilityLevel: volatilityLevel,
+      recommendedTimeframe: recommendedTimeframe,
       recommendedDirection: recommendedDirection,
+      riskLevel: riskLevel,
       indicators: Object.keys(suggestedIndicators).map(key => ({
         indicator: key,
         condition: suggestedIndicators[key].condition,
