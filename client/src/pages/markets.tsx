@@ -624,50 +624,64 @@ export default function Markets() {
               {/* Top Movers Cards */}
               {filteredAndSortedData && filteredAndSortedData.length > 0 && (
                 <div className="grid grid-cols-2 gap-3 mb-4 max-w-md mx-auto">
-                  {/* Current Top Gainer */}
+                  {/* 5min Top Gainer */}
                   {(() => {
-                    const currentGainer = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') > 0)
-                      .sort((a, b) => parseFloat(b.change24h || '0') - parseFloat(a.change24h || '0'))[0];
+                    const fiveMinGainer = filteredAndSortedData
+                      .filter(item => item.change5m && parseFloat(item.change5m || '0') > 0)
+                      .sort((a, b) => parseFloat(b.change5m || '0') - parseFloat(a.change5m || '0'))[0];
                     
-                    return currentGainer ? (
+                    return fiveMinGainer ? (
                       <Card className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Current Leader</p>
-                          <p className="text-sm font-bold text-green-800 dark:text-green-200">{currentGainer.symbol}</p>
+                          <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">5min Leader</p>
+                          <p className="text-sm font-bold text-green-800 dark:text-green-200">{fiveMinGainer.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingUp className="h-3 w-3 text-green-600" />
                             <span className="text-sm font-bold text-green-600">
-                              +{parseFloat(currentGainer.change24h || '0').toFixed(2)}%
+                              +{(parseFloat(fiveMinGainer.change5m || '0') * 100).toFixed(2)}%
                             </span>
                           </div>
-                          <p className="text-xs text-green-600 mt-1">${parseFloat(currentGainer.price || '0').toLocaleString()}</p>
+                          <p className="text-xs text-green-600 mt-1">${parseFloat(fiveMinGainer.price || '0').toLocaleString()}</p>
                         </div>
                       </Card>
-                    ) : null;
+                    ) : (
+                      <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-500 mb-1">5min Leader</p>
+                          <p className="text-sm text-gray-400">Building data...</p>
+                        </div>
+                      </Card>
+                    );
                   })()}
 
-                  {/* Current Top Loser */}
+                  {/* 5min Top Loser */}
                   {(() => {
-                    const currentLoser = filteredAndSortedData
-                      .filter(item => parseFloat(item.change24h || '0') < 0)
-                      .sort((a, b) => parseFloat(a.change24h || '0') - parseFloat(b.change24h || '0'))[0];
+                    const fiveMinLoser = filteredAndSortedData
+                      .filter(item => item.change5m && parseFloat(item.change5m || '0') < 0)
+                      .sort((a, b) => parseFloat(a.change5m || '0') - parseFloat(b.change5m || '0'))[0];
                     
-                    return currentLoser ? (
+                    return fiveMinLoser ? (
                       <Card className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800">
                         <div className="text-center">
-                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Current Laggard</p>
-                          <p className="text-sm font-bold text-red-800 dark:text-red-200">{currentLoser.symbol}</p>
+                          <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">5min Laggard</p>
+                          <p className="text-sm font-bold text-red-800 dark:text-red-200">{fiveMinLoser.symbol}</p>
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <TrendingDown className="h-3 w-3 text-red-600" />
                             <span className="text-sm font-bold text-red-600">
-                              {parseFloat(currentLoser.change24h || '0').toFixed(2)}%
+                              {(parseFloat(fiveMinLoser.change5m || '0') * 100).toFixed(2)}%
                             </span>
                           </div>
-                          <p className="text-xs text-red-600 mt-1">${parseFloat(currentLoser.price || '0').toLocaleString()}</p>
+                          <p className="text-xs text-red-600 mt-1">${parseFloat(fiveMinLoser.price || '0').toLocaleString()}</p>
                         </div>
                       </Card>
-                    ) : null;
+                    ) : (
+                      <Card className="p-3 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <div className="text-center">
+                          <p className="text-xs font-medium text-gray-500 mb-1">5min Laggard</p>
+                          <p className="text-sm text-gray-400">Building data...</p>
+                        </div>
+                      </Card>
+                    );
                   })()}
                 </div>
               )}
