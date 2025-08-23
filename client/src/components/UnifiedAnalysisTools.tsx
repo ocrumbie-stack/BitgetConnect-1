@@ -789,14 +789,26 @@ export function UnifiedAnalysisTools() {
                             </div>
                           </div>
                           
-                          <div className="text-right">
-                            <div className="text-xs text-muted-foreground mb-1">Strength</div>
-                            <div className="flex items-center gap-2">
-                              <Gauge className="h-4 w-4" />
-                              <span className="text-lg font-bold">
-                                {trendData.trend.strength}%
-                              </span>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <div className="text-xs text-muted-foreground mb-1">Strength</div>
+                              <div className="flex items-center gap-2">
+                                <Gauge className="h-4 w-4" />
+                                <span className="text-lg font-bold">
+                                  {trendData.trend.strength}%
+                                </span>
+                              </div>
                             </div>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={closeAnalysis}
+                              className="h-8 w-8 p-0 hover:bg-background/80"
+                              data-testid="button-close-trend"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
 
