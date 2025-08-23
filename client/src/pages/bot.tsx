@@ -1355,14 +1355,14 @@ export default function BotPage() {
             </div>
 
             {/* AI Settings Suggestions */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 p-4 rounded-lg border border-blue-300 dark:border-blue-600">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h4 className="font-medium text-blue-700 dark:text-blue-300 mb-1">AI Settings Suggestions</h4>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">Get optimized settings for specific trading pairs</p>
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">AI Settings Suggestions</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Get optimized settings for specific trading pairs</p>
                 </div>
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full">
-                  <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 bg-blue-200 dark:bg-blue-800 rounded-full">
+                  <Bot className="h-4 w-4 text-blue-700 dark:text-blue-200" />
                 </div>
               </div>
               
@@ -1978,13 +1978,13 @@ export default function BotPage() {
                   <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-3">Suggested Technical Indicators</h4>
                   <div className="space-y-2">
                     {Object.entries(suggestedSettings.indicators).map(([key, config]: [string, any]) => (
-                      <div key={key} className="flex items-center justify-between p-2 bg-white/50 dark:bg-gray-900/50 rounded">
-                        <span className="font-medium">
+                      <div key={key} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">
                           {key.toUpperCase()}: {config.condition}
                           {config.period && ` (${config.period})`}
                           {config.value && ` = ${config.value}`}
                         </span>
-                        <Badge variant="secondary" className="text-xs">Enabled</Badge>
+                        <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200">Enabled</Badge>
                       </div>
                     ))}
                   </div>
@@ -1994,28 +1994,28 @@ export default function BotPage() {
               {/* AI Reasoning */}
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 p-4 rounded-lg border">
                 <h4 className="font-semibold text-amber-700 dark:text-amber-300 mb-3">AI Analysis & Reasoning</h4>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {suggestedSettings.reasoning.map((reason: string, index: number) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
-                      {reason}
+                    <li key={index} className="flex items-start gap-3 text-sm">
+                      <div className="w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">{reason}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t">
+              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button 
                   onClick={applySuggestions}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
                 >
                   Apply All Suggestions
                 </Button>
                 <Button 
                   variant="outline"
                   onClick={() => setShowSuggestions(false)}
-                  className="flex-1"
+                  className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold"
                 >
                   Close
                 </Button>
