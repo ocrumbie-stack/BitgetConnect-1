@@ -305,7 +305,7 @@ export function DynamicRiskMeter({ onRiskAnalyzed }: DynamicRiskMeterProps) {
                         data-testid={`suggestion-${pair}`}
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium text-sm">{pair}</span>
+                          <span className="font-medium text-xs">{pair}</span>
                           <span className="text-xs text-muted-foreground">${price}</span>
                         </div>
                         <span className={`text-xs font-medium ${

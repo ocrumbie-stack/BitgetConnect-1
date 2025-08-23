@@ -275,13 +275,13 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
                   {getSuggestions().map((suggestion) => (
                     <div
                       key={suggestion}
-                      className="px-3 py-2 hover:bg-accent cursor-pointer text-sm flex items-center justify-between"
+                      className="px-3 py-2 hover:bg-accent cursor-pointer text-xs flex items-center justify-between"
                       onClick={() => {
                         setTradingPair(suggestion);
                         setShowSuggestions(false);
                       }}
                     >
-                      <span className="font-medium">{suggestion}</span>
+                      <span className="font-medium text-xs">{suggestion}</span>
                       <span className="text-muted-foreground text-xs">
                         ${getCurrentPrice(suggestion).toFixed(2)}
                         {getRealTimePrice(suggestion) > 0 && (
