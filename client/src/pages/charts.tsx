@@ -67,20 +67,40 @@ export function Charts() {
         "calendar": false,
         "support_host": "https://tradingview.com",
         "container_id": "tradingview_chart",
+        // Default indicators - customize these to your preference
         "studies": [
           "Volume@tv-basicstudies",
-          "RSI@tv-basicstudies",
-          "MACD@tv-basicstudies"
+          "RSI@tv-basicstudies", 
+          "MACD@tv-basicstudies",
+          "MAExp@tv-basicstudies", // EMA
+          "BB@tv-basicstudies" // Bollinger Bands
         ],
         "toolbar_bg": "#131722",
+        // Default chart styling
         "overrides": {
+          // Candlestick colors
           "mainSeriesProperties.candleStyle.upColor": "#089981",
           "mainSeriesProperties.candleStyle.downColor": "#f23645",
           "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
           "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
           "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
-          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
-        }
+          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645",
+          // Grid and background
+          "paneProperties.background": "#131722",
+          "paneProperties.gridProperties.color": "#2B2B43",
+          // Volume colors
+          "volume.volume.color.0": "#f23645",
+          "volume.volume.color.1": "#089981",
+          // RSI default settings
+          "rsi.upperband": "70",
+          "rsi.lowerband": "30",
+          // MACD colors
+          "macd.macd.color": "#2196F3",
+          "macd.signal.color": "#FF5722"
+        },
+        // Save chart layout
+        "charts_storage_url": "https://saveload.tradingview.com",
+        "charts_storage_api_version": "1.1"
       });
       
       chartContainerRef.current.appendChild(script);
