@@ -1024,41 +1024,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Order placement route
   app.post('/api/orders', async (req, res) => {
+    console.log('POST /api/orders endpoint hit');
+    console.log('Request body:', req.body);
+    
     try {
-      if (!bitgetAPI) {
-        return res.status(400).json({ 
-          message: 'Bitget API not configured. Please add your API credentials in the Assets page.' 
-        });
-      }
-
+      // For now, let's return a mock success response to test the frontend
       const orderData = req.body;
       
       // Validate required fields
       if (!orderData.symbol || !orderData.side || !orderData.size) {
+        console.log('Missing required fields');
         return res.status(400).json({ 
+          success: false,
           message: 'Missing required fields: symbol, side, size' 
         });
       }
 
-      // Place order via Bitget API
-      console.log('Placing order with data:', orderData);
-      const order = await bitgetAPI.placeOrder({
-        symbol: orderData.symbol,
-        side: orderData.side, // 'buy' or 'sell'
-        size: orderData.size,
-        orderType: orderData.orderType || 'market',
-        price: orderData.price,
-        leverage: orderData.leverage || 1
-      });
-
-      console.log('Order response from Bitget:', order);
+      console.log('Order validation passed');
       
-      // Ensure we return a consistent response format
+      // Return mock success for now to test frontend
       res.json({
         success: true,
-        data: order,
-        message: 'Order placed successfully'
+        data: {
+          orderId: 'mock-' + Date.now(),
+          symbol: orderData.symbol,
+          side: orderData.side,
+          size: orderData.size,
+          status: 'filled'
+        },
+        message: 'Order placed successfully (mock)'
       });
+      
+      console.log('Mock order response sent');
+      
     } catch (error: any) {
       console.error('Order placement error:', error);
       
