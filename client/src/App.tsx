@@ -19,6 +19,7 @@ import { Analyzer } from "@/pages/analyzer";
 import { StrategyRecommender } from "@/pages/strategy-recommender";
 import { Charts } from "@/pages/charts";
 import { Assets } from "@/pages/assets";
+import { Settings } from "@/pages/settings";
 
 function Router() {
   return (
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/charts" component={Charts} />
         <Route path="/bot" component={BotPage} />
         <Route path="/assets" component={Assets} />
+        <Route path="/settings" component={Settings} />
         <Route path="/analyzer" component={Analyzer} />
         <Route path="/strategy-recommender" component={StrategyRecommender} />
         <Route path="/folders" component={FoldersPage} />

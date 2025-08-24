@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Wallet, TrendingUp, TrendingDown, DollarSign, PieChart, RefreshCw, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { ApiSettings } from '@/components/ApiSettings';
 
 export function Assets() {
   const [refreshing, setRefreshing] = useState(false);
@@ -39,9 +38,9 @@ export function Assets() {
     }));
   };
 
-  const isConnected = connectionStatus?.apiConnected;
-  const account = accountData?.account;
-  const positions = accountData?.positions || [];
+  const isConnected = connectionStatus?.apiConnected || false;
+  const account = accountData?.account || null;
+  const positions = (accountData as any)?.positions || [];
 
   const totalPnL = positions.reduce((sum: number, pos: any) => sum + parseFloat(pos.pnl || '0'), 0);
   const activePositions = positions.filter((pos: any) => parseFloat(pos.size) > 0);
@@ -65,9 +64,6 @@ export function Assets() {
       </div>
 
       <div className="p-4 space-y-6">
-        {/* API Connection Settings */}
-        <ApiSettings />
-
         {/* Account Overview */}
         {isConnected ? (
           <>
