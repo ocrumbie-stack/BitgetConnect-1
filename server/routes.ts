@@ -12,8 +12,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
+  console.log('🔧 Registering POST /api/orders endpoint...');
   app.post('/api/orders', async (req, res) => {
-    console.log('✅ ORDER ENDPOINT HIT!');
+    console.log('🎯 NEW ORDER ENDPOINT HIT!');
+    console.log('🎯 NEW ORDER ENDPOINT HIT!');
+    console.log('🎯 NEW ORDER ENDPOINT HIT!');
     console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
     
     try {
