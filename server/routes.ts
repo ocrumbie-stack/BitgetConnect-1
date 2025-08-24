@@ -491,6 +491,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Close position endpoint
+  app.post('/api/positions/close', async (req, res) => {
+    try {
+      if (!bitgetAPI) {
+        return res.status(400).json({ 
+          message: 'Bitget API not configured' 
+        });
+      }
+
+      const { symbol, side } = req.body;
+      
+      if (!symbol || !side) {
+        return res.status(400).json({ 
+          message: 'Missing required fields: symbol, side' 
+        });
+      }
+
+      console.log(`🔥 Closing ${side} position for ${symbol}`);
+      
+      const closeResponse = await bitgetAPI.closePosition(symbol, side);
+      
+      res.json({
+        success: true,
+        message: `Position ${symbol} ${side} closed successfully`,
+        data: closeResponse
+      });
+    } catch (error: any) {
+      console.error('Error closing position:', error);
+      res.status(500).json({ 
+        message: error.message || 'Failed to close position' 
+      });
+    }
+  });
+
   // Get orders endpoint
   app.get('/api/orders/:userId', async (req, res) => {
     try {

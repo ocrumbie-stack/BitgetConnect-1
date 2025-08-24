@@ -253,4 +253,39 @@ export class BitgetAPI {
       }
     }
   }
+
+  async closePosition(symbol: string, side: string): Promise<any> {
+    try {
+      // To close a position, we place an opposite order with 'close' tradeSide
+      const oppositeSide = side === 'long' ? 'sell' : 'buy';
+      
+      const orderData = {
+        symbol: symbol,
+        productType: 'USDT-FUTURES',
+        marginMode: 'isolated',
+        marginCoin: 'USDT',
+        side: oppositeSide,
+        tradeSide: 'close', // 'close' to close existing position
+        orderType: 'market', // Market order for immediate execution
+        size: 'all' // Close the entire position
+      };
+
+      console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
+
+      const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error closing position:', error.response?.data || error.message || error);
+      
+      if (error.response?.data?.msg) {
+        throw new Error(error.response.data.msg);
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Failed to close position');
+      }
+    }
+  }
 }
