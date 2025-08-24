@@ -138,38 +138,8 @@ export function Charts() {
         id="tradingview_chart"
       />
 
-      {/* Market Stats */}
+      {/* Quick Actions */}
       <div className="space-y-3">
-        {/* Technical Indicators */}
-        <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-          <CardContent className="p-2 space-y-1.5">
-            <div className="text-xs font-medium text-muted-foreground mb-2">Technical Indicators</div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <div className="flex justify-between items-center">
-                <span className="text-xs">RSI (14)</span>
-                <Badge variant="outline" className="text-xs px-1.5 py-0.5">45.2</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs">MACD</span>
-                <Badge variant="outline" className="text-green-600 text-xs px-1.5 py-0.5">Bullish</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs">MA Trend</span>
-                <Badge variant="outline" className={`text-xs px-1.5 py-0.5 ${
-                  maTrend === 'Bullish' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {maTrend}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs">Volume</span>
-                <Badge variant="outline" className={`${volumeColor} text-xs px-1.5 py-0.5`}>{volumeLevel}</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
         <div className="grid grid-cols-2">
           <Button 
             onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
