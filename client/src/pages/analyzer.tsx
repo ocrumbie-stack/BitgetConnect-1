@@ -256,7 +256,16 @@ export function Analyzer() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+      <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocation('/markets')}
+          className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-background/80"
+          data-testid="button-close-analyzer"
+        >
+          <X className="h-4 w-4" />
+        </Button>
         <h1 className="text-lg font-semibold text-foreground mb-2">Pair Analyzer</h1>
         <p className="text-sm text-muted-foreground">Advanced technical analysis and trading recommendations</p>
       </div>
