@@ -52,13 +52,39 @@ export function Charts() {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "enable_publishing": false,
+        "enable_publishing": true,
+        "withdateranges": true,
+        "range": "1D",
+        "hide_side_toolbar": false,
+        "allow_symbol_change": true,
+        "show_popup_button": true,
+        "popup_width": "1000",
+        "popup_height": "650",
+        "no_referral_id": false,
         "backgroundColor": "rgba(19, 23, 34, 1)",
         "gridColor": "rgba(42, 46, 57, 0.06)",
         "hide_top_toolbar": false,
         "hide_legend": false,
-        "save_image": false,
-        "container_id": "tradingview_chart"
+        "save_image": true,
+        "calendar": true,
+        "support_host": "https://tradingview.com",
+        "container_id": "tradingview_chart",
+        "studies": [
+          "Volume@tv-basicstudies",
+          "RSI@tv-basicstudies",
+          "MACD@tv-basicstudies"
+        ],
+        "toolbar_bg": "#131722",
+        "enable_publishing": true,
+        "hide_volume": false,
+        "overrides": {
+          "mainSeriesProperties.candleStyle.upColor": "#089981",
+          "mainSeriesProperties.candleStyle.downColor": "#f23645",
+          "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
+          "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
+        }
       });
       
       chartContainerRef.current.appendChild(script);
@@ -75,37 +101,6 @@ export function Charts() {
     <div className="min-h-screen bg-background text-foreground pb-24">
       <BackButton />
       
-      {/* Header */}
-      <div className="p-2 border-b border-border bg-card">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-base font-bold">{selectedPair}</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold">${currentPrice}</span>
-                <Badge variant={parseFloat(change24h) >= 0 ? 'default' : 'destructive'} className="text-xs">
-                  {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
-                </Badge>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-16 h-6 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1M">1M</SelectItem>
-                <SelectItem value="5M">5M</SelectItem>
-                <SelectItem value="15M">15M</SelectItem>
-                <SelectItem value="1H">1H</SelectItem>
-                <SelectItem value="4H">4H</SelectItem>
-                <SelectItem value="1D">1D</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
 
       {/* TradingView Chart - Full Extent */}
       <div 
