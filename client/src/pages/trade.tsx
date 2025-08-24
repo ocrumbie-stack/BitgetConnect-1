@@ -20,6 +20,8 @@ export function Trade() {
   const [tpslEnabled, setTpslEnabled] = useState(false);
   const [takeProfit, setTakeProfit] = useState('');
   const [stopLoss, setStopLoss] = useState('');
+  const [tpMode, setTpMode] = useState<'percentage' | 'price'>('percentage');
+  const [slMode, setSlMode] = useState<'percentage' | 'price'>('percentage');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -255,26 +257,53 @@ export function Trade() {
           </div>
 
           {/* TP/SL */}
-          <div className="flex items-center gap-2 p-1">
-            <Switch 
-              checked={tpslEnabled}
-              onCheckedChange={setTpslEnabled}
-            />
-            <span className="text-sm">TP/SL</span>
+          <div className="border rounded p-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Switch 
+                checked={tpslEnabled}
+                onCheckedChange={setTpslEnabled}
+              />
+              <span className="text-sm">TP/SL</span>
+            </div>
             {tpslEnabled && (
-              <div className="flex gap-2 ml-auto">
-                <Input
-                  placeholder="TP"
-                  className="h-7 w-20 text-xs"
-                  value={takeProfit}
-                  onChange={(e) => setTakeProfit(e.target.value)}
-                />
-                <Input
-                  placeholder="SL"
-                  className="h-7 w-20 text-xs"
-                  value={stopLoss}
-                  onChange={(e) => setStopLoss(e.target.value)}
-                />
+              <div className="space-y-2">
+                {/* Take Profit */}
+                <div className="flex gap-1">
+                  <Select value={tpMode} onValueChange={(value: 'percentage' | 'price') => setTpMode(value)}>
+                    <SelectTrigger className="w-16 h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">%</SelectItem>
+                      <SelectItem value="price">$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder={tpMode === 'percentage' ? "TP %" : "TP Price"}
+                    className="h-7 flex-1 text-xs"
+                    value={takeProfit}
+                    onChange={(e) => setTakeProfit(e.target.value)}
+                  />
+                </div>
+                
+                {/* Stop Loss */}
+                <div className="flex gap-1">
+                  <Select value={slMode} onValueChange={(value: 'percentage' | 'price') => setSlMode(value)}>
+                    <SelectTrigger className="w-16 h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">%</SelectItem>
+                      <SelectItem value="price">$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder={slMode === 'percentage' ? "SL %" : "SL Price"}
+                    className="h-7 flex-1 text-xs"
+                    value={stopLoss}
+                    onChange={(e) => setStopLoss(e.target.value)}
+                  />
+                </div>
               </div>
             )}
           </div>
