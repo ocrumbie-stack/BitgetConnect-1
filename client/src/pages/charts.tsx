@@ -69,10 +69,6 @@ export function Charts() {
         "container_id": "tradingview_chart",
         "studies": [
           {
-            "id": "Volume@tv-basicstudies",
-            "inputs": {}
-          },
-          {
             "id": "RSI@tv-basicstudies", 
             "inputs": {
               "length": 14
