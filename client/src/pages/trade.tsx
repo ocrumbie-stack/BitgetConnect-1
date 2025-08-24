@@ -199,15 +199,6 @@ export function Trade() {
             )}
           </div>
 
-          {/* Order Summary */}
-          {amount && (
-            <div className="border rounded p-2 bg-muted/30">
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>Order: ${amount}</div>
-                <div>Pos: ${(parseFloat(amount || '0') * parseFloat(leverage)).toLocaleString()}</div>
-              </div>
-            </div>
-          )}
 
           {/* Trading Buttons */}
           <div className="grid grid-cols-2 gap-2">
