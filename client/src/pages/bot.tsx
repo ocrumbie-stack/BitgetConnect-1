@@ -2423,9 +2423,11 @@ export default function BotPage() {
             </Button>
             <Button 
               onClick={() => {
-                // Handle bot deployment
-                alert(`Deploying ${selectedStrategy?.name || 'AI Bot'} with ${capital} USDT on ${tradingPair} at ${leverage}x leverage`);
-                setShowRunDialog(false);
+                if (selectedStrategy) {
+                  handleRunStrategy(selectedStrategy);
+                } else {
+                  alert('No strategy selected');
+                }
               }}
               className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500"
             >
