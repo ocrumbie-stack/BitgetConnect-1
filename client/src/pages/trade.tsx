@@ -37,20 +37,6 @@ export function Trade() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Simple Clean Candlestick Icon - Like the attached image
-  const SimpleCandlestickIcon = ({ className }: { className?: string }) => (
-    <svg viewBox="0 0 16 16" className={className} fill="currentColor">
-      {/* First candle - Green (bullish) */}
-      <rect x="4" y="7" width="2" height="4" fill="currentColor" />
-      <line x1="5" y1="5" x2="5" y2="7" stroke="currentColor" strokeWidth="1"/>
-      <line x1="5" y1="11" x2="5" y2="13" stroke="currentColor" strokeWidth="1"/>
-      
-      {/* Second candle - Taller (showing variation) */}
-      <rect x="10" y="6" width="2" height="5" fill="currentColor" />
-      <line x1="11" y1="4" x2="11" y2="6" stroke="currentColor" strokeWidth="1"/>
-      <line x1="11" y1="11" x2="11" y2="12" stroke="currentColor" strokeWidth="1"/>
-    </svg>
-  );
 
   // Fetch account information for real balance
   const { data: accountData } = useQuery({
@@ -934,7 +920,7 @@ export function Trade() {
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 data-testid={`button-chart-${position.symbol}`}
                               >
-                                <SimpleCandlestickIcon className="h-7 w-7" />
+                                <BarChart3 className="h-5 w-5" />
                               </Button>
                             </Link>
                           </div>
