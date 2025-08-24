@@ -90,10 +90,25 @@ export class BitgetAPI {
     this.client.interceptors.request.use((config) => {
       const timestamp = Date.now().toString();
       const method = config.method?.toUpperCase() || 'GET';
-      const requestPath = config.url || '';
-      const body = config.data ? JSON.stringify(config.data) : '';
+      let requestPath = config.url || '';
       
+      // Include query parameters in the request path for signature
+      if (config.params) {
+        const searchParams = new URLSearchParams();
+        Object.keys(config.params).forEach(key => {
+          if (config.params[key] !== undefined) {
+            searchParams.append(key, config.params[key]);
+          }
+        });
+        const queryString = searchParams.toString();
+        if (queryString) {
+          requestPath += '?' + queryString;
+        }
+      }
+      
+      const body = config.data ? JSON.stringify(config.data) : '';
       const message = timestamp + method + requestPath + body;
+      
       const signature = crypto
         .createHmac('sha256', this.config.apiSecret)
         .update(message)
