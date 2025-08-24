@@ -67,79 +67,58 @@ export function Charts() {
         "calendar": false,
         "support_host": "https://tradingview.com",
         "container_id": "tradingview_chart",
-        // Default indicators - your ideal settings
         "studies": [
-          "Volume@tv-basicstudies",
-          "RSI@tv-basicstudies", 
-          "MACD@tv-basicstudies"
+          {
+            "id": "Volume@tv-basicstudies",
+            "inputs": {}
+          },
+          {
+            "id": "RSI@tv-basicstudies", 
+            "inputs": {
+              "length": 14
+            }
+          },
+          {
+            "id": "MACD@tv-basicstudies",
+            "inputs": {
+              "fastlength": 12,
+              "slowlength": 26,
+              "signallength": 9
+            }
+          },
+          {
+            "id": "MAExp@tv-basicstudies",
+            "inputs": {
+              "length": 20
+            }
+          },
+          {
+            "id": "MAExp@tv-basicstudies",
+            "inputs": {
+              "length": 50
+            }
+          },
+          {
+            "id": "MAExp@tv-basicstudies", 
+            "inputs": {
+              "length": 200
+            }
+          }
         ],
         "toolbar_bg": "#131722",
-        // Default chart styling
         "overrides": {
-          // Candlestick colors
           "mainSeriesProperties.candleStyle.upColor": "#089981",
           "mainSeriesProperties.candleStyle.downColor": "#f23645",
           "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
           "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
           "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
           "mainSeriesProperties.candleStyle.wickDownColor": "#f23645",
-          // Grid and background
           "paneProperties.background": "#131722",
-          "paneProperties.gridProperties.color": "#2B2B43",
-          // RSI default settings
-          "rsi.upperband": "70",
-          "rsi.lowerband": "30",
-          // MACD colors
-          "macd.macd.color": "#2196F3",
-          "macd.signal.color": "#FF5722"
-        },
-        // Add auto-loading studies with your preferred EMA settings
-        "studies_overrides": {
-          "moving average exponential.length": 20,
-          "moving average exponential.plot.color": "#FF69B4"
-        },
-        "auto_save_delay": 5,
-        "enabled_features": [
-          "study_templates",
-          "save_chart_properties_to_local_storage"
-        ],
-        // Save chart layout
-        "charts_storage_url": "https://saveload.tradingview.com",
-        "charts_storage_api_version": "1.1"
+          "paneProperties.gridProperties.color": "#2B2B43"
+        }
       });
       
       chartContainerRef.current.appendChild(script);
-      
-      // Add a script to automatically load your EMAs after chart initialization
-      const emaScript = document.createElement('script');
-      emaScript.type = 'text/javascript';
-      emaScript.innerHTML = `
-        setTimeout(() => {
-          if (window.TradingView && window.TradingView.widget) {
-            const widget = window.TradingView.widget();
-            if (widget && widget.chart) {
-              // Add EMA 20 (Pink)
-              widget.chart().createStudy('Moving Average Exponential', false, false, [20], null, {
-                'plot.color': '#FF69B4',
-                'plot.linewidth': 2
-              });
-              
-              // Add EMA 50 (Orange) 
-              widget.chart().createStudy('Moving Average Exponential', false, false, [50], null, {
-                'plot.color': '#FFA500',
-                'plot.linewidth': 2
-              });
-              
-              // Add EMA 200 (White)
-              widget.chart().createStudy('Moving Average Exponential', false, false, [200], null, {
-                'plot.color': '#FFFFFF',
-                'plot.linewidth': 2
-              });
-            }
-          }
-        }, 3000); // Wait 3 seconds for chart to load
-      `;
-      chartContainerRef.current.appendChild(emaScript);
     }
   }, [selectedPair, timeframe]);
 
