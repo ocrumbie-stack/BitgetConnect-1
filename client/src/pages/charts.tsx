@@ -24,6 +24,10 @@ export function Charts() {
   const ema20Approx = parseFloat(currentPrice) * (1 + parseFloat(change24h) / 100 * 0.3);
   const ema50Approx = parseFloat(currentPrice) * (1 + parseFloat(change24h) / 100 * 0.1);
   const maTrend = ema20Approx > ema50Approx ? 'Bullish' : 'Bearish';
+  
+  // Volume analysis based on 24h change magnitude
+  const volumeLevel = Math.abs(parseFloat(change24h)) > 2 ? 'High' : 'Low';
+  const volumeColor = volumeLevel === 'High' ? 'text-green-600' : 'text-red-600';
 
   // Get pair from URL parameters
   useEffect(() => {
@@ -159,7 +163,7 @@ export function Charts() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs">Volume</span>
-                <Badge variant="outline" className="text-blue-600 text-xs px-1.5 py-0.5">High</Badge>
+                <Badge variant="outline" className={`${volumeColor} text-xs px-1.5 py-0.5`}>{volumeLevel}</Badge>
               </div>
             </div>
           </CardContent>
