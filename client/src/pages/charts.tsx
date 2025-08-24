@@ -52,13 +52,30 @@ export function Charts() {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "enable_publishing": false,
+        "enable_publishing": true,
         "backgroundColor": "rgba(19, 23, 34, 1)",
         "gridColor": "rgba(42, 46, 57, 0.06)",
         "hide_top_toolbar": false,
         "hide_legend": false,
-        "save_image": false,
-        "container_id": "tradingview_chart"
+        "save_image": true,
+        "allow_symbol_change": true,
+        "calendar": true,
+        "support_host": "https://tradingview.com",
+        "container_id": "tradingview_chart",
+        "studies": [
+          "Volume@tv-basicstudies",
+          "RSI@tv-basicstudies",
+          "MACD@tv-basicstudies"
+        ],
+        "toolbar_bg": "#131722",
+        "overrides": {
+          "mainSeriesProperties.candleStyle.upColor": "#089981",
+          "mainSeriesProperties.candleStyle.downColor": "#f23645",
+          "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
+          "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
+        }
       });
       
       chartContainerRef.current.appendChild(script);
