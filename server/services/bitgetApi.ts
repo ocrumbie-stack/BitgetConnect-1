@@ -260,12 +260,28 @@ export class BitgetAPI {
       
       // First, get the current position to determine the exact size
       const positions = await this.getPositions();
-      const currentPosition = positions.find(pos => 
+      console.log('📋 All positions from API:', JSON.stringify(positions, null, 2));
+      
+      // Try different matching strategies
+      let currentPosition = positions.find(pos => 
         pos.symbol === symbol && pos.holdSide === side
       );
       
-      if (!currentPosition || parseFloat(currentPosition.total) === 0) {
-        throw new Error(`No ${side} position found for ${symbol}`);
+      if (!currentPosition) {
+        // Try matching with lowercase
+        currentPosition = positions.find(pos => 
+          pos.symbol === symbol && pos.holdSide === side.toLowerCase()
+        );
+      }
+      
+      if (!currentPosition) {
+        // Show available positions for debugging
+        console.log('🔍 Available positions:', positions.map(p => `${p.symbol} ${p.holdSide} (size: ${p.total})`));
+        throw new Error(`No ${side} position found for ${symbol}. Available positions: ${positions.map(p => `${p.symbol}:${p.holdSide}`).join(', ')}`);
+      }
+      
+      if (parseFloat(currentPosition.total) === 0) {
+        throw new Error(`Position ${symbol} ${side} has zero size`);
       }
       
       console.log('📊 Current position:', JSON.stringify(currentPosition, null, 2));
