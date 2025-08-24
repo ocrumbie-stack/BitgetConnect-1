@@ -740,7 +740,8 @@ export default function Markets() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      window.location.reload();
+                      queryClient.invalidateQueries({ queryKey: ['/api/futures/market-insights'] });
+                      toast({ title: "Refreshing AI opportunities..." });
                     }}
                     className="flex items-center gap-2"
                   >
