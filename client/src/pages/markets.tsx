@@ -314,7 +314,8 @@ export default function Markets() {
       };
     })
     .filter(opp => opp.score >= 15)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 15);
   };
 
   const opportunities = {
