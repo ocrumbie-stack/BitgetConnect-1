@@ -17,6 +17,7 @@ import FoldersPage from "@/pages/folders";
 import FolderDetailPage from "@/pages/folder-detail";
 import { Analyzer } from "@/pages/analyzer";
 import { StrategyRecommender } from "@/pages/strategy-recommender";
+import { Charts } from "@/pages/charts";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/markets" component={Markets} />
         <Route path="/trade" component={Trade} />
+        <Route path="/charts" component={Charts} />
         <Route path="/bot" component={BotPage} />
         <Route path="/analyzer" component={Analyzer} />
         <Route path="/strategy-recommender" component={StrategyRecommender} />
