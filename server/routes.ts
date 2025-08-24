@@ -11,6 +11,15 @@ let updateInterval: NodeJS.Timeout | null = null;
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
+  // Debug middleware to catch ALL POST /api/orders requests
+  app.use((req, res, next) => {
+    if (req.method === 'POST' && req.url === '/api/orders') {
+      console.log('🚨 INTERCEPTED: POST /api/orders request');
+      console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+    }
+    next();
+  });
+
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
