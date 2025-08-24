@@ -156,32 +156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Candlestick data endpoint
-  app.get('/api/candlestick/:symbol', async (req, res) => {
-    try {
-      if (!bitgetAPI) {
-        return res.status(503).json({ 
-          message: 'Bitget API not initialized' 
-        });
-      }
-
-      const { symbol } = req.params;
-      const { granularity = '5m', limit = '100' } = req.query;
-      
-      const candlestickData = await bitgetAPI.getCandlestickData(
-        symbol, 
-        granularity as string, 
-        parseInt(limit as string)
-      );
-      
-      res.json(candlestickData);
-    } catch (error: any) {
-      res.status(500).json({ 
-        message: error.message || 'Failed to fetch candlestick data' 
-      });
-    }
-  });
-
   // Cache for 5-minute movers data
   let fiveMinMoversCache: {
     data: any;
