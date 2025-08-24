@@ -256,6 +256,20 @@ export class BitgetAPI {
 
   async closePosition(symbol: string, side: string): Promise<any> {
     try {
+      console.log(`🔧 Closing position: ${symbol} ${side}`);
+      
+      // First, get the current position to determine the exact size
+      const positions = await this.getPositions();
+      const currentPosition = positions.find(pos => 
+        pos.symbol === symbol && pos.holdSide === side
+      );
+      
+      if (!currentPosition || parseFloat(currentPosition.total) === 0) {
+        throw new Error(`No ${side} position found for ${symbol}`);
+      }
+      
+      console.log('📊 Current position:', JSON.stringify(currentPosition, null, 2));
+      
       // To close a position, we place an opposite order with 'close' tradeSide
       const oppositeSide = side === 'long' ? 'sell' : 'buy';
       
@@ -267,7 +281,7 @@ export class BitgetAPI {
         side: oppositeSide,
         tradeSide: 'close', // 'close' to close existing position
         orderType: 'market', // Market order for immediate execution
-        size: 'all' // Close the entire position
+        size: currentPosition.total // Use exact position size
       };
 
       console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
@@ -275,7 +289,7 @@ export class BitgetAPI {
       const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
       return response.data;
     } catch (error: any) {
-      console.error('Error closing position:', error.response?.data || error.message || error);
+      console.error('❌ Error closing position:', error.response?.data || error.message || error);
       
       if (error.response?.data?.msg) {
         throw new Error(error.response.data.msg);

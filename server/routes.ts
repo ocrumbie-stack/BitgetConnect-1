@@ -509,8 +509,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`🔥 Closing ${side} position for ${symbol}`);
+      console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
       
       const closeResponse = await bitgetAPI.closePosition(symbol, side);
+      
+      console.log('✅ Close position response:', JSON.stringify(closeResponse, null, 2));
       
       res.json({
         success: true,
@@ -518,7 +521,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: closeResponse
       });
     } catch (error: any) {
-      console.error('Error closing position:', error);
+      console.error('❌ Error closing position:', error);
+      console.error('❌ Error details:', error.response?.data || error.message || error);
       res.status(500).json({ 
         message: error.message || 'Failed to close position' 
       });
