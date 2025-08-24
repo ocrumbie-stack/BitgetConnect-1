@@ -111,6 +111,10 @@ export function Charts() {
           "mainSeriesProperties.candleStyle.wickDownColor": "#f23645",
           "paneProperties.background": "#131722",
           "paneProperties.gridProperties.color": "#2B2B43"
+        },
+        "studies_overrides": {
+          "rsi.paneSize": "small",
+          "macd.paneSize": "small"
         }
       });
       
