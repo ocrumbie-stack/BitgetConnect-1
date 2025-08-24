@@ -1011,6 +1011,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return recommendations;
   }
 
+  // Order placement route
+  app.post('/api/orders', async (req, res) => {
+    try {
+      if (!bitgetAPI) {
+        return res.status(400).json({ 
+          message: 'Bitget API not configured. Please add your API credentials in the Assets page.' 
+        });
+      }
+
+      const orderData = req.body;
+      
+      // Validate required fields
+      if (!orderData.symbol || !orderData.side || !orderData.size) {
+        return res.status(400).json({ 
+          message: 'Missing required fields: symbol, side, size' 
+        });
+      }
+
+      // Place order via Bitget API
+      const order = await bitgetAPI.placeOrder({
+        symbol: orderData.symbol,
+        side: orderData.side, // 'buy' or 'sell'
+        size: orderData.size,
+        orderType: orderData.orderType || 'market',
+        price: orderData.price,
+        leverage: orderData.leverage || 1
+      });
+
+      res.json(order);
+    } catch (error: any) {
+      console.error('Order placement error:', error);
+      res.status(500).json({ 
+        message: error.message || 'Failed to place order' 
+      });
+    }
+  });
+
   // Initialize sample market opportunities
   async function initializeSampleData() {
     try {
