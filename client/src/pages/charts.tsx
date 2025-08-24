@@ -80,9 +80,9 @@ export function Charts() {
       </Card>
 
       {/* Market Stats */}
-      <div className="p-2 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
+      <div className="space-y-3">
+        <div className="grid grid-cols-2">
+          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Volume2 className="h-3 w-3 text-blue-500" />
@@ -91,7 +91,7 @@ export function Charts() {
               <div className="text-sm font-bold">${volume24h}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-3 w-3 text-green-500" />
@@ -103,7 +103,7 @@ export function Charts() {
         </div>
 
         {/* Technical Indicators */}
-        <Card>
+        <Card className="rounded-none border-l-0 border-r-0 border-t-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Technical Indicators</CardTitle>
           </CardHeader>
@@ -128,17 +128,17 @@ export function Charts() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2">
           <Button 
             onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
-            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs"
+            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs rounded-none"
           >
             Trade {selectedPair}
           </Button>
           <Button 
             onClick={() => setLocation(`/analyzer?pair=${selectedPair}&autoFill=true`)}
             variant="outline"
-            className="h-8 text-xs"
+            className="h-8 text-xs rounded-none"
           >
             Analyze Pair
           </Button>
