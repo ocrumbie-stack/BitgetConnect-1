@@ -296,9 +296,48 @@ export default function BotPage() {
         alert(`Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder!`);
       } else if (tradingPair) {
         // Deploy to individual pair
+        let actualStrategyId = strategy.id;
+        
+        // For AI bots, create a strategy record first if it doesn't exist
+        if (strategy.isAI) {
+          try {
+            const aiStrategyData = {
+              userId: 'default-user',
+              name: strategy.name,
+              strategy: 'ai',
+              riskLevel: strategy.riskLevel || 'medium',
+              description: strategy.description || `AI-powered ${strategy.name} trading strategy`,
+              config: {
+                positionDirection: 'long',
+                timeframe: '15m',
+                entryConditions: [],
+                exitConditions: [],
+                indicators: {},
+                riskManagement: {
+                  stopLoss: parseFloat(strategy.stopLoss) || 2.0,
+                  takeProfit: parseFloat(strategy.takeProfit) || 5.0,
+                }
+              }
+            };
+            
+            const createResponse = await fetch('/api/bot-strategies', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(aiStrategyData)
+            });
+            
+            if (createResponse.ok) {
+              const createdStrategy = await createResponse.json();
+              actualStrategyId = createdStrategy.id;
+            }
+          } catch (error) {
+            console.log('Using existing strategy ID for AI bot');
+          }
+        }
+
         const executionData = {
           userId: 'default-user',
-          strategyId: strategy.isAI ? strategy.id : strategy.id,
+          strategyId: actualStrategyId,
           tradingPair,
           capital,
           leverage,
