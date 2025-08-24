@@ -260,7 +260,7 @@ export function Analyzer() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setLocation('/markets')}
+          onClick={() => window.history.back()}
           className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-background/80"
           data-testid="button-close-analyzer"
         >
