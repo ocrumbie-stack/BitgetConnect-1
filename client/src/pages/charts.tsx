@@ -3,17 +3,20 @@ import { useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Volume2, Clock } from 'lucide-react';
+import { Volume2, Clock } from 'lucide-react';
 import { BackButton } from '@/components/BackButton';
+import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 
 export function Charts() {
   const [, setLocation] = useLocation();
   const { data } = useBitgetData();
   const [selectedPair, setSelectedPair] = useState('BTCUSDT');
-  const [timeframe, setTimeframe] = useState('1H');
+  const [timeframe, setTimeframe] = useState('1h');
+  const [activeIndicator, setActiveIndicator] = useState('MACD');
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const rsiChartRef = useRef<HTMLDivElement>(null);
+  const macdChartRef = useRef<HTMLDivElement>(null);
 
   // Get current pair data
   const currentPairData = data?.find(item => item.symbol === selectedPair);
@@ -30,140 +33,315 @@ export function Charts() {
     }
   }, []);
 
-  // Initialize TradingView widget
-  useEffect(() => {
-    if (chartContainerRef.current && typeof window !== 'undefined') {
-      // Clear any existing widget
-      chartContainerRef.current.innerHTML = '';
+  // Generate realistic trading data
+  const generateTradingData = () => {
+    const data = [];
+    const basePrice = parseFloat(currentPrice) || 114400;
+    const now = Date.now() / 1000; // Unix timestamp
+    
+    const intervals = 100;
+    const stepSec = timeframe === '1m' ? 60 : 
+                   timeframe === '5m' ? 300 : 
+                   timeframe === '15m' ? 900 : 
+                   timeframe === '1h' ? 3600 : 
+                   timeframe === '1D' ? 86400 : 3600;
+    
+    for (let i = intervals; i >= 0; i--) {
+      const time = Math.floor(now - (i * stepSec));
+      const volatility = (Math.random() - 0.5) * 0.02; // ±1% volatility
+      const trend = -i * 0.0001; // Slight downward trend
+      const price = basePrice * (1 + volatility + trend);
       
-      // Create script element
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      script.type = 'text/javascript';
-      script.async = true;
+      const open = price + (Math.random() - 0.5) * 20;
+      const close = price + (Math.random() - 0.5) * 20;
+      const high = Math.max(open, close) + Math.random() * 30;
+      const low = Math.min(open, close) - Math.random() * 30;
+      const volume = Math.random() * 1000000 + 500000;
       
-      // Convert timeframe format
-      const tvTimeframe = timeframe === '1M' ? '1' : 
-                         timeframe === '5M' ? '5' : 
-                         timeframe === '15M' ? '15' : 
-                         timeframe === '1H' ? '60' : 
-                         timeframe === '4H' ? '240' : 
-                         timeframe === '1D' ? '1D' : '60';
-      
-      script.innerHTML = JSON.stringify({
-        "autosize": true,
-        "symbol": `BITGET:${selectedPair}`,
-        "interval": tvTimeframe,
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "enable_publishing": false,
-        "backgroundColor": "rgba(19, 23, 34, 1)",
-        "gridColor": "rgba(42, 46, 57, 0.06)",
-        "hide_top_toolbar": false,
-        "hide_legend": false,
-        "save_image": false,
-        "allow_symbol_change": false,
-        "calendar": false,
-        "support_host": "https://tradingview.com",
-        "container_id": "tradingview_chart",
-        "studies": [
-          "Volume@tv-basicstudies",
-          "RSI@tv-basicstudies",
-          "MACD@tv-basicstudies"
-        ],
-        "toolbar_bg": "#131722",
-        "overrides": {
-          "mainSeriesProperties.candleStyle.upColor": "#089981",
-          "mainSeriesProperties.candleStyle.downColor": "#f23645",
-          "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
-          "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
-          "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
-          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
-        }
+      data.push({
+        time,
+        open: Number(open.toFixed(2)),
+        high: Number(high.toFixed(2)),
+        low: Number(low.toFixed(2)),
+        close: Number(close.toFixed(2)),
+        volume: Math.floor(volume)
       });
-      
-      chartContainerRef.current.appendChild(script);
     }
-  }, [selectedPair, timeframe]);
+    return data;
+  };
+
+  // Calculate indicators
+  const calculateEMA = (data: any[], period: number) => {
+    const multiplier = 2 / (period + 1);
+    let ema = data[0]?.close || 0;
+    return data.map(item => {
+      ema = (item.close * multiplier) + (ema * (1 - multiplier));
+      return { time: item.time, value: Number(ema.toFixed(3)) };
+    });
+  };
+
+  const calculateRSI = (data: any[], period = 14) => {
+    const changes = data.slice(1).map((item, i) => item.close - data[i].close);
+    const gains = changes.map(change => change > 0 ? change : 0);
+    const losses = changes.map(change => change < 0 ? -change : 0);
+    
+    return data.slice(period).map((item, i) => {
+      const avgGain = gains.slice(i, i + period).reduce((a, b) => a + b, 0) / period;
+      const avgLoss = losses.slice(i, i + period).reduce((a, b) => a + b, 0) / period;
+      const rs = avgGain / (avgLoss || 1);
+      const rsi = 100 - (100 / (1 + rs));
+      return { time: item.time, value: Number(rsi.toFixed(3)) };
+    });
+  };
+
+  const calculateMACD = (data: any[]) => {
+    const ema12 = calculateEMA(data, 12);
+    const ema26 = calculateEMA(data, 26);
+    
+    const macdLine = ema12.map((item, i) => ({
+      time: item.time,
+      value: Number((item.value - ema26[i].value).toFixed(3))
+    }));
+    
+    const signalLine = calculateEMA(macdLine.map(item => ({ close: item.value, time: item.time })), 9);
+    
+    return macdLine.map((item, i) => ({
+      time: item.time,
+      macd: item.value,
+      signal: signalLine[i]?.value || 0,
+      histogram: Number((item.value - (signalLine[i]?.value || 0)).toFixed(3))
+    }));
+  };
+
+  // Initialize Lightweight Charts
+  useEffect(() => {
+    if (chartContainerRef.current && rsiChartRef.current && macdChartRef.current) {
+      const tradingData = generateTradingData();
+      
+      // Main chart
+      const chart = createChart(chartContainerRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#131722' },
+          textColor: '#d9d9d9',
+        },
+        grid: {
+          vertLines: { color: '#2B2B43' },
+          horzLines: { color: '#2B2B43' },
+        },
+        crosshair: { mode: CrosshairMode.Normal },
+        rightPriceScale: {
+          borderColor: '#485158',
+        },
+        timeScale: {
+          borderColor: '#485158',
+        },
+        height: 320,
+      });
+
+      // Candlestick series
+      const candleSeries = chart.addSeries('Candlestick', {
+        upColor: '#089981',
+        downColor: '#f23645',
+        borderVisible: false,
+        wickUpColor: '#089981',
+        wickDownColor: '#f23645',
+      });
+      candleSeries.setData(tradingData);
+
+      // EMA lines
+      const ema20Data = calculateEMA(tradingData, 20);
+      const ema50Data = calculateEMA(tradingData, 50);
+      const ema200Data = calculateEMA(tradingData, 200);
+
+      const ema20Series = chart.addSeries('Line', { color: '#ffeb3b', lineWidth: 2 });
+      const ema50Series = chart.addSeries('Line', { color: '#ff9800', lineWidth: 2 });
+      const ema200Series = chart.addSeries('Line', { color: '#ffffff', lineWidth: 2 });
+
+      ema20Series.setData(ema20Data);
+      ema50Series.setData(ema50Data);
+      ema200Series.setData(ema200Data);
+
+      // RSI chart
+      const rsiChart = createChart(rsiChartRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#131722' },
+          textColor: '#d9d9d9',
+        },
+        grid: {
+          vertLines: { color: '#2B2B43' },
+          horzLines: { color: '#2B2B43' },
+        },
+        height: 120,
+        rightPriceScale: {
+          borderColor: '#485158',
+          scaleMargins: { top: 0.1, bottom: 0.1 },
+        },
+        timeScale: {
+          borderColor: '#485158',
+          visible: false,
+        },
+      });
+
+      const rsiData = calculateRSI(tradingData);
+      const rsiSeries = rsiChart.addSeries('Line', { color: '#ffffff', lineWidth: 2 });
+      rsiSeries.setData(rsiData);
+
+      // MACD chart
+      const macdChart = createChart(macdChartRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#131722' },
+          textColor: '#d9d9d9',
+        },
+        grid: {
+          vertLines: { color: '#2B2B43' },
+          horzLines: { color: '#2B2B43' },
+        },
+        height: 140,
+        rightPriceScale: {
+          borderColor: '#485158',
+        },
+        timeScale: {
+          borderColor: '#485158',
+        },
+      });
+
+      const macdData = calculateMACD(tradingData);
+      const macdSeries = macdChart.addSeries('Line', { color: '#2196F3', lineWidth: 2 });
+      const signalSeries = macdChart.addSeries('Line', { color: '#FF5722', lineWidth: 2 });
+      const histogramSeries = macdChart.addSeries('Histogram', { 
+        color: '#26a69a',
+        priceFormat: { type: 'volume' },
+      });
+
+      macdSeries.setData(macdData.map(item => ({ time: item.time, value: item.macd })));
+      signalSeries.setData(macdData.map(item => ({ time: item.time, value: item.signal })));
+      histogramSeries.setData(macdData.map(item => ({ 
+        time: item.time, 
+        value: item.histogram,
+        color: item.histogram >= 0 ? '#26a69a' : '#ef5350'
+      })));
+
+      return () => {
+        chart.remove();
+        rsiChart.remove();
+        macdChart.remove();
+      };
+    }
+  }, [selectedPair, timeframe, currentPrice]);
+
+  const timeframes = ['1m', '5m', '15m', '1h', '1D'];
+  const indicators = ['MA', 'EMA', 'BOLL', 'SAR', 'AVL', 'VOL', 'MACD', 'KDJ'];
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="min-h-screen bg-[#0a0e27] text-white pb-20">
       <BackButton />
       
+      {/* Timeframe Bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-[#131722]">
+        <div className="flex items-center gap-2">
+          {timeframes.map((tf) => (
+            <Button
+              key={tf}
+              variant={timeframe === tf ? "default" : "ghost"}
+              size="sm"
+              className={`h-8 px-3 text-xs ${
+                timeframe === tf 
+                  ? 'bg-gray-600 text-white' 
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+              onClick={() => setTimeframe(tf)}
+            >
+              {tf}
+            </Button>
+          ))}
+          <Button variant="ghost" size="sm" className="h-8 px-3 text-xs text-gray-400">
+            More ▼
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">📊</Button>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">✏️</Button>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">⚙️</Button>
+        </div>
+      </div>
 
-      {/* TradingView Chart - Full Extent */}
+      {/* EMA Values */}
+      <div className="px-4 py-2 bg-[#131722] border-b border-gray-700">
+        <div className="flex items-center gap-4 text-xs">
+          <span style={{ color: '#ffeb3b' }}>EMA(20): 25.767</span>
+          <span style={{ color: '#ff9800' }}>EMA(50): 25.812</span>
+          <span style={{ color: '#ffffff' }}>EMA(200): 24.983</span>
+          <span className="ml-auto text-gray-400">{currentPrice}</span>
+        </div>
+      </div>
+
+      {/* Main Chart */}
       <div 
         ref={chartContainerRef}
-        className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
-        id="tradingview_chart"
+        className="w-full bg-[#131722]"
       />
 
-      {/* Market Stats */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-2">
-          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Volume2 className="h-3 w-3 text-blue-500" />
-                <span className="text-xs font-medium">24h Volume</span>
-              </div>
-              <div className="text-sm font-bold">${volume24h}</div>
-            </CardContent>
-          </Card>
-          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-3 w-3 text-green-500" />
-                <span className="text-xs font-medium">Timeframe</span>
-              </div>
-              <div className="text-sm font-bold">{timeframe}</div>
-            </CardContent>
-          </Card>
+      {/* RSI Chart */}
+      <div className="px-4 py-1 bg-[#131722] border-t border-gray-700">
+        <div className="text-xs text-gray-400 mb-1">RSI(14): 44.346</div>
+        <div 
+          ref={rsiChartRef}
+          className="w-full"
+        />
+      </div>
+
+      {/* MACD Chart */}
+      <div className="px-4 py-1 bg-[#131722] border-t border-gray-700">
+        <div className="flex items-center gap-4 text-xs mb-1">
+          <span className="text-gray-400">MACD(12,26,9)</span>
+          <span style={{ color: '#2196F3' }}>MACD: -0.020</span>
+          <span style={{ color: '#ffc107' }}>DIF: 0.112</span>
+          <span style={{ color: '#e91e63' }}>DEA: -0.092</span>
         </div>
+        <div 
+          ref={macdChartRef}
+          className="w-full"
+        />
+      </div>
 
-        {/* Technical Indicators */}
-        <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Technical Indicators</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-0">
-            <div className="flex justify-between items-center">
-              <span className="text-xs">RSI (14)</span>
-              <Badge variant="outline" className="text-xs">45.2</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">MACD</span>
-              <Badge variant="outline" className="text-green-600 text-xs">Bullish</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">MA (20)</span>
-              <Badge variant="outline" className="text-xs">${(parseFloat(currentPrice) * 0.98).toFixed(2)}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Volume Trend</span>
-              <Badge variant="outline" className="text-blue-600 text-xs">Increasing</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2">
-          <Button 
-            onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
-            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs rounded-none"
-          >
-            Trade {selectedPair}
+      {/* Indicator Tabs */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#131722] border-t border-gray-700">
+        <div className="flex items-center gap-3">
+          {indicators.map((indicator) => (
+            <Button
+              key={indicator}
+              variant="ghost"
+              size="sm"
+              className={`h-8 px-2 text-xs ${
+                activeIndicator === indicator 
+                  ? 'text-white bg-gray-600' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              onClick={() => setActiveIndicator(indicator)}
+            >
+              {indicator}
+            </Button>
+          ))}
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400">📊</Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-gray-400">
+            ⋯ More
           </Button>
-          <Button 
-            onClick={() => setLocation(`/analyzer?pair=${selectedPair}&autoFill=true`)}
-            variant="outline"
-            className="h-8 text-xs rounded-none"
-          >
-            Analyze Pair
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-gray-400">
+            🤖 Bot
           </Button>
         </div>
+      </div>
+
+      {/* Trade Button */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10">
+        <Button 
+          className="w-40 h-12 bg-white text-black font-semibold rounded-full hover:bg-gray-100"
+          onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
+        >
+          Trade
+        </Button>
       </div>
     </div>
   );
