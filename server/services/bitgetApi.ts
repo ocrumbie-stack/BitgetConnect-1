@@ -222,8 +222,18 @@ export class BitgetAPI {
       const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
       return response.data;
     } catch (error: any) {
-      console.error('Error placing order:', error.response?.data || error);
-      throw new Error(error.response?.data?.msg || 'Failed to place order');
+      console.error('Error placing order:', error.response?.data || error.message || error);
+      
+      // Handle different types of errors
+      if (error.response?.data?.msg) {
+        throw new Error(error.response.data.msg);
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Failed to place order - please check your API credentials and connection');
+      }
     }
   }
 }

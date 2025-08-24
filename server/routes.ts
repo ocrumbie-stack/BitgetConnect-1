@@ -1053,8 +1053,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error: any) {
       console.error('Order placement error:', error);
+      
+      // Ensure we always return proper JSON
+      const errorMessage = error.message || 'Failed to place order';
       res.status(500).json({ 
-        message: error.message || 'Failed to place order' 
+        success: false,
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });

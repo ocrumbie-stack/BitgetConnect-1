@@ -58,8 +58,20 @@ export function Trade() {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to place order');
+        let errorMessage = 'Failed to place order';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch (jsonError) {
+          // If response is not JSON (like HTML error page), get text
+          const errorText = await response.text();
+          if (errorText.includes('<!DOCTYPE')) {
+            errorMessage = `Server error (${response.status}). Please check your API connection and try again.`;
+          } else {
+            errorMessage = errorText || errorMessage;
+          }
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
@@ -109,8 +121,8 @@ export function Trade() {
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
   // Get real available balance from API
-  const isConnected = connectionStatus?.apiConnected;
-  const account = accountData?.account;
+  const isConnected = connectionStatus?.apiConnected || false;
+  const account = (accountData as any)?.account || null;
   const availableBalance = account?.availableBalance ? parseFloat(account.availableBalance) : 0;
 
   // Dynamic market analysis data based on current pair
