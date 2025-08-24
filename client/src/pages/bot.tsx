@@ -1440,15 +1440,24 @@ export default function BotPage() {
                                   {executions.map((execution: any) => (
                                     <div key={execution.id} className="flex items-center justify-between p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
                                       <div className="flex items-center gap-2">
-                                        <span 
-                                          className="font-medium text-white cursor-pointer hover:text-blue-400 transition-colors"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setLocation(`/trade?pair=${execution.tradingPair}`);
-                                          }}
-                                        >
-                                          {execution.tradingPair}
-                                        </span>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
+                                              <span>{execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}</span>
+                                              <ChevronDown className="h-4 w-4 ml-1" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="start" className="w-64">
+                                            <DropdownMenuItem onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}>
+                                              <div className="flex flex-col space-y-1">
+                                                <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
+                                                <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
+                                                <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                                <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
+                                              </div>
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                         <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
                                           {execution.status}
                                         </Badge>
