@@ -84,7 +84,7 @@ export default function BotPage() {
   });
 
   // Filter only active executions in frontend
-  const activeExecutions = allExecutions.filter((execution: any) => execution.status === 'active');
+  const activeExecutions = (allExecutions as any[]).filter((execution: any) => execution.status === 'active');
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
@@ -1443,9 +1443,8 @@ export default function BotPage() {
                                       <div className="flex items-center gap-2">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
-                                              <span>{execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}</span>
-                                              <ChevronDown className="h-4 w-4 ml-1" />
+                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors">
+                                              <ChevronDown className="h-4 w-4" />
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="start" className="w-64">
@@ -1502,9 +1501,8 @@ export default function BotPage() {
                                 <div className="flex items-center gap-2 mb-1">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors text-left justify-start">
-                                        <span>{execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}</span>
-                                        <ChevronDown className="h-4 w-4 ml-1" />
+                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors">
+                                        <ChevronDown className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start" className="w-64">
@@ -1563,10 +1561,7 @@ export default function BotPage() {
 
       {/* Alert Center Dialog */}
       {showAlertCenter && (
-        <AlertCenter
-          isOpen={showAlertCenter}
-          onClose={() => setShowAlertCenter(false)}
-        />
+        <AlertCenter />
       )}
 
       {/* Create Strategy Dialog */}
