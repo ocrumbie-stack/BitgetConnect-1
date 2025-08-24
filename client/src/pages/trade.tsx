@@ -53,17 +53,37 @@ export function Trade() {
   // Mock available balance
   const availableBalance = 5000.00;
 
-  // Mock market analysis data
-  const marketAnalysis = {
-    marketStrength: 72, // 0-100
-    pairStrength: 85,   // 0-100
-    volatility: 45,     // 0-100
-    trendDirection: 'bullish', // bullish, bearish, neutral
-    support: (parseFloat(currentPrice.replace(/,/g, '')) * 0.98).toFixed(1),
-    resistance: (parseFloat(currentPrice.replace(/,/g, '')) * 1.02).toFixed(1),
-    momentum: 'strong', // weak, moderate, strong
-    volume: 'high'      // low, medium, high
+  // Dynamic market analysis data based on current pair
+  const getMarketAnalysis = () => {
+    if (!currentMarket) return null;
+    
+    const price = parseFloat(currentMarket.price);
+    const change = parseFloat(currentMarket.change24h || '0') * 100;
+    const volume = parseFloat(currentMarket.volume24h || '0');
+    
+    // Calculate dynamic metrics based on real data
+    const volatility = Math.min(Math.abs(change) * 5, 100); // Scale change to volatility
+    const marketStrength = Math.max(30, Math.min(85, 50 + change * 2)); // Based on price change
+    const pairStrength = Math.max(40, Math.min(90, 60 + change * 1.5)); // Based on performance
+    
+    const trendDirection = change > 2 ? 'bullish' : change < -2 ? 'bearish' : 'neutral';
+    const momentum = Math.abs(change) > 5 ? 'strong' : Math.abs(change) > 2 ? 'moderate' : 'weak';
+    const volumeLevel = volume > 1000000000 ? 'high' : volume > 100000000 ? 'medium' : 'low';
+    
+    return {
+      marketStrength: Math.round(marketStrength),
+      pairStrength: Math.round(pairStrength),
+      volatility: Math.round(volatility),
+      trendDirection,
+      support: (price * 0.98).toFixed(1),
+      resistance: (price * 1.02).toFixed(1),
+      momentum,
+      volume: volumeLevel,
+      change24h: change
+    };
   };
+
+  const marketAnalysis = getMarketAnalysis();
 
   const handlePercentageClick = (percentage: string) => {
     const percent = parseFloat(percentage) / 100;
@@ -288,12 +308,12 @@ export function Trade() {
           <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Market Strength</span>
-              <span className="font-medium">{marketAnalysis.marketStrength}%</span>
+              <span className="font-medium">{marketAnalysis?.marketStrength}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-1.5">
               <div 
-                className={`h-1.5 rounded-full ${marketAnalysis.marketStrength > 70 ? 'bg-green-500' : marketAnalysis.marketStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                style={{ width: `${marketAnalysis.marketStrength}%` }}
+                className={`h-1.5 rounded-full ${(marketAnalysis?.marketStrength || 0) > 70 ? 'bg-green-500' : (marketAnalysis?.marketStrength || 0) > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${marketAnalysis?.marketStrength || 0}%` }}
               ></div>
             </div>
           </div>
@@ -302,12 +322,12 @@ export function Trade() {
           <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Pair Strength</span>
-              <span className="font-medium">{marketAnalysis.pairStrength}%</span>
+              <span className="font-medium">{marketAnalysis?.pairStrength}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-1.5">
               <div 
-                className={`h-1.5 rounded-full ${marketAnalysis.pairStrength > 70 ? 'bg-green-500' : marketAnalysis.pairStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                style={{ width: `${marketAnalysis.pairStrength}%` }}
+                className={`h-1.5 rounded-full ${(marketAnalysis?.pairStrength || 0) > 70 ? 'bg-green-500' : (marketAnalysis?.pairStrength || 0) > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${marketAnalysis?.pairStrength || 0}%` }}
               ></div>
             </div>
           </div>
@@ -316,18 +336,18 @@ export function Trade() {
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Trend</span>
             <div className="flex items-center gap-1">
-              {marketAnalysis.trendDirection === 'bullish' ? (
+              {marketAnalysis?.trendDirection === 'bullish' ? (
                 <TrendingUp className="h-3 w-3 text-green-500" />
-              ) : marketAnalysis.trendDirection === 'bearish' ? (
+              ) : marketAnalysis?.trendDirection === 'bearish' ? (
                 <TrendingDown className="h-3 w-3 text-red-500" />
               ) : (
                 <Activity className="h-3 w-3 text-yellow-500" />
               )}
               <span className={`capitalize ${
-                marketAnalysis.trendDirection === 'bullish' ? 'text-green-500' : 
-                marketAnalysis.trendDirection === 'bearish' ? 'text-red-500' : 'text-yellow-500'
+                marketAnalysis?.trendDirection === 'bullish' ? 'text-green-500' : 
+                marketAnalysis?.trendDirection === 'bearish' ? 'text-red-500' : 'text-yellow-500'
               }`}>
-                {marketAnalysis.trendDirection}
+                {marketAnalysis?.trendDirection || 'neutral'}
               </span>
             </div>
           </div>
@@ -341,11 +361,11 @@ export function Trade() {
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-red-500">Resistance:</span>
-                <span>${marketAnalysis.resistance}</span>
+                <span>${marketAnalysis?.resistance || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-green-500">Support:</span>
-                <span>${marketAnalysis.support}</span>
+                <span>${marketAnalysis?.support || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -354,12 +374,12 @@ export function Trade() {
           <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Volatility</span>
-              <span className="font-medium">{marketAnalysis.volatility}%</span>
+              <span className="font-medium">{marketAnalysis?.volatility}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-1.5">
               <div 
-                className={`h-1.5 rounded-full ${marketAnalysis.volatility > 60 ? 'bg-red-500' : marketAnalysis.volatility > 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
-                style={{ width: `${marketAnalysis.volatility}%` }}
+                className={`h-1.5 rounded-full ${(marketAnalysis?.volatility || 0) > 60 ? 'bg-red-500' : (marketAnalysis?.volatility || 0) > 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                style={{ width: `${marketAnalysis?.volatility || 0}%` }}
               ></div>
             </div>
           </div>
@@ -369,19 +389,19 @@ export function Trade() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Momentum:</span>
               <span className={`capitalize ${
-                marketAnalysis.momentum === 'strong' ? 'text-green-500' : 
-                marketAnalysis.momentum === 'moderate' ? 'text-yellow-500' : 'text-red-500'
+                marketAnalysis?.momentum === 'strong' ? 'text-green-500' : 
+                marketAnalysis?.momentum === 'moderate' ? 'text-yellow-500' : 'text-red-500'
               }`}>
-                {marketAnalysis.momentum}
+                {marketAnalysis?.momentum || 'unknown'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Volume:</span>
               <span className={`capitalize ${
-                marketAnalysis.volume === 'high' ? 'text-green-500' : 
-                marketAnalysis.volume === 'medium' ? 'text-yellow-500' : 'text-red-500'
+                marketAnalysis?.volume === 'high' ? 'text-green-500' : 
+                marketAnalysis?.volume === 'medium' ? 'text-yellow-500' : 'text-red-500'
               }`}>
-                {marketAnalysis.volume}
+                {marketAnalysis?.volume || 'unknown'}
               </span>
             </div>
           </div>
