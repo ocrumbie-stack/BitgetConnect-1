@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings } from 'lucide-react';
+import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target } from 'lucide-react';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -39,6 +39,18 @@ export function Trade() {
   // Mock available balance
   const availableBalance = 5000.00;
 
+  // Mock market analysis data
+  const marketAnalysis = {
+    marketStrength: 72, // 0-100
+    pairStrength: 85,   // 0-100
+    volatility: 45,     // 0-100
+    trendDirection: 'bullish', // bullish, bearish, neutral
+    support: (parseFloat(currentPrice.replace(/,/g, '')) * 0.98).toFixed(1),
+    resistance: (parseFloat(currentPrice.replace(/,/g, '')) * 1.02).toFixed(1),
+    momentum: 'strong', // weak, moderate, strong
+    volume: 'high'      // low, medium, high
+  };
+
   const handlePercentageClick = (percentage: string) => {
     const percent = parseFloat(percentage) / 100;
     const calculatedAmount = (availableBalance * percent).toFixed(2);
@@ -47,214 +59,298 @@ export function Trade() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
-      {/* Compact Header */}
-      <div className="p-3 border-b border-border bg-card">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-4">
+      {/* Ultra Compact Header */}
+      <div className="p-2 border-b border-border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">{currentPair}</span>
-                <ChevronDown className="h-4 w-4" />
+              <div className="flex items-center gap-1">
+                <span className="text-base font-bold">{currentPair}</span>
+                <ChevronDown className="h-3 w-3" />
               </div>
-              <div className="text-xs text-muted-foreground">Perpetual</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold">${currentPrice}</div>
-              <div className={`text-sm ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <div className="text-lg font-bold">${currentPrice}</div>
+              <div className={`text-xs ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">Bal: ${availableBalance.toLocaleString()}</span>
             <Link to={`/bot?pair=${currentPair}`}>
-              <Button size="sm" variant="outline" className="gap-1" data-testid="button-bot-trading">
+              <Button size="sm" variant="outline" className="gap-1 h-6 px-2" data-testid="button-bot-trading">
                 <Bot className="h-3 w-3" />
                 Bot
               </Button>
             </Link>
-            <MoreHorizontal className="h-4 w-4" />
-          </div>
-        </div>
-
-        {/* Balance & Quick Info */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <Wallet className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">Balance:</span>
-            <span className="font-medium">${availableBalance.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>Leverage: {leverage}x</span>
-            <span>{orderType === 'market' ? 'Market' : 'Limit'}</span>
           </div>
         </div>
       </div>
 
-      {/* Compact Trading Form */}
-      <div className="p-3 space-y-3">
-        {/* Order Type & Leverage Row */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-3">
-            <div className="text-sm font-medium mb-2">Order Type</div>
-            <div className="flex gap-1">
-              <Button 
-                variant={orderType === 'market' ? 'default' : 'outline'}
-                onClick={() => setOrderType('market')}
-                size="sm"
-                className="flex-1 text-xs"
-              >
-                Market
-              </Button>
-              <Button 
-                variant={orderType === 'limit' ? 'default' : 'outline'}
-                onClick={() => setOrderType('limit')}
-                size="sm"
-                className="flex-1 text-xs"
-              >
-                Limit
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="p-3">
-            <div className="text-sm font-medium mb-2">Leverage</div>
-            <div className="grid grid-cols-2 gap-1">
-              {['5', '10', '20', '50'].map((lev) => (
-                <Button
-                  key={lev}
-                  variant={leverage === lev ? 'default' : 'outline'}
+      {/* Main Layout: Trading Form + Analysis Panel */}
+      <div className="flex h-[calc(100vh-120px)]">
+        {/* Left: Compact Trading Form */}
+        <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+          {/* Order Type & Leverage */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border rounded p-2">
+              <div className="text-xs font-medium mb-1">Order</div>
+              <div className="flex gap-1">
+                <Button 
+                  variant={orderType === 'market' ? 'default' : 'outline'}
+                  onClick={() => setOrderType('market')}
                   size="sm"
-                  onClick={() => setLeverage(lev)}
-                  className="text-xs"
+                  className="flex-1 text-xs h-6"
                 >
-                  {lev}x
+                  Market
                 </Button>
-              ))}
+                <Button 
+                  variant={orderType === 'limit' ? 'default' : 'outline'}
+                  onClick={() => setOrderType('limit')}
+                  size="sm"
+                  className="flex-1 text-xs h-6"
+                >
+                  Limit
+                </Button>
+              </div>
             </div>
-          </Card>
-        </div>
 
-        {/* Price & Amount Row */}
-        <div className="grid grid-cols-2 gap-3">
-          {orderType === 'limit' && (
+            <div className="border rounded p-2">
+              <div className="text-xs font-medium mb-1">Leverage: {leverage}x</div>
+              <div className="grid grid-cols-2 gap-1">
+                {['5', '10', '20', '50'].map((lev) => (
+                  <Button
+                    key={lev}
+                    variant={leverage === lev ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setLeverage(lev)}
+                    className="text-xs h-6"
+                  >
+                    {lev}x
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Price & Amount */}
+          <div className="space-y-2">
+            {orderType === 'limit' && (
+              <div>
+                <label className="text-xs text-muted-foreground">Limit Price</label>
+                <Input
+                  placeholder={currentPrice}
+                  className="h-7 text-sm"
+                  value={limitPrice}
+                  onChange={(e) => setLimitPrice(e.target.value)}
+                />
+              </div>
+            )}
             <div>
-              <label className="text-xs text-muted-foreground">Limit Price</label>
+              <label className="text-xs text-muted-foreground">Amount (USDT)</label>
               <Input
-                placeholder={currentPrice}
-                className="mt-1 h-8 text-sm"
-                value={limitPrice}
-                onChange={(e) => setLimitPrice(e.target.value)}
+                placeholder="Enter amount"
+                className="h-7 text-sm"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
               />
             </div>
-          )}
-          <div className={orderType === 'market' ? 'col-span-2' : ''}>
-            <label className="text-xs text-muted-foreground">Amount (USDT)</label>
-            <Input
-              placeholder="Enter amount"
-              className="mt-1 h-8 text-sm"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
           </div>
-        </div>
 
-        {/* Percentage Buttons */}
-        <div className="grid grid-cols-4 gap-2">
-          {['25%', '50%', '75%', '100%'].map((percent) => (
-            <Button
-              key={percent}
-              variant="outline"
-              size="sm"
-              onClick={() => handlePercentageClick(percent)}
-              className="text-xs h-7"
-            >
-              {percent}
-            </Button>
-          ))}
-        </div>
-
-        {/* TP/SL Compact */}
-        <Card className="p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">TP/SL</span>
-            <Switch 
-              checked={tpslEnabled}
-              onCheckedChange={setTpslEnabled}
-            />
+          {/* Percentage Buttons */}
+          <div className="grid grid-cols-4 gap-1">
+            {['25%', '50%', '75%', '100%'].map((percent) => (
+              <Button
+                key={percent}
+                variant="outline"
+                size="sm"
+                onClick={() => handlePercentageClick(percent)}
+                className="text-xs h-6"
+              >
+                {percent}
+              </Button>
+            ))}
           </div>
-          
-          {tpslEnabled && (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-muted-foreground">Take Profit</label>
+
+          {/* TP/SL */}
+          <div className="border rounded p-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium">TP/SL</span>
+              <Switch 
+                checked={tpslEnabled}
+                onCheckedChange={setTpslEnabled}
+              />
+            </div>
+            
+            {tpslEnabled && (
+              <div className="grid grid-cols-2 gap-1">
                 <Input
-                  placeholder="TP price"
-                  className="mt-1 h-8 text-sm"
+                  placeholder="TP"
+                  className="h-6 text-xs"
                   value={takeProfit}
                   onChange={(e) => setTakeProfit(e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">Stop Loss</label>
                 <Input
-                  placeholder="SL price"
-                  className="mt-1 h-8 text-sm"
+                  placeholder="SL"
+                  className="h-6 text-xs"
                   value={stopLoss}
                   onChange={(e) => setStopLoss(e.target.value)}
                 />
               </div>
-            </div>
-          )}
-        </Card>
+            )}
+          </div>
 
-        {/* Order Summary & Actions */}
-        <div className="space-y-2">
+          {/* Order Summary */}
           {amount && (
-            <Card className="p-2 bg-muted/30">
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Order:</span>
-                    <span>${amount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Position:</span>
-                    <span>${(parseFloat(amount || '0') * parseFloat(leverage)).toLocaleString()}</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Leverage:</span>
-                    <span>{leverage}x</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Est. Fee:</span>
-                    <span>~${(parseFloat(amount || '0') * 0.001).toFixed(2)}</span>
-                  </div>
-                </div>
+            <div className="border rounded p-2 bg-muted/30">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>Order: ${amount}</div>
+                <div>Pos: ${(parseFloat(amount || '0') * parseFloat(leverage)).toLocaleString()}</div>
               </div>
-            </Card>
+            </div>
           )}
 
           {/* Trading Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button 
-              className="bg-green-500 hover:bg-green-600 text-white py-4 font-semibold"
-            >
-              <div className="text-center">
-                <div>Open Long</div>
-                <div className="text-xs opacity-75">Buy {currentPair.replace('USDT', '')}</div>
-              </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button className="bg-green-500 hover:bg-green-600 text-white py-3 text-sm font-semibold">
+              Long
             </Button>
-            
-            <Button 
-              className="bg-red-500 hover:bg-red-600 text-white py-4 font-semibold"
-            >
-              <div className="text-center">
-                <div>Open Short</div>
-                <div className="text-xs opacity-75">Sell {currentPair.replace('USDT', '')}</div>
-              </div>
+            <Button className="bg-red-500 hover:bg-red-600 text-white py-3 text-sm font-semibold">
+              Short
             </Button>
+          </div>
+        </div>
+
+        {/* Right: Market Analysis Panel */}
+        <div className="w-48 border-l border-border bg-card/50 p-2 space-y-2">
+          <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">
+            <Activity className="h-3 w-3" />
+            Market Analysis
+          </h3>
+
+          {/* Market Strength */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Market Strength</span>
+              <span className="font-medium">{marketAnalysis.marketStrength}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div 
+                className={`h-1.5 rounded-full ${marketAnalysis.marketStrength > 70 ? 'bg-green-500' : marketAnalysis.marketStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${marketAnalysis.marketStrength}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Pair Strength */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Pair Strength</span>
+              <span className="font-medium">{marketAnalysis.pairStrength}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div 
+                className={`h-1.5 rounded-full ${marketAnalysis.pairStrength > 70 ? 'bg-green-500' : marketAnalysis.pairStrength > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${marketAnalysis.pairStrength}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Trend Direction */}
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Trend</span>
+            <div className="flex items-center gap-1">
+              {marketAnalysis.trendDirection === 'bullish' ? (
+                <TrendingUp className="h-3 w-3 text-green-500" />
+              ) : marketAnalysis.trendDirection === 'bearish' ? (
+                <TrendingDown className="h-3 w-3 text-red-500" />
+              ) : (
+                <Activity className="h-3 w-3 text-yellow-500" />
+              )}
+              <span className={`capitalize ${
+                marketAnalysis.trendDirection === 'bullish' ? 'text-green-500' : 
+                marketAnalysis.trendDirection === 'bearish' ? 'text-red-500' : 'text-yellow-500'
+              }`}>
+                {marketAnalysis.trendDirection}
+              </span>
+            </div>
+          </div>
+
+          {/* Support & Resistance */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-xs">
+              <Shield className="h-3 w-3 text-blue-500" />
+              <span className="text-muted-foreground">Support/Resistance</span>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-red-500">Resistance:</span>
+                <span>${marketAnalysis.resistance}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-500">Support:</span>
+                <span>${marketAnalysis.support}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Volatility */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Volatility</span>
+              <span className="font-medium">{marketAnalysis.volatility}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div 
+                className={`h-1.5 rounded-full ${marketAnalysis.volatility > 60 ? 'bg-red-500' : marketAnalysis.volatility > 30 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                style={{ width: `${marketAnalysis.volatility}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Momentum & Volume */}
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Momentum:</span>
+              <span className={`capitalize ${
+                marketAnalysis.momentum === 'strong' ? 'text-green-500' : 
+                marketAnalysis.momentum === 'moderate' ? 'text-yellow-500' : 'text-red-500'
+              }`}>
+                {marketAnalysis.momentum}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Volume:</span>
+              <span className={`capitalize ${
+                marketAnalysis.volume === 'high' ? 'text-green-500' : 
+                marketAnalysis.volume === 'medium' ? 'text-yellow-500' : 'text-red-500'
+              }`}>
+                {marketAnalysis.volume}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Signals */}
+          <div className="border-t border-border pt-2">
+            <div className="text-xs font-medium mb-1 flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              Signals
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>RSI Oversold</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span>MACD Neutral</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Volume Rising</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
