@@ -92,6 +92,24 @@ export function Trade() {
       <div className="flex h-[calc(100vh-120px)]">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+          {/* Leverage */}
+          <div className="border rounded p-3">
+            <div className="text-sm font-medium mb-2">Leverage: {leverage}x</div>
+            <div className="grid grid-cols-4 gap-2">
+              {['5', '10', '20', '50'].map((lev) => (
+                <Button
+                  key={lev}
+                  variant={leverage === lev ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLeverage(lev)}
+                  className="text-sm h-8"
+                >
+                  {lev}x
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Order Type */}
           <div className="border rounded p-3">
             <div className="flex gap-2">
@@ -159,24 +177,6 @@ export function Trade() {
                 {percent}
               </Button>
             ))}
-          </div>
-
-          {/* Leverage */}
-          <div className="border rounded p-3">
-            <div className="text-sm font-medium mb-2">Leverage: {leverage}x</div>
-            <div className="grid grid-cols-4 gap-2">
-              {['5', '10', '20', '50'].map((lev) => (
-                <Button
-                  key={lev}
-                  variant={leverage === lev ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setLeverage(lev)}
-                  className="text-sm h-8"
-                >
-                  {lev}x
-                </Button>
-              ))}
-            </div>
           </div>
 
           {/* TP/SL */}
