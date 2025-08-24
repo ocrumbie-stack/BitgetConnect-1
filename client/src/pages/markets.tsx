@@ -35,7 +35,7 @@ export default function Markets() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
+  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers' | 'high-volume'>('all');
   const [selectedScreener, setSelectedScreener] = useState<string>('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [selectedRiskPair, setSelectedRiskPair] = useState<string | null>(null);
@@ -64,6 +64,8 @@ export default function Markets() {
         return parseFloat(item.change24h || '0') > 0;
       } else if (filter === 'losers') {
         return parseFloat(item.change24h || '0') < 0;
+      } else if (filter === 'high-volume') {
+        return parseFloat(item.volume24h || '0') > 5000000; // High volume threshold
       }
       
       return true;
@@ -605,7 +607,12 @@ export default function Markets() {
 
                   {/* High Volume */}
                   <Card 
-                    className="cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 hover:bg-gray-50 dark:hover:bg-gray-950"
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
+                      filter === 'high-volume' 
+                        ? 'ring-2 ring-purple-500 bg-purple-50/30 dark:bg-purple-950/20' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-950'
+                    }`}
+                    onClick={() => setFilter('high-volume')}
                     data-testid="card-high-volume"
                   >
                     <CardContent className="p-4">
