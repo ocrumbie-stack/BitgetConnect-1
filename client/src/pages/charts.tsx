@@ -19,6 +19,11 @@ export function Charts() {
   const currentPrice = currentPairData?.price || '0';
   const change24h = currentPairData?.change24h || '0';
   const volume24h = currentPairData?.volume24h || '0';
+  
+  // Simple EMA approximation for trend analysis
+  const ema20Approx = parseFloat(currentPrice) * (1 + parseFloat(change24h) / 100 * 0.3);
+  const ema50Approx = parseFloat(currentPrice) * (1 + parseFloat(change24h) / 100 * 0.1);
+  const maTrend = ema20Approx > ema50Approx ? 'Bullish' : 'Bearish';
 
   // Get pair from URL parameters
   useEffect(() => {
@@ -133,25 +138,29 @@ export function Charts() {
       <div className="space-y-3">
         {/* Technical Indicators */}
         <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Technical Indicators</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-0">
-            <div className="flex justify-between items-center">
-              <span className="text-xs">RSI (14)</span>
-              <Badge variant="outline" className="text-xs">45.2</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">MACD</span>
-              <Badge variant="outline" className="text-green-600 text-xs">Bullish</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">MA (20)</span>
-              <Badge variant="outline" className="text-xs">${(parseFloat(currentPrice) * 0.98).toFixed(2)}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Volume Trend</span>
-              <Badge variant="outline" className="text-blue-600 text-xs">Increasing</Badge>
+          <CardContent className="p-2 space-y-1.5">
+            <div className="text-xs font-medium text-muted-foreground mb-2">Technical Indicators</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-xs">RSI (14)</span>
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5">45.2</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs">MACD</span>
+                <Badge variant="outline" className="text-green-600 text-xs px-1.5 py-0.5">Bullish</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs">MA Trend</span>
+                <Badge variant="outline" className={`text-xs px-1.5 py-0.5 ${
+                  maTrend === 'Bullish' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {maTrend}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs">Volume</span>
+                <Badge variant="outline" className="text-blue-600 text-xs px-1.5 py-0.5">High</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
