@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock, Shield } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock, Shield, Settings } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
@@ -352,8 +352,20 @@ export function Home() {
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
-        <h1 className="text-lg font-semibold text-foreground mb-2">Welcome Back</h1>
-        <p className="text-sm text-muted-foreground">Discover AI-powered trading opportunities and market insights</p>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h1 className="text-lg font-semibold text-foreground">Welcome Back</h1>
+            <p className="text-sm text-muted-foreground mt-2">Discover AI-powered trading opportunities and market insights</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/settings')}
+            className="p-2"
+          >
+            <Settings className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
       </div>
 
       <div className="p-4 max-w-full overflow-x-hidden">
