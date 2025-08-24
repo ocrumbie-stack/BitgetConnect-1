@@ -64,10 +64,6 @@ export function CandlestickChart({ data, symbol, className = "" }: CandlestickCh
         type: 'volume',
       },
       priceScaleId: '',
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0,
-      },
     });
 
     chartRef.current = chart;
