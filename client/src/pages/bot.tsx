@@ -1443,8 +1443,9 @@ export default function BotPage() {
                                       <div className="flex items-center gap-2">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors">
-                                              <ChevronDown className="h-4 w-4" />
+                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
+                                              <span>{execution.tradingPair}</span>
+                                              <ChevronDown className="h-4 w-4 ml-1" />
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="start" className="w-64">
@@ -1501,8 +1502,9 @@ export default function BotPage() {
                                 <div className="flex items-center gap-2 mb-1">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors">
-                                        <ChevronDown className="h-4 w-4" />
+                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors text-left justify-start">
+                                        <span>{execution.tradingPair}</span>
+                                        <ChevronDown className="h-4 w-4 ml-1" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start" className="w-64">
