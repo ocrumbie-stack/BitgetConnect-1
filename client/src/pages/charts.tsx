@@ -139,27 +139,36 @@ export function Charts() {
       });
 
       // Candlestick series
-      const candleSeries = chart.addSeries('Candlestick', {
+      const candleSeries = chart.addCandlestickSeries({
         upColor: '#089981',
         downColor: '#f23645',
         borderVisible: false,
         wickUpColor: '#089981',
         wickDownColor: '#f23645',
       });
-      candleSeries.setData(tradingData);
+      
+      // Convert data with proper time format
+      const candleData = tradingData.map(item => ({
+        time: item.time as any,
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close
+      }));
+      candleSeries.setData(candleData);
 
       // EMA lines
       const ema20Data = calculateEMA(tradingData, 20);
       const ema50Data = calculateEMA(tradingData, 50);
       const ema200Data = calculateEMA(tradingData, 200);
 
-      const ema20Series = chart.addSeries('Line', { color: '#ffeb3b', lineWidth: 2 });
-      const ema50Series = chart.addSeries('Line', { color: '#ff9800', lineWidth: 2 });
-      const ema200Series = chart.addSeries('Line', { color: '#ffffff', lineWidth: 2 });
+      const ema20Series = chart.addLineSeries({ color: '#ffeb3b', lineWidth: 2 });
+      const ema50Series = chart.addLineSeries({ color: '#ff9800', lineWidth: 2 });
+      const ema200Series = chart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
 
-      ema20Series.setData(ema20Data);
-      ema50Series.setData(ema50Data);
-      ema200Series.setData(ema200Data);
+      ema20Series.setData(ema20Data.map(item => ({ ...item, time: item.time as any })));
+      ema50Series.setData(ema50Data.map(item => ({ ...item, time: item.time as any })));
+      ema200Series.setData(ema200Data.map(item => ({ ...item, time: item.time as any })));
 
       // RSI chart
       const rsiChart = createChart(rsiChartRef.current, {
@@ -183,8 +192,8 @@ export function Charts() {
       });
 
       const rsiData = calculateRSI(tradingData);
-      const rsiSeries = rsiChart.addSeries('Line', { color: '#ffffff', lineWidth: 2 });
-      rsiSeries.setData(rsiData);
+      const rsiSeries = rsiChart.addLineSeries({ color: '#ffffff', lineWidth: 2 });
+      rsiSeries.setData(rsiData.map(item => ({ ...item, time: item.time as any })));
 
       // MACD chart
       const macdChart = createChart(macdChartRef.current, {
@@ -206,17 +215,17 @@ export function Charts() {
       });
 
       const macdData = calculateMACD(tradingData);
-      const macdSeries = macdChart.addSeries('Line', { color: '#2196F3', lineWidth: 2 });
-      const signalSeries = macdChart.addSeries('Line', { color: '#FF5722', lineWidth: 2 });
-      const histogramSeries = macdChart.addSeries('Histogram', { 
+      const macdSeries = macdChart.addLineSeries({ color: '#2196F3', lineWidth: 2 });
+      const signalSeries = macdChart.addLineSeries({ color: '#FF5722', lineWidth: 2 });
+      const histogramSeries = macdChart.addHistogramSeries({ 
         color: '#26a69a',
         priceFormat: { type: 'volume' },
       });
 
-      macdSeries.setData(macdData.map(item => ({ time: item.time, value: item.macd })));
-      signalSeries.setData(macdData.map(item => ({ time: item.time, value: item.signal })));
+      macdSeries.setData(macdData.map(item => ({ time: item.time as any, value: item.macd })));
+      signalSeries.setData(macdData.map(item => ({ time: item.time as any, value: item.signal })));
       histogramSeries.setData(macdData.map(item => ({ 
-        time: item.time, 
+        time: item.time as any, 
         value: item.histogram,
         color: item.histogram >= 0 ? '#26a69a' : '#ef5350'
       })));
