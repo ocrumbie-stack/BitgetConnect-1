@@ -725,8 +725,8 @@ export default function Markets() {
                   AI Trading Opportunities
                 </h2>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    Live Analysis
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 p-1">
+                    <Activity className="h-4 w-4" />
                   </Badge>
                   <Button
                     variant="default"
