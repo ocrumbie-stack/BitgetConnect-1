@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check } from 'lucide-react';
+import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3 } from 'lucide-react';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -172,6 +172,12 @@ export function Trade() {
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs">
+            {/* Chart Navigation */}
+            <Link to={`/charts?pair=${currentPair}`}>
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 border-green-500" data-testid="button-charts">
+                <BarChart3 className="h-3 w-3 text-white" />
+              </Button>
+            </Link>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-1 h-6 px-2" data-testid="button-bot-trading">
                 <Bot className="h-3 w-3" />
