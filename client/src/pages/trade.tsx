@@ -22,6 +22,7 @@ export function Trade() {
   const [stopLoss, setStopLoss] = useState('');
   const [tpMode, setTpMode] = useState<'percentage' | 'price'>('percentage');
   const [slMode, setSlMode] = useState<'percentage' | 'price'>('percentage');
+  const [tpslExpanded, setTpslExpanded] = useState(true);
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -264,8 +265,18 @@ export function Trade() {
                 onCheckedChange={setTpslEnabled}
               />
               <span className="text-sm">TP/SL</span>
+              {tpslEnabled && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTpslExpanded(!tpslExpanded)}
+                  className="ml-auto h-6 w-6 p-0"
+                >
+                  <ChevronDown className={`h-3 w-3 transition-transform ${tpslExpanded ? 'rotate-180' : ''}`} />
+                </Button>
+              )}
             </div>
-            {tpslEnabled && (
+            {tpslEnabled && tpslExpanded && (
               <div className="space-y-2">
                 {/* Take Profit */}
                 <div className="flex gap-1">
