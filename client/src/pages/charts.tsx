@@ -23,6 +23,12 @@ export function Charts() {
   const [chartData, setChartData] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Get current pair data
+  const currentPairData = data?.find(item => item.symbol === selectedPair);
+  const currentPrice = currentPairData?.price || '0';
+  const change24h = currentPairData?.change24h || '0';
+  const volume24h = currentPairData?.volume24h || '0';
+
   // Get pair from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -83,12 +89,6 @@ export function Charts() {
 
     fetchPriceData();
   }, [selectedPair, timeframe, currentPrice]);
-
-  // Get current pair data
-  const currentPairData = data?.find(item => item.symbol === selectedPair);
-  const currentPrice = currentPairData?.price || '0';
-  const change24h = currentPairData?.change24h || '0';
-  const volume24h = currentPairData?.volume24h || '0';
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
