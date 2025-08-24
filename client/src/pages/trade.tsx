@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle } from 'lucide-react';
+import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function Trade() {
@@ -106,6 +106,39 @@ export function Trade() {
       console.error('Trade error:', error);
       toast({
         title: "Order Failed ❌",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Close position mutation
+  const closePositionMutation = useMutation({
+    mutationFn: async ({ symbol, side }: { symbol: string; side: string }) => {
+      const response = await fetch('/api/positions/close', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ symbol, side })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to close position');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (response, { symbol, side }) => {
+      toast({
+        title: "Position Closed Successfully! ✅",
+        description: `${symbol} ${side} position has been closed.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Close Position Failed ❌",
         description: error.message,
         variant: "destructive",
       });
@@ -777,10 +810,25 @@ export function Trade() {
                         </span>
                         <span className="text-xs bg-muted px-2 py-0.5 rounded">{position.leverage}x</span>
                       </div>
-                      <div className={`text-sm font-medium ${
-                        parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
-                      }`}>
-                        {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
+                      <div className="flex items-center gap-2">
+                        <div className={`text-sm font-medium ${
+                          parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
+                        }`}>
+                          {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
+                          onClick={() => closePositionMutation.mutate({
+                            symbol: position.symbol,
+                            side: position.side
+                          })}
+                          disabled={closePositionMutation.isPending}
+                          data-testid={`button-close-position-${position.symbol}-${position.side}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
