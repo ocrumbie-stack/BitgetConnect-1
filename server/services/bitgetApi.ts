@@ -214,11 +214,14 @@ export class BitgetAPI {
         symbol: orderParams.symbol,
         productType: 'USDT-FUTURES',
         marginCoin: 'USDT',
-        side: orderParams.side === 'buy' ? 'open_long' : 'open_short',
+        side: orderParams.side, // Use 'buy' or 'sell' directly
+        tradeSide: 'open', // Always 'open' for new positions
         orderType: orderParams.orderType || 'market',
         size: orderParams.size,
         ...(orderParams.price && { price: orderParams.price })
       };
+
+      console.log('🔧 Final order data for Bitget:', JSON.stringify(orderData, null, 2));
 
       const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
       return response.data;
