@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X, Candle } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function Trade() {
@@ -985,7 +985,7 @@ export function Trade() {
                                 data-testid={`button-chart-${position.symbol}`}
                                 title="Option 1: Three Candles"
                               >
-                                <CandlestickIcon1 className="h-4 w-4" />
+                                <CandlestickIcon1 className="h-5 w-5" />
                               </Button>
                             </Link>
                             
@@ -997,7 +997,7 @@ export function Trade() {
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 title="Option 2: Two Candles"
                               >
-                                <CandlestickIcon2 className="h-4 w-4" />
+                                <CandlestickIcon2 className="h-5 w-5" />
                               </Button>
                             </Link>
                             
@@ -1008,7 +1008,7 @@ export function Trade() {
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 title="Option 3: Mini Chart"
                               >
-                                <CandlestickIcon3 className="h-4 w-4" />
+                                <CandlestickIcon3 className="h-5 w-5" />
                               </Button>
                             </Link>
                           </div>
