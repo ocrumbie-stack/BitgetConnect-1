@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot } from 'lucide-react';
+import { ChevronDown, TrendingUp, TrendingDown, MoreHorizontal, Bot, BarChart3, Activity } from 'lucide-react';
 
 export function Trade() {
   const { data } = useBitgetData();
   const [leverage, setLeverage] = useState('10');
   const [amount, setAmount] = useState('');
   const [activeTab, setActiveTab] = useState('open');
+  const [orderType, setOrderType] = useState('market');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
 
   // Get trading pair from URL parameters
@@ -31,168 +32,249 @@ export function Trade() {
   }) : '113,554.2';
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
-  // Mock order book data
-  const basePrice = currentMarket ? parseFloat(currentMarket.price) : 113554;
-  const orderBook = {
-    asks: [
-      { price: (basePrice + 2).toFixed(1), quantity: '24.03K' },
-      { price: (basePrice + 1.5).toFixed(1), quantity: '39.57K' },
-      { price: (basePrice + 1).toFixed(1), quantity: '260.01K' },
-      { price: (basePrice + 0.5).toFixed(1), quantity: '795.0000' },
-      { price: (basePrice + 0.3).toFixed(1), quantity: '245.83K' },
-    ],
-    bids: [
-      { price: (basePrice - 0.3).toFixed(1), quantity: '978.30K' },
-      { price: (basePrice - 0.5).toFixed(1), quantity: '1.14K' },
-      { price: (basePrice - 1).toFixed(1), quantity: '262.27K' },
-      { price: (basePrice - 1.5).toFixed(1), quantity: '2.96K' },
-      { price: (basePrice - 2).toFixed(1), quantity: '511.39K' },
-    ]
-  };
+  // Memoized order book data to prevent re-calculations
+  const orderBook = useMemo(() => {
+    const basePrice = currentMarket ? parseFloat(currentMarket.price) : 113554;
+    return {
+      asks: [
+        { price: (basePrice + 2).toFixed(1), quantity: '24.03K' },
+        { price: (basePrice + 1.5).toFixed(1), quantity: '39.57K' },
+        { price: (basePrice + 1).toFixed(1), quantity: '260.01K' },
+        { price: (basePrice + 0.5).toFixed(1), quantity: '795.0000' },
+        { price: (basePrice + 0.3).toFixed(1), quantity: '245.83K' },
+        { price: (basePrice + 0.1).toFixed(1), quantity: '455.0000' },
+        { price: (basePrice - 0.1).toFixed(1), quantity: '3.75M' },
+      ].reverse(),
+      bids: [
+        { price: (basePrice - 0.3).toFixed(1), quantity: '978.30K' },
+        { price: (basePrice - 0.5).toFixed(1), quantity: '1.14K' },
+        { price: (basePrice - 1).toFixed(1), quantity: '262.27K' },
+        { price: (basePrice - 1.5).toFixed(1), quantity: '2.96K' },
+        { price: (basePrice - 2).toFixed(1), quantity: '511.39K' },
+        { price: (basePrice - 2.5).toFixed(1), quantity: '245.83K' },
+        { price: (basePrice - 3).toFixed(1), quantity: '455.0000' },
+      ]
+    };
+  }, [currentMarket]);
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
-      {/* Header */}
+      {/* Enhanced Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{currentPair}</span>
-              <ChevronDown className="h-4 w-4" />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold">{currentPair}</span>
+                <ChevronDown className="h-4 w-4" />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Perpetual Futures
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Perpetual <span className={parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}>{change24h}%</span>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-xl font-bold">{currentPrice}</div>
+                <div className={`text-sm ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-lg font-bold">{currentPrice}</div>
-            </div>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-2" data-testid="button-bot-trading">
                 <Bot className="h-4 w-4" />
-                Bot
+                Bot Trading
               </Button>
             </Link>
             <MoreHorizontal className="h-5 w-5" />
           </div>
         </div>
+
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-4 gap-4 text-center">
+          <div>
+            <div className="text-xs text-muted-foreground">24h High</div>
+            <div className="text-sm font-medium">{(parseFloat(currentPrice.replace(/,/g, '')) * 1.02).toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">24h Low</div>
+            <div className="text-sm font-medium">{(parseFloat(currentPrice.replace(/,/g, '')) * 0.98).toLocaleString()}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">24h Volume</div>
+            <div className="text-sm font-medium">{currentMarket ? parseFloat(currentMarket.volume24h || '0').toLocaleString() : '0'}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Open Interest</div>
+            <div className="text-sm font-medium">245.2M</div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content - Side by Side Layout */}
-      <div className="p-4">
-        <div className="flex gap-4">
-          {/* Order Book - Narrow */}
-          <div className="w-64 bg-card border border-border rounded-lg p-4">
-            <h3 className="font-semibold mb-3">Order Book</h3>
+      {/* Main Trading Interface - Horizontal Layout */}
+      <div className="flex h-full">
+        {/* Left Side - Order Book */}
+        <div className="w-80 border-r border-border">
+          <div className="p-3">
+            <h3 className="font-medium mb-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Order Book
+            </h3>
             
-            <div className="space-y-2">
-              {/* Asks */}
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Asks</div>
-                {orderBook.asks.map((ask, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span className="text-red-500">{ask.price}</span>
-                    <span className="text-muted-foreground">{ask.quantity}</span>
-                  </div>
-                ))}
-              </div>
+            {/* Order Book Header */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-1">
+              <span>Price</span>
+              <span>Size</span>
+            </div>
 
-              {/* Current Price */}
-              <div className="flex items-center justify-center py-2 border-y border-border">
-                <div className="text-lg font-bold text-green-500">{currentPrice}</div>
-                <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
-              </div>
+            {/* Asks (Red) */}
+            <div className="space-y-0 mb-1">
+              {orderBook.asks.slice(0, 4).map((ask, index) => (
+                <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                  <span className="text-red-400/80 text-xs">{ask.price}</span>
+                  <span className="text-muted-foreground/60 text-xs">{ask.quantity}</span>
+                </div>
+              ))}
+            </div>
 
-              {/* Bids */}
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Bids</div>
-                {orderBook.bids.map((bid, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span className="text-green-500">{bid.price}</span>
-                    <span className="text-muted-foreground">{bid.quantity}</span>
-                  </div>
-                ))}
+            {/* Current Price */}
+            <div className="flex items-center justify-center py-1.5 bg-muted/10 mb-1">
+              <div className="text-sm font-medium text-foreground">{currentPrice}</div>
+              <TrendingUp className="h-3 w-3 ml-1 text-green-400/60" />
+            </div>
+
+            {/* Bids (Green) */}
+            <div className="space-y-0">
+              {orderBook.bids.slice(0, 4).map((bid, index) => (
+                <div key={index} className="flex items-center justify-between py-0.5 text-xs hover:bg-muted/10">
+                  <span className="text-green-400/80 text-xs">{bid.price}</span>
+                  <span className="text-muted-foreground/60 text-xs">{bid.quantity}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Middle - Chart Area */}
+        <div className="flex-1 border-r border-border">
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Price Chart
+            </h3>
+            <div className="h-96 bg-muted/20 rounded-md flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+                <p>Chart will be implemented</p>
+                <p className="text-xs">Real-time price data available</p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Trading Form - Takes remaining space */}
-          <div className="flex-1 bg-card border border-border rounded-lg p-4">
-            <h3 className="font-semibold mb-3">Place Order</h3>
-            
+        {/* Right Side - Trading Form */}
+        <div className="w-80">
+          <div className="p-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Quick Trade
+            </h3>
+
+            {/* Buy/Sell Tabs */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button className="py-2 px-4 bg-green-500/10 border border-green-500/20 rounded-md text-green-500 font-medium hover:bg-green-500/20 transition-colors">
+                Buy / Long
+              </button>
+              <button className="py-2 px-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 font-medium hover:bg-red-500/20 transition-colors">
+                Sell / Short
+              </button>
+            </div>
+
+            {/* Trading Form */}
             <div className="space-y-4">
-              {/* Order Type Tabs */}
-              <div className="flex border-b border-border">
-                <button 
-                  className={`flex-1 px-4 py-2 text-sm ${activeTab === 'open' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
-                  onClick={() => setActiveTab('open')}
-                >
-                  Market
-                </button>
-                <button 
-                  className={`flex-1 px-4 py-2 text-sm ${activeTab === 'limit' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
-                  onClick={() => setActiveTab('limit')}
-                >
-                  Limit
+              {/* Order Type Selector */}
+              <div className="relative">
+                <button className="w-full flex items-center justify-between p-3 bg-muted rounded text-left">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    <span>Market</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Price Input */}
-              {activeTab === 'limit' && (
-                <div>
-                  <label className="text-xs text-muted-foreground">Price (USDT)</label>
-                  <Input
-                    placeholder="0.00"
-                    className="mt-1"
-                  />
-                </div>
-              )}
-
-              {/* Amount Input */}
+              {/* Price Input (for limit orders) */}
               <div>
-                <label className="text-xs text-muted-foreground">Amount (USDT)</label>
                 <Input
-                  placeholder="0.00"
-                  className="mt-1"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Fill at market price"
+                  className="bg-muted border-border text-foreground placeholder-muted-foreground"
+                  disabled
                 />
               </div>
 
-              {/* Leverage */}
+              {/* Cost Input */}
               <div>
-                <label className="text-xs text-muted-foreground">Leverage: {leverage}x</label>
-                <div className="flex gap-2 mt-1">
-                  {['5', '10', '20', '50'].map((lev) => (
-                    <Button
-                      key={lev}
-                      variant="outline"
-                      size="sm"
-                      className={`flex-1 ${leverage === lev ? 'bg-primary text-primary-foreground' : ''}`}
-                      onClick={() => setLeverage(lev)}
-                    >
-                      {lev}x
-                    </Button>
-                  ))}
+                <div className="text-xs text-muted-foreground mb-1">Cost (USDT)</div>
+                <div className="relative">
+                  <Input
+                    placeholder="25%"
+                    className="bg-muted border-border text-foreground"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                    ≈0.00 / 0.00 BTC
+                  </div>
                 </div>
               </div>
 
-              {/* Order Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <Button className="bg-green-500 hover:bg-green-600 text-white">
-                  Buy Long
-                </Button>
-                <Button className="bg-red-500 hover:bg-red-600 text-white">
-                  Sell Short
-                </Button>
+              {/* Percentage Buttons */}
+              <div className="flex gap-2">
+                {['25%', '50%', '75%', '100%'].map((percent) => (
+                  <Button
+                    key={percent}
+                    variant="outline"
+                    size="sm"
+                    className={`flex-1 border-border text-muted-foreground hover:bg-muted ${
+                      percent === '25%' ? 'bg-muted text-foreground' : ''
+                    }`}
+                    onClick={() => {
+                      // Mock calculation based on percentage
+                      const mockBalance = 1000;
+                      const percentage = parseFloat(percent) / 100;
+                      setAmount((mockBalance * percentage).toString());
+                    }}
+                  >
+                    {percent}
+                  </Button>
+                ))}
               </div>
+
+              {/* TP/SL Toggle */}
+              <div className="flex items-center gap-2">
+                <Switch />
+                <span className="text-sm text-muted-foreground">TP/SL</span>
+              </div>
+
+              {/* Long Button */}
+              <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-4 flex flex-col">
+                <span>Open long</span>
+                <span className="text-xs opacity-70">0.00 USDT</span>
+              </Button>
+
+              {/* Short Button */}
+              <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-4 flex flex-col">
+                <span>Open short</span>
+                <span className="text-xs opacity-70">0.00 USDT</span>
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Tabs */}
+      {/* Bottom Trading Activity */}
       <div className="border-t border-border bg-card">
         <Tabs defaultValue="positions" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
