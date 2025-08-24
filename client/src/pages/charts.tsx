@@ -52,22 +52,22 @@ export function Charts() {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "enable_publishing": true,
         "withdateranges": true,
         "range": "1D",
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
         "show_popup_button": true,
-        "popup_width": "1000",
-        "popup_height": "650",
-        "no_referral_id": false,
+        "popup_width": "1200",
+        "popup_height": "700",
         "backgroundColor": "rgba(19, 23, 34, 1)",
         "gridColor": "rgba(42, 46, 57, 0.06)",
         "hide_top_toolbar": false,
         "hide_legend": false,
         "save_image": true,
         "calendar": true,
-        "support_host": "https://tradingview.com",
+        "enable_publishing": true,
+        "details": true,
+        "hotlist": true,
         "container_id": "tradingview_chart",
         "studies": [
           "Volume@tv-basicstudies",
@@ -75,7 +75,6 @@ export function Charts() {
           "MACD@tv-basicstudies"
         ],
         "toolbar_bg": "#131722",
-        "enable_publishing": true,
         "hide_volume": false,
         "overrides": {
           "mainSeriesProperties.candleStyle.upColor": "#089981",
@@ -158,19 +157,26 @@ export function Charts() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-3 gap-1">
           <Button 
             onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
             className="bg-blue-600 hover:bg-blue-700 h-8 text-xs rounded-none"
           >
-            Trade {selectedPair}
+            Trade
           </Button>
           <Button 
             onClick={() => setLocation(`/analyzer?pair=${selectedPair}&autoFill=true`)}
             variant="outline"
             className="h-8 text-xs rounded-none"
           >
-            Analyze Pair
+            Analyze
+          </Button>
+          <Button 
+            onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=BITGET:${selectedPair}`, '_blank')}
+            variant="outline"
+            className="h-8 text-xs rounded-none bg-green-600 hover:bg-green-700 text-white"
+          >
+            TradingView
           </Button>
         </div>
       </div>
