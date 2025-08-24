@@ -1347,7 +1347,11 @@ export default function BotPage() {
                     <>
                       {/* Folder-deployed bots grouped by folder */}
                       {Object.entries(folderGroups).map(([folderName, executions]) => (
-                        <Card key={folderName} className="border-l-4 border-l-purple-500">
+                        <Card key={folderName} className={`border-l-4 ${
+                          executions.some((ex: any) => ex.botName && ex.botName.includes('Smart')) 
+                            ? 'border-l-purple-500' 
+                            : 'border-l-blue-500'
+                        }`}>
                           <CardContent className="p-4">
                             {/* Folder Header - Always Visible */}
                             <div 
@@ -1408,7 +1412,11 @@ export default function BotPage() {
                                 {/* Individual Bot Details */}
                                 <div className="space-y-2">
                                   {executions.map((execution: any) => (
-                                    <div key={execution.id} className="flex items-center justify-between p-3 bg-red-950/30 border border-red-500/30 rounded-lg">
+                                    <div key={execution.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                                      execution.botName && execution.botName.includes('Smart')
+                                        ? 'bg-purple-950/30 border border-purple-500/30'
+                                        : 'bg-blue-950/30 border border-blue-500/30'
+                                    }`}>
                                       <div className="flex items-center gap-2">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
@@ -1464,7 +1472,11 @@ export default function BotPage() {
 
                       {/* Individual manually deployed bots */}
                       {manualExecutions.map((execution: any) => (
-                        <Card key={execution.id}>
+                        <Card key={execution.id} className={`${
+                          execution.botName && execution.botName.includes('Smart')
+                            ? 'border-l-4 border-l-purple-500'
+                            : 'border-l-4 border-l-blue-500'
+                        }`}>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-3">
                               <div>
