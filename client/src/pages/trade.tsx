@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X, Candle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function Trade() {
@@ -36,6 +36,71 @@ export function Trade() {
   const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Custom Candlestick Icons - Different options to choose from
+  const CandlestickIcon1 = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor">
+      {/* Green candle (bullish) */}
+      <rect x="2" y="6" width="3" height="4" fill="#22c55e" />
+      <line x1="3.5" y1="4" x2="3.5" y2="6" stroke="#22c55e" strokeWidth="1"/>
+      <line x1="3.5" y1="10" x2="3.5" y2="12" stroke="#22c55e" strokeWidth="1"/>
+      
+      {/* Red candle (bearish) */}
+      <rect x="7" y="5" width="3" height="6" fill="#ef4444" />
+      <line x1="8.5" y1="3" x2="8.5" y2="5" stroke="#ef4444" strokeWidth="1"/>
+      <line x1="8.5" y1="11" x2="8.5" y2="13" stroke="#ef4444" strokeWidth="1"/>
+      
+      {/* Green candle */}
+      <rect x="12" y="7" width="3" height="3" fill="#22c55e" />
+      <line x1="13.5" y1="5" x2="13.5" y2="7" stroke="#22c55e" strokeWidth="1"/>
+      <line x1="13.5" y1="10" x2="13.5" y2="12" stroke="#22c55e" strokeWidth="1"/>
+    </svg>
+  );
+
+  const CandlestickIcon2 = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor">
+      {/* Simple 2-candle design */}
+      {/* Bullish candle */}
+      <rect x="3" y="7" width="3" height="3" fill="#22c55e" />
+      <line x1="4.5" y1="5" x2="4.5" y2="7" stroke="#22c55e" strokeWidth="1.5"/>
+      <line x1="4.5" y1="10" x2="4.5" y2="11" stroke="#22c55e" strokeWidth="1.5"/>
+      
+      {/* Bearish candle */}
+      <rect x="10" y="6" width="3" height="4" fill="#ef4444" />
+      <line x1="11.5" y1="4" x2="11.5" y2="6" stroke="#ef4444" strokeWidth="1.5"/>
+      <line x1="11.5" y1="10" x2="11.5" y2="12" stroke="#ef4444" strokeWidth="1.5"/>
+    </svg>
+  );
+
+  const CandlestickIcon3 = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 16 16" className={className} fill="currentColor">
+      {/* Mini chart style */}
+      {/* Green */}
+      <rect x="1" y="8" width="2" height="2" fill="#22c55e" />
+      <line x1="2" y1="7" x2="2" y2="8" stroke="#22c55e" strokeWidth="1"/>
+      <line x1="2" y1="10" x2="2" y2="11" stroke="#22c55e" strokeWidth="1"/>
+      
+      {/* Red */}
+      <rect x="4" y="6" width="2" height="3" fill="#ef4444" />
+      <line x1="5" y1="5" x2="5" y2="6" stroke="#ef4444" strokeWidth="1"/>
+      <line x1="5" y1="9" x2="5" y2="10" stroke="#ef4444" strokeWidth="1"/>
+      
+      {/* Green */}
+      <rect x="7" y="9" width="2" height="1" fill="#22c55e" />
+      <line x1="8" y1="8" x2="8" y2="9" stroke="#22c55e" strokeWidth="1"/>
+      <line x1="8" y1="10" x2="8" y2="11" stroke="#22c55e" strokeWidth="1"/>
+      
+      {/* Red */}
+      <rect x="10" y="7" width="2" height="2" fill="#ef4444" />
+      <line x1="11" y1="6" x2="11" y2="7" stroke="#ef4444" strokeWidth="1"/>
+      <line x1="11" y1="9" x2="11" y2="10" stroke="#ef4444" strokeWidth="1"/>
+      
+      {/* Green */}
+      <rect x="13" y="8" width="2" height="2" fill="#22c55e" />
+      <line x1="14" y1="7" x2="14" y2="8" stroke="#22c55e" strokeWidth="1"/>
+      <line x1="14" y1="10" x2="14" y2="11" stroke="#22c55e" strokeWidth="1"/>
+    </svg>
+  );
 
   // Fetch account information for real balance
   const { data: accountData } = useQuery({
@@ -918,8 +983,32 @@ export function Trade() {
                                 variant="outline"
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 data-testid={`button-chart-${position.symbol}`}
+                                title="Option 1: Three Candles"
                               >
-                                <BarChart3 className="h-3 w-3" />
+                                <CandlestickIcon1 className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            
+                            {/* Temporarily showing all options for comparison */}
+                            <Link to={`/charts?pair=${position.symbol}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
+                                title="Option 2: Two Candles"
+                              >
+                                <CandlestickIcon2 className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            
+                            <Link to={`/charts?pair=${position.symbol}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
+                                title="Option 3: Mini Chart"
+                              >
+                                <CandlestickIcon3 className="h-4 w-4" />
                               </Button>
                             </Link>
                           </div>
