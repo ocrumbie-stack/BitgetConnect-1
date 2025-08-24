@@ -95,10 +95,9 @@ export function Trade() {
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
           <div className="border rounded p-3">
-            <div className="text-sm font-medium mb-2">Leverage</div>
             <Select value={leverage} onValueChange={setLeverage}>
               <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder="Select leverage" />
+                <SelectValue placeholder="Leverage: Select" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="5">5x</SelectItem>
