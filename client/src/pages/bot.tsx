@@ -1347,10 +1347,10 @@ export default function BotPage() {
                     <>
                       {/* Folder-deployed bots grouped by folder */}
                       {Object.entries(folderGroups).map(([folderName, executions]) => (
-                        <Card key={folderName} className={`border-l-4 ${
+                        <Card key={folderName} className={`${
                           executions.some((ex: any) => ex.botName && ex.botName.includes('Smart')) 
-                            ? 'border-l-purple-500' 
-                            : 'border-l-blue-500'
+                            ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10' 
+                            : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
                           <CardContent className="p-4">
                             {/* Folder Header - Always Visible */}
@@ -1414,8 +1414,8 @@ export default function BotPage() {
                                   {executions.map((execution: any) => (
                                     <div key={execution.id} className={`flex items-center justify-between p-3 rounded-lg ${
                                       execution.botName && execution.botName.includes('Smart')
-                                        ? 'bg-purple-950/30 border border-purple-500/30'
-                                        : 'bg-blue-950/30 border border-blue-500/30'
+                                        ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
+                                        : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
                                       <div className="flex items-center gap-2">
                                         <DropdownMenu>
@@ -1474,8 +1474,8 @@ export default function BotPage() {
                       {manualExecutions.map((execution: any) => (
                         <Card key={execution.id} className={`${
                           execution.botName && execution.botName.includes('Smart')
-                            ? 'border-l-4 border-l-purple-500'
-                            : 'border-l-4 border-l-blue-500'
+                            ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10'
+                            : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between mb-3">
