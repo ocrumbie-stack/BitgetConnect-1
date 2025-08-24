@@ -45,8 +45,8 @@ export function Trade() {
   // Get current market data for selected pair
   const currentMarket = data?.find(item => item.symbol === currentPair);
   const currentPrice = currentMarket ? parseFloat(currentMarket.price).toLocaleString('en-US', { 
-    minimumFractionDigits: 1, 
-    maximumFractionDigits: 1 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 8 
   }) : '113,554.2';
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
