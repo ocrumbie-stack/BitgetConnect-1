@@ -106,12 +106,8 @@ export function Trade() {
                         onValueChange={setSearchQuery}
                       />
                       <CommandList>
-                        {searchQuery === '' ? (
-                          <div className="p-4 text-center text-sm text-muted-foreground">
-                            Start typing to search pairs...
-                          </div>
-                        ) : filteredPairs.length === 0 ? (
-                          <CommandEmpty>No pairs found.</CommandEmpty>
+                        {filteredPairs.length === 0 ? (
+                          searchQuery && <CommandEmpty>No pairs found.</CommandEmpty>
                         ) : (
                           <CommandGroup>
                             {filteredPairs.map((pair) => (
