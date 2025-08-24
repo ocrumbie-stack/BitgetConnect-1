@@ -1041,6 +1041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Place order via Bitget API
+      console.log('Placing order with data:', orderData);
       const order = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
         side: orderData.side, // 'buy' or 'sell'
@@ -1050,7 +1051,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         leverage: orderData.leverage || 1
       });
 
-      res.json(order);
+      console.log('Order response from Bitget:', order);
+      
+      // Ensure we return a consistent response format
+      res.json({
+        success: true,
+        data: order,
+        message: 'Order placed successfully'
+      });
     } catch (error: any) {
       console.error('Order placement error:', error);
       
