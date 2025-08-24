@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 export function Trade() {
   const { data } = useBitgetData();
   const [leverage, setLeverage] = useState('10');
+  const [customLeverageMode, setCustomLeverageMode] = useState(false);
+  const [customLeverage, setCustomLeverage] = useState('');
   const [amount, setAmount] = useState('');
   const [orderType, setOrderType] = useState('market');
   const [limitPrice, setLimitPrice] = useState('');
@@ -320,18 +322,72 @@ export function Trade() {
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
-          <Select value={leverage} onValueChange={setLeverage}>
-            <SelectTrigger className="w-full h-10">
-              <SelectValue placeholder="Leverage: Select" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5x</SelectItem>
-              <SelectItem value="10">10x</SelectItem>
-              <SelectItem value="20">20x</SelectItem>
-              <SelectItem value="50">50x</SelectItem>
-              <SelectItem value="100">100x</SelectItem>
-            </SelectContent>
-          </Select>
+          {!customLeverageMode ? (
+            <div className="space-y-2">
+              <Select value={leverage} onValueChange={(value) => {
+                if (value === 'custom') {
+                  setCustomLeverageMode(true);
+                } else {
+                  setLeverage(value);
+                }
+              }}>
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder="Leverage: Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5x</SelectItem>
+                  <SelectItem value="10">10x</SelectItem>
+                  <SelectItem value="20">20x</SelectItem>
+                  <SelectItem value="50">50x</SelectItem>
+                  <SelectItem value="100">100x</SelectItem>
+                  <SelectItem value="custom">Custom Leverage...</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Enter leverage (1-200)"
+                  value={customLeverage}
+                  onChange={(e) => setCustomLeverage(e.target.value)}
+                  className="flex-1 h-10"
+                  min="1"
+                  max="200"
+                  step="1"
+                />
+                <Button
+                  onClick={() => {
+                    if (customLeverage && parseFloat(customLeverage) >= 1 && parseFloat(customLeverage) <= 200) {
+                      setLeverage(customLeverage);
+                      setCustomLeverageMode(false);
+                    }
+                  }}
+                  size="sm"
+                  className="px-3 h-10"
+                  data-testid="button-apply-custom-leverage"
+                >
+                  Apply
+                </Button>
+                <Button
+                  onClick={() => {
+                    setCustomLeverageMode(false);
+                    setCustomLeverage('');
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="px-3 h-10"
+                  data-testid="button-cancel-custom-leverage"
+                >
+                  Cancel
+                </Button>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Current: {leverage}x leverage | Range: 1x - 200x
+              </div>
+            </div>
+          )}
 
           {/* Order Type */}
           <div className="flex gap-2">
