@@ -263,15 +263,21 @@ export class BitgetAPI {
       console.log('📋 All positions from API:', JSON.stringify(positions, null, 2));
       
       // Try different matching strategies
+      console.log('🔍 Looking for position with symbol:', symbol, 'side:', side);
+      console.log('🔍 Available positions:', positions.map(p => ({ symbol: p.symbol, holdSide: p.holdSide, total: p.total })));
+      
       let currentPosition = positions.find(pos => 
         pos.symbol === symbol && pos.holdSide === side
       );
+      
+      console.log('🔍 First match attempt result:', currentPosition ? 'FOUND' : 'NOT FOUND');
       
       if (!currentPosition) {
         // Try matching with lowercase
         currentPosition = positions.find(pos => 
           pos.symbol === symbol && pos.holdSide === side.toLowerCase()
         );
+        console.log('🔍 Second match attempt (lowercase) result:', currentPosition ? 'FOUND' : 'NOT FOUND');
       }
       
       if (!currentPosition) {
