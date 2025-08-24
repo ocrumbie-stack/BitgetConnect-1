@@ -30,7 +30,7 @@ export function Charts() {
   const volume24h = currentPairData?.volume24h || '0';
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-16">
+    <div className="min-h-screen bg-background text-foreground pb-24">
       <BackButton />
       
       {/* Header */}
