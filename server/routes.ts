@@ -338,6 +338,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Calculate total achieved profits (realized P&L from closed trades)
+      const totalAchievedProfits = positions.reduce((sum, pos) => {
+        return sum + parseFloat(pos.achievedProfits || '0');
+      }, 0);
+
       // Update positions
       const userPositions = positions.map(pos => ({
         userId,
@@ -347,6 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         entryPrice: pos.breakEvenPrice,
         markPrice: pos.markPrice,
         pnl: pos.unrealizedPL,
+        achievedProfits: pos.achievedProfits,
         margin: pos.marginSize,
         leverage: pos.leverage
       }));
@@ -358,7 +364,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         account: accountInfo,
-        positions: storedPositions
+        positions: storedPositions,
+        dailyPnL: {
+          achieved: totalAchievedProfits,
+          unrealized: parseFloat(accountData[0]?.unrealizedPL || '0'),
+          total: totalAchievedProfits + parseFloat(accountData[0]?.unrealizedPL || '0')
+        }
       });
     } catch (error: any) {
       res.status(500).json({ 
