@@ -68,7 +68,7 @@ export function Trade() {
               <div className="flex items-center gap-2">
                 <span className="text-base font-bold">{currentPair}</span>
                 <ChevronDown className="h-3 w-3" />
-                <span className="text-lg font-bold">${currentPrice}</span>
+                <span className="text-base font-bold">${currentPrice}</span>
               </div>
               <div className="flex items-center gap-4 text-xs">
                 <div className={`${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
