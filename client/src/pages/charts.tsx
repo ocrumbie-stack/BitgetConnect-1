@@ -67,16 +67,16 @@ export function Charts() {
         "calendar": false,
         "support_host": "https://tradingview.com",
         "container_id": "tradingview_chart",
-        // Default indicators - customize these to your preference
+        // Default indicators - your ideal settings
         "studies": [
-          "Volume@tv-basicstudies",
           "RSI@tv-basicstudies", 
           "MACD@tv-basicstudies",
-          "MAExp@tv-basicstudies", // EMA
-          "BB@tv-basicstudies" // Bollinger Bands
+          "MAExp@tv-basicstudies",
+          "MAExp@tv-basicstudies",
+          "MAExp@tv-basicstudies"
         ],
         "toolbar_bg": "#131722",
-        // Default chart styling
+        // Default chart styling with your ideal EMA colors
         "overrides": {
           // Candlestick colors
           "mainSeriesProperties.candleStyle.upColor": "#089981",
@@ -88,15 +88,22 @@ export function Charts() {
           // Grid and background
           "paneProperties.background": "#131722",
           "paneProperties.gridProperties.color": "#2B2B43",
-          // Volume colors
-          "volume.volume.color.0": "#f23645",
-          "volume.volume.color.1": "#089981",
           // RSI default settings
           "rsi.upperband": "70",
           "rsi.lowerband": "30",
           // MACD colors
           "macd.macd.color": "#2196F3",
           "macd.signal.color": "#FF5722"
+        },
+        // Configure your ideal EMAs with specific colors
+        "studies_overrides": {
+          // EMA 20 - Pink
+          "MAExp.length": 20,
+          "MAExp.plot.color": "#FF69B4",
+          // EMA 50 - Orange  
+          "MAExp.plot.color": "#FFA500",
+          // EMA 200 - White
+          "MAExp.plot.color": "#FFFFFF"
         },
         // Save chart layout
         "charts_storage_url": "https://saveload.tradingview.com",
