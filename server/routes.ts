@@ -29,6 +29,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Additional validation for limit orders
+      if (orderData.orderType === 'limit' && (!orderData.price || orderData.price === '')) {
+        console.log('❌ Limit order missing price');
+        return res.status(400).json({ 
+          success: false,
+          message: 'Limit orders require a valid price' 
+        });
+      }
+
       console.log('✅ Order validation passed');
 
       // Check if Bitget API is connected
