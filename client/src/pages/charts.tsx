@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ export function Charts() {
   const { data } = useBitgetData();
   const [selectedPair, setSelectedPair] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1H');
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // Get pair from URL parameters
   useEffect(() => {
@@ -22,6 +23,47 @@ export function Charts() {
       setSelectedPair(pairParam);
     }
   }, []);
+
+  // Initialize TradingView widget
+  useEffect(() => {
+    if (chartContainerRef.current && typeof window !== 'undefined') {
+      // Clear any existing widget
+      chartContainerRef.current.innerHTML = '';
+      
+      // Create script element
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+      script.type = 'text/javascript';
+      script.async = true;
+      
+      // Convert timeframe format
+      const tvTimeframe = timeframe === '1M' ? '1' : 
+                         timeframe === '5M' ? '5' : 
+                         timeframe === '15M' ? '15' : 
+                         timeframe === '1H' ? '60' : 
+                         timeframe === '4H' ? '240' : 
+                         timeframe === '1D' ? '1D' : '60';
+      
+      script.innerHTML = JSON.stringify({
+        "autosize": true,
+        "symbol": `BITGET:${selectedPair}`,
+        "interval": tvTimeframe,
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "enable_publishing": false,
+        "backgroundColor": "rgba(19, 23, 34, 1)",
+        "gridColor": "rgba(42, 46, 57, 0.06)",
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "tradingview_chart"
+      });
+      
+      chartContainerRef.current.appendChild(script);
+    }
+  }, [selectedPair, timeframe]);
 
   // Get current pair data
   const currentPairData = data?.find(item => item.symbol === selectedPair);
@@ -65,19 +107,12 @@ export function Charts() {
         </div>
       </div>
 
-      {/* Chart Placeholder - Full Extent */}
-      <Card className="h-[500px] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-none border-l-0 border-r-0">
-        <div className="text-center">
-          <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <h3 className="text-sm font-semibold mb-2">Interactive Chart</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            Advanced candlestick chart for {selectedPair} - {timeframe} timeframe
-          </p>
-          <div className="text-xs text-muted-foreground">
-            Chart integration coming soon
-          </div>
-        </div>
-      </Card>
+      {/* TradingView Chart - Full Extent */}
+      <div 
+        ref={chartContainerRef}
+        className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
+        id="tradingview_chart"
+      />
 
       {/* Market Stats */}
       <div className="space-y-3">
