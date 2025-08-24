@@ -57,14 +57,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🚀 Placing REAL order via Bitget API...');
       
-      // Ensure minimum order value of 5 USDT for Bitget
-      let adjustedSize = orderData.size;
-      const sizeFloat = parseFloat(orderData.size);
+      // Get current price to convert USD amount to contract quantity
+      const allTickers = await bitgetAPI.getAllFuturesTickers();
+      const symbolTicker = allTickers.find(ticker => ticker.symbol === orderData.symbol);
       
-      // For small cap coins, ensure we meet 5 USDT minimum
-      if (sizeFloat < 15) { // If size is small, likely needs adjustment
-        adjustedSize = Math.max(sizeFloat, 15).toString(); // Ensure at least 15 tokens for small caps
-        console.log(`⚖️ Adjusted order size from ${orderData.size} to ${adjustedSize} to meet 5 USDT minimum`);
+      if (!symbolTicker) {
+        console.log(`❌ Could not find price for ${orderData.symbol}`);
+        return res.status(400).json({ 
+          success: false,
+          message: `Could not find current price for ${orderData.symbol}` 
+        });
+      }
+      
+      const currentPrice = parseFloat(symbolTicker.lastPr);
+      const usdAmount = parseFloat(orderData.size);
+      
+      // Convert USD amount to contract quantity
+      const contractQuantity = usdAmount / currentPrice;
+      const adjustedSize = contractQuantity.toFixed(6); // 6 decimal precision
+      
+      console.log(`💰 Converting USD ${usdAmount} to ${adjustedSize} contracts at price $${currentPrice}`);
+      
+      // Ensure minimum order value of 5 USDT for Bitget
+      if (usdAmount < 5) {
+        console.log(`⚖️ Order value $${usdAmount} below 5 USDT minimum`);
+        return res.status(400).json({ 
+          success: false,
+          message: 'Minimum order value is 5 USDT. Please increase your order size.' 
+        });
       }
       
       // Place the actual order using Bitget API
