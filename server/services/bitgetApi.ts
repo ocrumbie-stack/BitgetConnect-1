@@ -292,12 +292,15 @@ export class BitgetAPI {
       const orderData = {
         symbol: symbol,
         productType: 'USDT-FUTURES',
-        marginMode: 'isolated',
+        marginMode: currentPosition.marginMode || 'isolated', // Use position's margin mode
         marginCoin: 'USDT',
         side: oppositeSide,
         tradeSide: 'close', // 'close' to close existing position
         orderType: 'market', // Market order for immediate execution
-        size: currentPosition.total // Use exact position size
+        size: currentPosition.total, // Use exact position size
+        ...(currentPosition.posMode === 'hedge_mode' && {
+          holdSide: currentPosition.holdSide // Include holdSide for hedge mode
+        })
       };
 
       console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
