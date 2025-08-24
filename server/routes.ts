@@ -16,6 +16,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.method === 'POST' && req.url === '/api/orders') {
       console.log('🚨 INTERCEPTED: POST /api/orders request');
       console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+      console.log('📍 URL:', req.url);
+      console.log('🎯 Path:', req.path);
     }
     next();
   });
@@ -1051,18 +1053,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Order validation passed');
       
-      // Return mock success for now to test frontend
-      res.json({
-        success: true,
-        data: {
-          orderId: 'mock-' + Date.now(),
-          symbol: orderData.symbol,
-          side: orderData.side,
-          size: orderData.size,
-          status: 'filled'
-        },
+      // Return success response that matches what frontend expects
+      const mockResponse = {
+        orderId: 'mock-' + Date.now(),
+        symbol: orderData.symbol,
+        side: orderData.side,
+        size: orderData.size,
+        status: 'filled',
         message: 'Order placed successfully (mock)'
-      });
+      };
+      
+      console.log('Sending response:', mockResponse);
+      res.json(mockResponse);
       
       console.log('Mock order response sent');
       
