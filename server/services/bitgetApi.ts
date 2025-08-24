@@ -212,6 +212,7 @@ export class BitgetAPI {
     try {
       const orderData = {
         symbol: orderParams.symbol,
+        productType: 'USDT-FUTURES',
         marginCoin: 'USDT',
         side: orderParams.side === 'buy' ? 'open_long' : 'open_short',
         orderType: orderParams.orderType || 'market',
