@@ -303,41 +303,10 @@ export default function BotPage() {
         // Deploy to individual pair
         let actualStrategyId = strategy.id;
         
-        // For AI bots, create a strategy record first if it doesn't exist
+        // For AI bots, use the existing ID without creating a permanent strategy
         if (strategy.isAI) {
-          try {
-            const aiStrategyData = {
-              userId: 'default-user',
-              name: strategy.name,
-              strategy: 'ai',
-              riskLevel: strategy.riskLevel || 'medium',
-              description: strategy.description || `AI-powered ${strategy.name} trading strategy`,
-              config: {
-                positionDirection: 'long',
-                timeframe: '15m',
-                entryConditions: [],
-                exitConditions: [],
-                indicators: {},
-                riskManagement: {
-                  stopLoss: parseFloat(strategy.stopLoss) || 2.0,
-                  takeProfit: parseFloat(strategy.takeProfit) || 5.0,
-                }
-              }
-            };
-            
-            const createResponse = await fetch('/api/bot-strategies', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(aiStrategyData)
-            });
-            
-            if (createResponse.ok) {
-              const createdStrategy = await createResponse.json();
-              actualStrategyId = createdStrategy.id;
-            }
-          } catch (error) {
-            console.log('Using existing strategy ID for AI bot');
-          }
+          // AI bots use their existing ID for execution without creating permanent strategies
+          actualStrategyId = strategy.id;
         }
 
         const executionData = {
