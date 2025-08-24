@@ -510,12 +510,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log('🚀 CLOSE POSITION REQUEST RECEIVED');
       console.log(`🔥 Closing ${side} position for ${symbol}`);
       console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
       
       // Also fetch and show current positions for comparison
       const currentPositions = await bitgetAPI.getPositions();
       console.log('📊 Current positions when closing:', JSON.stringify(currentPositions, null, 2));
+      console.log('🔍 Looking for position:', { symbol, side });
       
       const closeResponse = await bitgetAPI.closePosition(symbol, side);
       
