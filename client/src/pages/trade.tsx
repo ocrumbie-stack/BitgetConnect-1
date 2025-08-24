@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,7 @@ export function Trade() {
   const [stopLoss, setStopLoss] = useState('');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
   const [, setLocation] = useLocation();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get available pairs from data
   const availablePairs = data ? data.map(item => item.symbol).sort() : ['BTCUSDT'];
@@ -72,34 +70,7 @@ export function Trade() {
     setCurrentPair(pair);
     setLocation(`/trade?pair=${pair}`);
     setPairSelectorOpen(false);
-    setSearchValue('');
   };
-
-  // Handle search input
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-    if (value.length > 0 && !pairSelectorOpen) {
-      setPairSelectorOpen(true);
-    }
-  };
-
-  // Filter pairs based on search
-  const filteredPairs = availablePairs.filter(pair => 
-    pair.toLowerCase().includes(searchValue.toLowerCase())
-  );
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setPairSelectorOpen(false);
-        setSearchValue('');
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
@@ -108,42 +79,41 @@ export function Trade() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex gap-4">
-              <div className="relative" ref={dropdownRef}>
-                <div className="flex items-center gap-1">
-                  <Input
-                    value={searchValue || currentPair}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    onFocus={() => setPairSelectorOpen(true)}
-                    placeholder="Search pairs..."
-                    className="text-base font-bold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 w-20"
-                    style={{ minWidth: 'fit-content', width: `${Math.max(4, (searchValue || currentPair).length)}ch` }}
-                  />
-                  <ChevronDown className="h-3 w-3" />
-                </div>
-                {pairSelectorOpen && (
-                  <div className="absolute top-full left-0 z-50 mt-1 w-64 bg-popover border rounded-md shadow-md">
-                    <div className="max-h-60 overflow-auto">
-                      {filteredPairs.length > 0 ? (
-                        filteredPairs.map((pair) => (
-                          <button
-                            key={pair}
-                            onClick={() => handlePairSelect(pair)}
-                            className="w-full px-3 py-2 text-left hover:bg-accent flex items-center justify-between text-sm"
-                          >
-                            <span>{pair}</span>
-                            {pair === currentPair && (
-                              <Check className="h-4 w-4" />
-                            )}
-                          </button>
-                        ))
-                      ) : (
-                        <div className="px-3 py-2 text-sm text-muted-foreground">
-                          No pairs found
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+              <div>
+                <Popover open={pairSelectorOpen} onOpenChange={setPairSelectorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-1 h-auto p-0 text-base font-bold hover:bg-transparent"
+                    >
+                      <span>{currentPair}</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search pairs..." className="h-8" />
+                      <CommandList>
+                        <CommandEmpty>No pairs found.</CommandEmpty>
+                        <CommandGroup>
+                          {availablePairs.map((pair) => (
+                            <CommandItem
+                              key={pair}
+                              value={pair}
+                              onSelect={() => handlePairSelect(pair)}
+                              className="flex items-center justify-between"
+                            >
+                              <span>{pair}</span>
+                              {pair === currentPair && (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <div className={`text-xs ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
                 </div>
