@@ -838,29 +838,22 @@ export function Trade() {
                           </span>
                           <span className="text-xs bg-muted px-2 py-0.5 rounded">{position.leverage}x</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className={`text-sm font-medium ${
-                            parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
-                          }`}>
-                            {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
-                            onClick={() => closePositionMutation.mutate({
-                              symbol: position.symbol,
-                              side: position.side
-                            })}
-                            disabled={closePositionMutation.isPending}
-                            data-testid={`button-close-position-${position.symbol}-${position.side}`}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
+                          onClick={() => closePositionMutation.mutate({
+                            symbol: position.symbol,
+                            side: position.side
+                          })}
+                          disabled={closePositionMutation.isPending}
+                          data-testid={`button-close-position-${position.symbol}-${position.side}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
 
-                      {/* ROE and quick actions */}
+                      {/* ROE and PnL */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-4">
                           <div className="text-xs text-muted-foreground">ROE</div>
@@ -868,6 +861,11 @@ export function Trade() {
                             roe >= 0 ? 'text-green-500' : 'text-red-500'
                           }`}>
                             {roe >= 0 ? '+' : ''}{roe.toFixed(2)}%
+                          </div>
+                          <div className={`text-sm font-medium ${
+                            parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
+                          }`}>
+                            {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
                           </div>
                         </div>
                         <Button
