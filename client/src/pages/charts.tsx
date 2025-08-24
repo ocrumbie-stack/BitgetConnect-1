@@ -61,7 +61,7 @@ export function Charts() {
         "enable_publishing": false,
         "backgroundColor": "rgba(19, 23, 34, 1)",
         "gridColor": "rgba(42, 46, 57, 0.06)",
-        "hide_top_toolbar": true,
+        "hide_top_toolbar": false,
         "hide_legend": false,
         "save_image": false,
         "allow_symbol_change": false,
