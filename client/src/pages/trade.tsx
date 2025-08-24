@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function Trade() {
@@ -33,6 +33,7 @@ export function Trade() {
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -798,65 +799,139 @@ export function Trade() {
           <TabsContent value="positions" className="p-4">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-3">
-                {(accountData as any).positions.map((position: any) => (
-                  <div key={`${position.symbol}-${position.side}`} className="bg-card/50 rounded-lg p-3 border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">{position.symbol}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded ${
-                          position.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
-                        }`}>
-                          {position.side.toUpperCase()}
-                        </span>
-                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{position.leverage}x</span>
+                {(accountData as any).positions.map((position: any) => {
+                  const positionKey = `${position.symbol}-${position.side}`;
+                  const isExpanded = expandedPositions.has(positionKey);
+                  
+                  // Calculate ROE percentage
+                  const entryPrice = parseFloat(position.entryPrice);
+                  const markPrice = parseFloat(position.markPrice);
+                  const leverage = parseFloat(position.leverage);
+                  
+                  let roe = 0;
+                  if (position.side === 'long') {
+                    roe = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
+                  } else {
+                    roe = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+                  }
+                  
+                  const toggleExpanded = () => {
+                    const newExpanded = new Set(expandedPositions);
+                    if (isExpanded) {
+                      newExpanded.delete(positionKey);
+                    } else {
+                      newExpanded.add(positionKey);
+                    }
+                    setExpandedPositions(newExpanded);
+                  };
+                  
+                  return (
+                    <div key={positionKey} className="bg-card/50 rounded-lg p-3 border border-border">
+                      {/* Header with main info */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{position.symbol}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            position.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                          }`}>
+                            {position.side.toUpperCase()}
+                          </span>
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded">{position.leverage}x</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`text-sm font-medium ${
+                            parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
+                          }`}>
+                            {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
+                            onClick={() => closePositionMutation.mutate({
+                              symbol: position.symbol,
+                              side: position.side
+                            })}
+                            disabled={closePositionMutation.isPending}
+                            data-testid={`button-close-position-${position.symbol}-${position.side}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`text-sm font-medium ${
-                          parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
-                        }`}>
-                          {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
+
+                      {/* ROE and quick actions */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-4">
+                          <div className="text-xs text-muted-foreground">ROE</div>
+                          <div className={`text-sm font-bold ${
+                            roe >= 0 ? 'text-green-500' : 'text-red-500'
+                          }`}>
+                            {roe >= 0 ? '+' : ''}{roe.toFixed(2)}%
+                          </div>
                         </div>
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
-                          onClick={() => closePositionMutation.mutate({
-                            symbol: position.symbol,
-                            side: position.side
-                          })}
-                          disabled={closePositionMutation.isPending}
-                          data-testid={`button-close-position-${position.symbol}-${position.side}`}
+                          variant="ghost"
+                          onClick={toggleExpanded}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                         >
-                          <X className="h-3 w-3" />
+                          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </Button>
                       </div>
+
+                      {/* Collapsible details */}
+                      {isExpanded && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                            <div>
+                              <div>Size</div>
+                              <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(4)}</div>
+                            </div>
+                            <div>
+                              <div>Entry</div>
+                              <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(2)}</div>
+                            </div>
+                            <div>
+                              <div>Mark</div>
+                              <div className="font-medium text-foreground">${parseFloat(position.markPrice).toFixed(2)}</div>
+                            </div>
+                          </div>
+                          
+                          {/* TP/SL Actions */}
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-xs h-8"
+                              data-testid={`button-tpsl-${position.symbol}`}
+                            >
+                              TP/SL
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 text-xs h-8"
+                              data-testid={`button-reverse-${position.symbol}`}
+                            >
+                              Reverse
+                            </Button>
+                            <Link to={`/charts?pair=${position.symbol}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
+                                data-testid={`button-chart-${position.symbol}`}
+                              >
+                                <BarChart3 className="h-3 w-3" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground relative">
-                      <div>
-                        <div>Size</div>
-                        <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(4)}</div>
-                      </div>
-                      <div>
-                        <div>Entry</div>
-                        <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div>Mark</div>
-                        <div className="font-medium text-foreground">${parseFloat(position.markPrice).toFixed(2)}</div>
-                      </div>
-                      <Link to={`/charts?pair=${position.symbol}`} className="absolute bottom-0 right-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
-                          data-testid={`button-chart-${position.symbol}`}
-                        >
-                          <BarChart3 className="h-3 w-3" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center text-muted-foreground py-8">
