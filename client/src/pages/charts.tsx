@@ -91,29 +91,6 @@ export function Charts() {
     <div className="min-h-screen bg-background text-foreground pb-24">
       <BackButton />
       
-      {/* Timeframe Selection */}
-      <div className="px-4 py-3 border-b">
-        <div className="flex justify-between items-center mb-3">
-          <h1 className="text-lg font-semibold">{selectedPair} Chart</h1>
-          <Badge variant="outline" className={change24h.startsWith('-') ? 'text-red-500' : 'text-green-500'}>
-            {change24h}%
-          </Badge>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {['1M', '5M', '15M', '1H', '4H', '1D'].map((tf) => (
-            <Button
-              key={tf}
-              variant={timeframe === tf ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeframe(tf)}
-              className="h-8"
-            >
-              {tf}
-            </Button>
-          ))}
-        </div>
-      </div>
-
       {/* TradingView Chart - Full Extent */}
       <div 
         ref={chartContainerRef}
