@@ -94,20 +94,18 @@ export function Trade() {
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
-          <div className="border rounded p-3">
-            <Select value={leverage} onValueChange={setLeverage}>
-              <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder="Leverage: Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5x</SelectItem>
-                <SelectItem value="10">10x</SelectItem>
-                <SelectItem value="20">20x</SelectItem>
-                <SelectItem value="50">50x</SelectItem>
-                <SelectItem value="100">100x</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={leverage} onValueChange={setLeverage}>
+            <SelectTrigger className="w-full h-10">
+              <SelectValue placeholder="Leverage: Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5x</SelectItem>
+              <SelectItem value="10">10x</SelectItem>
+              <SelectItem value="20">20x</SelectItem>
+              <SelectItem value="50">50x</SelectItem>
+              <SelectItem value="100">100x</SelectItem>
+            </SelectContent>
+          </Select>
 
           {/* Order Type */}
           <div className="border rounded p-3">
