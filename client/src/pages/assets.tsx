@@ -41,8 +41,13 @@ export function Assets() {
   const isConnected = connectionStatus?.apiConnected || false;
   const account = accountData?.account || null;
   const positions = (accountData as any)?.positions || [];
+  const dailyPnL = (accountData as any)?.dailyPnL || null;
 
-  const totalPnL = positions.reduce((sum: number, pos: any) => sum + parseFloat(pos.pnl || '0'), 0);
+  // Use comprehensive daily P&L that includes both realized and unrealized profits
+  const todaysPnL = dailyPnL?.total || 0;
+  const achievedProfits = dailyPnL?.achieved || 0;
+  const unrealizedProfits = dailyPnL?.unrealized || 0;
+  
   const activePositions = positions.filter((pos: any) => parseFloat(pos.size) > 0);
 
   return (
@@ -102,8 +107,8 @@ export function Assets() {
                       <div className="text-xs text-muted-foreground">Margin Used</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-base font-semibold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ${totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)}
+                      <div className={`text-base font-semibold ${unrealizedProfits >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${unrealizedProfits >= 0 ? '+' : ''}${unrealizedProfits.toFixed(2)}
                       </div>
                       <div className="text-xs text-muted-foreground">Unrealized PnL</div>
                     </div>
@@ -190,11 +195,28 @@ export function Assets() {
               {!collapsedCards.performance && (
                 <CardContent className="pt-0">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                    <div className="text-xs text-green-600 dark:text-green-400 font-medium">Today's P&L</div>
-                    <div className="text-base font-bold text-green-600 dark:text-green-400">
-                      ${totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)}
+                  <div className={`text-center p-3 rounded-lg ${
+                    todaysPnL >= 0 
+                      ? 'bg-green-50 dark:bg-green-950/20' 
+                      : 'bg-red-50 dark:bg-red-950/20'
+                  }`}>
+                    <div className={`text-xs font-medium ${
+                      todaysPnL >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>Today's P&L</div>
+                    <div className={`text-base font-bold ${
+                      todaysPnL >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      ${todaysPnL >= 0 ? '+' : ''}{todaysPnL.toFixed(2)}
                     </div>
+                    {(achievedProfits !== 0 || unrealizedProfits !== 0) && (
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        Realized: ${achievedProfits >= 0 ? '+' : ''}{achievedProfits.toFixed(2)} • Unrealized: ${unrealizedProfits >= 0 ? '+' : ''}{unrealizedProfits.toFixed(2)}
+                      </div>
+                    )}
                   </div>
                   <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                     <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Active Trades</div>
