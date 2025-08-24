@@ -1413,7 +1413,7 @@ export default function BotPage() {
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
-                                              <span>{execution.botName && execution.botName.includes('Smart') ? execution.botName : execution.tradingPair}</span>
+                                              <span>{execution.botName || execution.tradingPair}</span>
                                               <ChevronDown className="h-4 w-4 ml-1" />
                                             </Button>
                                           </DropdownMenuTrigger>
@@ -1431,11 +1431,6 @@ export default function BotPage() {
                                         <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
                                           {execution.status}
                                         </Badge>
-                                        {execution.botName && execution.botName.includes('Smart') && (
-                                          <Badge variant="outline" className="text-xs border-purple-500 text-purple-400 bg-purple-950/30">
-                                            AI Bot
-                                          </Badge>
-                                        )}
                                       </div>
                                       <div className="flex items-center gap-3 text-sm">
                                         <span className="text-gray-300">${execution.capital}</span>
@@ -1477,7 +1472,7 @@ export default function BotPage() {
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors text-left justify-start">
-                                        <span>{execution.botName && execution.botName.includes('Smart') ? execution.botName : execution.tradingPair}</span>
+                                        <span>{execution.botName || execution.tradingPair}</span>
                                         <ChevronDown className="h-4 w-4 ml-1" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -1500,15 +1495,9 @@ export default function BotPage() {
                                   <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
                                     {execution.status}
                                   </Badge>
-                                  {execution.botName && execution.botName.includes('Smart') ? (
-                                    <Badge variant="outline" className="border-purple-500 text-purple-400">
-                                      AI Bot
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="outline">
-                                      Manual
-                                    </Badge>
-                                  )}
+                                  <Badge variant="outline">
+                                    {execution.deploymentType === 'folder' ? 'Folder' : 'Manual'}
+                                  </Badge>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
