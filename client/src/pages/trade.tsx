@@ -917,7 +917,7 @@ export function Trade() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
+                                className="h-8 w-8 p-0 text-white hover:bg-white/10 border-white/30"
                                 data-testid={`button-chart-${position.symbol}`}
                               >
                                 <BarChart3 className="h-5 w-5" />
