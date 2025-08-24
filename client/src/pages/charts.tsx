@@ -69,14 +69,12 @@ export function Charts() {
         "container_id": "tradingview_chart",
         // Default indicators - your ideal settings
         "studies": [
+          "Volume@tv-basicstudies",
           "RSI@tv-basicstudies", 
-          "MACD@tv-basicstudies",
-          "MAExp@tv-basicstudies",
-          "MAExp@tv-basicstudies",
-          "MAExp@tv-basicstudies"
+          "MACD@tv-basicstudies"
         ],
         "toolbar_bg": "#131722",
-        // Default chart styling with your ideal EMA colors
+        // Default chart styling
         "overrides": {
           // Candlestick colors
           "mainSeriesProperties.candleStyle.upColor": "#089981",
@@ -95,22 +93,53 @@ export function Charts() {
           "macd.macd.color": "#2196F3",
           "macd.signal.color": "#FF5722"
         },
-        // Configure your ideal EMAs with specific colors
+        // Add auto-loading studies with your preferred EMA settings
         "studies_overrides": {
-          // EMA 20 - Pink
-          "MAExp.length": 20,
-          "MAExp.plot.color": "#FF69B4",
-          // EMA 50 - Orange  
-          "MAExp.plot.color": "#FFA500",
-          // EMA 200 - White
-          "MAExp.plot.color": "#FFFFFF"
+          "moving average exponential.length": 20,
+          "moving average exponential.plot.color": "#FF69B4"
         },
+        "auto_save_delay": 5,
+        "enabled_features": [
+          "study_templates",
+          "save_chart_properties_to_local_storage"
+        ],
         // Save chart layout
         "charts_storage_url": "https://saveload.tradingview.com",
         "charts_storage_api_version": "1.1"
       });
       
       chartContainerRef.current.appendChild(script);
+      
+      // Add a script to automatically load your EMAs after chart initialization
+      const emaScript = document.createElement('script');
+      emaScript.type = 'text/javascript';
+      emaScript.innerHTML = `
+        setTimeout(() => {
+          if (window.TradingView && window.TradingView.widget) {
+            const widget = window.TradingView.widget();
+            if (widget && widget.chart) {
+              // Add EMA 20 (Pink)
+              widget.chart().createStudy('Moving Average Exponential', false, false, [20], null, {
+                'plot.color': '#FF69B4',
+                'plot.linewidth': 2
+              });
+              
+              // Add EMA 50 (Orange) 
+              widget.chart().createStudy('Moving Average Exponential', false, false, [50], null, {
+                'plot.color': '#FFA500',
+                'plot.linewidth': 2
+              });
+              
+              // Add EMA 200 (White)
+              widget.chart().createStudy('Moving Average Exponential', false, false, [200], null, {
+                'plot.color': '#FFFFFF',
+                'plot.linewidth': 2
+              });
+            }
+          }
+        }, 3000); // Wait 3 seconds for chart to load
+      `;
+      chartContainerRef.current.appendChild(emaScript);
     }
   }, [selectedPair, timeframe]);
 
