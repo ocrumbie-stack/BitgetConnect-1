@@ -131,27 +131,6 @@ export function Charts() {
 
       {/* Market Stats */}
       <div className="space-y-3">
-        <div className="grid grid-cols-2">
-          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Volume2 className="h-3 w-3 text-blue-500" />
-                <span className="text-xs font-medium">24h Volume</span>
-              </div>
-              <div className="text-sm font-bold">${volume24h}</div>
-            </CardContent>
-          </Card>
-          <Card className="rounded-none border-l-0 border-r-0 border-t-0">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-3 w-3 text-green-500" />
-                <span className="text-xs font-medium">Timeframe</span>
-              </div>
-              <div className="text-sm font-bold">{timeframe}</div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Technical Indicators */}
         <Card className="rounded-none border-l-0 border-r-0 border-t-0">
           <CardHeader className="pb-2">
