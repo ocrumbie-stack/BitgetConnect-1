@@ -66,20 +66,18 @@ export function Charts() {
       </div>
 
       {/* Chart Placeholder - Full Extent */}
-      <div className="p-1">
-        <Card className="h-[500px] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50">
-          <div className="text-center">
-            <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-sm font-semibold mb-2">Interactive Chart</h3>
-            <p className="text-xs text-muted-foreground mb-3">
-              Advanced candlestick chart for {selectedPair} - {timeframe} timeframe
-            </p>
-            <div className="text-xs text-muted-foreground">
-              Chart integration coming soon
-            </div>
+      <Card className="h-[500px] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-none border-l-0 border-r-0">
+        <div className="text-center">
+          <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <h3 className="text-sm font-semibold mb-2">Interactive Chart</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            Advanced candlestick chart for {selectedPair} - {timeframe} timeframe
+          </p>
+          <div className="text-xs text-muted-foreground">
+            Chart integration coming soon
           </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
 
       {/* Market Stats */}
       <div className="p-2 space-y-3">
