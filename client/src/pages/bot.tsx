@@ -248,7 +248,12 @@ export default function BotPage() {
   };
 
   const handleRunStrategy = async (strategy: any) => {
-    if (!capital) return;
+    console.log('Deploy attempt - capital:', capital, 'tradingPair:', tradingPair, 'selectedFolder:', selectedFolder);
+    
+    if (!capital) {
+      alert('Please enter a capital amount before deploying.');
+      return;
+    }
 
     try {
       if (selectedFolder) {
@@ -309,6 +314,13 @@ export default function BotPage() {
       }
     } catch (error) {
       console.error('Failed to deploy strategy:', error);
+      console.log('Error details:', {
+        capital,
+        tradingPair,
+        selectedFolder,
+        strategyId: strategy?.id,
+        isAI: strategy?.isAI
+      });
       alert('Failed to deploy strategy: ' + (error as Error).message);
     }
   };
