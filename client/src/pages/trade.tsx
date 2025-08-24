@@ -76,10 +76,12 @@ export function Trade() {
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (response) => {
+      console.log('Order response:', response);
+      const orderData = response.data || response;
       toast({
         title: "Order Placed Successfully! ✅",
-        description: `${data.side.toUpperCase()} order for ${data.size} ${currentPair} has been placed.`,
+        description: `Order for ${amount} ${currentPair} has been placed.`,
       });
       // Reset form
       setAmount('');
@@ -87,6 +89,7 @@ export function Trade() {
       setStopLoss('');
     },
     onError: (error: Error) => {
+      console.error('Trade error:', error);
       toast({
         title: "Order Failed ❌",
         description: error.message,
