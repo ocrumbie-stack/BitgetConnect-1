@@ -42,6 +42,18 @@ export function Trade() {
     refetchInterval: 5000,
   });
 
+  // Fetch positions and orders
+  const { data: ordersData } = useQuery({
+    queryKey: ['/api/orders/default-user'],
+    refetchInterval: 3000,
+  }) as { data: any[] | undefined };
+
+  // Fetch bot executions
+  const { data: botsData } = useQuery({
+    queryKey: ['/api/bot-executions'],
+    refetchInterval: 3000,
+  }) as { data: any[] | undefined };
+
   // Check API connection status
   const { data: connectionStatus } = useQuery({
     queryKey: ['/api/status'],
@@ -126,7 +138,7 @@ export function Trade() {
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
   // Get real available balance from API
-  const isConnected = connectionStatus?.apiConnected || false;
+  const isConnected = (connectionStatus as any)?.apiConnected || false;
   const account = (accountData as any)?.account || null;
   const availableBalance = account?.availableBalance ? parseFloat(account.availableBalance) : 0;
 
@@ -740,32 +752,145 @@ export function Trade() {
         <Tabs defaultValue="positions" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
-              Positions(0)
+              Positions({(accountData as any)?.positions?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="orders" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
-              Orders(0)
+              Orders({(ordersData as any[])?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="bots" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
-              Bots (1)
+              Bots ({(botsData as any[])?.filter((bot: any) => bot.status === 'active').length || 0})
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="positions" className="p-4">
-            <div className="text-center text-muted-foreground py-8">
-              <div>No open positions</div>
-            </div>
+            {(accountData as any)?.positions?.length > 0 ? (
+              <div className="space-y-3">
+                {(accountData as any).positions.map((position: any) => (
+                  <div key={`${position.symbol}-${position.side}`} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{position.symbol}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          position.side === 'long' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                        }`}>
+                          {position.side.toUpperCase()}
+                        </span>
+                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{position.leverage}x</span>
+                      </div>
+                      <div className={`text-sm font-medium ${
+                        parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
+                      }`}>
+                        {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <div>Size</div>
+                        <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(4)}</div>
+                      </div>
+                      <div>
+                        <div>Entry</div>
+                        <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div>Mark</div>
+                        <div className="font-medium text-foreground">${parseFloat(position.markPrice).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                <div>No open positions</div>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="orders" className="p-4">
-            <div className="text-center text-muted-foreground py-8">
-              <div>No open orders</div>
-            </div>
+            {(ordersData as any[])?.length > 0 ? (
+              <div className="space-y-3">
+                {(ordersData as any[]).map((order: any) => (
+                  <div key={order.orderId} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{order.symbol}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          order.side === 'buy' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                        }`}>
+                          {order.side.toUpperCase()}
+                        </span>
+                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{order.orderType}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {order.status}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <div>Size</div>
+                        <div className="font-medium text-foreground">{parseFloat(order.size).toFixed(4)}</div>
+                      </div>
+                      <div>
+                        <div>Price</div>
+                        <div className="font-medium text-foreground">${order.price ? parseFloat(order.price).toFixed(2) : 'Market'}</div>
+                      </div>
+                      <div>
+                        <div>Time</div>
+                        <div className="font-medium text-foreground">{new Date(order.cTime).toLocaleTimeString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                <div>No open orders</div>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="bots" className="p-4">
-            <div className="text-center text-muted-foreground py-8">
-              <div>1 active bot</div>
-            </div>
+            {(botsData as any[])?.length > 0 ? (
+              <div className="space-y-3">
+                {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
+                  <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{bot.symbol}</span>
+                        <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
+                          {bot.status.toUpperCase()}
+                        </span>
+                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{bot.strategyName}</span>
+                      </div>
+                      <div className={`text-sm font-medium ${
+                        parseFloat(bot.currentPnl || '0') >= 0 ? 'text-green-500' : 'text-red-500'
+                      }`}>
+                        {parseFloat(bot.currentPnl || '0') >= 0 ? '+' : ''}${parseFloat(bot.currentPnl || '0').toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <div>Capital</div>
+                        <div className="font-medium text-foreground">${parseFloat(bot.capitalAllocated).toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div>Leverage</div>
+                        <div className="font-medium text-foreground">{bot.leverage}x</div>
+                      </div>
+                      <div>
+                        <div>Started</div>
+                        <div className="font-medium text-foreground">{new Date(bot.startedAt).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                <div>No active bots</div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

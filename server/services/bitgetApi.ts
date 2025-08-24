@@ -191,6 +191,18 @@ export class BitgetAPI {
     }
   }
 
+  async getOrders(): Promise<any[]> {
+    try {
+      const response = await this.client.get('/api/v2/mix/order/orders-pending', {
+        params: { productType: 'USDT-FUTURES' }
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw new Error('Failed to fetch orders from Bitget API');
+    }
+  }
+
   async testConnection(): Promise<boolean> {
     try {
       await this.client.get('/api/v2/public/time');
