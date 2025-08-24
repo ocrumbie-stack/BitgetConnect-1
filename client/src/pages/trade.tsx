@@ -198,10 +198,10 @@ export function Trade() {
             )}
           </div>
 
-          {/* Balance */}
+          {/* Available */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground px-1">
             <Wallet className="h-3 w-3" />
-            <span>Balance: ${availableBalance.toLocaleString()}</span>
+            <span>Available: ${availableBalance.toLocaleString()}</span>
           </div>
 
 
