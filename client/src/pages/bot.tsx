@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb } from 'lucide-react';
@@ -1489,12 +1490,24 @@ export default function BotPage() {
                             <div className="flex items-start justify-between mb-3">
                               <div>
                                 <div className="flex items-center gap-2 mb-1">
-                                  <h4 
-                                    className="font-medium cursor-pointer hover:text-blue-500 transition-colors"
-                                    onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}
-                                  >
-                                    {execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}
-                                  </h4>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors text-left justify-start">
+                                        <span>{execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}</span>
+                                        <ChevronDown className="h-4 w-4 ml-1" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start" className="w-64">
+                                      <DropdownMenuItem onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}>
+                                        <div className="flex flex-col space-y-1">
+                                          <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
+                                          <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
+                                          <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                          <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Manual'}</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
                                   Capital: ${execution.capital} | Leverage: {execution.leverage}x
