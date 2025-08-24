@@ -862,9 +862,7 @@ export function Trade() {
                           }`}>
                             {roe >= 0 ? '+' : ''}{roe.toFixed(2)}%
                           </div>
-                          <div className={`text-sm font-medium ${
-                            parseFloat(position.pnl) >= 0 ? 'text-green-500' : 'text-red-500'
-                          }`}>
+                          <div className="text-xs font-medium text-foreground">
                             {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
                           </div>
                         </div>
