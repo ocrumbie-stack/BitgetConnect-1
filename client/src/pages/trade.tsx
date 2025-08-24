@@ -81,8 +81,14 @@ export function Trade() {
       pairStrength: Math.round(pairStrength),
       volatility: Math.round(volatility),
       trendDirection,
-      support: (price * 0.98).toFixed(1),
-      resistance: (price * 1.02).toFixed(1),
+      support: (price * 0.98).toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 8 
+      }),
+      resistance: (price * 1.02).toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 8 
+      }),
       momentum,
       volume: volumeLevel,
       change24h: change
