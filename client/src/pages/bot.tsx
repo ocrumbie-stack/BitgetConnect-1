@@ -1474,7 +1474,7 @@ export default function BotPage() {
                       {manualExecutions.map((execution: any) => (
                         <Card key={execution.id} className={`${
                           execution.botName && execution.botName.includes('Smart')
-                            ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10'
+                            ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
                           <CardContent className="p-4">
@@ -1483,7 +1483,11 @@ export default function BotPage() {
                                 <div className="flex items-center gap-2 mb-1">
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="p-0 h-auto font-medium hover:text-blue-500 transition-colors text-left justify-start">
+                                      <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                        execution.botName && execution.botName.includes('Smart') 
+                                          ? 'hover:text-purple-500' 
+                                          : 'hover:text-blue-500'
+                                      }`}>
                                         <span>{execution.botName || execution.tradingPair}</span>
                                         <ChevronDown className="h-4 w-4 ml-1" />
                                       </Button>
