@@ -117,6 +117,7 @@ export function Trade() {
   // Close position mutation
   const closePositionMutation = useMutation({
     mutationFn: async ({ symbol, side }: { symbol: string; side: string }) => {
+      console.log('🚀 Starting close position mutation', { symbol, side });
       const response = await fetch('/api/positions/close', {
         method: 'POST',
         headers: {
@@ -125,12 +126,17 @@ export function Trade() {
         body: JSON.stringify({ symbol, side })
       });
       
+      console.log('📡 Response status:', response.status);
+      
       if (!response.ok) {
         const error = await response.json();
+        console.log('❌ Response error:', error);
         throw new Error(error.message || 'Failed to close position');
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Response success:', result);
+      return result;
     },
     onSuccess: (response, { symbol, side }) => {
       toast({
@@ -843,10 +849,13 @@ export function Trade() {
                           size="sm"
                           variant="outline"
                           className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
-                          onClick={() => closePositionMutation.mutate({
-                            symbol: position.symbol,
-                            side: position.side
-                          })}
+                          onClick={() => {
+                            console.log('🔥 Close button clicked!', { symbol: position.symbol, side: position.side });
+                            closePositionMutation.mutate({
+                              symbol: position.symbol,
+                              side: position.side
+                            });
+                          }}
                           disabled={closePositionMutation.isPending}
                           data-testid={`button-close-position-${position.symbol}-${position.side}`}
                         >
