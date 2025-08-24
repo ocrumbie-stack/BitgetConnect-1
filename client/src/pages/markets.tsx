@@ -737,7 +737,11 @@ export default function Markets() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.location.reload()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.location.reload();
+                    }}
                     className="flex items-center gap-2"
                   >
                     <RefreshCw className="h-4 w-4" />
