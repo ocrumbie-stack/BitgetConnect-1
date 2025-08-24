@@ -179,15 +179,11 @@ export function Trade() {
               </Button>
             </Link>
             {/* Dynamic Risk Assessment */}
-            {marketAnalysis && (
-              <div className={`flex items-center p-1 rounded border ${
-                marketAnalysis.volatility > 60 ? 'border-red-500 text-red-500' :
-                marketAnalysis.volatility > 30 ? 'border-yellow-500 text-yellow-500' :
-                'border-green-500 text-green-500'
-              }`}>
+            <Link to={`/analyzer?pair=${currentPair}`}>
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-risk-analysis">
                 <Shield className="h-3 w-3" />
-              </div>
-            )}
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
