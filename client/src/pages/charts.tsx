@@ -32,49 +32,50 @@ export function Charts() {
       
       // Create script element
       const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js';
+      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
       script.type = 'text/javascript';
       script.async = true;
       
       // Convert timeframe format
-      const tvTimeframe = timeframe === '1M' ? '1m' : 
-                         timeframe === '5M' ? '5m' : 
-                         timeframe === '15M' ? '15m' : 
-                         timeframe === '1H' ? '1h' : 
-                         timeframe === '4H' ? '4h' : 
-                         timeframe === '1D' ? '1d' : '1h';
+      const tvTimeframe = timeframe === '1M' ? '1' : 
+                         timeframe === '5M' ? '5' : 
+                         timeframe === '15M' ? '15' : 
+                         timeframe === '1H' ? '60' : 
+                         timeframe === '4H' ? '240' : 
+                         timeframe === '1D' ? '1D' : '60';
       
       script.innerHTML = JSON.stringify({
-        "symbols": [
-          [
-            `BITGET:${selectedPair}|${tvTimeframe}`
-          ]
-        ],
-        "chartOnly": false,
-        "width": "100%",
-        "height": "100%",
-        "locale": "en",
-        "colorTheme": "dark",
         "autosize": true,
-        "showVolume": false,
-        "showMA": false,
-        "hideDateRanges": false,
-        "hideMarketStatus": false,
-        "hideSymbolLogo": false,
-        "scalePosition": "right",
-        "scaleMode": "Normal",
-        "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-        "fontSize": "10",
-        "noTimeScale": false,
-        "valuesTracking": "1",
-        "changeMode": "price-and-percent",
-        "chartType": "area",
+        "symbol": `BITGET:${selectedPair}`,
+        "interval": tvTimeframe,
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "enable_publishing": false,
         "backgroundColor": "rgba(19, 23, 34, 1)",
-        "lineColor": "rgba(41, 98, 255, 1)",
-        "topColor": "rgba(41, 98, 255, 0.3)",
-        "bottomColor": "rgba(41, 98, 255, 0.05)",
-        "lineWidth": 2,
-        "container_id": "tradingview_chart"
+        "gridColor": "rgba(42, 46, 57, 0.06)",
+        "hide_top_toolbar": true,
+        "hide_legend": false,
+        "save_image": false,
+        "allow_symbol_change": false,
+        "calendar": false,
+        "support_host": "https://tradingview.com",
+        "container_id": "tradingview_chart",
+        "studies": [
+          "Volume@tv-basicstudies",
+          "RSI@tv-basicstudies",
+          "MACD@tv-basicstudies"
+        ],
+        "toolbar_bg": "#131722",
+        "overrides": {
+          "mainSeriesProperties.candleStyle.upColor": "#089981",
+          "mainSeriesProperties.candleStyle.downColor": "#f23645",
+          "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
+          "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
+          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
+        }
       });
       
       chartContainerRef.current.appendChild(script);
