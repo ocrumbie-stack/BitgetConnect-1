@@ -79,112 +79,114 @@ export function Trade() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-4 space-y-4">
-        {/* Order Book */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <h3 className="font-semibold mb-3">Order Book</h3>
-          
-          <div className="space-y-2">
-            {/* Asks */}
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Asks</div>
-              {orderBook.asks.map((ask, index) => (
-                <div key={index} className="flex justify-between text-sm">
-                  <span className="text-red-500">{ask.price}</span>
-                  <span className="text-muted-foreground">{ask.quantity}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Current Price */}
-            <div className="flex items-center justify-center py-2 border-y border-border">
-              <div className="text-lg font-bold text-green-500">{currentPrice}</div>
-              <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
-            </div>
-
-            {/* Bids */}
-            <div>
-              <div className="text-xs text-muted-foreground mb-1">Bids</div>
-              {orderBook.bids.map((bid, index) => (
-                <div key={index} className="flex justify-between text-sm">
-                  <span className="text-green-500">{bid.price}</span>
-                  <span className="text-muted-foreground">{bid.quantity}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Trading Form */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <h3 className="font-semibold mb-3">Place Order</h3>
-          
-          <div className="space-y-4">
-            {/* Order Type Tabs */}
-            <div className="flex border-b border-border">
-              <button 
-                className={`flex-1 px-4 py-2 text-sm ${activeTab === 'open' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setActiveTab('open')}
-              >
-                Market
-              </button>
-              <button 
-                className={`flex-1 px-4 py-2 text-sm ${activeTab === 'limit' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setActiveTab('limit')}
-              >
-                Limit
-              </button>
-            </div>
-
-            {/* Price Input */}
-            {activeTab === 'limit' && (
+      {/* Main Content - Side by Side Layout */}
+      <div className="p-4">
+        <div className="flex gap-4">
+          {/* Order Book - Narrow */}
+          <div className="w-64 bg-card border border-border rounded-lg p-4">
+            <h3 className="font-semibold mb-3">Order Book</h3>
+            
+            <div className="space-y-2">
+              {/* Asks */}
               <div>
-                <label className="text-xs text-muted-foreground">Price (USDT)</label>
-                <Input
-                  placeholder="0.00"
-                  className="mt-1"
-                />
+                <div className="text-xs text-muted-foreground mb-1">Asks</div>
+                {orderBook.asks.map((ask, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span className="text-red-500">{ask.price}</span>
+                    <span className="text-muted-foreground">{ask.quantity}</span>
+                  </div>
+                ))}
               </div>
-            )}
 
-            {/* Amount Input */}
-            <div>
-              <label className="text-xs text-muted-foreground">Amount (USDT)</label>
-              <Input
-                placeholder="0.00"
-                className="mt-1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
+              {/* Current Price */}
+              <div className="flex items-center justify-center py-2 border-y border-border">
+                <div className="text-lg font-bold text-green-500">{currentPrice}</div>
+                <TrendingUp className="h-4 w-4 ml-2 text-green-500" />
+              </div>
 
-            {/* Leverage */}
-            <div>
-              <label className="text-xs text-muted-foreground">Leverage: {leverage}x</label>
-              <div className="flex gap-2 mt-1">
-                {['5', '10', '20', '50'].map((lev) => (
-                  <Button
-                    key={lev}
-                    variant="outline"
-                    size="sm"
-                    className={`flex-1 ${leverage === lev ? 'bg-primary text-primary-foreground' : ''}`}
-                    onClick={() => setLeverage(lev)}
-                  >
-                    {lev}x
-                  </Button>
+              {/* Bids */}
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Bids</div>
+                {orderBook.bids.map((bid, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span className="text-green-500">{bid.price}</span>
+                    <span className="text-muted-foreground">{bid.quantity}</span>
+                  </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Order Buttons */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button className="bg-green-500 hover:bg-green-600 text-white">
-                Buy Long
-              </Button>
-              <Button className="bg-red-500 hover:bg-red-600 text-white">
-                Sell Short
-              </Button>
+          {/* Trading Form - Takes remaining space */}
+          <div className="flex-1 bg-card border border-border rounded-lg p-4">
+            <h3 className="font-semibold mb-3">Place Order</h3>
+            
+            <div className="space-y-4">
+              {/* Order Type Tabs */}
+              <div className="flex border-b border-border">
+                <button 
+                  className={`flex-1 px-4 py-2 text-sm ${activeTab === 'open' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
+                  onClick={() => setActiveTab('open')}
+                >
+                  Market
+                </button>
+                <button 
+                  className={`flex-1 px-4 py-2 text-sm ${activeTab === 'limit' ? 'border-b-2 border-primary text-foreground' : 'text-muted-foreground'}`}
+                  onClick={() => setActiveTab('limit')}
+                >
+                  Limit
+                </button>
+              </div>
+
+              {/* Price Input */}
+              {activeTab === 'limit' && (
+                <div>
+                  <label className="text-xs text-muted-foreground">Price (USDT)</label>
+                  <Input
+                    placeholder="0.00"
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              {/* Amount Input */}
+              <div>
+                <label className="text-xs text-muted-foreground">Amount (USDT)</label>
+                <Input
+                  placeholder="0.00"
+                  className="mt-1"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
+
+              {/* Leverage */}
+              <div>
+                <label className="text-xs text-muted-foreground">Leverage: {leverage}x</label>
+                <div className="flex gap-2 mt-1">
+                  {['5', '10', '20', '50'].map((lev) => (
+                    <Button
+                      key={lev}
+                      variant="outline"
+                      size="sm"
+                      className={`flex-1 ${leverage === lev ? 'bg-primary text-primary-foreground' : ''}`}
+                      onClick={() => setLeverage(lev)}
+                    >
+                      {lev}x
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button className="bg-green-500 hover:bg-green-600 text-white">
+                  Buy Long
+                </Button>
+                <Button className="bg-red-500 hover:bg-red-600 text-white">
+                  Sell Short
+                </Button>
+              </div>
             </div>
           </div>
         </div>
