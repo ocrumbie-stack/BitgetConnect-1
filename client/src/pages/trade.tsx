@@ -148,7 +148,6 @@ export function Trade() {
           {/* Amount Input */}
           <div className="border rounded p-3">
             <div className="flex items-center gap-2">
-              <div className="text-sm text-muted-foreground">Cost</div>
               <div className="flex-1">
                 <Input
                   placeholder="Enter amount"
