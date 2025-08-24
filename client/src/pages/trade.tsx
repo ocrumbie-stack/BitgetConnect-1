@@ -985,7 +985,7 @@ export function Trade() {
                                 data-testid={`button-chart-${position.symbol}`}
                                 title="Option 1: Three Candles"
                               >
-                                <CandlestickIcon1 className="h-5 w-5" />
+                                <CandlestickIcon1 className="h-7 w-7" />
                               </Button>
                             </Link>
                             
@@ -997,7 +997,7 @@ export function Trade() {
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 title="Option 2: Two Candles"
                               >
-                                <CandlestickIcon2 className="h-5 w-5" />
+                                <CandlestickIcon2 className="h-7 w-7" />
                               </Button>
                             </Link>
                             
@@ -1008,7 +1008,7 @@ export function Trade() {
                                 className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
                                 title="Option 3: Mini Chart"
                               >
-                                <CandlestickIcon3 className="h-5 w-5" />
+                                <CandlestickIcon3 className="h-7 w-7" />
                               </Button>
                             </Link>
                           </div>
