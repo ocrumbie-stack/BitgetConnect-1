@@ -92,37 +92,6 @@ export function Charts() {
     <div className="min-h-screen bg-background text-foreground pb-24">
       <BackButton />
       
-      {/* Header */}
-      <div className="p-2 border-b border-border bg-card">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-base font-bold">{selectedPair}</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold">${currentPrice}</span>
-                <Badge variant={parseFloat(change24h) >= 0 ? 'default' : 'destructive'} className="text-xs">
-                  {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
-                </Badge>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-16 h-6 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1M">1M</SelectItem>
-                <SelectItem value="5M">5M</SelectItem>
-                <SelectItem value="15M">15M</SelectItem>
-                <SelectItem value="1H">1H</SelectItem>
-                <SelectItem value="4H">4H</SelectItem>
-                <SelectItem value="1D">1D</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
 
       {/* TradingView Chart - Full Extent */}
       <div 
