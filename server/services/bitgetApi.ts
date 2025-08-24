@@ -213,6 +213,7 @@ export class BitgetAPI {
       const orderData = {
         symbol: orderParams.symbol,
         productType: 'USDT-FUTURES',
+        marginMode: 'isolated', // Required: 'isolated' or 'crossed'
         marginCoin: 'USDT',
         side: orderParams.side, // Use 'buy' or 'sell' directly
         tradeSide: 'open', // Always 'open' for new positions
