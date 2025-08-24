@@ -291,7 +291,6 @@ export default function BotPage() {
         }
         
         setShowRunDialog(false);
-        alert(`Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder!`);
       } else if (tradingPair) {
         // Deploy to individual pair
         let actualStrategyId = strategy.id;
@@ -345,7 +344,6 @@ export default function BotPage() {
         
         await runStrategyMutation.mutateAsync(executionData);
         setShowRunDialog(false);
-        alert(`Strategy deployed to ${tradingPair}!`);
       } else {
         alert('Please select either a trading pair or a folder to deploy the strategy.');
       }
