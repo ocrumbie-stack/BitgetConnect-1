@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target } from 'lucide-react';
 
 export function Trade() {
@@ -94,20 +95,19 @@ export function Trade() {
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
           <div className="border rounded p-3">
-            <div className="text-sm font-medium mb-2">Leverage: {leverage}x</div>
-            <div className="grid grid-cols-4 gap-2">
-              {['5', '10', '20', '50'].map((lev) => (
-                <Button
-                  key={lev}
-                  variant={leverage === lev ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setLeverage(lev)}
-                  className="text-sm h-8"
-                >
-                  {lev}x
-                </Button>
-              ))}
-            </div>
+            <div className="text-sm font-medium mb-2">Leverage</div>
+            <Select value={leverage} onValueChange={setLeverage}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue placeholder="Select leverage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5x</SelectItem>
+                <SelectItem value="10">10x</SelectItem>
+                <SelectItem value="20">20x</SelectItem>
+                <SelectItem value="50">50x</SelectItem>
+                <SelectItem value="100">100x</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Order Type */}
