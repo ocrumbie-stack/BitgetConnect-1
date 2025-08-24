@@ -1115,7 +1115,7 @@ export function Home() {
           isOpen={!!selectedRiskPair}
           onClose={() => setSelectedRiskPair(null)}
           onNavigateToTrade={() => {
-            setLocation('/trade');
+            setLocation(`/trade?pair=${selectedRiskPair}`);
             setSelectedRiskPair(null);
           }}
           onNavigateToAnalyzer={() => {

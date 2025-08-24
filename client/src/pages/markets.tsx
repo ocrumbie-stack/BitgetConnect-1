@@ -927,6 +927,14 @@ export default function Markets() {
           pair={selectedRiskPair}
           isOpen={!!selectedRiskPair}
           onClose={() => setSelectedRiskPair(null)}
+          onNavigateToTrade={() => {
+            setLocation(`/trade?pair=${selectedRiskPair}`);
+            setSelectedRiskPair(null);
+          }}
+          onNavigateToAnalyzer={() => {
+            setLocation(`/analyzer?pair=${selectedRiskPair}&autoFill=true`);
+            setSelectedRiskPair(null);
+          }}
         />
       )}
     </div>
