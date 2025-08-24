@@ -291,7 +291,7 @@ export default function BotPage() {
         }
         
         setShowRunDialog(false);
-        alert(`Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder!`);
+        alert(`🚀 Bulk Deployment Complete!\n\n✅ Strategy: ${strategy.name}\n📁 Folder: ${folder.name}\n🎯 Pairs: ${folder.tradingPairs.length} trading pairs\n💰 Capital: ${capital} USDT per bot\n⚡ Leverage: ${leverage}x\n\nAll ${folder.tradingPairs.length} bots are now actively trading! Check the Active Bots tab to monitor performance.`);
       } else if (tradingPair) {
         // Deploy to individual pair
         let actualStrategyId = strategy.id;
@@ -345,7 +345,7 @@ export default function BotPage() {
         
         await runStrategyMutation.mutateAsync(executionData);
         setShowRunDialog(false);
-        alert(`Strategy deployed to ${tradingPair}!`);
+        alert(`🚀 Bot Deployed Successfully!\n\n✅ Strategy: ${strategy.name}\n💰 Capital: ${capital} USDT\n📈 Pair: ${tradingPair}\n⚡ Leverage: ${leverage}x\n\nYour bot is now actively trading! Check the Active Bots tab to monitor performance.`);
       } else {
         alert('Please select either a trading pair or a folder to deploy the strategy.');
       }
