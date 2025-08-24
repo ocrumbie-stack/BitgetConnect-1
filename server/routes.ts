@@ -437,6 +437,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bitgetAPI.getPositions()
       ]);
 
+      console.log('🔍 DEBUG - Raw positions from API:', JSON.stringify(positions, null, 2));
+
       // Update local storage
       if (accountData.length > 0) {
         const account = accountData[0];
@@ -510,6 +512,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🔥 Closing ${side} position for ${symbol}`);
       console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Also fetch and show current positions for comparison
+      const currentPositions = await bitgetAPI.getPositions();
+      console.log('📊 Current positions when closing:', JSON.stringify(currentPositions, null, 2));
       
       const closeResponse = await bitgetAPI.closePosition(symbol, side);
       
