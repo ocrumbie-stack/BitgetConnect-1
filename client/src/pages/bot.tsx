@@ -12,10 +12,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
+import { useToast } from '@/hooks/use-toast';
 
 export default function BotPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('ai');
+  const { toast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRunDialog, setShowRunDialog] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
@@ -291,6 +293,10 @@ export default function BotPage() {
         }
         
         setShowRunDialog(false);
+        toast({
+          title: "Strategy Deployed Successfully! 🚀",
+          description: `Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder`,
+        });
       } else if (tradingPair) {
         // Deploy to individual pair
         let actualStrategyId = strategy.id;
@@ -344,6 +350,10 @@ export default function BotPage() {
         
         await runStrategyMutation.mutateAsync(executionData);
         setShowRunDialog(false);
+        toast({
+          title: "Strategy Deployed Successfully! 🚀",
+          description: `Strategy deployed to ${tradingPair}!`,
+        });
       } else {
         alert('Please select either a trading pair or a folder to deploy the strategy.');
       }
