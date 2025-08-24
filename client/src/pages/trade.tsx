@@ -22,10 +22,16 @@ export function Trade() {
   const [stopLoss, setStopLoss] = useState('');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [, setLocation] = useLocation();
 
-  // Get available pairs from data
+  // Get available pairs from data, filtered by search query
   const availablePairs = data ? data.map(item => item.symbol).sort() : ['BTCUSDT'];
+  const filteredPairs = searchQuery 
+    ? availablePairs.filter(pair => 
+        pair.toLowerCase().includes(searchQuery.toLowerCase())
+      ) 
+    : [];
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -70,6 +76,7 @@ export function Trade() {
     setCurrentPair(pair);
     setLocation(`/trade?pair=${pair}`);
     setPairSelectorOpen(false);
+    setSearchQuery('');
   };
 
   return (
@@ -92,24 +99,36 @@ export function Trade() {
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-0" align="start">
                     <Command>
-                      <CommandInput placeholder="Search pairs..." className="h-8" />
+                      <CommandInput 
+                        placeholder="Type to search pairs..." 
+                        className="h-8" 
+                        value={searchQuery}
+                        onValueChange={setSearchQuery}
+                      />
                       <CommandList>
-                        <CommandEmpty>No pairs found.</CommandEmpty>
-                        <CommandGroup>
-                          {availablePairs.map((pair) => (
-                            <CommandItem
-                              key={pair}
-                              value={pair}
-                              onSelect={() => handlePairSelect(pair)}
-                              className="flex items-center justify-between"
-                            >
-                              <span>{pair}</span>
-                              {pair === currentPair && (
-                                <Check className="h-4 w-4" />
-                              )}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        {searchQuery === '' ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            Start typing to search pairs...
+                          </div>
+                        ) : filteredPairs.length === 0 ? (
+                          <CommandEmpty>No pairs found.</CommandEmpty>
+                        ) : (
+                          <CommandGroup>
+                            {filteredPairs.map((pair) => (
+                              <CommandItem
+                                key={pair}
+                                value={pair}
+                                onSelect={() => handlePairSelect(pair)}
+                                className="flex items-center justify-between"
+                              >
+                                <span>{pair}</span>
+                                {pair === currentPair && (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        )}
                       </CommandList>
                     </Command>
                   </PopoverContent>
