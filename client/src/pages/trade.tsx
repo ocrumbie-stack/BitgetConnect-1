@@ -92,69 +92,57 @@ export function Trade() {
       <div className="flex h-[calc(100vh-120px)]">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
-          {/* Order Type & Leverage */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="border rounded p-2">
-              <div className="text-xs font-medium mb-1">Order</div>
-              <div className="flex gap-1">
-                <Button 
-                  variant={orderType === 'market' ? 'default' : 'outline'}
-                  onClick={() => setOrderType('market')}
-                  size="sm"
-                  className="flex-1 text-xs h-6"
-                >
-                  Market
-                </Button>
-                <Button 
-                  variant={orderType === 'limit' ? 'default' : 'outline'}
-                  onClick={() => setOrderType('limit')}
-                  size="sm"
-                  className="flex-1 text-xs h-6"
-                >
-                  Limit
-                </Button>
-              </div>
-            </div>
-
-            <div className="border rounded p-2">
-              <div className="text-xs font-medium mb-1">Leverage: {leverage}x</div>
-              <div className="grid grid-cols-2 gap-1">
-                {['5', '10', '20', '50'].map((lev) => (
-                  <Button
-                    key={lev}
-                    variant={leverage === lev ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setLeverage(lev)}
-                    className="text-xs h-6"
-                  >
-                    {lev}x
-                  </Button>
-                ))}
-              </div>
+          {/* Order Type */}
+          <div className="border rounded p-3">
+            <div className="flex gap-2">
+              <Button 
+                variant={orderType === 'market' ? 'default' : 'outline'}
+                onClick={() => setOrderType('market')}
+                size="sm"
+                className="flex-1 text-sm h-8"
+              >
+                Market
+              </Button>
+              <Button 
+                variant={orderType === 'limit' ? 'default' : 'outline'}
+                onClick={() => setOrderType('limit')}
+                size="sm"
+                className="flex-1 text-sm h-8"
+              >
+                Limit
+              </Button>
             </div>
           </div>
 
-          {/* Price & Amount */}
-          <div className="space-y-2">
-            {orderType === 'limit' && (
-              <div>
-                <label className="text-xs text-muted-foreground">Limit Price</label>
+          {/* Price Input */}
+          {orderType === 'limit' ? (
+            <div className="border rounded p-3">
+              <Input
+                placeholder={`Limit price: ${currentPrice}`}
+                className="h-10 text-sm border-0 shadow-none"
+                value={limitPrice}
+                onChange={(e) => setLimitPrice(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="border rounded p-3 bg-muted/50">
+              <div className="text-sm text-muted-foreground">Fill at market price</div>
+            </div>
+          )}
+
+          {/* Amount Input */}
+          <div className="border rounded p-3">
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-muted-foreground">Cost</div>
+              <div className="flex-1">
                 <Input
-                  placeholder={currentPrice}
-                  className="h-7 text-sm"
-                  value={limitPrice}
-                  onChange={(e) => setLimitPrice(e.target.value)}
+                  placeholder="Enter amount"
+                  className="h-8 text-sm border-0 shadow-none"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
-            )}
-            <div>
-              <label className="text-xs text-muted-foreground">Amount (USDT)</label>
-              <Input
-                placeholder="Enter amount"
-                className="h-7 text-sm"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              <div className="text-sm font-medium">USDT</div>
             </div>
           </div>
 
@@ -173,27 +161,42 @@ export function Trade() {
             ))}
           </div>
 
-          {/* TP/SL */}
-          <div className="border rounded p-2">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium">TP/SL</span>
-              <Switch 
-                checked={tpslEnabled}
-                onCheckedChange={setTpslEnabled}
-              />
+          {/* Leverage */}
+          <div className="border rounded p-3">
+            <div className="text-sm font-medium mb-2">Leverage: {leverage}x</div>
+            <div className="grid grid-cols-4 gap-2">
+              {['5', '10', '20', '50'].map((lev) => (
+                <Button
+                  key={lev}
+                  variant={leverage === lev ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLeverage(lev)}
+                  className="text-sm h-8"
+                >
+                  {lev}x
+                </Button>
+              ))}
             </div>
-            
+          </div>
+
+          {/* TP/SL */}
+          <div className="flex items-center gap-2 p-1">
+            <Switch 
+              checked={tpslEnabled}
+              onCheckedChange={setTpslEnabled}
+            />
+            <span className="text-sm">TP/SL</span>
             {tpslEnabled && (
-              <div className="grid grid-cols-2 gap-1">
+              <div className="flex gap-2 ml-auto">
                 <Input
                   placeholder="TP"
-                  className="h-6 text-xs"
+                  className="h-7 w-20 text-xs"
                   value={takeProfit}
                   onChange={(e) => setTakeProfit(e.target.value)}
                 />
                 <Input
                   placeholder="SL"
-                  className="h-6 text-xs"
+                  className="h-7 w-20 text-xs"
                   value={stopLoss}
                   onChange={(e) => setStopLoss(e.target.value)}
                 />
