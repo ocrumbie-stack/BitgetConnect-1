@@ -64,19 +64,19 @@ export function Trade() {
       <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-bold">{currentPair}</span>
-                <ChevronDown className="h-3 w-3" />
-                <span className="text-sm font-bold">${currentPrice}</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs">
-                <div className={`${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <div className="flex gap-4">
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="text-base font-bold">{currentPair}</span>
+                  <ChevronDown className="h-3 w-3" />
+                </div>
+                <div className={`text-xs ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
                 </div>
-                <div className="text-muted-foreground">
-                  Vol: $2.4B
-                </div>
+              </div>
+              <div>
+                <div className="text-sm font-bold">${currentPrice}</div>
+                <div className="text-xs text-muted-foreground">Vol: $2.4B</div>
               </div>
             </div>
           </div>
