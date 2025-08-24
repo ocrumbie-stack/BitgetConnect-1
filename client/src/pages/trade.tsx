@@ -78,7 +78,6 @@ export function Trade() {
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Bal: ${availableBalance.toLocaleString()}</span>
             <Link to={`/bot?pair=${currentPair}`}>
               <Button size="sm" variant="outline" className="gap-1 h-6 px-2" data-testid="button-bot-trading">
                 <Bot className="h-3 w-3" />
@@ -197,6 +196,12 @@ export function Trade() {
                 />
               </div>
             )}
+          </div>
+
+          {/* Balance */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground px-1">
+            <Wallet className="h-3 w-3" />
+            <span>Balance: ${availableBalance.toLocaleString()}</span>
           </div>
 
 
