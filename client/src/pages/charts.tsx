@@ -1,13 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
-import { useCandlestickData } from '@/hooks/useCandlestickData';
-import { CandlestickChart } from '@/components/CandlestickChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Volume2, Clock } from 'lucide-react';
 import { BackButton } from '@/components/BackButton';
 
@@ -16,29 +12,7 @@ export function Charts() {
   const { data } = useBitgetData();
   const [selectedPair, setSelectedPair] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1H');
-  const [chartType, setChartType] = useState<'native' | 'tradingview'>('native');
   const chartContainerRef = useRef<HTMLDivElement>(null);
-
-  // Map timeframe to Bitget granularity
-  const getGranularity = (tf: string) => {
-    switch (tf) {
-      case '1M': return '1m';
-      case '5M': return '5m';
-      case '15M': return '15m';
-      case '1H': return '1H';
-      case '4H': return '4H';
-      case '1D': return '1D';
-      default: return '1H';
-    }
-  };
-
-  // Fetch candlestick data
-  const { data: candlestickData, isLoading: chartLoading } = useCandlestickData({
-    symbol: selectedPair,
-    granularity: getGranularity(timeframe),
-    limit: 200,
-    enabled: chartType === 'native'
-  });
 
   // Get pair from URL parameters
   useEffect(() => {
@@ -51,7 +25,7 @@ export function Charts() {
 
   // Initialize TradingView widget
   useEffect(() => {
-    if (chartContainerRef.current && typeof window !== 'undefined' && chartType === 'tradingview') {
+    if (chartContainerRef.current && typeof window !== 'undefined') {
       // Clear any existing widget
       chartContainerRef.current.innerHTML = '';
       
@@ -113,7 +87,7 @@ export function Charts() {
       
       chartContainerRef.current.appendChild(script);
     }
-  }, [selectedPair, timeframe, chartType]);
+  }, [selectedPair, timeframe]);
 
   // Get current pair data
   const currentPairData = data?.find(item => item.symbol === selectedPair);
@@ -125,66 +99,12 @@ export function Charts() {
     <div className="min-h-screen bg-background text-foreground pb-24">
       <BackButton />
       
-      {/* Chart Controls */}
-      <div className="p-2 border-b border-border space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{selectedPair}</span>
-            <Badge variant={parseFloat(change24h) >= 0 ? 'default' : 'destructive'} className="text-xs">
-              {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
-            </Badge>
-            <span className="text-sm font-bold">${currentPrice}</span>
-          </div>
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-20 h-6 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1M">1M</SelectItem>
-              <SelectItem value="5M">5M</SelectItem>
-              <SelectItem value="15M">15M</SelectItem>
-              <SelectItem value="1H">1H</SelectItem>
-              <SelectItem value="4H">4H</SelectItem>
-              <SelectItem value="1D">1D</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Tabs value={chartType} onValueChange={(value) => setChartType(value as 'native' | 'tradingview')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="native">Bitget Chart</TabsTrigger>
-            <TabsTrigger value="tradingview">TradingView</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Chart Container */}
-      <div className="h-[500px] w-full bg-[#131722]">
-        {chartType === 'native' ? (
-          <div className="h-full w-full">
-            {chartLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-white">Loading chart data...</div>
-              </div>
-            ) : candlestickData && candlestickData.length > 0 ? (
-              <CandlestickChart 
-                data={candlestickData} 
-                symbol={selectedPair}
-                className="h-full w-full"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-white">No chart data available</div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div 
-            ref={chartContainerRef}
-            className="h-full w-full"
-            id="tradingview_chart"
-          />
-        )}
-      </div>
+      {/* TradingView Chart - Full Extent */}
+      <div 
+        ref={chartContainerRef}
+        className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
+        id="tradingview_chart"
+      />
 
       {/* Market Stats */}
       <div className="space-y-3">
