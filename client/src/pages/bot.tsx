@@ -57,6 +57,7 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
@@ -2396,8 +2397,48 @@ export default function BotPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="relative">
-              <label className="text-sm font-medium">Trading Pair</label>
+            {/* Deployment Mode Selector */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Deployment Mode</label>
+              <Select value={deploymentMode} onValueChange={(value: 'individual' | 'folder') => {
+                setDeploymentMode(value);
+                if (value === 'individual') {
+                  setSelectedFolder('');
+                } else {
+                  setTradingPair('');
+                  setPairSearch('');
+                }
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose deployment mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Individual Pair
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="folder">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      Entire Folder
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {deploymentMode === 'individual' 
+                  ? 'Deploy bot to a single trading pair'
+                  : 'Deploy bots to all pairs in a folder'
+                }
+              </p>
+            </div>
+
+            {/* Trading Pair Selection (Individual Mode) */}
+            {deploymentMode === 'individual' && (
+              <div className="relative">
+                <label className="text-sm font-medium">Trading Pair</label>
               <div className="relative">
                 <Input
                   value={pairSearch}
@@ -2444,7 +2485,44 @@ export default function BotPage() {
                   ))}
                 </div>
               )}
-            </div>
+              </div>
+            )}
+
+            {/* Folder Selection (Folder Mode) */}
+            {deploymentMode === 'folder' && (
+              <div>
+                <label className="text-sm font-medium">Select Folder</label>
+                <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a folder to deploy to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {folders.map((folder: any) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-sm" 
+                            style={{ backgroundColor: folder.color || '#3b82f6' }}
+                          ></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{folder.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {folder.tradingPairs?.length || 0} pairs
+                            </span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFolder && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bots will be deployed to all pairs in this folder
+                  </p>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="text-sm font-medium">Capital Amount</label>
               <Input
