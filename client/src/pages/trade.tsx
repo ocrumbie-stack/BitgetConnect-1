@@ -23,6 +23,9 @@ export function Trade() {
   const [tpMode, setTpMode] = useState<'percentage' | 'price'>('percentage');
   const [slMode, setSlMode] = useState<'percentage' | 'price'>('percentage');
   const [tpslExpanded, setTpslExpanded] = useState(true);
+  const [trailingStopEnabled, setTrailingStopEnabled] = useState(false);
+  const [trailingStopValue, setTrailingStopValue] = useState('');
+  const [trailingStopMode, setTrailingStopMode] = useState<'percentage' | 'price'>('percentage');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -314,6 +317,36 @@ export function Trade() {
                     value={stopLoss}
                     onChange={(e) => setStopLoss(e.target.value)}
                   />
+                </div>
+
+                {/* Trailing Stop */}
+                <div className="border-t border-border pt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Switch 
+                      checked={trailingStopEnabled}
+                      onCheckedChange={setTrailingStopEnabled}
+                    />
+                    <span className="text-xs">Trailing Stop</span>
+                  </div>
+                  {trailingStopEnabled && (
+                    <div className="flex gap-1">
+                      <Select value={trailingStopMode} onValueChange={(value: 'percentage' | 'price') => setTrailingStopMode(value)}>
+                        <SelectTrigger className="w-16 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percentage">%</SelectItem>
+                          <SelectItem value="price">$</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder={trailingStopMode === 'percentage' ? "Trail %" : "Trail $"}
+                        className="h-7 flex-1 text-xs"
+                        value={trailingStopValue}
+                        onChange={(e) => setTrailingStopValue(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
