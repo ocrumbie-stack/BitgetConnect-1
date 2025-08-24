@@ -324,25 +324,53 @@ export function Trade() {
           {/* Leverage */}
           {!customLeverageMode ? (
             <div className="space-y-2">
-              <Select value={leverage} onValueChange={(value) => {
-                if (value === 'custom') {
-                  setCustomLeverageMode(true);
-                } else {
-                  setLeverage(value);
-                }
-              }}>
-                <SelectTrigger className="w-full h-10">
-                  <SelectValue placeholder="Leverage: Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5x</SelectItem>
-                  <SelectItem value="10">10x</SelectItem>
-                  <SelectItem value="20">20x</SelectItem>
-                  <SelectItem value="50">50x</SelectItem>
-                  <SelectItem value="100">100x</SelectItem>
-                  <SelectItem value="custom">Custom Leverage...</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Check if current leverage is a preset value */}
+              {['5', '10', '20', '50', '100'].includes(leverage) ? (
+                <Select value={leverage} onValueChange={(value) => {
+                  if (value === 'custom') {
+                    setCustomLeverageMode(true);
+                    setCustomLeverage(leverage);
+                  } else {
+                    setLeverage(value);
+                  }
+                }}>
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue placeholder="Leverage: Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5x</SelectItem>
+                    <SelectItem value="10">10x</SelectItem>
+                    <SelectItem value="20">20x</SelectItem>
+                    <SelectItem value="50">50x</SelectItem>
+                    <SelectItem value="100">100x</SelectItem>
+                    <SelectItem value="custom">Custom Leverage...</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                /* Custom leverage is active - show button to edit */
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-10 justify-between"
+                    onClick={() => {
+                      setCustomLeverageMode(true);
+                      setCustomLeverage(leverage);
+                    }}
+                  >
+                    <span>{leverage}x Leverage</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="px-3 h-10"
+                    onClick={() => setLeverage('10')}
+                    data-testid="button-reset-leverage"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -362,6 +390,7 @@ export function Trade() {
                     if (customLeverage && parseFloat(customLeverage) >= 1 && parseFloat(customLeverage) <= 200) {
                       setLeverage(customLeverage);
                       setCustomLeverageMode(false);
+                      setCustomLeverage('');
                     }
                   }}
                   size="sm"
