@@ -14,10 +14,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
   app.post('/api/orders', async (req, res) => {
-    console.log('🎯 NEW ORDER ENDPOINT HIT!');
-    console.log('🎯 NEW ORDER ENDPOINT HIT!');
-    console.log('🎯 NEW ORDER ENDPOINT HIT!');
-    console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('🎯 ORDER ENDPOINT - Processing trade request');
+    console.log('📦 Order Data:', JSON.stringify(req.body, null, 2));
     
     try {
       const orderData = req.body;
@@ -32,20 +30,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('✅ Order validation passed');
+
+      // Check if Bitget API is connected
+      if (!bitgetAPI) {
+        console.log('❌ Bitget API not connected');
+        return res.status(500).json({ 
+          success: false,
+          message: 'Trading API not connected. Please check API settings.' 
+        });
+      }
+
+      // Set leverage if provided (optional - some exchanges handle this automatically)
+      if (orderData.leverage) {
+        console.log(`⚙️ Setting leverage to ${orderData.leverage}x for ${orderData.symbol}`);
+        // Note: Leverage setting might be handled per position in Bitget
+      }
+
+      console.log('🚀 Placing REAL order via Bitget API...');
       
-      // Return success response that matches what frontend expects
-      const mockResponse = {
-        orderId: 'mock-' + Date.now(),
+      // Place the actual order using Bitget API
+      const realOrderResponse = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
         side: orderData.side,
         size: orderData.size,
-        status: 'filled',
-        message: 'Order placed successfully (mock)'
+        orderType: orderData.orderType || 'market',
+        leverage: orderData.leverage
+      });
+
+      console.log('📤 Bitget API response:', JSON.stringify(realOrderResponse));
+
+      // Return success response with real order data
+      const successResponse = {
+        orderId: realOrderResponse.data?.orderId || realOrderResponse.orderId || 'unknown',
+        symbol: orderData.symbol,
+        side: orderData.side,
+        size: orderData.size,
+        status: realOrderResponse.data?.status || 'submitted',
+        message: '🎯 Real order placed successfully via Bitget!',
+        bitgetResponse: realOrderResponse
       };
       
-      console.log('📤 Sending response:', JSON.stringify(mockResponse));
-      res.json(mockResponse);
-      console.log('✅ Response sent successfully');
+      console.log('✅ Real order placed successfully!');
+      res.json(successResponse);
       
     } catch (error: any) {
       console.error('❌ Order placement error:', error);
