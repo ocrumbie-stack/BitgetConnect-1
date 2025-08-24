@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -9,7 +10,8 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3 } from 'lucide-react';
+import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -30,6 +32,56 @@ export function Trade() {
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  // Fetch account information for real balance
+  const { data: accountData } = useQuery({
+    queryKey: ['/api/account/default-user'],
+    refetchInterval: 5000,
+  });
+
+  // Check API connection status
+  const { data: connectionStatus } = useQuery({
+    queryKey: ['/api/status'],
+    refetchInterval: 30000,
+  });
+
+  // Place order mutation
+  const placeOrderMutation = useMutation({
+    mutationFn: async (orderData: any) => {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to place order');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Order Placed Successfully! ✅",
+        description: `${data.side.toUpperCase()} order for ${data.size} ${currentPair} has been placed.`,
+      });
+      // Reset form
+      setAmount('');
+      setTakeProfit('');
+      setStopLoss('');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Order Failed ❌",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Get available pairs from data, filtered by search query
   const availablePairs = data ? data.map(item => item.symbol).sort() : ['BTCUSDT'];
@@ -56,8 +108,10 @@ export function Trade() {
   }) : '113,554.2';
   const change24h = currentMarket ? (parseFloat(currentMarket.change24h || '0') * 100).toFixed(2) : '-1.70';
 
-  // Mock available balance
-  const availableBalance = 5000.00;
+  // Get real available balance from API
+  const isConnected = connectionStatus?.apiConnected;
+  const account = accountData?.account;
+  const availableBalance = account?.availableBalance ? parseFloat(account.availableBalance) : 0;
 
   // Dynamic market analysis data based on current pair
   const getMarketAnalysis = () => {
@@ -98,9 +152,61 @@ export function Trade() {
   const marketAnalysis = getMarketAnalysis();
 
   const handlePercentageClick = (percentage: string) => {
+    if (!isConnected) {
+      toast({
+        title: "API Connection Required",
+        description: "Please connect your Bitget API in the Assets page to use real balance.",
+        variant: "destructive",
+      });
+      return;
+    }
     const percent = parseFloat(percentage) / 100;
     const calculatedAmount = (availableBalance * percent).toFixed(2);
     setAmount(calculatedAmount);
+  };
+
+  const handlePlaceOrder = async (side: 'buy' | 'sell') => {
+    if (!isConnected) {
+      toast({
+        title: "API Connection Required",
+        description: "Please connect your Bitget API in the Assets page to place real orders.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid order amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parseFloat(amount) > availableBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Order amount exceeds available balance.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const orderData = {
+      userId: 'default-user',
+      symbol: currentPair,
+      side,
+      size: amount,
+      orderType,
+      price: orderType === 'limit' ? limitPrice : undefined,
+      leverage: parseFloat(leverage),
+      takeProfit: tpslEnabled && takeProfit ? takeProfit : undefined,
+      stopLoss: tpslEnabled && stopLoss ? stopLoss : undefined,
+      trailingStop: trailingStopEnabled && trailingStopValue ? trailingStopValue : undefined
+    };
+
+    placeOrderMutation.mutate(orderData);
   };
 
   // Handle pair selection
@@ -379,11 +485,19 @@ export function Trade() {
 
           {/* Trading Buttons */}
           <div className="grid grid-cols-2 gap-2">
-            <Button className="bg-green-500 hover:bg-green-600 text-white py-3 text-sm font-semibold">
-              Long
+            <Button 
+              className="bg-green-500 hover:bg-green-600 text-white py-3 text-sm font-semibold"
+              onClick={() => handlePlaceOrder('buy')}
+              disabled={placeOrderMutation.isPending}
+            >
+              {placeOrderMutation.isPending ? 'Placing...' : 'Long'}
             </Button>
-            <Button className="bg-red-500 hover:bg-red-600 text-white py-3 text-sm font-semibold">
-              Short
+            <Button 
+              className="bg-red-500 hover:bg-red-600 text-white py-3 text-sm font-semibold"
+              onClick={() => handlePlaceOrder('sell')}
+              disabled={placeOrderMutation.isPending}
+            >
+              {placeOrderMutation.isPending ? 'Placing...' : 'Short'}
             </Button>
           </div>
         </div>

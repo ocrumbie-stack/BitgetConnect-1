@@ -185,4 +185,30 @@ export class BitgetAPI {
       return false;
     }
   }
+
+  async placeOrder(orderParams: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    size: string;
+    orderType?: 'market' | 'limit';
+    price?: string;
+    leverage?: number;
+  }): Promise<any> {
+    try {
+      const orderData = {
+        symbol: orderParams.symbol,
+        marginCoin: 'USDT',
+        side: orderParams.side === 'buy' ? 'open_long' : 'open_short',
+        orderType: orderParams.orderType || 'market',
+        size: orderParams.size,
+        ...(orderParams.price && { price: orderParams.price })
+      };
+
+      const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error placing order:', error.response?.data || error);
+      throw new Error(error.response?.data?.msg || 'Failed to place order');
+    }
+  }
 }
