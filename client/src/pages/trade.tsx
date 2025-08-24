@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChevronDown, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check } from 'lucide-react';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -19,6 +21,11 @@ export function Trade() {
   const [takeProfit, setTakeProfit] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
+  const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
+  const [, setLocation] = useLocation();
+
+  // Get available pairs from data
+  const availablePairs = data ? data.map(item => item.symbol).sort() : ['BTCUSDT'];
 
   // Get trading pair from URL parameters
   useEffect(() => {
@@ -58,6 +65,13 @@ export function Trade() {
     setAmount(calculatedAmount);
   };
 
+  // Handle pair selection
+  const handlePairSelect = (pair: string) => {
+    setCurrentPair(pair);
+    setLocation(`/trade?pair=${pair}`);
+    setPairSelectorOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground pb-16">
       {/* Ultra Compact Header */}
@@ -66,10 +80,40 @@ export function Trade() {
           <div className="flex items-center gap-3">
             <div className="flex gap-4">
               <div>
-                <div className="flex items-center gap-1">
-                  <span className="text-base font-bold">{currentPair}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </div>
+                <Popover open={pairSelectorOpen} onOpenChange={setPairSelectorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-1 h-auto p-0 text-base font-bold hover:bg-transparent"
+                    >
+                      <span>{currentPair}</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search pairs..." className="h-8" />
+                      <CommandList>
+                        <CommandEmpty>No pairs found.</CommandEmpty>
+                        <CommandGroup>
+                          {availablePairs.map((pair) => (
+                            <CommandItem
+                              key={pair}
+                              value={pair}
+                              onSelect={() => handlePairSelect(pair)}
+                              className="flex items-center justify-between"
+                            >
+                              <span>{pair}</span>
+                              {pair === currentPair && (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <div className={`text-xs ${parseFloat(change24h) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
                 </div>
