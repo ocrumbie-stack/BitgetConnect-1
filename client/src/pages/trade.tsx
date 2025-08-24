@@ -178,6 +178,20 @@ export function Trade() {
                 Bot
               </Button>
             </Link>
+            {/* Dynamic Risk Assessment */}
+            {marketAnalysis && (
+              <div className={`flex items-center gap-1 px-2 py-1 rounded border text-xs ${
+                marketAnalysis.volatility > 60 ? 'border-red-500 text-red-500' :
+                marketAnalysis.volatility > 30 ? 'border-yellow-500 text-yellow-500' :
+                'border-green-500 text-green-500'
+              }`}>
+                <Shield className="h-3 w-3" />
+                <span className="font-medium">
+                  {marketAnalysis.volatility > 60 ? 'HIGH' :
+                   marketAnalysis.volatility > 30 ? 'MED' : 'LOW'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
