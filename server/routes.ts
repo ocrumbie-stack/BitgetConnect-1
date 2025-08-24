@@ -11,15 +11,49 @@ let updateInterval: NodeJS.Timeout | null = null;
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Debug middleware to catch ALL POST /api/orders requests
-  app.use((req, res, next) => {
-    if (req.method === 'POST' && req.url === '/api/orders') {
-      console.log('🚨 INTERCEPTED: POST /api/orders request');
-      console.log('📦 Body:', JSON.stringify(req.body, null, 2));
-      console.log('📍 URL:', req.url);
-      console.log('🎯 Path:', req.path);
+  // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
+  app.post('/api/orders', async (req, res) => {
+    console.log('✅ ORDER ENDPOINT HIT!');
+    console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
+    
+    try {
+      const orderData = req.body;
+      
+      // Validate required fields
+      if (!orderData.symbol || !orderData.side || !orderData.size) {
+        console.log('❌ Missing required fields');
+        return res.status(400).json({ 
+          success: false,
+          message: 'Missing required fields: symbol, side, size' 
+        });
+      }
+
+      console.log('✅ Order validation passed');
+      
+      // Return success response that matches what frontend expects
+      const mockResponse = {
+        orderId: 'mock-' + Date.now(),
+        symbol: orderData.symbol,
+        side: orderData.side,
+        size: orderData.size,
+        status: 'filled',
+        message: 'Order placed successfully (mock)'
+      };
+      
+      console.log('📤 Sending response:', JSON.stringify(mockResponse));
+      res.json(mockResponse);
+      console.log('✅ Response sent successfully');
+      
+    } catch (error: any) {
+      console.error('❌ Order placement error:', error);
+      
+      const errorMessage = error.message || 'Failed to place order';
+      res.status(500).json({ 
+        success: false,
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
-    next();
   });
 
   // WebSocket server for real-time updates
@@ -1033,53 +1067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return recommendations;
   }
 
-  // Order placement route
-  app.post('/api/orders', async (req, res) => {
-    console.log('POST /api/orders endpoint hit');
-    console.log('Request body:', req.body);
-    
-    try {
-      // For now, let's return a mock success response to test the frontend
-      const orderData = req.body;
-      
-      // Validate required fields
-      if (!orderData.symbol || !orderData.side || !orderData.size) {
-        console.log('Missing required fields');
-        return res.status(400).json({ 
-          success: false,
-          message: 'Missing required fields: symbol, side, size' 
-        });
-      }
-
-      console.log('Order validation passed');
-      
-      // Return success response that matches what frontend expects
-      const mockResponse = {
-        orderId: 'mock-' + Date.now(),
-        symbol: orderData.symbol,
-        side: orderData.side,
-        size: orderData.size,
-        status: 'filled',
-        message: 'Order placed successfully (mock)'
-      };
-      
-      console.log('Sending response:', mockResponse);
-      res.json(mockResponse);
-      
-      console.log('Mock order response sent');
-      
-    } catch (error: any) {
-      console.error('Order placement error:', error);
-      
-      // Ensure we always return proper JSON
-      const errorMessage = error.message || 'Failed to place order';
-      res.status(500).json({ 
-        success: false,
-        message: errorMessage,
-        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      });
-    }
-  });
+  // Duplicate order endpoint removed - using the one defined at the top
 
   // Initialize sample market opportunities
   async function initializeSampleData() {
