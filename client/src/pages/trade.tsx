@@ -179,7 +179,7 @@ export function Trade() {
               </Button>
             </Link>
             {/* Dynamic Risk Assessment */}
-            <Link to={`/analyzer?pair=${currentPair}`}>
+            <Link to={`/analyzer?pair=${currentPair}&autoFill=true`}>
               <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-risk-analysis">
                 <Shield className="h-3 w-3" />
               </Button>
