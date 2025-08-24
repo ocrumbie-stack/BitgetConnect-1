@@ -316,7 +316,8 @@ export default function BotPage() {
           capital,
           leverage,
           status: 'active',
-          deploymentType: 'manual'
+          deploymentType: 'manual',
+          botName: strategy.isAI ? strategy.name : null // Set AI bot name for individual deployments
         };
         
         await runStrategyMutation.mutateAsync(executionData);
@@ -1348,7 +1349,11 @@ export default function BotPage() {
                       {/* Folder-deployed bots grouped by folder */}
                       {Object.entries(folderGroups).map(([folderName, executions]) => (
                         <Card key={folderName} className={`${
-                          executions.some((ex: any) => ex.botName && ex.botName.includes('Smart')) 
+                          executions.some((ex: any) => {
+                            // Check if any execution in this folder is an AI bot
+                            const strategy = userStrategies.find(s => s.id === ex.strategyId) || aiBots.find(b => b.id === ex.strategyId);
+                            return strategy && (strategy.isAI || ex.botName?.includes('Smart') || ex.botName?.includes('AI'));
+                          }) 
                             ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10' 
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
@@ -1413,7 +1418,10 @@ export default function BotPage() {
                                 <div className="space-y-2">
                                   {executions.map((execution: any) => (
                                     <div key={execution.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                                      execution.botName && execution.botName.includes('Smart')
+                                      (() => {
+                                        const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                        return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                      })()
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
                                         : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
@@ -1473,7 +1481,10 @@ export default function BotPage() {
                       {/* Individual manually deployed bots */}
                       {manualExecutions.map((execution: any) => (
                         <Card key={execution.id} className={`${
-                          execution.botName && execution.botName.includes('Smart')
+                          (() => {
+                            const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                            return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                          })()
                             ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
@@ -1484,11 +1495,20 @@ export default function BotPage() {
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
-                                        execution.botName && execution.botName.includes('Smart') 
+                                        (() => {
+                                          const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                          return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                        })()
                                           ? 'hover:text-purple-500' 
                                           : 'hover:text-blue-500'
                                       }`}>
-                                        <span>{execution.botName || execution.tradingPair}</span>
+                                        <span>
+                                          {(() => {
+                                            if (execution.botName) return execution.botName;
+                                            const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                            return strategy ? strategy.name : execution.tradingPair;
+                                          })()} 
+                                        </span>
                                         <ChevronDown className="h-4 w-4 ml-1" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -1498,7 +1518,10 @@ export default function BotPage() {
                                           <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
                                           <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
                                           <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
-                                          <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Manual'}</div>
+                                          <div className="text-sm text-muted-foreground">Strategy: {(() => {
+                                            const strategy = aiBots.find(b => b.id === execution.strategyId) || userStrategies.find(s => s.id === execution.strategyId);
+                                            return strategy ? strategy.name : 'Manual';
+                                          })()}</div>
                                         </div>
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
