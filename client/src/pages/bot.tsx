@@ -73,6 +73,49 @@ export default function BotPage() {
     queryKey: ['/api/bot-strategies']
   });
 
+  // Define AI bots at component level so they can be accessed everywhere
+  const aiBots = [
+    {
+      id: 'grid',
+      name: 'Grid Trading Pro',
+      description: 'Dynamic grid with auto-adjustment based on volatility',
+      risk: 'Medium',
+      winRate: '78.5%',
+      gradient: 'from-blue-500 to-cyan-500',
+      icon: BarChart3,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT'],
+      suggestedCapital: '1000-5000',
+      suggestedLeverage: '2-5'
+    },
+    {
+      id: 'momentum',
+      name: 'Smart Momentum',
+      description: 'AI-powered momentum detection with trend following',
+      risk: 'High',
+      winRate: '82.1%',
+      gradient: 'from-indigo-500 to-purple-500',
+      icon: TrendingUp,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+      suggestedCapital: '2000-10000',
+      suggestedLeverage: '3-7'
+    },
+    {
+      id: 'scalping',
+      name: 'Smart Scalping Bot',
+      description: 'High-frequency scalping with ML-based entry signals',
+      risk: 'High',
+      winRate: '85.3%',
+      gradient: 'from-purple-500 to-pink-500',
+      icon: Zap,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT'],
+      suggestedCapital: '500-3000',
+      suggestedLeverage: '5-10'
+    }
+  ];
+
   // Fetch active executions
   const { data: allExecutions = [], isLoading: executionsLoading } = useQuery({
     queryKey: ['/api/bot-executions']
@@ -924,135 +967,6 @@ export default function BotPage() {
             </div>
 
             {(() => {
-              const aiBots = [
-                {
-                  id: 'grid',
-                  name: 'Grid Trading Pro',
-                  description: 'Dynamic grid with auto-adjustment based on volatility',
-                  risk: 'Medium',
-                  profitPotential: 'High',
-                  features: ['Auto-grid adjustment', 'Volume-based spacing', 'Profit protection'],
-                  winRate: '78%',
-                  avgReturn: '15-25%/month',
-                  icon: BarChart3,
-                  gradient: 'from-blue-500 to-cyan-500',
-                  howItWorks: 'Places multiple buy and sell orders at predetermined intervals above and below the current price. When market moves, it automatically captures profits from price swings while maintaining a balanced position.',
-                  strategy: 'Creates a grid of orders that profit from market volatility without predicting direction',
-                  bestFor: 'Sideways markets with regular price movements',
-                  timeframe: '24/7 continuous operation',
-                  indicators: ['Bollinger Bands', 'ATR', 'Volume Profile', 'Support/Resistance'],
-                  suggestedText: 'Perfect for BTCUSDT, ETHUSDT. Works best with stable coins in sideways trends.',
-                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT'],
-                  suggestedCapital: '500-2000',
-                  suggestedLeverage: '2-5'
-                },
-                {
-                  id: 'dca_smart',
-                  name: 'Smart DCA Bot',
-                  description: 'AI-powered dollar cost averaging with market timing',
-                  risk: 'Low',
-                  profitPotential: 'Medium',
-                  features: ['Market sentiment analysis', 'Dynamic entry timing', 'Risk management'],
-                  winRate: '85%',
-                  avgReturn: '8-15%/month',
-                  icon: TrendingUp,
-                  gradient: 'from-green-500 to-emerald-500',
-                  howItWorks: 'Systematically purchases assets at regular intervals, but uses AI to optimize timing based on market conditions. Adjusts purchase amounts based on volatility and sentiment.',
-                  strategy: 'Dollar-cost averaging with intelligent timing to reduce average entry price',
-                  bestFor: 'Long-term accumulation during market downturns',
-                  timeframe: 'Daily to weekly purchase intervals',
-                  indicators: ['RSI', 'Moving Averages', 'Market Sentiment', 'Fear & Greed Index'],
-                  suggestedText: 'Ideal for long-term BTC, ETH accumulation. Best during market dips.',
-                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT'],
-                  suggestedCapital: '1000-5000',
-                  suggestedLeverage: '1-2'
-                },
-                {
-                  id: 'momentum',
-                  name: 'Momentum Scalper',
-                  description: 'High-frequency momentum detection with ML algorithms',
-                  risk: 'High',
-                  profitPotential: 'Very High',
-                  features: ['Real-time sentiment', '50+ indicators', 'Auto-scaling'],
-                  winRate: '72%',
-                  avgReturn: '25-50%/month',
-                  icon: Zap,
-                  gradient: 'from-orange-500 to-red-500',
-                  howItWorks: 'Detects momentum breakouts using machine learning models trained on price patterns. Executes rapid trades to capture short-term price movements with tight stop-losses.',
-                  strategy: 'High-frequency trading based on momentum signals and volume spikes',
-                  bestFor: 'Trending markets with strong directional moves',
-                  timeframe: 'Seconds to minutes per trade',
-                  indicators: ['MACD', 'Momentum Oscillator', 'Volume Flow', 'Price Velocity'],
-                  suggestedText: 'High-speed scalping on volatile pairs like DOGEUSDT, SHIBUSDT during breakouts.',
-                  recommendedPairs: ['DOGEUSDT', 'SHIBUSDT', 'PEPEUSDT', 'FLOKIUSDT'],
-                  suggestedCapital: '200-1000',
-                  suggestedLeverage: '5-10'
-                },
-                {
-                  id: 'arbitrage',
-                  name: 'Cross-Exchange Arbitrage',
-                  description: 'Multi-exchange price difference exploitation',
-                  risk: 'Low',
-                  profitPotential: 'Medium',
-                  features: ['Multi-exchange monitoring', 'Instant execution', 'Low risk'],
-                  winRate: '92%',
-                  avgReturn: '5-12%/month',
-                  icon: Target,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  howItWorks: 'Monitors price differences across multiple exchanges and executes simultaneous buy/sell orders to capture risk-free profits from price discrepancies.',
-                  strategy: 'Risk-free profit from temporary price differences between exchanges',
-                  bestFor: 'Stable markets with sufficient liquidity across exchanges',
-                  timeframe: 'Milliseconds to seconds per trade',
-                  indicators: ['Price Spreads', 'Liquidity Depth', 'Exchange Fees', 'Transfer Times'],
-                  suggestedText: 'Low-risk arbitrage on major pairs with high liquidity like BTC, ETH, BNB.',
-                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'USDCUSDT'],
-                  suggestedCapital: '2000-10000',
-                  suggestedLeverage: '1-3'
-                },
-                {
-                  id: 'ai_trend',
-                  name: 'AI Trend Following',
-                  description: 'Machine learning powered trend detection and following',
-                  risk: 'Medium',
-                  profitPotential: 'High',
-                  features: ['Neural networks', 'Pattern recognition', 'Adaptive strategies'],
-                  winRate: '81%',
-                  avgReturn: '18-35%/month',
-                  icon: Trend,
-                  gradient: 'from-purple-500 to-pink-500',
-                  howItWorks: 'Uses neural networks to identify trend patterns and predict continuation probabilities. Adapts position sizes and entry/exit points based on trend strength and market conditions.',
-                  strategy: 'AI-powered trend identification with adaptive position management',
-                  bestFor: 'Markets with clear trending patterns and momentum',
-                  timeframe: 'Hours to days per trade',
-                  indicators: ['AI Pattern Recognition', 'Trend Strength', 'Support/Resistance', 'Market Structure'],
-                  suggestedText: 'AI trend detection works great on trending altcoins like SOL, ADA, DOT.',
-                  recommendedPairs: ['SOLUSDT', 'ADAUSDT', 'DOTUSDT', 'LINKUSDT'],
-                  suggestedCapital: '500-3000',
-                  suggestedLeverage: '3-7'
-                },
-                {
-                  id: 'volatility',
-                  name: 'Volatility Harvester',
-                  description: 'Profits from market volatility with advanced algorithms',
-                  risk: 'High',
-                  profitPotential: 'Very High',
-                  features: ['Volatility prediction', 'Dynamic hedging', 'Options strategies'],
-                  winRate: '76%',
-                  avgReturn: '30-45%/month',
-                  icon: Activity,
-                  gradient: 'from-pink-500 to-rose-500',
-                  howItWorks: 'Predicts volatility spikes using advanced statistical models. Uses delta-neutral strategies and dynamic hedging to profit from volatility changes regardless of price direction.',
-                  strategy: 'Statistical volatility trading with delta-neutral positioning',
-                  bestFor: 'High volatility periods and uncertainty events',
-                  timeframe: 'Minutes to hours per trade cycle',
-                  indicators: ['Implied Volatility', 'Historical Volatility', 'VIX', 'Option Greeks'],
-                  suggestedText: 'Harvests volatility from explosive meme coins and new listings during market events.',
-                  recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT'],
-                  suggestedCapital: '1000-5000',
-                  suggestedLeverage: '3-8'
-                }
-              ];
-              
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {aiBots.map((bot) => {
