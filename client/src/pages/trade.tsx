@@ -108,25 +108,23 @@ export function Trade() {
           </Select>
 
           {/* Order Type */}
-          <div className="border rounded p-3">
-            <div className="flex gap-2">
-              <Button 
-                variant={orderType === 'market' ? 'default' : 'outline'}
-                onClick={() => setOrderType('market')}
-                size="sm"
-                className="flex-1 text-sm h-8"
-              >
-                Market
-              </Button>
-              <Button 
-                variant={orderType === 'limit' ? 'default' : 'outline'}
-                onClick={() => setOrderType('limit')}
-                size="sm"
-                className="flex-1 text-sm h-8"
-              >
-                Limit
-              </Button>
-            </div>
+          <div className="flex gap-2">
+            <Button 
+              variant={orderType === 'market' ? 'default' : 'outline'}
+              onClick={() => setOrderType('market')}
+              size="sm"
+              className="flex-1 text-sm h-8"
+            >
+              Market
+            </Button>
+            <Button 
+              variant={orderType === 'limit' ? 'default' : 'outline'}
+              onClick={() => setOrderType('limit')}
+              size="sm"
+              className="flex-1 text-sm h-8"
+            >
+              Limit
+            </Button>
           </div>
 
           {/* Price Input */}
