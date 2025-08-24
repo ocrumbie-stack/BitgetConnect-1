@@ -34,13 +34,13 @@ export function Charts() {
       <BackButton />
       
       {/* Header */}
-      <div className="p-4 border-b border-border bg-card">
+      <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-xl font-bold">{selectedPair}</h1>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-2xl font-bold">${currentPrice}</span>
+              <h1 className="text-base font-bold">{selectedPair}</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold">${currentPrice}</span>
                 <Badge variant={parseFloat(change24h) >= 0 ? 'default' : 'destructive'} className="text-xs">
                   {parseFloat(change24h) >= 0 ? '+' : ''}{change24h}%
                 </Badge>
@@ -49,7 +49,7 @@ export function Charts() {
           </div>
           <div className="flex items-center gap-2">
             <Select value={timeframe} onValueChange={setTimeframe}>
-              <SelectTrigger className="w-20 h-8">
+              <SelectTrigger className="w-16 h-6 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -65,16 +65,16 @@ export function Charts() {
         </div>
       </div>
 
-      {/* Chart Placeholder */}
-      <div className="p-4">
-        <Card className="h-96 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50">
+      {/* Chart Placeholder - Full Extent */}
+      <div className="p-1">
+        <Card className="h-[500px] flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50">
           <div className="text-center">
-            <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Interactive Chart</h3>
-            <p className="text-muted-foreground mb-4">
+            <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <h3 className="text-sm font-semibold mb-2">Interactive Chart</h3>
+            <p className="text-xs text-muted-foreground mb-3">
               Advanced candlestick chart for {selectedPair} - {timeframe} timeframe
             </p>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               Chart integration coming soon
             </div>
           </div>
@@ -82,64 +82,65 @@ export function Charts() {
       </div>
 
       {/* Market Stats */}
-      <div className="p-4 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="p-2 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Volume2 className="h-4 w-4 text-blue-500" />
-                <span className="text-sm font-medium">24h Volume</span>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Volume2 className="h-3 w-3 text-blue-500" />
+                <span className="text-xs font-medium">24h Volume</span>
               </div>
-              <div className="text-lg font-bold">${volume24h}</div>
+              <div className="text-sm font-bold">${volume24h}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium">Timeframe</span>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-3 w-3 text-green-500" />
+                <span className="text-xs font-medium">Timeframe</span>
               </div>
-              <div className="text-lg font-bold">{timeframe}</div>
+              <div className="text-sm font-bold">{timeframe}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Technical Indicators */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Technical Indicators</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Technical Indicators</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 pt-0">
             <div className="flex justify-between items-center">
-              <span className="text-sm">RSI (14)</span>
-              <Badge variant="outline">45.2</Badge>
+              <span className="text-xs">RSI (14)</span>
+              <Badge variant="outline" className="text-xs">45.2</Badge>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">MACD</span>
-              <Badge variant="outline" className="text-green-600">Bullish</Badge>
+              <span className="text-xs">MACD</span>
+              <Badge variant="outline" className="text-green-600 text-xs">Bullish</Badge>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">MA (20)</span>
-              <Badge variant="outline">${(parseFloat(currentPrice) * 0.98).toFixed(2)}</Badge>
+              <span className="text-xs">MA (20)</span>
+              <Badge variant="outline" className="text-xs">${(parseFloat(currentPrice) * 0.98).toFixed(2)}</Badge>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">Volume Trend</span>
-              <Badge variant="outline" className="text-blue-600">Increasing</Badge>
+              <span className="text-xs">Volume Trend</span>
+              <Badge variant="outline" className="text-blue-600 text-xs">Increasing</Badge>
             </div>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <Button 
             onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs"
           >
             Trade {selectedPair}
           </Button>
           <Button 
             onClick={() => setLocation(`/analyzer?pair=${selectedPair}&autoFill=true`)}
             variant="outline"
+            className="h-8 text-xs"
           >
             Analyze Pair
           </Button>
