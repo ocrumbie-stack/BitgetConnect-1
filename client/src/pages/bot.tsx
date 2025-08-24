@@ -1485,7 +1485,7 @@ export default function BotPage() {
                                     className="font-medium cursor-pointer hover:text-blue-500 transition-colors"
                                     onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}
                                   >
-                                    {execution.tradingPair}
+                                    {execution.botName || execution.folderName || `Bot on ${execution.tradingPair}`}
                                   </h4>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
