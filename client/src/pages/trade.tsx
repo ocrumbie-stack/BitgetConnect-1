@@ -816,34 +816,22 @@ export function Trade() {
                         }`}>
                           {parseFloat(position.pnl) >= 0 ? '+' : ''}${parseFloat(position.pnl).toFixed(2)}
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
-                            onClick={() => closePositionMutation.mutate({
-                              symbol: position.symbol,
-                              side: position.side
-                            })}
-                            disabled={closePositionMutation.isPending}
-                            data-testid={`button-close-position-${position.symbol}-${position.side}`}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                          <Link to={`/charts?pair=${position.symbol}`}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 w-6 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
-                              data-testid={`button-chart-${position.symbol}`}
-                            >
-                              <BarChart3 className="h-3 w-3" />
-                            </Button>
-                          </Link>
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
+                          onClick={() => closePositionMutation.mutate({
+                            symbol: position.symbol,
+                            side: position.side
+                          })}
+                          disabled={closePositionMutation.isPending}
+                          data-testid={`button-close-position-${position.symbol}-${position.side}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground relative">
                       <div>
                         <div>Size</div>
                         <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(4)}</div>
@@ -856,6 +844,16 @@ export function Trade() {
                         <div>Mark</div>
                         <div className="font-medium text-foreground">${parseFloat(position.markPrice).toFixed(2)}</div>
                       </div>
+                      <Link to={`/charts?pair=${position.symbol}`} className="absolute bottom-0 right-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0 text-blue-500 hover:bg-blue-500/10 border-blue-500/30"
+                          data-testid={`button-chart-${position.symbol}`}
+                        >
+                          <BarChart3 className="h-3 w-3" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}
