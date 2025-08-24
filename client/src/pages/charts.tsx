@@ -1,19 +1,27 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Volume2, Clock } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Volume2, Clock, Loader2 } from 'lucide-react';
 import { BackButton } from '@/components/BackButton';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+
+interface PriceData {
+  time: string;
+  price: number;
+  volume?: number;
+}
 
 export function Charts() {
   const [, setLocation] = useLocation();
   const { data } = useBitgetData();
   const [selectedPair, setSelectedPair] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1H');
-  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartData, setChartData] = useState<PriceData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Get pair from URL parameters
   useEffect(() => {
@@ -24,63 +32,57 @@ export function Charts() {
     }
   }, []);
 
-  // Initialize TradingView widget
+  // Fetch Moralis price data
   useEffect(() => {
-    if (chartContainerRef.current && typeof window !== 'undefined') {
-      // Clear any existing widget
-      chartContainerRef.current.innerHTML = '';
-      
-      // Create script element
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      script.type = 'text/javascript';
-      script.async = true;
-      
-      // Convert timeframe format
-      const tvTimeframe = timeframe === '1M' ? '1' : 
-                         timeframe === '5M' ? '5' : 
-                         timeframe === '15M' ? '15' : 
-                         timeframe === '1H' ? '60' : 
-                         timeframe === '4H' ? '240' : 
-                         timeframe === '1D' ? '1D' : '60';
-      
-      script.innerHTML = JSON.stringify({
-        "autosize": true,
-        "symbol": `BITGET:${selectedPair}`,
-        "interval": tvTimeframe,
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "enable_publishing": false,
-        "backgroundColor": "rgba(19, 23, 34, 1)",
-        "gridColor": "rgba(42, 46, 57, 0.06)",
-        "hide_top_toolbar": true,
-        "hide_legend": false,
-        "save_image": false,
-        "allow_symbol_change": false,
-        "calendar": false,
-        "support_host": "https://tradingview.com",
-        "container_id": "tradingview_chart",
-        "studies": [
-          "Volume@tv-basicstudies",
-          "RSI@tv-basicstudies",
-          "MACD@tv-basicstudies"
-        ],
-        "toolbar_bg": "#131722",
-        "overrides": {
-          "mainSeriesProperties.candleStyle.upColor": "#089981",
-          "mainSeriesProperties.candleStyle.downColor": "#f23645",
-          "mainSeriesProperties.candleStyle.borderUpColor": "#089981",
-          "mainSeriesProperties.candleStyle.borderDownColor": "#f23645",
-          "mainSeriesProperties.candleStyle.wickUpColor": "#089981",
-          "mainSeriesProperties.candleStyle.wickDownColor": "#f23645"
-        }
-      });
-      
-      chartContainerRef.current.appendChild(script);
-    }
-  }, [selectedPair, timeframe]);
+    const fetchPriceData = async () => {
+      setLoading(true);
+      try {
+        // For demo purposes, generating realistic price data
+        // Replace with actual Moralis API call once configured
+        const generateData = () => {
+          const data = [];
+          const now = Date.now();
+          const basePrice = parseFloat(currentPrice) || 114000;
+          
+          const intervals = timeframe === '1M' ? 60 : 
+                           timeframe === '5M' ? 12 : 
+                           timeframe === '15M' ? 4 : 
+                           timeframe === '1H' ? 24 : 
+                           timeframe === '4H' ? 6 : 7;
+          
+          const stepMs = timeframe === '1M' ? 60000 : 
+                        timeframe === '5M' ? 300000 : 
+                        timeframe === '15M' ? 900000 : 
+                        timeframe === '1H' ? 3600000 : 
+                        timeframe === '4H' ? 14400000 : 86400000;
+          
+          for (let i = intervals; i >= 0; i--) {
+            const time = new Date(now - (i * stepMs));
+            const volatility = Math.random() * 0.02 - 0.01; // ±1% volatility
+            const price = basePrice * (1 + volatility * i * 0.1);
+            
+            data.push({
+              time: time.toISOString(),
+              price: Number(price.toFixed(2)),
+              volume: Math.random() * 1000000 + 500000
+            });
+          }
+          return data;
+        };
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        setChartData(generateData());
+      } catch (error) {
+        console.error('Error fetching price data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPriceData();
+  }, [selectedPair, timeframe, currentPrice]);
 
   // Get current pair data
   const currentPairData = data?.find(item => item.symbol === selectedPair);
@@ -124,12 +126,63 @@ export function Charts() {
         </div>
       </div>
 
-      {/* TradingView Chart - Full Extent */}
-      <div 
-        ref={chartContainerRef}
-        className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
-        id="tradingview_chart"
-      />
+      {/* Moralis Custom Chart - Full Extent */}
+      <div className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0 relative">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Loading chart data...</p>
+            </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <defs>
+                <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <XAxis 
+                dataKey="time" 
+                tickFormatter={(time) => new Date(time).toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: false 
+                })}
+                stroke="#9ca3af"
+                fontSize={10}
+              />
+              <YAxis 
+                domain={['dataMin - 100', 'dataMax + 100']}
+                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                stroke="#9ca3af"
+                fontSize={10}
+              />
+              <Tooltip 
+                labelFormatter={(time) => new Date(time).toLocaleString()}
+                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Price']}
+                contentStyle={{
+                  backgroundColor: '#1f2937',
+                  border: '1px solid #374151',
+                  borderRadius: '6px',
+                  color: '#f9fafb'
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="price"
+                stroke="#2563eb"
+                strokeWidth={2}
+                fill="url(#priceGradient)"
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
 
       {/* Market Stats */}
       <div className="space-y-3">
