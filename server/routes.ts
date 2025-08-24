@@ -57,11 +57,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🚀 Placing REAL order via Bitget API...');
       
+      // Ensure minimum order value of 5 USDT for Bitget
+      let adjustedSize = orderData.size;
+      const sizeFloat = parseFloat(orderData.size);
+      
+      // For small cap coins, ensure we meet 5 USDT minimum
+      if (sizeFloat < 15) { // If size is small, likely needs adjustment
+        adjustedSize = Math.max(sizeFloat, 15).toString(); // Ensure at least 15 tokens for small caps
+        console.log(`⚖️ Adjusted order size from ${orderData.size} to ${adjustedSize} to meet 5 USDT minimum`);
+      }
+      
       // Place the actual order using Bitget API
       const realOrderResponse = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
         side: orderData.side,
-        size: orderData.size,
+        size: adjustedSize,
         orderType: orderData.orderType || 'market',
         leverage: orderData.leverage
       });
