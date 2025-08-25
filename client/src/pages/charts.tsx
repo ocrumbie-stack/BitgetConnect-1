@@ -129,8 +129,8 @@ export function Charts() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="absolute top-2 left-2 z-[9999]">
-        <div className="bg-background/90 backdrop-blur-sm rounded-lg border">
+      <div className="fixed top-4 left-4 z-[99999] pointer-events-auto">
+        <div className="bg-background/95 backdrop-blur-md rounded-lg border shadow-lg p-1">
           <BackButton />
         </div>
       </div>
