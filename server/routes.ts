@@ -98,18 +98,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let adjustedSize: string;
       let usdValue: number;
       
-      // Handle different amount types
+      // Handle different amount types with leverage calculation
+      const leverage = orderData.leverage || 1;
+      
       if (orderData.amountType === 'tokens') {
         // User entered token quantity directly
         adjustedSize = inputAmount.toFixed(6);
         usdValue = inputAmount * currentPrice;
         console.log(`🪙 Using ${inputAmount} tokens directly, USD value: $${usdValue.toFixed(2)}`);
       } else {
-        // User entered USD amount (default behavior)
-        usdValue = inputAmount;
-        const contractQuantity = inputAmount / currentPrice;
+        // User entered USD margin amount - calculate leveraged position size
+        const marginAmount = inputAmount;
+        const leveragedAmount = marginAmount * leverage;
+        usdValue = leveragedAmount; // This is the actual position value
+        const contractQuantity = leveragedAmount / currentPrice;
         adjustedSize = contractQuantity.toFixed(6);
-        console.log(`💰 Converting USD $${inputAmount} to ${adjustedSize} contracts at price $${currentPrice}`);
+        console.log(`💰 Margin: $${marginAmount} × ${leverage}x leverage = $${leveragedAmount} position → ${adjustedSize} contracts at $${currentPrice}`);
       }
       
       // Ensure minimum order value of 5 USDT for Bitget
