@@ -1348,7 +1348,7 @@ export default function BotPage() {
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="start" className="w-64">
-                                            <DropdownMenuItem onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}>
+                                            <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                               <div className="flex flex-col space-y-1">
                                                 <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
                                                 <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
@@ -1427,7 +1427,7 @@ export default function BotPage() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start" className="w-64">
-                                      <DropdownMenuItem onClick={() => setLocation(`/trade?pair=${execution.tradingPair}`)}>
+                                      <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                         <div className="flex flex-col space-y-1">
                                           <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
                                           <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>

@@ -646,7 +646,7 @@ export default function Markets() {
                 ) : marketInsights?.topGainer ? (
                   <Card 
                     className="p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setLocation(`/trade?pair=${marketInsights.topGainer!.symbol}`)}
+                    onClick={() => setLocation(`/charts?pair=${marketInsights.topGainer!.symbol}`)}
                   >
                     <div className="text-center">
                       <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Top Gainer (24H)</p>
@@ -682,7 +682,7 @@ export default function Markets() {
                 ) : marketInsights?.topLoser ? (
                   <Card 
                     className="p-3 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 border-red-200 dark:border-red-800 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setLocation(`/trade?pair=${marketInsights.topLoser!.symbol}`)}
+                    onClick={() => setLocation(`/charts?pair=${marketInsights.topLoser!.symbol}`)}
                   >
                     <div className="text-center">
                       <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">Top Loser (24H)</p>
@@ -858,7 +858,7 @@ export default function Markets() {
                                 <div
                                   key={`${opp.symbol}-${index}`}
                                   className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
-                                  onClick={() => setLocation(`/trade?pair=${opp.symbol}`)}
+                                  onClick={() => setLocation(`/charts?pair=${opp.symbol}`)}
                                 >
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">

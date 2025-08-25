@@ -196,7 +196,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
               <div 
                 className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
                 data-testid={`row-${item.symbol}`}
-                onClick={() => setLocation(`/trade?pair=${item.symbol}`)}
+                onClick={() => setLocation(`/charts?pair=${item.symbol}`)}
                 onTouchStart={() => handleLongPressStart(item.symbol)}
                 onTouchEnd={handleLongPressEnd}
                 onMouseDown={() => handleLongPressStart(item.symbol)}
@@ -255,7 +255,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
               <ContextMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLocation(`/trade?pair=${item.symbol}`);
+                  setLocation(`/charts?pair=${item.symbol}`);
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
