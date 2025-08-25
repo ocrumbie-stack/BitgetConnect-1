@@ -297,16 +297,16 @@ export function Trade() {
   return (
     <div className="h-screen bg-background text-foreground flex flex-col pb-0">
       {/* Ultra Compact Header */}
-      <div className="px-0.5 py-0 border-b border-border bg-card">
+      <div className="p-1 border-b border-border bg-card">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <div className="flex gap-1">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-4">
               <div>
                 <Popover open={pairSelectorOpen} onOpenChange={setPairSelectorOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-0.5 h-auto p-0 text-xs font-bold hover:bg-transparent"
+                      className="flex items-center gap-1 h-auto p-0 text-base font-bold hover:bg-transparent"
                     >
                       <span>{currentPair}</span>
                       <ChevronDown className="h-3 w-3" />
@@ -349,7 +349,7 @@ export function Trade() {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold">${currentPrice}</div>
+                <div className="text-sm font-bold">${currentPrice}</div>
                 <div className="text-xs text-muted-foreground">Vol: $2.4B</div>
               </div>
             </div>
@@ -357,19 +357,19 @@ export function Trade() {
           <div className="flex items-center gap-2 text-xs">
             {/* Chart Navigation */}
             <Link to={`/charts?pair=${currentPair}`}>
-              <Button size="sm" variant="outline" className="h-5 w-6 p-0 bg-green-500 hover:bg-green-600 border-green-500" data-testid="button-charts">
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 border-green-500" data-testid="button-charts">
                 <BarChart3 className="h-3 w-3 text-white" />
               </Button>
             </Link>
             <Link to={`/bot?pair=${currentPair}`}>
-              <Button size="sm" variant="outline" className="gap-1 h-5 px-2" data-testid="button-bot-trading">
+              <Button size="sm" variant="outline" className="gap-1 h-6 px-2" data-testid="button-bot-trading">
                 <Bot className="h-3 w-3" />
                 Bot
               </Button>
             </Link>
             {/* Dynamic Risk Assessment */}
             <Link to={`/analyzer?pair=${currentPair}&autoFill=true`}>
-              <Button size="sm" variant="outline" className="h-5 w-6 p-0" data-testid="button-risk-analysis">
+              <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-risk-analysis">
                 <Shield className="h-3 w-3" />
               </Button>
             </Link>
@@ -380,10 +380,10 @@ export function Trade() {
       {/* Main Layout: Trading Form + Analysis Panel */}
       <div className="flex h-[calc(100vh-120px)]">
         {/* Left: Compact Trading Form */}
-        <div className="flex-1 px-1 py-1 space-y-1 overflow-y-auto">
+        <div className="flex-1 p-1 space-y-1 overflow-y-auto">
           {/* Leverage */}
           {!customLeverageMode ? (
-            <div className="space-y-0">
+            <div className="space-y-2">
               {/* Check if current leverage is a preset value */}
               {['5', '10', '20', '50', '100'].includes(leverage) ? (
                 <Select value={leverage} onValueChange={(value) => {
@@ -394,7 +394,7 @@ export function Trade() {
                     setLeverage(value);
                   }
                 }}>
-                  <SelectTrigger className="w-full h-5">
+                  <SelectTrigger className="w-full h-10">
                     <SelectValue placeholder="Leverage: Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,7 +411,7 @@ export function Trade() {
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1 h-5 justify-between"
+                    className="flex-1 h-10 justify-between"
                     onClick={() => {
                       setCustomLeverageMode(true);
                       setCustomLeverage(leverage);
@@ -423,7 +423,7 @@ export function Trade() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="px-3 h-5"
+                    className="px-3 h-10"
                     onClick={() => setLeverage('10')}
                     data-testid="button-reset-leverage"
                   >
@@ -433,14 +433,14 @@ export function Trade() {
               )}
             </div>
           ) : (
-            <div className="space-y-0">
+            <div className="space-y-2">
               <div className="flex gap-2">
                 <Input
                   type="number"
                   placeholder="Enter leverage (1-200)"
                   value={customLeverage}
                   onChange={(e) => setCustomLeverage(e.target.value)}
-                  className="flex-1 h-5"
+                  className="flex-1 h-10"
                   min="1"
                   max="200"
                   step="1"
@@ -454,7 +454,7 @@ export function Trade() {
                     }
                   }}
                   size="sm"
-                  className="px-3 h-5"
+                  className="px-3 h-10"
                   data-testid="button-apply-custom-leverage"
                 >
                   Apply
@@ -466,7 +466,7 @@ export function Trade() {
                   }}
                   variant="outline"
                   size="sm"
-                  className="px-3 h-5"
+                  className="px-3 h-10"
                   data-testid="button-cancel-custom-leverage"
                 >
                   Cancel
@@ -503,7 +503,7 @@ export function Trade() {
             <div className="border rounded p-3">
               <Input
                 placeholder={`Limit price: ${currentPrice}`}
-                className="h-5 text-sm border-0 shadow-none"
+                className="h-10 text-sm border-0 shadow-none"
                 value={limitPrice}
                 onChange={(e) => setLimitPrice(e.target.value)}
               />
@@ -537,7 +537,7 @@ export function Trade() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePercentageClick(percent)}
-                className="text-xs h-5"
+                className="text-xs h-6"
               >
                 {percent}
               </Button>
@@ -546,7 +546,7 @@ export function Trade() {
 
           {/* TP/SL */}
           <div className="border rounded p-2">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-2">
               <Switch 
                 checked={tpslEnabled}
                 onCheckedChange={setTpslEnabled}
@@ -557,18 +557,18 @@ export function Trade() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setTpslExpanded(!tpslExpanded)}
-                  className="ml-auto h-5 w-6 p-0"
+                  className="ml-auto h-6 w-6 p-0"
                 >
                   <ChevronDown className={`h-3 w-3 transition-transform ${tpslExpanded ? 'rotate-180' : ''}`} />
                 </Button>
               )}
             </div>
             {tpslEnabled && tpslExpanded && (
-              <div className="space-y-0">
+              <div className="space-y-2">
                 {/* Take Profit */}
                 <div className="flex gap-1">
                   <Select value={tpMode} onValueChange={(value: 'percentage' | 'price') => setTpMode(value)}>
-                    <SelectTrigger className="w-16 h-5 text-xs">
+                    <SelectTrigger className="w-16 h-7 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -578,7 +578,7 @@ export function Trade() {
                   </Select>
                   <Input
                     placeholder={tpMode === 'percentage' ? "TP %" : "TP Price"}
-                    className="h-5 flex-1 text-xs"
+                    className="h-7 flex-1 text-xs"
                     value={takeProfit}
                     onChange={(e) => setTakeProfit(e.target.value)}
                   />
@@ -587,7 +587,7 @@ export function Trade() {
                 {/* Stop Loss */}
                 <div className="flex gap-1">
                   <Select value={slMode} onValueChange={(value: 'percentage' | 'price') => setSlMode(value)}>
-                    <SelectTrigger className="w-16 h-5 text-xs">
+                    <SelectTrigger className="w-16 h-7 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -597,7 +597,7 @@ export function Trade() {
                   </Select>
                   <Input
                     placeholder={slMode === 'percentage' ? "SL %" : "SL Price"}
-                    className="h-5 flex-1 text-xs"
+                    className="h-7 flex-1 text-xs"
                     value={stopLoss}
                     onChange={(e) => setStopLoss(e.target.value)}
                   />
@@ -605,7 +605,7 @@ export function Trade() {
 
                 {/* Trailing Stop */}
                 <div className="border-t border-border pt-2">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-2">
                     <Switch 
                       checked={trailingStopEnabled}
                       onCheckedChange={setTrailingStopEnabled}
@@ -615,7 +615,7 @@ export function Trade() {
                   {trailingStopEnabled && (
                     <div className="flex gap-1">
                       <Select value={trailingStopMode} onValueChange={(value: 'percentage' | 'price') => setTrailingStopMode(value)}>
-                        <SelectTrigger className="w-16 h-5 text-xs">
+                        <SelectTrigger className="w-16 h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -625,7 +625,7 @@ export function Trade() {
                       </Select>
                       <Input
                         placeholder={trailingStopMode === 'percentage' ? "Trail %" : "Trail $"}
-                        className="h-5 flex-1 text-xs"
+                        className="h-7 flex-1 text-xs"
                         value={trailingStopValue}
                         onChange={(e) => setTrailingStopValue(e.target.value)}
                       />
@@ -663,14 +663,14 @@ export function Trade() {
         </div>
 
         {/* Right: Market Analysis Panel */}
-        <div className="w-36 border-l border-border bg-card/50 px-1 py-1 space-y-1">
-          <h3 className="text-xs font-semibold mb-0 flex items-center">
+        <div className="w-48 border-l border-border bg-card/50 p-1 space-y-1">
+          <h3 className="text-sm font-semibold mb-1 flex items-center gap-1">
             <Activity className="h-3 w-3" />
             Market Analysis
           </h3>
 
           {/* Market Strength */}
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Market Strength</span>
               <span className="font-medium">{marketAnalysis?.marketStrength}%</span>
@@ -684,7 +684,7 @@ export function Trade() {
           </div>
 
           {/* Pair Strength */}
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Pair Strength</span>
               <span className="font-medium">{marketAnalysis?.pairStrength}%</span>
@@ -718,12 +718,12 @@ export function Trade() {
           </div>
 
           {/* Support & Resistance */}
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex items-center gap-1 text-xs">
               <Shield className="h-3 w-3 text-blue-500" />
               <span className="text-muted-foreground">Support/Resistance</span>
             </div>
-            <div className="space-y-0.5 text-xs">
+            <div className="space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-red-500">Resistance:</span>
                 <span>${marketAnalysis?.resistance || 'N/A'}</span>
@@ -736,7 +736,7 @@ export function Trade() {
           </div>
 
           {/* Volatility */}
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Volatility</span>
               <span className="font-medium">{marketAnalysis?.volatility}%</span>
@@ -750,7 +750,7 @@ export function Trade() {
           </div>
 
           {/* Momentum & Volume */}
-          <div className="space-y-0.5 text-xs">
+          <div className="space-y-1 text-xs">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Momentum:</span>
               <span className={`capitalize ${
@@ -777,9 +777,9 @@ export function Trade() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="border-t border-border bg-card h-24 flex flex-col">
+      <div className="border-t border-border bg-card flex-1 flex flex-col">
         <Tabs defaultValue="positions" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none h-6">
+          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions({(accountData as any)?.positions?.length || 0})
             </TabsTrigger>
@@ -791,9 +791,9 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-1 flex-1 overflow-y-auto">
+          <TabsContent value="positions" className="p-2 flex-1">
             {(accountData as any)?.positions?.length > 0 ? (
-              <div className="space-y-0">
+              <div className="space-y-3">
                 {(accountData as any).positions.map((position: any) => {
                   const positionKey = `${position.symbol}-${position.side}`;
                   const isExpanded = expandedPositions.has(positionKey);
@@ -821,9 +821,9 @@ export function Trade() {
                   };
                   
                   return (
-                    <div key={positionKey} className="bg-card/50 rounded-lg p-0.5 border border-border">
+                    <div key={positionKey} className="bg-card/50 rounded-lg p-3 border border-border">
                       {/* Header with main info */}
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm">{position.symbol}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
@@ -836,7 +836,7 @@ export function Trade() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-5 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
+                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-500/10 border-red-500/30"
                           onClick={() => {
                             console.log('🔥 Close button clicked!', { symbol: position.symbol, side: position.side });
                             closePositionMutation.mutate({
@@ -868,7 +868,7 @@ export function Trade() {
                           size="sm"
                           variant="ghost"
                           onClick={toggleExpanded}
-                          className="h-5 w-6 p-0 text-muted-foreground hover:text-foreground"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                         >
                           {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </Button>
@@ -876,7 +876,7 @@ export function Trade() {
 
                       {/* Collapsible details */}
                       {isExpanded && (
-                        <div className="space-y-0">
+                        <div className="space-y-3">
                           <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                             <div>
                               <div>Size</div>
@@ -934,12 +934,12 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-1 flex-1 overflow-y-auto">
+          <TabsContent value="orders" className="p-2 flex-1">
             {(ordersData as any[])?.length > 0 ? (
-              <div className="space-y-0">
+              <div className="space-y-3">
                 {(ordersData as any[]).map((order: any) => (
-                  <div key={order.orderId} className="bg-card/50 rounded-lg p-0.5 border border-border">
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={order.orderId} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{order.symbol}</span>
                         <span className={`text-xs px-2 py-0.5 rounded ${
@@ -977,12 +977,12 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-1 flex-1 overflow-y-auto">
+          <TabsContent value="bots" className="p-2 flex-1">
             {(botsData as any[])?.length > 0 ? (
-              <div className="space-y-0">
+              <div className="space-y-3">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
-                  <div key={bot.id} className="bg-card/50 rounded-lg p-0.5 border border-border">
-                    <div className="flex items-center justify-between mb-1">
+                  <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{bot.symbol}</span>
                         <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
