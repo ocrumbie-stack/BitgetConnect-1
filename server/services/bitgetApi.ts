@@ -356,8 +356,10 @@ export class BitgetAPI {
         
         const currentPrice = parseFloat(symbolTicker.lastPr);
         
-        // Determine the opposite side for closing the position with trailing stop
-        const trailingSide = orderParams.side === 'buy' ? 'sell' : 'buy';
+        // For hedge mode, to close a position we need to create an opposite position
+        // For a LONG position (buy side), we need to create a SHORT position (sell side) to offset it
+        const holdSideForClosing = orderParams.side === 'buy' ? 'short' : 'long';
+        const oppositeSide = orderParams.side === 'buy' ? 'sell' : 'buy';
         
         // Create trailing stop plan order
         const trailingStopData = {
@@ -365,8 +367,9 @@ export class BitgetAPI {
           productType: 'USDT-FUTURES',
           marginMode: 'isolated',
           marginCoin: 'USDT',
-          side: trailingSide, // Opposite side to close the position
-          tradeSide: 'close', // This is a closing order
+          side: oppositeSide, // Opposite side to close the position
+          tradeSide: 'open', // Use 'open' with opposite holdSide in hedge mode
+          holdSide: holdSideForClosing, // Specify the holdSide for hedge mode
           planType: 'track_plan', // Trailing stop plan type
           orderType: 'market', // Trailing stops are market orders
           size: formattedSize,
