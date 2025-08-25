@@ -1043,11 +1043,17 @@ export function Trade() {
                         }`}>
                           {order.side.toUpperCase()}
                         </span>
-                        {/* Show order type - distinguish between regular and TP/SL plan orders */}
+                        {/* Show order type - distinguish between regular, TP/SL, and trailing stop orders */}
                         {order.orderCategory === 'plan' ? (
-                          <span className="text-xs bg-orange-500/20 text-orange-500 px-2 py-0.5 rounded">
-                            TP/SL
-                          </span>
+                          order.planType === 'track_plan' ? (
+                            <span className="text-xs bg-purple-500/20 text-purple-500 px-2 py-0.5 rounded">
+                              Trailing
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-orange-500/20 text-orange-500 px-2 py-0.5 rounded">
+                              TP/SL
+                            </span>
+                          )
                         ) : (
                           <span className="text-xs bg-muted px-2 py-0.5 rounded">{order.orderType}</span>
                         )}
@@ -1075,13 +1081,22 @@ export function Trade() {
                         <div className="font-medium text-foreground">{new Date(order.cTime).toLocaleTimeString()}</div>
                       </div>
                     </div>
-                    {/* Additional info for TP/SL orders */}
+                    {/* Additional info for plan orders */}
                     {order.orderCategory === 'plan' && (
                       <div className="mt-2 pt-2 border-t border-border text-xs text-muted-foreground">
                         <div className="flex justify-between">
-                          <span>Plan Type: {order.planType === 'profit_plan' ? 'Take Profit' : 'Stop Loss'}</span>
+                          <span>Plan Type: {
+                            order.planType === 'track_plan' ? 'Trailing Stop' :
+                            order.planType === 'profit_plan' ? 'Take Profit' : 'Stop Loss'
+                          }</span>
                           <span>Reduce-only: Yes</span>
                         </div>
+                        {/* Show callback percentage for trailing stops */}
+                        {order.planType === 'track_plan' && order.callbackRatio && (
+                          <div className="mt-1">
+                            <span>Callback: {order.callbackRatio}%</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
