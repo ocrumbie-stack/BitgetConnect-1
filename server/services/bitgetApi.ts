@@ -308,6 +308,14 @@ export class BitgetAPI {
         holdSide: currentPosition.holdSide // Always include holdSide for closing
       };
 
+      // Check for any open orders first that might interfere
+      try {
+        const openOrders = await this.client.get(`/api/v2/mix/order/orders-pending?symbol=${symbol}&productType=USDT-FUTURES`);
+        console.log('📝 Open orders for', symbol, ':', JSON.stringify(openOrders.data, null, 2));
+      } catch (orderError: any) {
+        console.log('⚠️ Could not fetch open orders:', orderError.message);
+      }
+
       console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
 
       const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
