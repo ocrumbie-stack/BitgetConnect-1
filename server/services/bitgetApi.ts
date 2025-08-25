@@ -70,6 +70,11 @@ export interface PositionData {
   holdMode: string;
   cTime: string;
   uTime: string;
+  // TP/SL fields returned by Bitget API
+  takeProfit?: string;      // Take Profit price level  
+  stopLoss?: string;        // Stop Loss price level
+  takeProfitId?: string;    // Active TP order ID
+  stopLossId?: string;      // Active SL order ID
 }
 
 export class BitgetAPI {
