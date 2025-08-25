@@ -611,53 +611,104 @@ export function Trade() {
                   />
                 </div>
                 
-                {/* Stop Loss */}
-                <div className="flex gap-1">
-                  <Select value={slMode} onValueChange={(value: 'percentage' | 'price') => setSlMode(value)}>
-                    <SelectTrigger className="w-16 h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="percentage">%</SelectItem>
-                      <SelectItem value="price">$</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder={slMode === 'percentage' ? "SL %" : "SL Price"}
-                    className="h-7 flex-1 text-xs"
-                    value={stopLoss}
-                    onChange={(e) => setStopLoss(e.target.value)}
-                  />
-                </div>
-
-                {/* Trailing Stop */}
+                {/* Stop Loss Protection - Choose One */}
                 <div className="border-t border-border pt-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Switch 
-                      checked={trailingStopEnabled}
-                      onCheckedChange={setTrailingStopEnabled}
-                    />
-                    <span className="text-xs">Trailing Stop</span>
-                  </div>
-                  {trailingStopEnabled && (
-                    <div className="flex gap-1">
-                      <Select value={trailingStopMode} onValueChange={(value: 'percentage' | 'price') => setTrailingStopMode(value)}>
-                        <SelectTrigger className="w-16 h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="percentage">%</SelectItem>
-                          <SelectItem value="price">$</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        placeholder={trailingStopMode === 'percentage' ? "Trail %" : "Trail $"}
-                        className="h-7 flex-1 text-xs"
-                        value={trailingStopValue}
-                        onChange={(e) => setTrailingStopValue(e.target.value)}
+                  <div className="text-xs text-muted-foreground mb-2">Choose Protection Type:</div>
+                  
+                  {/* Regular Stop Loss */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={stopLoss !== '' && !trailingStopEnabled}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            // Enable regular stop loss, disable trailing stop
+                            setTrailingStopEnabled(false);
+                            setTrailingStopValue('');
+                            if (!stopLoss) setStopLoss('5'); // Default 5%
+                          } else {
+                            // Disable regular stop loss
+                            setStopLoss('');
+                          }
+                        }}
+                        disabled={trailingStopEnabled}
                       />
+                      <span className={`text-xs ${trailingStopEnabled ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        Fixed Stop Loss
+                      </span>
+                      {trailingStopEnabled && (
+                        <span className="text-xs text-muted-foreground">(disabled - using trailing)</span>
+                      )}
                     </div>
-                  )}
+                    
+                    {stopLoss !== '' && !trailingStopEnabled && (
+                      <div className="flex gap-1">
+                        <Select value={slMode} onValueChange={(value: 'percentage' | 'price') => setSlMode(value)}>
+                          <SelectTrigger className="w-16 h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="percentage">%</SelectItem>
+                            <SelectItem value="price">$</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          placeholder={slMode === 'percentage' ? "SL %" : "SL Price"}
+                          className="h-7 flex-1 text-xs"
+                          value={stopLoss}
+                          onChange={(e) => setStopLoss(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trailing Stop */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={trailingStopEnabled}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            // Enable trailing stop, disable regular stop loss
+                            setStopLoss('');
+                            setTrailingStopEnabled(true);
+                            if (!trailingStopValue) setTrailingStopValue('3'); // Default 3%
+                          } else {
+                            // Disable trailing stop
+                            setTrailingStopEnabled(false);
+                            setTrailingStopValue('');
+                          }
+                        }}
+                        disabled={stopLoss !== ''}
+                      />
+                      <span className={`text-xs ${stopLoss !== '' ? 'text-muted-foreground' : 'text-foreground'}`}>
+                        Trailing Stop
+                      </span>
+                      {stopLoss !== '' && (
+                        <span className="text-xs text-muted-foreground">(disabled - using fixed SL)</span>
+                      )}
+                    </div>
+                    
+                    {trailingStopEnabled && (
+                      <div className="flex gap-1">
+                        <Select value={trailingStopMode} onValueChange={(value: 'percentage' | 'price') => setTrailingStopMode(value)}>
+                          <SelectTrigger className="w-16 h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="percentage">%</SelectItem>
+                            <SelectItem value="price">$</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          placeholder={trailingStopMode === 'percentage' ? "Trail %" : "Trail $"}
+                          className="h-7 flex-1 text-xs"
+                          value={trailingStopValue}
+                          onChange={(e) => setTrailingStopValue(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
