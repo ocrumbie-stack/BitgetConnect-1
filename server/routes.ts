@@ -245,6 +245,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Technical indicators endpoint for signals
+  app.get('/api/signals/:symbol', async (req, res) => {
+    try {
+      if (!bitgetAPI) {
+        return res.status(400).json({ message: 'Bitget API not configured' });
+      }
+
+      const { symbol } = req.params;
+      
+      // Get recent candle data for technical analysis
+      const candleResponse = await bitgetAPI.client.get(`/api/v2/mix/market/candles?symbol=${symbol}&productType=USDT-FUTURES&granularity=1m&limit=50`);
+      const candles = candleResponse.data.data;
+      
+      if (!candles || candles.length < 20) {
+        return res.json({
+          rsi: { status: 'neutral', value: 50 },
+          macd: { status: 'neutral', signal: 'hold' },
+          volume: { status: 'neutral', trend: 'stable' }
+        });
+      }
+
+      // Calculate RSI (14-period)
+      const closes = candles.map((c: any) => parseFloat(c[4])).reverse();
+      const rsi = calculateRSI(closes, 14);
+      
+      let rsiStatus = 'neutral';
+      if (rsi < 30) rsiStatus = 'oversold';
+      else if (rsi > 70) rsiStatus = 'overbought';
+
+      // Calculate simple MACD approximation
+      const ema12 = calculateEMA(closes, 12);
+      const ema26 = calculateEMA(closes, 26);
+      const macdLine = ema12 - ema26;
+      
+      let macdStatus = 'neutral';
+      if (macdLine > 0) macdStatus = 'bullish';
+      else if (macdLine < 0) macdStatus = 'bearish';
+
+      // Calculate volume trend
+      const volumes = candles.map((c: any) => parseFloat(c[5])).reverse();
+      const recentVolume = volumes.slice(-5).reduce((a, b) => a + b, 0) / 5;
+      const previousVolume = volumes.slice(-15, -10).reduce((a, b) => a + b, 0) / 5;
+      
+      let volumeStatus = 'neutral';
+      if (recentVolume > previousVolume * 1.2) volumeStatus = 'rising';
+      else if (recentVolume < previousVolume * 0.8) volumeStatus = 'falling';
+
+      res.json({
+        rsi: { status: rsiStatus, value: Math.round(rsi * 100) / 100 },
+        macd: { status: macdStatus, signal: macdStatus === 'bullish' ? 'buy' : macdStatus === 'bearish' ? 'sell' : 'hold' },
+        volume: { status: volumeStatus, trend: volumeStatus }
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error fetching signals:', error);
+      res.status(500).json({ message: 'Failed to fetch signals' });
+    }
+  });
+
+  // Helper functions for technical indicators
+  function calculateRSI(prices: number[], period: number): number {
+    if (prices.length < period + 1) return 50;
+    
+    let gains = 0;
+    let losses = 0;
+    
+    for (let i = 1; i <= period; i++) {
+      const change = prices[i] - prices[i - 1];
+      if (change > 0) gains += change;
+      else losses += Math.abs(change);
+    }
+    
+    const avgGain = gains / period;
+    const avgLoss = losses / period;
+    
+    if (avgLoss === 0) return 100;
+    
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+  }
+
+  function calculateEMA(prices: number[], period: number): number {
+    if (prices.length < period) return prices[prices.length - 1];
+    
+    const multiplier = 2 / (period + 1);
+    let ema = prices[0];
+    
+    for (let i = 1; i < prices.length; i++) {
+      ema = (prices[i] * multiplier) + (ema * (1 - multiplier));
+    }
+    
+    return ema;
+  }
+
   // API Routes
   app.post('/api/credentials', async (req, res) => {
     try {

@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { LiveSignals } from '@/components/LiveSignals';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -770,27 +771,8 @@ export function Trade() {
             </div>
           </div>
 
-          {/* Quick Signals */}
-          <div className="border-t border-border pt-2">
-            <div className="text-xs font-medium mb-1 flex items-center gap-1">
-              <Target className="h-3 w-3" />
-              Signals
-            </div>
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>RSI Oversold</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span>MACD Neutral</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Volume Rising</span>
-              </div>
-            </div>
-          </div>
+          {/* Live Signals */}
+          <LiveSignals symbol={currentPair} />
         </div>
       </div>
 
