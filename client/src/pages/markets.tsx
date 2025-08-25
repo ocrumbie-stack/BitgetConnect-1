@@ -44,7 +44,7 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
-  const [isScreenersCollapsed, setIsScreenersCollapsed] = useState(false);
+  const [isScreenersCollapsed, setIsScreenersCollapsed] = useState(false); // Start expanded by default
 
   // Fetch user screeners
   const { data: userScreeners = [] } = useQuery<any[]>({
