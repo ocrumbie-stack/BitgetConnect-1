@@ -135,10 +135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Assume percentage - calculate price
           const tpPercentage = parseFloat(orderData.takeProfit) / 100;
           const multiplier = orderData.side === 'buy' ? (1 + tpPercentage) : (1 - tpPercentage);
-          takeProfitPrice = (currentPrice * multiplier).toString();
+          const calculatedPrice = currentPrice * multiplier;
+          // Round to 6 decimal places for Bitget API precision requirements
+          takeProfitPrice = calculatedPrice.toFixed(6);
         } else {
-          // Assume absolute price
-          takeProfitPrice = orderData.takeProfit;
+          // Assume absolute price - still format to 6 decimal places
+          takeProfitPrice = parseFloat(orderData.takeProfit).toFixed(6);
         }
         console.log('💰 Take Profit Price:', takeProfitPrice);
       }
@@ -150,10 +152,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Assume percentage - calculate price
           const slPercentage = parseFloat(orderData.stopLoss) / 100;
           const multiplier = orderData.side === 'buy' ? (1 - slPercentage) : (1 + slPercentage);
-          stopLossPrice = (currentPrice * multiplier).toString();
+          const calculatedPrice = currentPrice * multiplier;
+          // Round to 6 decimal places for Bitget API precision requirements
+          stopLossPrice = calculatedPrice.toFixed(6);
         } else {
-          // Assume absolute price
-          stopLossPrice = orderData.stopLoss;
+          // Assume absolute price - still format to 6 decimal places
+          stopLossPrice = parseFloat(orderData.stopLoss).toFixed(6);
         }
         console.log('🛑 Stop Loss Price:', stopLossPrice);
       }
