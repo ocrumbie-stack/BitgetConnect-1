@@ -295,17 +295,18 @@ export class BitgetAPI {
       // To close a position, we place an opposite order with 'close' tradeSide
       const oppositeSide = side === 'long' ? 'sell' : 'buy';
       
-      // For hedge mode positions - use 'close' tradeSide with same holdSide to actually close the position
+      // For hedge mode positions - use 'open' tradeSide with opposite holdSide to close via offsetting
+      // This creates an opposite position that cancels out the existing one
       const orderData = {
         symbol: symbol,
         productType: 'USDT-FUTURES',
         marginMode: currentPosition.marginMode || 'isolated',
         marginCoin: 'USDT',
         side: oppositeSide,
-        tradeSide: 'close', // Use 'close' to actually close the position
+        tradeSide: 'open', // Use 'open' in hedge mode
         orderType: 'market',
         size: currentPosition.total,
-        holdSide: currentPosition.holdSide // Same holdSide to close the existing position
+        holdSide: currentPosition.holdSide === 'long' ? 'short' : 'long' // Opposite holdSide to offset
       };
 
       // Check for any open orders first that might interfere
@@ -318,8 +319,25 @@ export class BitgetAPI {
 
       console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
 
-      const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
-      return response.data;
+      // Try the flash close position endpoint first (doesn't require additional margin)
+      try {
+        const flashCloseData = {
+          symbol: symbol,
+          productType: 'USDT-FUTURES',
+          holdSide: currentPosition.holdSide
+        };
+        console.log('🚀 Trying flash close first:', JSON.stringify(flashCloseData, null, 2));
+        
+        const flashResponse = await this.client.post('/api/v2/mix/order/close-positions', flashCloseData);
+        console.log('✅ Flash close successful:', JSON.stringify(flashResponse.data, null, 2));
+        return flashResponse.data;
+      } catch (flashError: any) {
+        console.log('⚠️ Flash close failed, trying regular order:', flashError.response?.data?.msg || flashError.message);
+        
+        // Fall back to regular order placement
+        const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
+        return response.data;
+      }
     } catch (error: any) {
       console.error('❌ Error closing position:', error.response?.data || error.message || error);
       
