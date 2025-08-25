@@ -298,89 +298,106 @@ export class BitgetAPI {
     trailingStop?: string;
   }): Promise<any> {
     try {
-      // Check if trailing stop is requested - use plan order API
-      if (orderParams.trailingStop) {
-        console.log('🎯 Placing trailing stop order...');
-        
-        // Get current market price for trigger price calculation and contract config
-        const [allTickers, contractConfigs] = await Promise.all([
-          this.getAllFuturesTickers(),
-          this.getContractConfig(orderParams.symbol)
-        ]);
-        
-        const symbolTicker = allTickers.find(ticker => ticker.symbol === orderParams.symbol);
-        if (!symbolTicker) {
-          throw new Error(`Cannot find current price for ${orderParams.symbol} to set trigger price`);
-        }
-        
-        // Get proper size precision from contract config
-        const symbolConfig = contractConfigs.find(config => config.symbol === orderParams.symbol);
-        let sizePrecision = 6; // Default fallback
+      // Get contract config for proper formatting (needed for all orders)
+      let sizePrecision = 6; // Default fallback
+      try {
+        const contractConfigs = await this.getContractConfig(orderParams.symbol);
+        const symbolConfig = contractConfigs.find((config: any) => config.symbol === orderParams.symbol);
         if (symbolConfig && symbolConfig.volumePlace) {
           sizePrecision = parseInt(symbolConfig.volumePlace);
           console.log(`📏 Size precision for ${orderParams.symbol}: ${sizePrecision} decimal places`);
         }
+      } catch (error) {
+        console.log(`⚠️ Could not fetch contract config, using default precision: ${sizePrecision}`);
+      }
+      
+      // Format the size with proper precision
+      const formattedSize = parseFloat(orderParams.size).toFixed(sizePrecision);
+
+      // STEP 1: Always place the main order first to open/close the position
+      console.log('🚀 Placing main order...');
+      const orderData = {
+        symbol: orderParams.symbol,
+        productType: 'USDT-FUTURES',
+        marginMode: 'isolated', // Required: 'isolated' or 'crossed'
+        marginCoin: 'USDT',
+        side: orderParams.side, // Use 'buy' or 'sell' directly
+        tradeSide: 'open', // Always 'open' for new positions
+        orderType: orderParams.orderType || 'market',
+        size: formattedSize,
+        ...(orderParams.price && { price: orderParams.price }),
+        // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
+        ...(orderParams.takeProfit && { 
+          presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
+          // Note: Don't include executePrice for market execution
+        }),
+        ...(orderParams.stopLoss && { 
+          presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
+          // Note: Don't include executePrice for market execution
+        })
+      };
+
+      console.log('🔧 Main order data for Bitget:', JSON.stringify(orderData, null, 2));
+      const mainOrderResponse = await this.client.post('/api/v2/mix/order/place-order', orderData);
+      console.log('✅ Main order placed successfully:', JSON.stringify(mainOrderResponse.data, null, 2));
+
+      // STEP 2: If trailing stop is requested, place a separate trailing stop plan order
+      if (orderParams.trailingStop) {
+        console.log('🎯 Adding trailing stop plan order...');
+        
+        // Get current market price for trigger price calculation
+        const allTickers = await this.getAllFuturesTickers();
+        const symbolTicker = allTickers.find(ticker => ticker.symbol === orderParams.symbol);
+        
+        if (!symbolTicker) {
+          console.log('⚠️ Could not find current price for trailing stop, skipping...');
+          return mainOrderResponse.data; // Return main order success
+        }
         
         const currentPrice = parseFloat(symbolTicker.lastPr);
         
-        // Format the size with proper precision
-        const formattedSize = parseFloat(orderParams.size).toFixed(sizePrecision);
+        // Determine the opposite side for closing the position with trailing stop
+        const trailingSide = orderParams.side === 'buy' ? 'sell' : 'buy';
         
-        // For trailing stop orders, use the plan order API
-        const planOrderData = {
+        // Create trailing stop plan order
+        const trailingStopData = {
           symbol: orderParams.symbol,
           productType: 'USDT-FUTURES',
           marginMode: 'isolated',
           marginCoin: 'USDT',
-          side: orderParams.side,
-          tradeSide: 'open',
+          side: trailingSide, // Opposite side to close the position
+          tradeSide: 'close', // This is a closing order
           planType: 'track_plan', // Trailing stop plan type
-          orderType: 'market', // Trailing stops are typically market orders
+          orderType: 'market', // Trailing stops are market orders
           size: formattedSize,
           callbackRatio: orderParams.trailingStop, // Callback ratio for trailing stop (1-10%)
           // Set trigger price to current market price for immediate activation
           triggerPrice: currentPrice.toString(),
-          triggerType: 'mark_price',
-          ...(orderParams.takeProfit && { 
-            presetStopSurplusPrice: orderParams.takeProfit 
-          }),
-          ...(orderParams.stopLoss && { 
-            presetStopLossPrice: orderParams.stopLoss  
-          })
+          triggerType: 'mark_price'
         };
 
-        console.log('🔧 Trailing stop order data for Bitget:', JSON.stringify(planOrderData, null, 2));
+        console.log('🔧 Trailing stop plan order data:', JSON.stringify(trailingStopData, null, 2));
         
-        const response = await this.client.post('/api/v2/mix/order/place-plan-order', planOrderData);
-        return response.data;
-      } else {
-        // Regular order without trailing stop
-        const orderData = {
-          symbol: orderParams.symbol,
-          productType: 'USDT-FUTURES',
-          marginMode: 'isolated', // Required: 'isolated' or 'crossed'
-          marginCoin: 'USDT',
-          side: orderParams.side, // Use 'buy' or 'sell' directly
-          tradeSide: 'open', // Always 'open' for new positions
-          orderType: orderParams.orderType || 'market',
-          size: orderParams.size,
-          ...(orderParams.price && { price: orderParams.price }),
-          // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
-          ...(orderParams.takeProfit && { 
-            presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
-            // Note: Don't include executePrice for market execution
-          }),
-          ...(orderParams.stopLoss && { 
-            presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
-            // Note: Don't include executePrice for market execution
-          })
-        };
-
-        console.log('🔧 Final order data for Bitget:', JSON.stringify(orderData, null, 2));
-
-        const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
-        return response.data;
+        try {
+          const trailingStopResponse = await this.client.post('/api/v2/mix/order/place-plan-order', trailingStopData);
+          console.log('✅ Trailing stop plan order placed successfully:', JSON.stringify(trailingStopResponse.data, null, 2));
+          
+          // Return combined response indicating both orders were placed
+          return {
+            ...mainOrderResponse.data,
+            trailingStopAdded: true,
+            trailingStopOrderId: trailingStopResponse.data.data?.orderId
+          };
+        } catch (trailingError: any) {
+          console.log('⚠️ Trailing stop plan order failed, but main order succeeded:', trailingError.response?.data?.msg || trailingError.message);
+          return {
+            ...mainOrderResponse.data,
+            trailingStopWarning: 'Main order placed successfully, but trailing stop failed: ' + (trailingError.response?.data?.msg || trailingError.message)
+          };
+        }
       }
+
+      return mainOrderResponse.data;
     } catch (error: any) {
       console.error('Error placing order:', error.response?.data || error.message || error);
       
