@@ -907,11 +907,11 @@ export function Trade() {
                           <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                             <div>
                               <div>Size</div>
-                              <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(4)}</div>
+                              <div className="font-medium text-foreground">{parseFloat(position.size).toFixed(2)}</div>
                             </div>
                             <div>
                               <div>Entry</div>
-                              <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(2)}</div>
+                              <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(6)}</div>
                             </div>
                             <div>
                               <div>Margin</div>
