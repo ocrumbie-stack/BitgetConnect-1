@@ -213,6 +213,21 @@ export class BitgetAPI {
     }
   }
 
+  async getContractConfig(symbol?: string): Promise<any> {
+    try {
+      const params: any = { productType: 'usdt-futures' };
+      if (symbol) {
+        params.symbol = symbol;
+      }
+      
+      const response = await this.client.get('/api/v2/mix/market/contracts', { params });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching contract config:', error);
+      throw new Error('Failed to fetch contract configuration');
+    }
+  }
+
   async placeOrder(orderParams: {
     symbol: string;
     side: 'buy' | 'sell';
