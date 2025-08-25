@@ -5,6 +5,7 @@ interface SignalsData {
   rsi: { status: string; value: number };
   macd: { status: string; signal: string };
   volume: { status: string; trend: string };
+  ema: { status: string; ema20: number; ema50: number };
 }
 
 interface LiveSignalsProps {
@@ -65,6 +66,8 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
         return `MACD ${data.status}`;
       case 'volume':
         return `Volume ${data.trend}`;
+      case 'ema':
+        return `EMA ${data.status}`;
       default:
         return 'Unknown';
     }
@@ -122,6 +125,10 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 ${getStatusColor(signalsData.volume.status)} rounded-full`}></div>
           <span>{getSignalText('volume', signalsData.volume)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 ${getStatusColor(signalsData.ema?.status || 'neutral')} rounded-full`}></div>
+          <span>{getSignalText('ema', signalsData.ema || { status: 'neutral' })}</span>
         </div>
       </div>
     </div>
