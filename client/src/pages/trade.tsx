@@ -914,8 +914,8 @@ export function Trade() {
                               <div className="font-medium text-foreground">${parseFloat(position.entryPrice).toFixed(2)}</div>
                             </div>
                             <div>
-                              <div>Mark</div>
-                              <div className="font-medium text-foreground">${parseFloat(position.markPrice).toFixed(2)}</div>
+                              <div>Margin</div>
+                              <div className="font-medium text-foreground">${(parseFloat(position.size) * parseFloat(position.entryPrice) / parseFloat(position.leverage)).toFixed(2)}</div>
                             </div>
                           </div>
                           
