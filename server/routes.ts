@@ -27,6 +27,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'Test endpoint works!' });
   });
 
+  // Catch-all middleware for positions endpoints
+  app.use('/api/positions/*', (req, res, next) => {
+    console.log('🎯🎯🎯 POSITIONS ROUTE INTERCEPTED:', req.method, req.url);
+    console.log('🎯🎯🎯 POSITIONS BODY:', req.body);
+    next();
+  });
+
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
   app.post('/api/orders', async (req, res) => {
