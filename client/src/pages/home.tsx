@@ -671,17 +671,17 @@ export function Home() {
           <TabsContent value="overview" className="space-y-6 mt-4 overflow-x-hidden">
             {/* Market Statistics Cards */}
             <div className="grid grid-cols-2 gap-3 w-full">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
                 <CardContent className="p-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-blue-500 rounded-lg">
+                    <div className="p-1.5 bg-orange-500 rounded-lg">
                       <DollarSign className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <div className="text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="total-volume">
+                      <div className="text-lg font-bold text-orange-700 dark:text-orange-300" data-testid="total-volume">
                         {isLoading ? '...' : formatVolume(totalVolume)}
                       </div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400">Total Volume (24h)</div>
+                      <div className="text-xs text-orange-600 dark:text-orange-400">Total Volume (24h)</div>
                     </div>
                   </div>
                 </CardContent>
