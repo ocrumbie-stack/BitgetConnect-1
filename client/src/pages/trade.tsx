@@ -773,6 +773,60 @@ export function Trade() {
 
           {/* Live Signals */}
           <LiveSignals symbol={currentPair} />
+          
+          {/* Additional Technical Analysis */}
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              <BarChart3 className="h-3 w-3" />
+              Technical Analysis
+            </h4>
+            <div className="space-y-2 text-xs">
+              {/* Bollinger Bands Analysis */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Bollinger:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                  <span className="text-yellow-500">Mid Band</span>
+                </div>
+              </div>
+              
+              {/* Stochastic RSI */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Stoch RSI:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-blue-500">Oversold</span>
+                </div>
+              </div>
+              
+              {/* Williams %R */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Williams %R:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-green-500">Bullish</span>
+                </div>
+              </div>
+              
+              {/* ADX Trend Strength */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">ADX Trend:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                  <span className="text-orange-500">Strong (65.2)</span>
+                </div>
+              </div>
+              
+              {/* Commodity Channel Index */}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">CCI:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-red-500">Overbought</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
