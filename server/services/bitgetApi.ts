@@ -198,10 +198,25 @@ export class BitgetAPI {
 
   async getOrders(): Promise<any[]> {
     try {
-      const response = await this.client.get('/api/v2/mix/order/orders-pending', {
+      // Fetch regular pending orders
+      const regularOrdersResponse = await this.client.get('/api/v2/mix/order/orders-pending', {
         params: { productType: 'USDT-FUTURES' }
       });
-      return response.data.data || [];
+      
+      // Fetch TP/SL plan orders (these are shown as separate orders in Bitget)
+      const planOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+        params: { productType: 'USDT-FUTURES' }
+      });
+      
+      const regularOrders = regularOrdersResponse.data.data || [];
+      const planOrders = planOrdersResponse.data.data || [];
+      
+      // Add a type identifier to distinguish order types
+      const typedRegularOrders = regularOrders.map(order => ({ ...order, orderCategory: 'regular' }));
+      const typedPlanOrders = planOrders.map(order => ({ ...order, orderCategory: 'plan' }));
+      
+      // Combine both types of orders
+      return [...typedRegularOrders, ...typedPlanOrders];
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw new Error('Failed to fetch orders from Bitget API');
