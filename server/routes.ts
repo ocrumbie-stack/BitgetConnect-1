@@ -93,6 +93,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const currentPrice = parseFloat(symbolTicker.lastPr);
+      console.log(`💱 Current price for ${orderData.symbol}: ${currentPrice} (precision: ${symbolTicker.lastPr})`);
+      
+      // Get contract configuration to determine proper price precision
+      let pricePrecision = 6; // Default fallback
+      try {
+        const contractConfigs = await bitgetAPI.getContractConfig(orderData.symbol);
+        const symbolConfig = contractConfigs.find(config => config.symbol === orderData.symbol);
+        if (symbolConfig && symbolConfig.pricePlace) {
+          pricePrecision = parseInt(symbolConfig.pricePlace);
+          console.log(`📏 Price precision for ${orderData.symbol}: ${pricePrecision} decimal places`);
+        }
+      } catch (error) {
+        console.log(`⚠️ Could not fetch contract config, using default precision: ${pricePrecision}`);
+      }
+      
       const inputAmount = parseFloat(orderData.size);
       
       let adjustedSize: string;
@@ -136,11 +151,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const tpPercentage = parseFloat(orderData.takeProfit) / 100;
           const multiplier = orderData.side === 'buy' ? (1 + tpPercentage) : (1 - tpPercentage);
           const calculatedPrice = currentPrice * multiplier;
-          // Round to 6 decimal places for Bitget API precision requirements
-          takeProfitPrice = calculatedPrice.toFixed(6);
+          // Round to correct decimal places based on symbol's precision requirements
+          takeProfitPrice = calculatedPrice.toFixed(pricePrecision);
         } else {
-          // Assume absolute price - still format to 6 decimal places
-          takeProfitPrice = parseFloat(orderData.takeProfit).toFixed(6);
+          // Assume absolute price - format to correct decimal places
+          takeProfitPrice = parseFloat(orderData.takeProfit).toFixed(pricePrecision);
         }
         console.log('💰 Take Profit Price:', takeProfitPrice);
       }
@@ -153,11 +168,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const slPercentage = parseFloat(orderData.stopLoss) / 100;
           const multiplier = orderData.side === 'buy' ? (1 - slPercentage) : (1 + slPercentage);
           const calculatedPrice = currentPrice * multiplier;
-          // Round to 6 decimal places for Bitget API precision requirements
-          stopLossPrice = calculatedPrice.toFixed(6);
+          // Round to correct decimal places based on symbol's precision requirements
+          stopLossPrice = calculatedPrice.toFixed(pricePrecision);
         } else {
-          // Assume absolute price - still format to 6 decimal places
-          stopLossPrice = parseFloat(orderData.stopLoss).toFixed(6);
+          // Assume absolute price - format to correct decimal places
+          stopLossPrice = parseFloat(orderData.stopLoss).toFixed(pricePrecision);
         }
         console.log('🛑 Stop Loss Price:', stopLossPrice);
       }
