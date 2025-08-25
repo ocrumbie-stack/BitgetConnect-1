@@ -295,7 +295,7 @@ export function Trade() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-16">
+    <div className="min-h-screen bg-background text-foreground pb-0">
       {/* Ultra Compact Header */}
       <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
@@ -791,7 +791,7 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-4">
+          <TabsContent value="positions" className="p-4 min-h-[200px]">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-3">
                 {(accountData as any).positions.map((position: any) => {
@@ -934,7 +934,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-4">
+          <TabsContent value="orders" className="p-4 min-h-[200px]">
             {(ordersData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(ordersData as any[]).map((order: any) => (
@@ -977,7 +977,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-4">
+          <TabsContent value="bots" className="p-4 min-h-[200px]">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
