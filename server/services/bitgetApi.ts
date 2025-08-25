@@ -198,27 +198,48 @@ export class BitgetAPI {
 
   async getOrders(): Promise<any[]> {
     try {
-      // Fetch regular pending orders
+      console.log('🔍 Fetching regular orders from Bitget API...');
+      
+      // Fetch regular pending orders first
       const regularOrdersResponse = await this.client.get('/api/v2/mix/order/orders-pending', {
         params: { productType: 'USDT-FUTURES' }
       });
       
-      // Fetch TP/SL plan orders (these are shown as separate orders in Bitget)
-      const planOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
-        params: { productType: 'USDT-FUTURES' }
-      });
+      // Parse regular orders from entrustedList structure
+      const regularOrdersList = regularOrdersResponse.data.data?.entrustedList || [];
+      const regularOrders = Array.isArray(regularOrdersList) ? regularOrdersList : [];
+      console.log(`📋 Found ${regularOrders.length} regular orders`);
       
-      const regularOrders = regularOrdersResponse.data.data || [];
-      const planOrders = planOrdersResponse.data.data || [];
+      // Now try to fetch TP/SL plan orders
+      let planOrders: any[] = [];
+      try {
+        console.log('🔍 Fetching TP/SL plan orders...');
+        const planOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+          params: { 
+            productType: 'USDT-FUTURES',
+            planType: 'profit_loss'  // Required parameter for TP/SL orders
+          }
+        });
+        
+        console.log('🔍 Raw plan orders response:', JSON.stringify(planOrdersResponse.data, null, 2));
+        const planOrdersList = planOrdersResponse.data.data?.entrustedList || planOrdersResponse.data.data || [];
+        planOrders = Array.isArray(planOrdersList) ? planOrdersList : [];
+        console.log(`📋 Found ${planOrders.length} TP/SL plan orders`);
+      } catch (planError) {
+        console.log('⚠️ Could not fetch plan orders:', (planError as any).response?.data?.msg || (planError as any).message);
+        planOrders = [];
+      }
       
-      // Add a type identifier to distinguish order types
+      // Add type identifiers
       const typedRegularOrders = regularOrders.map(order => ({ ...order, orderCategory: 'regular' }));
       const typedPlanOrders = planOrders.map(order => ({ ...order, orderCategory: 'plan' }));
       
-      // Combine both types of orders
-      return [...typedRegularOrders, ...typedPlanOrders];
+      const allOrders = [...typedRegularOrders, ...typedPlanOrders];
+      console.log(`📊 Total orders returned: ${allOrders.length} (${regularOrders.length} regular + ${planOrders.length} plan)`);
+      
+      return allOrders;
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('❌ Error fetching regular orders:', error);
       throw new Error('Failed to fetch orders from Bitget API');
     }
   }

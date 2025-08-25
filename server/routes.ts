@@ -739,15 +739,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get orders endpoint
   app.get('/api/orders/:userId', async (req, res) => {
     try {
+      console.log(`🔍 REQUEST: GET /api/orders/${req.params.userId}`);
+      
       if (!bitgetAPI) {
+        console.log('❌ Bitget API not configured');
         return res.status(400).json({ 
           message: 'Bitget API not configured' 
         });
       }
 
       const orders = await bitgetAPI.getOrders();
+      console.log(`✅ Orders fetched successfully: ${orders.length} total orders`);
       res.json(orders);
     } catch (error: any) {
+      console.log('❌ Error in orders endpoint:', error.message);
       res.status(500).json({ 
         message: error.message || 'Failed to fetch orders' 
       });
