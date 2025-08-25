@@ -992,7 +992,14 @@ export function Trade() {
                         }`}>
                           {order.side.toUpperCase()}
                         </span>
-                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{order.orderType}</span>
+                        {/* Show order type - distinguish between regular and TP/SL plan orders */}
+                        {order.orderCategory === 'plan' ? (
+                          <span className="text-xs bg-orange-500/20 text-orange-500 px-2 py-0.5 rounded">
+                            TP/SL
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-muted px-2 py-0.5 rounded">{order.orderType}</span>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {order.status}
@@ -1004,14 +1011,28 @@ export function Trade() {
                         <div className="font-medium text-foreground">{parseFloat(order.size).toFixed(4)}</div>
                       </div>
                       <div>
-                        <div>Price</div>
-                        <div className="font-medium text-foreground">${order.price ? parseFloat(order.price).toFixed(2) : 'Market'}</div>
+                        <div>{order.orderCategory === 'plan' ? 'Trigger' : 'Price'}</div>
+                        <div className="font-medium text-foreground">
+                          ${order.orderCategory === 'plan' ? 
+                            parseFloat(order.triggerPrice).toFixed(6) : 
+                            (order.price ? parseFloat(order.price).toFixed(2) : 'Market')
+                          }
+                        </div>
                       </div>
                       <div>
                         <div>Time</div>
                         <div className="font-medium text-foreground">{new Date(order.cTime).toLocaleTimeString()}</div>
                       </div>
                     </div>
+                    {/* Additional info for TP/SL orders */}
+                    {order.orderCategory === 'plan' && (
+                      <div className="mt-2 pt-2 border-t border-border text-xs text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Plan Type: {order.planType === 'profit_plan' ? 'Take Profit' : 'Stop Loss'}</span>
+                          <span>Reduce-only: Yes</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
