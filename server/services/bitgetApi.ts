@@ -302,6 +302,16 @@ export class BitgetAPI {
       if (orderParams.trailingStop) {
         console.log('🎯 Placing trailing stop order...');
         
+        // Get current market price for trigger price calculation
+        const allTickers = await this.getAllFuturesTickers();
+        const symbolTicker = allTickers.find(ticker => ticker.symbol === orderParams.symbol);
+        
+        if (!symbolTicker) {
+          throw new Error(`Cannot find current price for ${orderParams.symbol} to set trigger price`);
+        }
+        
+        const currentPrice = parseFloat(symbolTicker.lastPr);
+        
         // For trailing stop orders, use the plan order API
         const planOrderData = {
           symbol: orderParams.symbol,
@@ -311,13 +321,12 @@ export class BitgetAPI {
           side: orderParams.side,
           tradeSide: 'open',
           planType: 'track_plan', // Trailing stop plan type
-          orderType: orderParams.orderType || 'market',
+          orderType: 'market', // Trailing stops are typically market orders
           size: orderParams.size,
           callbackRatio: orderParams.trailingStop, // Callback ratio for trailing stop (1-10%)
-          ...(orderParams.price && orderParams.orderType === 'limit' && { 
-            triggerPrice: orderParams.price,
-            triggerType: 'mark_price'
-          }),
+          // Set trigger price to current market price for immediate activation
+          triggerPrice: currentPrice.toString(),
+          triggerType: 'mark_price',
           ...(orderParams.takeProfit && { 
             presetStopSurplusPrice: orderParams.takeProfit 
           }),
