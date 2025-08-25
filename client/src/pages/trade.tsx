@@ -378,12 +378,12 @@ export function Trade() {
       </div>
 
       {/* Main Layout: Trading Form + Analysis Panel */}
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex h-[calc(100vh-100px)]">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-1 space-y-1 overflow-y-auto">
           {/* Leverage */}
           {!customLeverageMode ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {/* Check if current leverage is a preset value */}
               {['5', '10', '20', '50', '100'].includes(leverage) ? (
                 <Select value={leverage} onValueChange={(value) => {
@@ -433,7 +433,7 @@ export function Trade() {
               )}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -564,7 +564,7 @@ export function Trade() {
               )}
             </div>
             {tpslEnabled && tpslExpanded && (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {/* Take Profit */}
                 <div className="flex gap-1">
                   <Select value={tpMode} onValueChange={(value: 'percentage' | 'price') => setTpMode(value)}>
