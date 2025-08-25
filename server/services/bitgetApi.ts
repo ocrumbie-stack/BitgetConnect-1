@@ -236,12 +236,12 @@ export class BitgetAPI {
         ...(orderParams.price && { price: orderParams.price }),
         // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
         ...(orderParams.takeProfit && { 
-          presetStopSurplusPrice: orderParams.takeProfit, // Correct name for TP
-          presetStopSurplusExecutePrice: "0" // 0 = market order execution
+          presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
+          // Note: Don't include executePrice for market execution
         }),
         ...(orderParams.stopLoss && { 
-          presetStopLossPrice: orderParams.stopLoss, // Correct name for SL
-          presetStopLossExecutePrice: "0" // 0 = market order execution
+          presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
+          // Note: Don't include executePrice for market execution
         })
       };
 
