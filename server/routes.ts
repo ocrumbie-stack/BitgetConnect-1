@@ -116,9 +116,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle different amount types with leverage calculation
       const leverage = orderData.leverage || 1;
       
+      // Get proper size precision from contract config
+      let sizePrecision = 6; // Default fallback
+      try {
+        const contractConfigs = await bitgetAPI.getContractConfig(orderData.symbol);
+        const symbolConfig = contractConfigs.find(config => config.symbol === orderData.symbol);
+        if (symbolConfig && symbolConfig.volumePlace) {
+          sizePrecision = parseInt(symbolConfig.volumePlace);
+          console.log(`📏 Size precision for ${orderData.symbol}: ${sizePrecision} decimal places`);
+        }
+      } catch (error) {
+        console.log(`⚠️ Could not fetch contract config, using default precision: ${sizePrecision}`);
+      }
+      
       if (orderData.amountType === 'tokens') {
         // User entered token quantity directly
-        adjustedSize = inputAmount.toFixed(6);
+        adjustedSize = inputAmount.toFixed(sizePrecision);
         usdValue = inputAmount * currentPrice;
       } else {
         // User entered USD margin amount - calculate leveraged position size
@@ -126,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const leveragedAmount = marginAmount * leverage;
         usdValue = leveragedAmount; // This is the actual position value
         const contractQuantity = leveragedAmount / currentPrice;
-        adjustedSize = contractQuantity.toFixed(6);
+        adjustedSize = contractQuantity.toFixed(sizePrecision);
         console.log(`💰 Margin $${marginAmount} × ${leverage}x = $${leveragedAmount} position`);
       }
       

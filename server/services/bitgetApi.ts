@@ -302,15 +302,29 @@ export class BitgetAPI {
       if (orderParams.trailingStop) {
         console.log('🎯 Placing trailing stop order...');
         
-        // Get current market price for trigger price calculation
-        const allTickers = await this.getAllFuturesTickers();
-        const symbolTicker = allTickers.find(ticker => ticker.symbol === orderParams.symbol);
+        // Get current market price for trigger price calculation and contract config
+        const [allTickers, contractConfigs] = await Promise.all([
+          this.getAllFuturesTickers(),
+          this.getContractConfig(orderParams.symbol)
+        ]);
         
+        const symbolTicker = allTickers.find(ticker => ticker.symbol === orderParams.symbol);
         if (!symbolTicker) {
           throw new Error(`Cannot find current price for ${orderParams.symbol} to set trigger price`);
         }
         
+        // Get proper size precision from contract config
+        const symbolConfig = contractConfigs.find(config => config.symbol === orderParams.symbol);
+        let sizePrecision = 6; // Default fallback
+        if (symbolConfig && symbolConfig.volumePlace) {
+          sizePrecision = parseInt(symbolConfig.volumePlace);
+          console.log(`📏 Size precision for ${orderParams.symbol}: ${sizePrecision} decimal places`);
+        }
+        
         const currentPrice = parseFloat(symbolTicker.lastPr);
+        
+        // Format the size with proper precision
+        const formattedSize = parseFloat(orderParams.size).toFixed(sizePrecision);
         
         // For trailing stop orders, use the plan order API
         const planOrderData = {
@@ -322,7 +336,7 @@ export class BitgetAPI {
           tradeSide: 'open',
           planType: 'track_plan', // Trailing stop plan type
           orderType: 'market', // Trailing stops are typically market orders
-          size: orderParams.size,
+          size: formattedSize,
           callbackRatio: orderParams.trailingStop, // Callback ratio for trailing stop (1-10%)
           // Set trigger price to current market price for immediate activation
           triggerPrice: currentPrice.toString(),
