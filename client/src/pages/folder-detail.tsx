@@ -452,7 +452,7 @@ export default function FolderDetailPage() {
                       >
                         <div 
                           className="flex-1 cursor-pointer"
-                          onClick={() => setLocation(`/trade?pair=${symbol}`)}
+                          onClick={() => setLocation(`/charts?pair=${symbol}`)}
                         >
                           <div className="font-medium">{symbol}</div>
                           {marketItem && (

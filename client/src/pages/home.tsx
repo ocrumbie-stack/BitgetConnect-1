@@ -546,7 +546,7 @@ export function Home() {
                                       <Button 
                                         size="sm" 
                                         variant="ghost" 
-                                        onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
+                                        onClick={() => setLocation(`/charts?pair=${opportunity.symbol}`)}
                                         className="h-8 px-2"
                                       >
                                         <ChevronRight className="h-4 w-4" />
@@ -580,7 +580,7 @@ export function Home() {
                                           <Button 
                                             size="sm" 
                                             variant="ghost" 
-                                            onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}
+                                            onClick={() => setLocation(`/charts?pair=${opportunity.symbol}`)}
                                             className="h-8 px-2"
                                           >
                                             <ChevronRight className="h-4 w-4" />
@@ -940,7 +940,7 @@ export function Home() {
                       <div 
                         key={pair.symbol} 
                         className="flex items-center justify-between p-2 rounded bg-green-50 dark:bg-green-900/20 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                        onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                        onClick={() => setLocation(`/charts?pair=${pair.symbol}`)}
                         data-testid={`top-gainer-${pair.symbol}`}
                       >
                         <div className="flex items-center gap-2">
@@ -994,7 +994,7 @@ export function Home() {
                       <div 
                         key={pair.symbol} 
                         className="flex items-center justify-between p-2 rounded bg-red-50 dark:bg-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                        onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                        onClick={() => setLocation(`/charts?pair=${pair.symbol}`)}
                         data-testid={`top-loser-${pair.symbol}`}
                       >
                         <div className="flex items-center gap-2">
@@ -1050,7 +1050,7 @@ export function Home() {
                     <div 
                       key={pair.symbol} 
                       className="flex items-center justify-between p-2 rounded border hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => setLocation(`/trade?pair=${pair.symbol}`)}
+                      onClick={() => setLocation(`/charts?pair=${pair.symbol}`)}
                       data-testid={`volume-surge-${pair.symbol}`}
                     >
                       <div className="flex items-center gap-2">

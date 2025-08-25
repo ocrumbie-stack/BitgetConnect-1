@@ -453,7 +453,7 @@ export function PersonalizedStrategyRecommender() {
                 <OpportunityCard
                   key={opp.id}
                   opportunity={opp}
-                  onTrade={() => setLocation(`/trade?pair=${opp.symbol}`)}
+                  onTrade={() => setLocation(`/charts?pair=${opp.symbol}`)}
                   onAnalyze={() => setLocation(`/analyzer?pair=${opp.symbol}&autoFill=true`)}
                 />
               ))}

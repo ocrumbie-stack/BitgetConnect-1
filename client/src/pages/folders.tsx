@@ -344,7 +344,7 @@ export default function FoldersPage() {
                                   key={pair} 
                                   variant="outline" 
                                   className="text-sm cursor-pointer hover:bg-accent"
-                                  onClick={() => setLocation(`/trade?pair=${pair}`)}
+                                  onClick={() => setLocation(`/charts?pair=${pair}`)}
                                 >
                                   {pair}
                                 </Badge>
