@@ -129,8 +129,10 @@ export function Charts() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="absolute top-0 left-0 z-10">
-        <BackButton />
+      <div className="absolute top-2 left-2 z-[9999]">
+        <div className="bg-background/90 backdrop-blur-sm rounded-lg border">
+          <BackButton />
+        </div>
       </div>
       
       {/* TradingView Chart - Full Screen */}
