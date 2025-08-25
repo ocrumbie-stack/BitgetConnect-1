@@ -95,6 +95,7 @@ export const botStrategies = pgTable("bot_strategies", {
     riskManagement: {
       stopLoss?: number; // percentage
       takeProfit?: number; // percentage
+      trailingStop?: number; // percentage - mutually exclusive with stopLoss
       maxPositionSize?: number; // percentage of capital
     };
   }>().notNull(),
