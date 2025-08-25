@@ -11,13 +11,20 @@ let updateInterval: NodeJS.Timeout | null = null;
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Debug ALL POST requests
+  // Debug ALL requests
   app.use((req, res, next) => {
+    console.log('🔍 REQUEST:', req.method, req.url);
     if (req.method === 'POST') {
       console.log('🌐🌐🌐 POST REQUEST DETECTED:', req.method, req.url);
       console.log('🌐🌐🌐 POST BODY:', JSON.stringify(req.body, null, 2));
     }
     next();
+  });
+
+  // Simple test POST endpoint
+  app.post('/api/test', (req, res) => {
+    console.log('🧪 TEST POST endpoint hit!');
+    res.json({ success: true, message: 'Test endpoint works!' });
   });
 
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
