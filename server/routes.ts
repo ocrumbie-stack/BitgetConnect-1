@@ -495,6 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Close position endpoint
   app.post('/api/positions/close', async (req, res) => {
+    console.log('🚨🚨🚨 CLOSE POSITION ROUTE HIT! 🚨🚨🚨');
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Request body raw:', req.body);
     try {
       if (!bitgetAPI) {
         return res.status(400).json({ 
