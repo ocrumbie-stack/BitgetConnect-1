@@ -361,22 +361,23 @@ export class BitgetAPI {
         const holdSideForClosing = orderParams.side === 'buy' ? 'short' : 'long';
         const oppositeSide = orderParams.side === 'buy' ? 'sell' : 'buy';
         
-        // Create PROPER trailing stop using moving_plan
+        // Create PROPER trailing stop according to Bitget API docs
         const trailingStopData = {
+          planType: 'track_plan', // CORRECT: track_plan for trailing stops per API docs
           symbol: orderParams.symbol,
           productType: 'USDT-FUTURES',
           marginMode: 'isolated',
           marginCoin: 'USDT',
-          side: oppositeSide, // Opposite side to close the position
+          side: oppositeSide, // Opposite side to close the position  
           tradeSide: 'close', // This closes the existing position
-          planType: 'moving_plan', // CORRECT: moving_plan for trailing stops
-          orderType: 'market', // Trailing stops are market orders
+          orderType: 'market', // Required for track_plan - must be market
           size: formattedSize,
-          callbackRatio: orderParams.trailingStop, // Trailing callback percentage
-          // Set trigger price to current market price for immediate activation
-          triggerPrice: currentPrice.toString(),
-          triggerType: 'mark_price',
-          reduceOnly: 'YES' // Ensure it only reduces existing position
+          callbackRatio: orderParams.trailingStop, // Required for track_plan, max 10%
+          triggerPrice: currentPrice.toString(), // Required trigger price
+          triggerType: 'mark_price', // mark_price or fill_price
+          reduceOnly: 'YES', // Reduce existing position only
+          // DON'T include price for track_plan - must be empty per docs
+          clientOid: `trail_${Date.now()}` // Optional client order ID
         };
 
         console.log('🔧 Trailing stop plan order data:', JSON.stringify(trailingStopData, null, 2));
