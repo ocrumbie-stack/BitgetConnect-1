@@ -546,7 +546,7 @@ export function Trade() {
 
           {/* TP/SL */}
           <div className="border rounded p-2">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1">
               <Switch 
                 checked={tpslEnabled}
                 onCheckedChange={setTpslEnabled}
@@ -605,7 +605,7 @@ export function Trade() {
 
                 {/* Trailing Stop */}
                 <div className="border-t border-border pt-2">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-1">
                     <Switch 
                       checked={trailingStopEnabled}
                       onCheckedChange={setTrailingStopEnabled}
@@ -793,7 +793,7 @@ export function Trade() {
           
           <TabsContent value="positions" className="p-2 flex-1">
             {(accountData as any)?.positions?.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {(accountData as any).positions.map((position: any) => {
                   const positionKey = `${position.symbol}-${position.side}`;
                   const isExpanded = expandedPositions.has(positionKey);
@@ -821,9 +821,9 @@ export function Trade() {
                   };
                   
                   return (
-                    <div key={positionKey} className="bg-card/50 rounded-lg p-3 border border-border">
+                    <div key={positionKey} className="bg-card/50 rounded-lg p-2 border border-border">
                       {/* Header with main info */}
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm">{position.symbol}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
@@ -876,7 +876,7 @@ export function Trade() {
 
                       {/* Collapsible details */}
                       {isExpanded && (
-                        <div className="space-y-3">
+                        <div className="space-y-1">
                           <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                             <div>
                               <div>Size</div>
@@ -936,10 +936,10 @@ export function Trade() {
           
           <TabsContent value="orders" className="p-2 flex-1">
             {(ordersData as any[])?.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {(ordersData as any[]).map((order: any) => (
-                  <div key={order.orderId} className="bg-card/50 rounded-lg p-3 border border-border">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={order.orderId} className="bg-card/50 rounded-lg p-2 border border-border">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{order.symbol}</span>
                         <span className={`text-xs px-2 py-0.5 rounded ${
@@ -979,10 +979,10 @@ export function Trade() {
           
           <TabsContent value="bots" className="p-2 flex-1">
             {(botsData as any[])?.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
-                  <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={bot.id} className="bg-card/50 rounded-lg p-2 border border-border">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm">{bot.symbol}</span>
                         <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
