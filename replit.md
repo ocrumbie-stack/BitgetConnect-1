@@ -5,6 +5,13 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
+- **August 25, 2025**: Fixed Charts Page Back Button Overlay Issue - COMPLETED ✓
+  - Resolved TradingView chart toolbar overlaying the back button
+  - Moved back button from top-left to top-right corner to avoid chart controls
+  - Implemented proper z-index layering (z-[99999]) and fixed positioning
+  - Added minimal dark styling with rounded design for clear visibility
+  - Ensured back button remains accessible without needing to scroll
+
 - **August 23, 2025**: Fixed "Building data..." Issue & Enhanced Trading Pair Navigation - COMPLETED ✓
   - Fixed Markets page "Top Gainers (5M)" always showing "Building data..." by using available 24h data instead of non-existent 5m data
   - Changed labels to "Top Gainer" and "Top Loser" to reflect actual data source (24h changes)
