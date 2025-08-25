@@ -258,11 +258,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const candleResponse = await bitgetAPI.client.get(`/api/v2/mix/market/candles?symbol=${symbol}&productType=USDT-FUTURES&granularity=1m&limit=50`);
       const candles = candleResponse.data.data;
       
-      if (!candles || candles.length < 20) {
+      if (!candles || candles.length < 50) {
         return res.json({
           rsi: { status: 'neutral', value: 50 },
           macd: { status: 'neutral', signal: 'hold' },
-          volume: { status: 'neutral', trend: 'stable' }
+          volume: { status: 'neutral', trend: 'stable' },
+          ema: { status: 'neutral', ema20: 0, ema50: 0 }
         });
       }
 
@@ -292,10 +293,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (recentVolume > previousVolume * 1.2) volumeStatus = 'rising';
       else if (recentVolume < previousVolume * 0.8) volumeStatus = 'falling';
 
+      // Calculate EMA 20 and EMA 50
+      const ema20 = calculateEMA(closes, 20);
+      const ema50 = calculateEMA(closes, 50);
+      
+      let emaStatus = 'neutral';
+      if (ema20 > ema50) emaStatus = 'bullish';
+      else if (ema20 < ema50) emaStatus = 'bearish';
+
       res.json({
         rsi: { status: rsiStatus, value: Math.round(rsi * 100) / 100 },
         macd: { status: macdStatus, signal: macdStatus === 'bullish' ? 'buy' : macdStatus === 'bearish' ? 'sell' : 'hold' },
-        volume: { status: volumeStatus, trend: volumeStatus }
+        volume: { status: volumeStatus, trend: volumeStatus },
+        ema: { status: emaStatus, ema20: Math.round(ema20 * 100) / 100, ema50: Math.round(ema50 * 100) / 100 }
       });
 
     } catch (error: any) {
