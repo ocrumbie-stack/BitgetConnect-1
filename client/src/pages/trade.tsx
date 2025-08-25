@@ -12,6 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronDown, ChevronUp, TrendingUp, MoreHorizontal, Bot, Wallet, Settings, TrendingDown, Activity, Shield, Target, Search, Check, BarChart3, AlertCircle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 export function Trade() {
   const { data } = useBitgetData();
@@ -142,6 +143,11 @@ export function Trade() {
       toast({
         title: "Position Closed Successfully! ✅",
         description: `${symbol} ${side} position has been closed.`,
+      });
+      
+      // Refresh positions data after successful close
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/account/default-user'] 
       });
     },
     onError: (error: Error) => {
