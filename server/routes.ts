@@ -177,6 +177,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('🛑 Stop Loss Price:', stopLossPrice);
       }
 
+      // Process trailing stop if provided
+      let trailingStopCallbackRatio: string | undefined;
+      
+      if (orderData.trailingStop) {
+        console.log('🎯 Processing Trailing Stop:', orderData.trailingStop);
+        // Convert trailing stop to callback ratio (required by Bitget API)
+        // If percentage (e.g., "2" for 2%), use directly as callback ratio
+        // If price, convert to percentage based on current price
+        const trailingStopValue = parseFloat(orderData.trailingStop);
+        
+        if (trailingStopValue >= 1 && trailingStopValue <= 10) {
+          // Assume percentage - Bitget accepts 1-10% callback ratio
+          trailingStopCallbackRatio = trailingStopValue.toString();
+        } else {
+          console.log(`⚠️ Trailing stop value ${trailingStopValue}% out of range (1-10%), adjusting...`);
+          // Clamp to valid range
+          trailingStopCallbackRatio = Math.max(1, Math.min(10, trailingStopValue)).toString();
+        }
+        console.log('🎯 Trailing Stop Callback Ratio:', trailingStopCallbackRatio);
+      }
+
       // Place the actual order using Bitget API
       const realOrderResponse = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
@@ -185,7 +206,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderType: orderData.orderType || 'market',
         leverage: orderData.leverage,
         takeProfit: takeProfitPrice,
-        stopLoss: stopLossPrice
+        stopLoss: stopLossPrice,
+        trailingStop: trailingStopCallbackRatio
       });
 
       console.log('📤 Bitget API response:', JSON.stringify(realOrderResponse));
