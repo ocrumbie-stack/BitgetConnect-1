@@ -34,6 +34,7 @@ export function Trade() {
   const [trailingStopMode, setTrailingStopMode] = useState<'percentage' | 'price'>('percentage');
   const [currentPair, setCurrentPair] = useState('BTCUSDT');
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
+  const [amountType, setAmountType] = useState<'usd' | 'tokens'>('usd');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedPositions, setExpandedPositions] = useState<Set<string>>(new Set());
   const [, setLocation] = useLocation();
@@ -275,6 +276,7 @@ export function Trade() {
       symbol: currentPair,
       side,
       size: amount,
+      amountType: amountType,
       orderType,
       price: orderType === 'limit' ? limitPrice : undefined,
       leverage: parseFloat(leverage),
@@ -516,16 +518,36 @@ export function Trade() {
 
           {/* Amount Input */}
           <div className="border rounded p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                variant={amountType === 'usd' ? 'default' : 'outline'}
+                onClick={() => setAmountType('usd')}
+                size="sm"
+                className="flex-1 text-xs h-6"
+              >
+                USD Amount
+              </Button>
+              <Button
+                variant={amountType === 'tokens' ? 'default' : 'outline'}
+                onClick={() => setAmountType('tokens')}
+                size="sm"
+                className="flex-1 text-xs h-6"
+              >
+                Token Quantity
+              </Button>
+            </div>
             <div className="flex items-center gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Enter amount"
+                  placeholder={amountType === 'usd' ? 'Enter USD amount' : `Enter ${currentPair.replace('USDT', '')} quantity`}
                   className="h-8 text-sm border-0 shadow-none"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
-              <div className="text-sm font-medium">USDT</div>
+              <div className="text-sm font-medium">
+                {amountType === 'usd' ? 'USDT' : currentPair.replace('USDT', '')}
+              </div>
             </div>
           </div>
 
