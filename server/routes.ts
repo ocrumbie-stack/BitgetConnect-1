@@ -11,6 +11,15 @@ let updateInterval: NodeJS.Timeout | null = null;
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
+  // Debug ALL POST requests
+  app.use((req, res, next) => {
+    if (req.method === 'POST') {
+      console.log('🌐🌐🌐 POST REQUEST DETECTED:', req.method, req.url);
+      console.log('🌐🌐🌐 POST BODY:', JSON.stringify(req.body, null, 2));
+    }
+    next();
+  });
+
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
   app.post('/api/orders', async (req, res) => {
