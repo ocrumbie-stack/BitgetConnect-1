@@ -295,7 +295,7 @@ export function Trade() {
   };
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col pb-0">
+    <div className="min-h-screen bg-background text-foreground flex flex-col pb-20">
       {/* Ultra Compact Header */}
       <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
@@ -378,7 +378,7 @@ export function Trade() {
       </div>
 
       {/* Main Layout: Trading Form + Analysis Panel */}
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex flex-1">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
