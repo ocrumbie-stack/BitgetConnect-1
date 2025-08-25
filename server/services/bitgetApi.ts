@@ -210,24 +210,41 @@ export class BitgetAPI {
       const regularOrders = Array.isArray(regularOrdersList) ? regularOrdersList : [];
       console.log(`📋 Found ${regularOrders.length} regular orders`);
       
-      // Now try to fetch TP/SL plan orders
+      // Now try to fetch both TP/SL and trailing stop plan orders
       let planOrders: any[] = [];
+      
       try {
         console.log('🔍 Fetching TP/SL plan orders...');
-        const planOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+        const tpslOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
           params: { 
             productType: 'USDT-FUTURES',
             planType: 'profit_loss'  // Required parameter for TP/SL orders
           }
         });
         
-        console.log('🔍 Raw plan orders response:', JSON.stringify(planOrdersResponse.data, null, 2));
-        const planOrdersList = planOrdersResponse.data.data?.entrustedList || planOrdersResponse.data.data || [];
-        planOrders = Array.isArray(planOrdersList) ? planOrdersList : [];
-        console.log(`📋 Found ${planOrders.length} TP/SL plan orders`);
-      } catch (planError) {
-        console.log('⚠️ Could not fetch plan orders:', (planError as any).response?.data?.msg || (planError as any).message);
-        planOrders = [];
+        const tpslOrdersList = tpslOrdersResponse.data.data?.entrustedList || [];
+        const tpslOrders = Array.isArray(tpslOrdersList) ? tpslOrdersList : [];
+        console.log(`📋 Found ${tpslOrders.length} TP/SL plan orders`);
+        planOrders = [...tpslOrders];
+      } catch (tpslError) {
+        console.log('⚠️ Could not fetch TP/SL plan orders:', (tpslError as any).response?.data?.msg || (tpslError as any).message);
+      }
+      
+      try {
+        console.log('🎯 Fetching trailing stop plan orders...');
+        const trailingOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+          params: { 
+            productType: 'USDT-FUTURES',
+            planType: 'track_plan'  // Required parameter for trailing stop orders
+          }
+        });
+        
+        const trailingOrdersList = trailingOrdersResponse.data.data?.entrustedList || [];
+        const trailingOrders = Array.isArray(trailingOrdersList) ? trailingOrdersList : [];
+        console.log(`📋 Found ${trailingOrders.length} trailing stop orders`);
+        planOrders = [...planOrders, ...trailingOrders];
+      } catch (trailingError) {
+        console.log('⚠️ Could not fetch trailing stop orders:', (trailingError as any).response?.data?.msg || (trailingError as any).message);
       }
       
       // Add type identifiers
@@ -278,33 +295,69 @@ export class BitgetAPI {
     leverage?: number;
     takeProfit?: string;
     stopLoss?: string;
+    trailingStop?: string;
   }): Promise<any> {
     try {
-      const orderData = {
-        symbol: orderParams.symbol,
-        productType: 'USDT-FUTURES',
-        marginMode: 'isolated', // Required: 'isolated' or 'crossed'
-        marginCoin: 'USDT',
-        side: orderParams.side, // Use 'buy' or 'sell' directly
-        tradeSide: 'open', // Always 'open' for new positions
-        orderType: orderParams.orderType || 'market',
-        size: orderParams.size,
-        ...(orderParams.price && { price: orderParams.price }),
-        // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
-        ...(orderParams.takeProfit && { 
-          presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
-          // Note: Don't include executePrice for market execution
-        }),
-        ...(orderParams.stopLoss && { 
-          presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
-          // Note: Don't include executePrice for market execution
-        })
-      };
+      // Check if trailing stop is requested - use plan order API
+      if (orderParams.trailingStop) {
+        console.log('🎯 Placing trailing stop order...');
+        
+        // For trailing stop orders, use the plan order API
+        const planOrderData = {
+          symbol: orderParams.symbol,
+          productType: 'USDT-FUTURES',
+          marginMode: 'isolated',
+          marginCoin: 'USDT',
+          side: orderParams.side,
+          tradeSide: 'open',
+          planType: 'track_plan', // Trailing stop plan type
+          orderType: orderParams.orderType || 'market',
+          size: orderParams.size,
+          callbackRatio: orderParams.trailingStop, // Callback ratio for trailing stop (1-10%)
+          ...(orderParams.price && orderParams.orderType === 'limit' && { 
+            triggerPrice: orderParams.price,
+            triggerType: 'mark_price'
+          }),
+          ...(orderParams.takeProfit && { 
+            presetStopSurplusPrice: orderParams.takeProfit 
+          }),
+          ...(orderParams.stopLoss && { 
+            presetStopLossPrice: orderParams.stopLoss  
+          })
+        };
 
-      console.log('🔧 Final order data for Bitget:', JSON.stringify(orderData, null, 2));
+        console.log('🔧 Trailing stop order data for Bitget:', JSON.stringify(planOrderData, null, 2));
+        
+        const response = await this.client.post('/api/v2/mix/order/place-plan-order', planOrderData);
+        return response.data;
+      } else {
+        // Regular order without trailing stop
+        const orderData = {
+          symbol: orderParams.symbol,
+          productType: 'USDT-FUTURES',
+          marginMode: 'isolated', // Required: 'isolated' or 'crossed'
+          marginCoin: 'USDT',
+          side: orderParams.side, // Use 'buy' or 'sell' directly
+          tradeSide: 'open', // Always 'open' for new positions
+          orderType: orderParams.orderType || 'market',
+          size: orderParams.size,
+          ...(orderParams.price && { price: orderParams.price }),
+          // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
+          ...(orderParams.takeProfit && { 
+            presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
+            // Note: Don't include executePrice for market execution
+          }),
+          ...(orderParams.stopLoss && { 
+            presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
+            // Note: Don't include executePrice for market execution
+          })
+        };
 
-      const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
-      return response.data;
+        console.log('🔧 Final order data for Bitget:', JSON.stringify(orderData, null, 2));
+
+        const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
+        return response.data;
+      }
     } catch (error: any) {
       console.error('Error placing order:', error.response?.data || error.message || error);
       
