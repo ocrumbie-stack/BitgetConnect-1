@@ -516,4 +516,29 @@ export class BitgetAPI {
       }
     }
   }
+
+  async cancelPlanOrder(orderId: string, symbol: string, planType: string = 'track_plan'): Promise<any> {
+    try {
+      console.log(`🗑️ Canceling plan order: ${orderId} (${symbol})`);
+      
+      const cancelData = {
+        symbol: symbol,
+        productType: 'USDT-FUTURES',
+        marginCoin: 'USDT',
+        planType: planType,
+        orderId: orderId
+      };
+
+      console.log(`🔧 Cancel plan order data:`, JSON.stringify(cancelData, null, 2));
+
+      const response = await this.client.post('/api/v2/mix/order/cancel-plan-order', cancelData);
+      
+      console.log(`✅ Plan order canceled:`, JSON.stringify(response.data, null, 2));
+      return response.data;
+      
+    } catch (error: any) {
+      console.error('❌ Error canceling plan order:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 }
