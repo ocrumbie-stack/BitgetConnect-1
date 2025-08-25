@@ -79,6 +79,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('🚀 Placing REAL order via Bitget API...');
+      console.log('📊 Order data received:', {
+        symbol: orderData.symbol,
+        side: orderData.side,
+        size: orderData.size,
+        amountType: orderData.amountType,
+        leverage: orderData.leverage
+      });
       
       // Get current price for conversion and validation
       const allTickers = await bitgetAPI.getAllFuturesTickers();
@@ -100,6 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle different amount types with leverage calculation
       const leverage = orderData.leverage || 1;
+      console.log(`🔧 Leverage calculation: ${leverage}x, amountType: ${orderData.amountType}`);
       
       if (orderData.amountType === 'tokens') {
         // User entered token quantity directly
@@ -113,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         usdValue = leveragedAmount; // This is the actual position value
         const contractQuantity = leveragedAmount / currentPrice;
         adjustedSize = contractQuantity.toFixed(6);
-        console.log(`💰 Margin: $${marginAmount} × ${leverage}x leverage = $${leveragedAmount} position → ${adjustedSize} contracts at $${currentPrice}`);
+        console.log(`💰 LEVERAGE CALC: Margin $${marginAmount} × ${leverage}x = $${leveragedAmount} position → ${adjustedSize} contracts at $${currentPrice}`);
       }
       
       // Ensure minimum order value of 5 USDT for Bitget
