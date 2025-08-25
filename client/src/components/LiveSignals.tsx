@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Target } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface SignalsData {
   rsi: { status: string; value: number };
@@ -40,49 +39,49 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
     return () => clearInterval(interval);
   }, [symbol]);
 
-  const getStatusBadge = (type: string, data: any) => {
-    let status = '';
-    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
-    let text = '';
-    
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'oversold':
+      case 'bullish':
+      case 'rising':
+        return 'bg-green-500';
+      case 'overbought':
+      case 'bearish':
+      case 'falling':
+        return 'bg-red-500';
+      case 'neutral':
+      case 'stable':
+        return 'bg-yellow-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getSignalText = (type: string, data: any): string => {
     switch (type) {
       case 'rsi':
-        status = data.status;
-        text = `RSI ${status.toUpperCase()} (${data.value})`;
-        if (status === 'oversold') variant = 'default'; // Green
-        else if (status === 'overbought') variant = 'destructive'; // Red
-        else variant = 'secondary'; // Yellow/gray
-        break;
+        return `RSI ${data.status} (${data.value})`;
       case 'macd':
-        status = data.status;
-        text = `MACD ${status.toUpperCase()}`;
-        if (status === 'bullish') variant = 'default'; // Green
-        else if (status === 'bearish') variant = 'destructive'; // Red
-        else variant = 'secondary'; // Yellow/gray
-        break;
+        return `MACD ${data.status}`;
       case 'volume':
-        status = data.trend;
-        text = `VOL ${status.toUpperCase()}`;
-        if (status === 'rising') variant = 'default'; // Green
-        else if (status === 'falling') variant = 'destructive'; // Red
-        else variant = 'secondary'; // Yellow/gray
-        break;
+        return `Volume ${data.trend}`;
+      default:
+        return 'Unknown';
     }
-    
-    return { text, variant };
   };
 
   if (loading) {
     return (
-      <div className="border-t border-border pt-3">
-        <div className="text-xs font-medium mb-2 flex items-center gap-1">
+      <div className="border-t border-border pt-2">
+        <div className="text-xs font-medium mb-1 flex items-center gap-1">
           <Target className="h-3 w-3" />
           Signals
         </div>
-        <div className="space-y-2">
-          <Badge variant="outline" className="animate-pulse">
-            Loading signals...
-          </Badge>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+            <span>Loading...</span>
+          </div>
         </div>
       </div>
     );
@@ -90,38 +89,40 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
 
   if (!signalsData) {
     return (
-      <div className="border-t border-border pt-3">
-        <div className="text-xs font-medium mb-2 flex items-center gap-1">
+      <div className="border-t border-border pt-2">
+        <div className="text-xs font-medium mb-1 flex items-center gap-1">
           <Target className="h-3 w-3" />
           Signals
         </div>
-        <div className="space-y-2">
-          <Badge variant="outline">No data available</Badge>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+            <span>No data available</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  const rsi = getStatusBadge('rsi', signalsData.rsi);
-  const macd = getStatusBadge('macd', signalsData.macd);
-  const volume = getStatusBadge('volume', signalsData.volume);
-
   return (
-    <div className="border-t border-border pt-3">
-      <div className="text-xs font-medium mb-2 flex items-center gap-1">
+    <div className="border-t border-border pt-2">
+      <div className="text-xs font-medium mb-1 flex items-center gap-1">
         <Target className="h-3 w-3" />
         Signals
       </div>
-      <div className="space-y-2">
-        <Badge variant={rsi.variant} className="text-xs font-medium">
-          {rsi.text}
-        </Badge>
-        <Badge variant={macd.variant} className="text-xs font-medium">
-          {macd.text}
-        </Badge>
-        <Badge variant={volume.variant} className="text-xs font-medium">
-          {volume.text}
-        </Badge>
+      <div className="space-y-1 text-xs">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 ${getStatusColor(signalsData.rsi.status)} rounded-full`}></div>
+          <span>{getSignalText('rsi', signalsData.rsi)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 ${getStatusColor(signalsData.macd.status)} rounded-full`}></div>
+          <span>{getSignalText('macd', signalsData.macd)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 ${getStatusColor(signalsData.volume.status)} rounded-full`}></div>
+          <span>{getSignalText('volume', signalsData.volume)}</span>
+        </div>
       </div>
     </div>
   );
