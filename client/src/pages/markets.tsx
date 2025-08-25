@@ -535,7 +535,7 @@ export default function Markets() {
 
               {/* Market Overview Cards */}
               {marketStats && !isLoading && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
                   {/* Total Markets */}
                   <Card 
                     className={`cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105 ${
@@ -546,14 +546,14 @@ export default function Markets() {
                     onClick={() => setFilter('all')}
                     data-testid="card-total-markets"
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Markets</p>
-                          <p className="text-2xl font-bold">{marketStats.total}</p>
+                          <p className="text-xs font-medium text-muted-foreground">Total Markets</p>
+                          <p className="text-lg font-bold">{marketStats.total}</p>
                         </div>
-                        <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <BarChart3 className="h-4 w-4 text-white" />
+                        <div className="h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <BarChart3 className="h-3 w-3 text-white" />
                         </div>
                       </div>
                     </CardContent>
@@ -569,14 +569,14 @@ export default function Markets() {
                     onClick={() => setFilter('gainers')}
                     data-testid="card-gainers"
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Gainers</p>
-                          <p className="text-2xl font-bold text-green-600">{marketStats.gainers}</p>
+                          <p className="text-xs font-medium text-muted-foreground">Gainers</p>
+                          <p className="text-lg font-bold text-green-600">{marketStats.gainers}</p>
                         </div>
-                        <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <TrendingUp className="h-4 w-4 text-white" />
+                        <div className="h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <TrendingUp className="h-3 w-3 text-white" />
                         </div>
                       </div>
                     </CardContent>
@@ -592,14 +592,14 @@ export default function Markets() {
                     onClick={() => setFilter('losers')}
                     data-testid="card-losers"
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">Losers</p>
-                          <p className="text-2xl font-bold text-red-600">{marketStats.losers}</p>
+                          <p className="text-xs font-medium text-muted-foreground">Losers</p>
+                          <p className="text-lg font-bold text-red-600">{marketStats.losers}</p>
                         </div>
-                        <div className="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center">
-                          <TrendingDown className="h-4 w-4 text-white" />
+                        <div className="h-6 w-6 bg-red-500 rounded-full flex items-center justify-center">
+                          <TrendingDown className="h-3 w-3 text-white" />
                         </div>
                       </div>
                     </CardContent>
@@ -615,14 +615,14 @@ export default function Markets() {
                     onClick={() => setFilter('high-volume')}
                     data-testid="card-high-volume"
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-muted-foreground">High Volume</p>
-                          <p className="text-2xl font-bold text-purple-600">{marketStats.highVolume}</p>
+                          <p className="text-xs font-medium text-muted-foreground">High Volume</p>
+                          <p className="text-lg font-bold text-purple-600">{marketStats.highVolume}</p>
                         </div>
-                        <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
-                          <Volume2 className="h-4 w-4 text-white" />
+                        <div className="h-6 w-6 bg-purple-500 rounded-full flex items-center justify-center">
+                          <Volume2 className="h-3 w-3 text-white" />
                         </div>
                       </div>
                     </CardContent>
