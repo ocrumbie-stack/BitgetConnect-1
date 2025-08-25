@@ -539,7 +539,7 @@ export function Trade() {
             <div className="flex items-center gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder={amountType === 'usd' ? 'Enter USD amount' : `Enter ${currentPair.replace('USDT', '')} quantity`}
+                  placeholder={amountType === 'usd' ? 'Enter margin amount' : `Enter ${currentPair.replace('USDT', '')} quantity`}
                   className="h-8 text-sm border-0 shadow-none"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -549,6 +549,11 @@ export function Trade() {
                 {amountType === 'usd' ? 'USDT' : currentPair.replace('USDT', '')}
               </div>
             </div>
+            {amountType === 'usd' && amount && leverage && (
+              <div className="text-xs text-muted-foreground mt-1">
+                Position value: ${(parseFloat(amount) * parseFloat(leverage)).toFixed(2)} ({leverage}x leverage)
+              </div>
+            )}
           </div>
 
           {/* Percentage Buttons */}
