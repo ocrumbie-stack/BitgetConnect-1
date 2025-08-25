@@ -8,7 +8,7 @@ interface BackButtonProps {
   className?: string;
 }
 
-export function BackButton({ to = '/', label = 'Back', className = '' }: BackButtonProps) {
+export function BackButton({ to, label = 'Back', className = '' }: BackButtonProps) {
   const [, navigate] = useLocation();
 
   const handleBack = () => {
