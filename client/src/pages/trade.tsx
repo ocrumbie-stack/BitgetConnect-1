@@ -919,6 +919,24 @@ export function Trade() {
                             </div>
                           </div>
                           
+                          {/* TP/SL Display */}
+                          {((position as any).takeProfit || (position as any).stopLoss) && (
+                            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                              {(position as any).takeProfit && (
+                                <div>
+                                  <div className="text-green-500">Take Profit</div>
+                                  <div className="font-medium text-green-500">${parseFloat((position as any).takeProfit).toFixed(6)}</div>
+                                </div>
+                              )}
+                              {(position as any).stopLoss && (
+                                <div>
+                                  <div className="text-red-500">Stop Loss</div>
+                                  <div className="font-medium text-red-500">${parseFloat((position as any).stopLoss).toFixed(6)}</div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
                           {/* TP/SL Actions */}
                           <div className="flex gap-2 pt-2">
                             <Button
