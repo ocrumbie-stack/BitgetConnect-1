@@ -129,12 +129,14 @@ export function Charts() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <BackButton />
+      <div className="absolute top-0 left-0 z-10">
+        <BackButton />
+      </div>
       
       {/* TradingView Chart - Full Screen */}
       <div 
         ref={chartContainerRef}
-        className="h-[calc(100vh-100px)] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
+        className="h-[calc(100vh-60px)] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
         id="tradingview_chart"
       />
 
