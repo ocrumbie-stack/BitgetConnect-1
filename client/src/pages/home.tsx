@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useBitgetData } from '@/hooks/useBitgetData';
+import { useBitgetData, useAccountData } from '@/hooks/useBitgetData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 
 export function Home() {
   const { data, isLoading } = useBitgetData();
+  const { data: accountData } = useAccountData('default-user');
   const [, setLocation] = useLocation();
   const [activeOpportunityTab, setActiveOpportunityTab] = useState('momentum');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
@@ -368,10 +369,40 @@ export function Home() {
         </div>
       </div>
 
+      {/* Account Balance Card */}
+      <div className="px-4 pb-4">
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Account Balance</h3>
+                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                  ${accountData?.account?.availableBalance ? parseFloat(accountData.account.availableBalance).toFixed(2) : '0.00'}
+                </div>
+                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  Available Balance
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  Total Equity: ${accountData?.account?.totalEquity ? parseFloat(accountData.account.totalEquity).toFixed(2) : '0.00'}
+                </div>
+                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  P&L: {accountData?.account?.unrealizedPnl ? `$${parseFloat(accountData.account.unrealizedPnl).toFixed(2)}` : '$0.00'}
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="p-4 max-w-full overflow-x-hidden">
         <Tabs defaultValue="overview" className="w-full max-w-full">
           <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="overview" className="truncate">Market Overview</TabsTrigger>
+            <TabsTrigger value="overview" className="truncate">Trading Dashboard</TabsTrigger>
           </TabsList>
 
           {/* AI Opportunities Tab */}
