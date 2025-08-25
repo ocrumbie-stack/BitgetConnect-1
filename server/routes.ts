@@ -80,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🚀 Placing REAL order via Bitget API...');
       
-      // Get current price to convert USD amount to contract quantity
+      // Get current price for conversion and validation
       const allTickers = await bitgetAPI.getAllFuturesTickers();
       const symbolTicker = allTickers.find(ticker => ticker.symbol === orderData.symbol);
       
@@ -93,17 +93,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const currentPrice = parseFloat(symbolTicker.lastPr);
-      const usdAmount = parseFloat(orderData.size);
+      const inputAmount = parseFloat(orderData.size);
       
-      // Convert USD amount to contract quantity
-      const contractQuantity = usdAmount / currentPrice;
-      const adjustedSize = contractQuantity.toFixed(6); // 6 decimal precision
+      let adjustedSize: string;
+      let usdValue: number;
       
-      console.log(`💰 Converting USD ${usdAmount} to ${adjustedSize} contracts at price $${currentPrice}`);
+      // Handle different amount types
+      if (orderData.amountType === 'tokens') {
+        // User entered token quantity directly
+        adjustedSize = inputAmount.toFixed(6);
+        usdValue = inputAmount * currentPrice;
+        console.log(`🪙 Using ${inputAmount} tokens directly, USD value: $${usdValue.toFixed(2)}`);
+      } else {
+        // User entered USD amount (default behavior)
+        usdValue = inputAmount;
+        const contractQuantity = inputAmount / currentPrice;
+        adjustedSize = contractQuantity.toFixed(6);
+        console.log(`💰 Converting USD $${inputAmount} to ${adjustedSize} contracts at price $${currentPrice}`);
+      }
       
       // Ensure minimum order value of 5 USDT for Bitget
-      if (usdAmount < 5) {
-        console.log(`⚖️ Order value $${usdAmount} below 5 USDT minimum`);
+      if (usdValue < 5) {
+        console.log(`⚖️ Order value $${usdValue.toFixed(2)} below 5 USDT minimum`);
         return res.status(400).json({ 
           success: false,
           message: 'Minimum order value is 5 USDT. Please increase your order size.' 
