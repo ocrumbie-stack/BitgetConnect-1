@@ -134,7 +134,7 @@ export function Charts() {
       {/* TradingView Chart - Full Extent */}
       <div 
         ref={chartContainerRef}
-        className="h-[500px] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
+        className="h-[calc(100vh-140px)] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
         id="tradingview_chart"
       />
 
