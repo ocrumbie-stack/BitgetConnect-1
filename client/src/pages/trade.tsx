@@ -378,7 +378,7 @@ export function Trade() {
       </div>
 
       {/* Main Layout: Trading Form + Analysis Panel */}
-      <div className="flex h-[calc(100vh-70px)]">
+      <div className="flex h-[calc(100vh-60px)]">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 px-0.5 py-0 space-y-0.5 overflow-y-auto">
           {/* Leverage */}
@@ -777,9 +777,9 @@ export function Trade() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="border-t border-border bg-card flex-1 flex flex-col">
-        <Tabs defaultValue="positions" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
+      <div className="border-t border-border bg-card flex flex-col">
+        <Tabs defaultValue="positions" className="w-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none h-8">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions({(accountData as any)?.positions?.length || 0})
             </TabsTrigger>
@@ -791,7 +791,7 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-0.5 flex-1">
+          <TabsContent value="positions" className="p-0.5 max-h-32 overflow-y-auto">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-0.5">
                 {(accountData as any).positions.map((position: any) => {
@@ -934,7 +934,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-0.5 flex-1">
+          <TabsContent value="orders" className="p-0.5 max-h-32 overflow-y-auto">
             {(ordersData as any[])?.length > 0 ? (
               <div className="space-y-0.5">
                 {(ordersData as any[]).map((order: any) => (
@@ -977,7 +977,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-0.5 flex-1">
+          <TabsContent value="bots" className="p-0.5 max-h-32 overflow-y-auto">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-0.5">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
