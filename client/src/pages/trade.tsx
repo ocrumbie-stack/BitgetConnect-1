@@ -378,9 +378,9 @@ export function Trade() {
       </div>
 
       {/* Main Layout: Trading Form + Analysis Panel */}
-      <div className="flex h-[calc(100vh-160px)]">
+      <div className="flex h-[calc(100vh-120px)]">
         {/* Left: Compact Trading Form */}
-        <div className="flex-1 px-0 py-0 space-y-0 overflow-y-auto">
+        <div className="flex-1 px-1 py-1 space-y-1 overflow-y-auto">
           {/* Leverage */}
           {!customLeverageMode ? (
             <div className="space-y-0">
@@ -663,7 +663,7 @@ export function Trade() {
         </div>
 
         {/* Right: Market Analysis Panel */}
-        <div className="w-32 border-l border-border bg-card/50 px-0.5 py-0 space-y-0">
+        <div className="w-36 border-l border-border bg-card/50 px-1 py-1 space-y-1">
           <h3 className="text-xs font-semibold mb-0 flex items-center">
             <Activity className="h-3 w-3" />
             Market Analysis
@@ -777,9 +777,9 @@ export function Trade() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="border-t border-border bg-card h-20 flex flex-col">
+      <div className="border-t border-border bg-card h-24 flex flex-col">
         <Tabs defaultValue="positions" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none h-5">
+          <TabsList className="grid w-full grid-cols-3 bg-transparent border-none h-6">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions({(accountData as any)?.positions?.length || 0})
             </TabsTrigger>
@@ -791,7 +791,7 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-0.5 flex-1 overflow-y-auto">
+          <TabsContent value="positions" className="p-1 flex-1 overflow-y-auto">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-0">
                 {(accountData as any).positions.map((position: any) => {
@@ -934,7 +934,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-0.5 flex-1 overflow-y-auto">
+          <TabsContent value="orders" className="p-1 flex-1 overflow-y-auto">
             {(ordersData as any[])?.length > 0 ? (
               <div className="space-y-0">
                 {(ordersData as any[]).map((order: any) => (
@@ -977,7 +977,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-0.5 flex-1 overflow-y-auto">
+          <TabsContent value="bots" className="p-1 flex-1 overflow-y-auto">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-0">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
