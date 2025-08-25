@@ -295,7 +295,7 @@ export function Trade() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-0">
+    <div className="h-screen bg-background text-foreground flex flex-col pb-0">
       {/* Ultra Compact Header */}
       <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
@@ -777,8 +777,8 @@ export function Trade() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="border-t border-border bg-card">
-        <Tabs defaultValue="positions" className="w-full">
+      <div className="border-t border-border bg-card flex-1 flex flex-col">
+        <Tabs defaultValue="positions" className="w-full h-full flex flex-col">
           <TabsList className="grid w-full grid-cols-3 bg-transparent border-none">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions({(accountData as any)?.positions?.length || 0})
@@ -791,7 +791,7 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-4 min-h-[200px]">
+          <TabsContent value="positions" className="p-4 flex-1">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-3">
                 {(accountData as any).positions.map((position: any) => {
@@ -934,7 +934,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-4 min-h-[200px]">
+          <TabsContent value="orders" className="p-4 flex-1">
             {(ordersData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(ordersData as any[]).map((order: any) => (
@@ -977,7 +977,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-4 min-h-[200px]">
+          <TabsContent value="bots" className="p-4 flex-1">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
