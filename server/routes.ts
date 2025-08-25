@@ -36,6 +36,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
+  
+  // DELETE endpoint for canceling orders (especially plan orders like trailing stops)
+  app.delete('/api/orders/:orderId', async (req, res) => {
+    console.log('🗑️ ORDER DELETE ENDPOINT - Processing cancel request');
+    const { orderId } = req.params;
+    const { symbol, planType } = req.query;
+    
+    try {
+      console.log(`🎯 Canceling order: ${orderId} (symbol: ${symbol}, planType: ${planType})`);
+      
+      if (!bitgetAPI) {
+        return res.status(500).json({ 
+          success: false,
+          message: 'Trading API not connected. Please check API settings.' 
+        });
+      }
+
+      if (!symbol) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Symbol is required to cancel plan orders' 
+        });
+      }
+
+      const result = await bitgetAPI.cancelPlanOrder(orderId, symbol as string, planType as string || 'track_plan');
+      
+      console.log('✅ Order canceled successfully:', result);
+      res.json({
+        success: true,
+        message: 'Order canceled successfully',
+        data: result
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error canceling order:', error.message);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to cancel order',
+        orderId: orderId
+      });
+    }
+  });
+
   app.post('/api/orders', async (req, res) => {
     console.log('🎯 ORDER ENDPOINT - Processing trade request');
     console.log('📦 Order Data:', JSON.stringify(req.body, null, 2));
