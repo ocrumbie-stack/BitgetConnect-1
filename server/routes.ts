@@ -487,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         symbol: pos.symbol,
         side: pos.holdSide,
         size: pos.total,
-        entryPrice: pos.breakEvenPrice,
+        entryPrice: pos.openPriceAvg, // Use actual entry price instead of break-even price
         markPrice: pos.markPrice,
         pnl: pos.unrealizedPL,
         achievedProfits: pos.achievedProfits,
