@@ -124,13 +124,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Calculate TP/SL prices if provided
+      let takeProfitPrice: string | undefined;
+      let stopLossPrice: string | undefined;
+
+      if (orderData.takeProfit) {
+        console.log('💰 Processing Take Profit:', orderData.takeProfit);
+        // If it looks like a percentage, convert to price
+        if (parseFloat(orderData.takeProfit) < 100) {
+          // Assume percentage - calculate price
+          const tpPercentage = parseFloat(orderData.takeProfit) / 100;
+          const multiplier = orderData.side === 'buy' ? (1 + tpPercentage) : (1 - tpPercentage);
+          takeProfitPrice = (currentPrice * multiplier).toString();
+        } else {
+          // Assume absolute price
+          takeProfitPrice = orderData.takeProfit;
+        }
+        console.log('💰 Take Profit Price:', takeProfitPrice);
+      }
+
+      if (orderData.stopLoss) {
+        console.log('🛑 Processing Stop Loss:', orderData.stopLoss);
+        // If it looks like a percentage, convert to price
+        if (parseFloat(orderData.stopLoss) < 100) {
+          // Assume percentage - calculate price
+          const slPercentage = parseFloat(orderData.stopLoss) / 100;
+          const multiplier = orderData.side === 'buy' ? (1 - slPercentage) : (1 + slPercentage);
+          stopLossPrice = (currentPrice * multiplier).toString();
+        } else {
+          // Assume absolute price
+          stopLossPrice = orderData.stopLoss;
+        }
+        console.log('🛑 Stop Loss Price:', stopLossPrice);
+      }
+
       // Place the actual order using Bitget API
       const realOrderResponse = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
         side: orderData.side,
         size: adjustedSize,
         orderType: orderData.orderType || 'market',
-        leverage: orderData.leverage
+        leverage: orderData.leverage,
+        takeProfit: takeProfitPrice,
+        stopLoss: stopLossPrice
       });
 
       console.log('📤 Bitget API response:', JSON.stringify(realOrderResponse));

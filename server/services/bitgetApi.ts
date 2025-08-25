@@ -220,6 +220,8 @@ export class BitgetAPI {
     orderType?: 'market' | 'limit';
     price?: string;
     leverage?: number;
+    takeProfit?: string;
+    stopLoss?: string;
   }): Promise<any> {
     try {
       const orderData = {
@@ -231,7 +233,16 @@ export class BitgetAPI {
         tradeSide: 'open', // Always 'open' for new positions
         orderType: orderParams.orderType || 'market',
         size: orderParams.size,
-        ...(orderParams.price && { price: orderParams.price })
+        ...(orderParams.price && { price: orderParams.price }),
+        // Take Profit / Stop Loss preset parameters
+        ...(orderParams.takeProfit && { 
+          presetTakeProfitPrice: orderParams.takeProfit,
+          presetTakeProfitExecutePrice: "0" // 0 = market order execution
+        }),
+        ...(orderParams.stopLoss && { 
+          presetStopLossPrice: orderParams.stopLoss,
+          presetStopLossExecutePrice: "0" // 0 = market order execution
+        })
       };
 
       console.log('🔧 Final order data for Bitget:', JSON.stringify(orderData, null, 2));
