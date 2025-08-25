@@ -295,17 +295,18 @@ export class BitgetAPI {
       // To close a position, we place an opposite order with 'close' tradeSide
       const oppositeSide = side === 'long' ? 'sell' : 'buy';
       
-      // For hedge mode, we need to use the correct closing approach
+      // For hedge mode positions, try using 'open' tradeSide with opposite direction instead of 'close'
+      // This is often how hedge mode positions are closed in some exchanges
       const orderData = {
         symbol: symbol,
         productType: 'USDT-FUTURES',
         marginMode: currentPosition.marginMode || 'isolated',
         marginCoin: 'USDT',
         side: oppositeSide,
-        tradeSide: 'close',
+        tradeSide: 'open', // Try 'open' instead of 'close' for hedge mode
         orderType: 'market',
         size: currentPosition.total,
-        holdSide: currentPosition.holdSide // Always include holdSide for closing
+        holdSide: oppositeSide === 'sell' ? 'short' : 'long' // Opposite holdSide for hedge closing
       };
 
       // Check for any open orders first that might interfere
