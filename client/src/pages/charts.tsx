@@ -128,31 +128,33 @@ export function Charts() {
   }, [selectedPair, timeframe]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="min-h-screen bg-background text-foreground">
       <BackButton />
       
-      {/* TradingView Chart - Full Extent */}
+      {/* TradingView Chart - Full Screen */}
       <div 
         ref={chartContainerRef}
-        className="h-[calc(100vh-140px)] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
+        className="h-[calc(100vh-100px)] w-full bg-[#131722] rounded-none border-l-0 border-r-0"
         id="tradingview_chart"
       />
 
-      {/* Quick Actions */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-2">
+      {/* Quick Actions - Overlay Style */}
+      <div className="fixed bottom-16 left-0 right-0 p-2 bg-background/90 backdrop-blur-sm">
+        <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
           <Button 
             onClick={() => setLocation(`/trade?pair=${selectedPair}`)}
-            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs rounded-none"
+            className="bg-blue-600 hover:bg-blue-700 h-8 text-xs"
+            size="sm"
           >
             Trade {selectedPair}
           </Button>
           <Button 
             onClick={() => setLocation(`/analyzer?pair=${selectedPair}&autoFill=true`)}
             variant="outline"
-            className="h-8 text-xs rounded-none"
+            className="h-8 text-xs"
+            size="sm"
           >
-            Analyze Pair
+            Analyze
           </Button>
         </div>
       </div>
