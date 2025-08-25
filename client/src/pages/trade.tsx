@@ -378,7 +378,7 @@ export function Trade() {
       </div>
 
       {/* Main Layout: Trading Form + Analysis Panel */}
-      <div className="flex h-[calc(100vh-50px)]">
+      <div className="flex h-[calc(100vh-80px)]">
         {/* Left: Compact Trading Form */}
         <div className="flex-1 px-0 py-0 space-y-0 overflow-y-auto">
           {/* Leverage */}
@@ -777,8 +777,8 @@ export function Trade() {
       </div>
 
       {/* Bottom Tabs */}
-      <div className="border-t border-border bg-card flex flex-col">
-        <Tabs defaultValue="positions" className="w-full flex flex-col">
+      <div className="border-t border-border bg-card h-32 flex flex-col">
+        <Tabs defaultValue="positions" className="w-full h-full flex flex-col">
           <TabsList className="grid w-full grid-cols-3 bg-transparent border-none h-6">
             <TabsTrigger value="positions" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
               Positions({(accountData as any)?.positions?.length || 0})
