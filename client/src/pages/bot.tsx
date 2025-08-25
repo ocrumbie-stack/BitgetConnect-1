@@ -30,6 +30,7 @@ export default function BotPage() {
   const [riskLevel, setRiskLevel] = useState('medium');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
+  const [trailingStop, setTrailingStop] = useState('');
   // Removed showAdvancedIndicators state - indicators are now always visible
   
   // Technical Indicators state
@@ -240,6 +241,7 @@ export default function BotPage() {
     setRiskLevel('medium');
     setStopLoss('');
     setTakeProfit('');
+    setTrailingStop('');
     // Indicators are now always visible - no need to reset showAdvancedIndicators
     setIndicators({
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
@@ -280,6 +282,7 @@ export default function BotPage() {
         riskManagement: {
           stopLoss: parseFloat(stopLoss) || undefined,
           takeProfit: parseFloat(takeProfit) || undefined,
+          trailingStop: parseFloat(trailingStop) || undefined,
         }
       }
     };
@@ -619,6 +622,7 @@ export default function BotPage() {
         direction: recommendedDirection,
         stopLoss: recommendedStopLoss,
         takeProfit: recommendedTakeProfit,
+        trailingStop: '', // Will be populated by AI suggestion logic
         leverage: recommendedLeverage,
         riskLevel: riskLevel
       },
@@ -668,8 +672,9 @@ export default function BotPage() {
 
     setTimeframe(suggestedSettings.recommended.timeframe);
     setPositionDirection(suggestedSettings.recommended.direction);
-    setStopLoss(suggestedSettings.recommended.stopLoss);
-    setTakeProfit(suggestedSettings.recommended.takeProfit);
+    setStopLoss(suggestedSettings.recommended.stopLoss || '');
+    setTakeProfit(suggestedSettings.recommended.takeProfit || '');
+    setTrailingStop(suggestedSettings.recommended.trailingStop || '');
     setRiskLevel(suggestedSettings.recommended.riskLevel);
 
     // Apply suggested indicators
@@ -1645,16 +1650,10 @@ export default function BotPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Stop Loss (%)</label>
-                <Input 
-                  type="number"
-                  placeholder="2"
-                  value={stopLoss}
-                  onChange={(e) => setStopLoss(e.target.value)}
-                />
-              </div>
+            {/* Risk Management Section with Mutually Exclusive Stop Loss/Trailing Stop */}
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+              <h4 className="font-medium text-sm mb-3">Risk Management</h4>
+              
               <div>
                 <label className="text-sm font-medium mb-2 block">Take Profit (%)</label>
                 <Input 
@@ -1663,6 +1662,51 @@ export default function BotPage() {
                   value={takeProfit}
                   onChange={(e) => setTakeProfit(e.target.value)}
                 />
+              </div>
+
+              {/* Mutually Exclusive Stop Loss and Trailing Stop */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Stop Loss (%)</label>
+                  <Input 
+                    type="number"
+                    placeholder="2"
+                    value={stopLoss}
+                    disabled={!!trailingStop}
+                    onChange={(e) => {
+                      setStopLoss(e.target.value);
+                      if (e.target.value) {
+                        setTrailingStop(''); // Clear trailing stop when setting stop loss
+                      }
+                    }}
+                  />
+                  {!!trailingStop && (
+                    <p className="text-xs text-muted-foreground">
+                      Disabled - using Trailing Stop instead
+                    </p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Trailing Stop (%)</label>
+                  <Input 
+                    type="number"
+                    placeholder="3"
+                    value={trailingStop}
+                    disabled={!!stopLoss}
+                    onChange={(e) => {
+                      setTrailingStop(e.target.value);
+                      if (e.target.value) {
+                        setStopLoss(''); // Clear stop loss when setting trailing stop
+                      }
+                    }}
+                  />
+                  {!!stopLoss && (
+                    <p className="text-xs text-muted-foreground">
+                      Disabled - using Stop Loss instead
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
