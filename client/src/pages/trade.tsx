@@ -297,7 +297,7 @@ export function Trade() {
   return (
     <div className="h-screen bg-background text-foreground flex flex-col pb-0">
       {/* Ultra Compact Header */}
-      <div className="p-1 border-b border-border bg-card">
+      <div className="p-2 border-b border-border bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex gap-4">
@@ -380,7 +380,7 @@ export function Trade() {
       {/* Main Layout: Trading Form + Analysis Panel */}
       <div className="flex h-[calc(100vh-120px)]">
         {/* Left: Compact Trading Form */}
-        <div className="flex-1 p-1 space-y-1 overflow-y-auto">
+        <div className="flex-1 p-2 space-y-2 overflow-y-auto">
           {/* Leverage */}
           {!customLeverageMode ? (
             <div className="space-y-2">
@@ -663,8 +663,8 @@ export function Trade() {
         </div>
 
         {/* Right: Market Analysis Panel */}
-        <div className="w-48 border-l border-border bg-card/50 p-1 space-y-1">
-          <h3 className="text-sm font-semibold mb-1 flex items-center gap-1">
+        <div className="w-48 border-l border-border bg-card/50 p-2 space-y-2">
+          <h3 className="text-sm font-semibold mb-2 flex items-center gap-1">
             <Activity className="h-3 w-3" />
             Market Analysis
           </h3>
@@ -791,7 +791,7 @@ export function Trade() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="positions" className="p-2 flex-1">
+          <TabsContent value="positions" className="p-4 flex-1">
             {(accountData as any)?.positions?.length > 0 ? (
               <div className="space-y-3">
                 {(accountData as any).positions.map((position: any) => {
@@ -934,7 +934,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="orders" className="p-2 flex-1">
+          <TabsContent value="orders" className="p-4 flex-1">
             {(ordersData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(ordersData as any[]).map((order: any) => (
@@ -977,7 +977,7 @@ export function Trade() {
             )}
           </TabsContent>
           
-          <TabsContent value="bots" className="p-2 flex-1">
+          <TabsContent value="bots" className="p-4 flex-1">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-3">
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
