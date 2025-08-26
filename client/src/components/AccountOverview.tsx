@@ -1,11 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function AccountOverview() {
+  const [, setLocation] = useLocation();
+  
   const { data: accountData, isLoading } = useQuery({
     queryKey: ['/api/account', 'user1'], // Using a default user ID for demo
     refetchInterval: 30000, // Refresh every 30 seconds for better performance
   });
+
+  const handleBalanceTrendClick = () => {
+    setLocation('/balance-history');
+  };
 
   const formatCurrency = (value: string | null | undefined) => {
     if (!value) return '$0.00';
@@ -113,16 +121,28 @@ export default function AccountOverview() {
                 {formatCurrency(account?.marginUsed)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">Unrealized PnL:</span>
-              <span 
-                className={`text-sm font-mono ${
-                  account?.unrealizedPnl && parseFloat(account.unrealizedPnl) >= 0 ? 'text-success' : 'text-error'
-                }`}
-                data-testid="unrealized-pnl"
-              >
-                {formatCurrency(account?.unrealizedPnl)}
-              </span>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-text-secondary">Unrealized PnL:</span>
+                <span 
+                  className={`text-sm font-mono ${
+                    account?.unrealizedPnl && parseFloat(account.unrealizedPnl) >= 0 ? 'text-success' : 'text-error'
+                  }`}
+                  data-testid="unrealized-pnl"
+                >
+                  {formatCurrency(account?.unrealizedPnl)}
+                </span>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleBalanceTrendClick}
+                  className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  title="View Balance History"
+                  data-testid="balance-trend-button"
+                >
+                  <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                </button>
+              </div>
             </div>
             <div className="flex justify-between border-t border-border-color pt-2">
               <span className="text-sm font-medium">Total Equity:</span>
