@@ -466,35 +466,35 @@ export default function Markets() {
                       </SelectItem>
                       {userScreeners.map((screener: any) => (
                         <SelectItem key={screener.id} value={screener.id}>
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-sm">{screener.name}</span>
+                          <div className="flex items-center justify-between w-full min-w-0">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                              <span className="text-sm truncate">{screener.name}</span>
                             </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0"
+                                className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleEditScreener(screener.id);
                                 }}
                                 title="Edit screener"
                               >
-                                <Edit className="h-3 w-3" />
+                                <Edit className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm" 
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteScreener(screener.id);
                                 }}
                                 title="Delete screener"
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </div>
