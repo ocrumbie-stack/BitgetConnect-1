@@ -665,7 +665,7 @@ export default function Markets() {
                         {selectedScreener === 'none' || !selectedScreener ? (
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                            <span className="text-sm">Show All Markets</span>
+                            <span className="text-sm">All Markets</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
@@ -679,7 +679,7 @@ export default function Markets() {
                       <SelectItem value="none">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                          <span className="text-sm">Show All Markets</span>
+                          <span className="text-sm">All Markets</span>
                         </div>
                       </SelectItem>
                       {userScreeners.map((screener: any) => (
