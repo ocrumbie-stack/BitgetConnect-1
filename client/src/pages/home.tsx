@@ -105,9 +105,9 @@ export function Home() {
   const marketHealth = getMarketHealth();
 
   const formatVolume = (volume: number) => {
-    if (volume >= 1e9) return `$${(volume / 1e9).toFixed(2)}B`;
-    if (volume >= 1e6) return `$${(volume / 1e6).toFixed(2)}M`;
-    return `$${volume.toFixed(2)}`;
+    if (volume >= 1e9) return `$${(volume / 1e9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+    if (volume >= 1e6) return `$${(volume / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+    return `$${volume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const formatChange = (change: string | null) => {

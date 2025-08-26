@@ -383,10 +383,10 @@ export default function Markets() {
   // Helper functions
   const formatVolume = (volume: string) => {
     const num = parseFloat(volume);
-    if (num >= 1e9) return `${(num / 1e9).toFixed(1)}B`;
-    if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
-    if (num >= 1e3) return `${(num / 1e3).toFixed(1)}K`;
-    return num.toFixed(0);
+    if (num >= 1e9) return `${(num / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}B`;
+    if (num >= 1e6) return `${(num / 1e6).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
+    if (num >= 1e3) return `${(num / 1e3).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}K`;
+    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
   const formatChange = (change: string) => {

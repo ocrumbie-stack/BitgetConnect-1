@@ -121,17 +121,17 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
   const formatVolume = (volume: string | null) => {
     if (!volume) return '0';
     const num = parseFloat(volume);
-    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
-    if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
-    return num.toFixed(2);
+    if (num >= 1e9) return `${(num / 1e9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
+    if (num >= 1e6) return `${(num / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
+    if (num >= 1e3) return `${(num / 1e3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}K`;
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   const formatPrice = (price: string) => {
     const num = parseFloat(price);
-    if (num >= 1) return num.toFixed(4);
-    if (num >= 0.01) return num.toFixed(6);
-    return num.toFixed(8);
+    if (num >= 1) return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    if (num >= 0.01) return num.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    return num.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 8 });
   };
 
   const formatChange = (change: string | null) => {
