@@ -814,8 +814,7 @@ export default function Markets() {
                     { key: 'remarkable', label: 'Remarkable Price Changes', icon: AlertTriangle, color: 'text-red-500', desc: 'Significant 5-minute and 24-hour price movements with timestamps.', badge: 'Price Alerts' }
                   ].filter(strategy => expandedStrategies.has(strategy.key)).map((strategy) => {
                     const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
-                    const showAll = showAllOpportunities[strategy.key] || false;
-                    const displayedOpportunities = showAll ? strategyOpportunities : strategyOpportunities.slice(0, 3);
+                    const displayedOpportunities = strategyOpportunities; // Show all opportunities
                     
                     return (
                       <Card key={strategy.key} className="border-2 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
@@ -891,23 +890,6 @@ export default function Markets() {
                                 </Card>
                               ))}
                               
-                              {/* Show More/Less Button */}
-                              {strategyOpportunities.length > 3 && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowAllOpportunities(prev => ({
-                                      ...prev,
-                                      [strategy.key]: !showAll
-                                    }));
-                                  }}
-                                  className="w-full"
-                                >
-                                  {showAll ? 'Show Less' : `Show All ${strategyOpportunities.length} Opportunities`}
-                                </Button>
-                              )}
                             </div>
                           )}
                         </CardContent>
