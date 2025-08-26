@@ -10,7 +10,8 @@ Preferred communication style: Simple, everyday language.
   - Restored clickable market overview cards with hover animations that filter data table when clicked
   - Implemented complete AI Opportunities tab with Momentum, Breakout, and Scalping trading strategies
   - Enhanced text sizing standardization: headers (text-xl), content (text-base), secondary (text-sm)
-  - Added inline edit/delete buttons within screener dropdown for streamlined management
+  - Positioned edit/delete buttons external to dropdown on the right side for optimal usability
+  - Smart button visibility: edit/delete controls only appear when a screener is selected
   - Improved visual hierarchy and spacing throughout Markets page for better usability
   - All interactive features now working: card filtering, AI opportunities, and screener management
 - **August 25, 2025**: Fixed Charts Page Back Button Overlay Issue - COMPLETED ✓
