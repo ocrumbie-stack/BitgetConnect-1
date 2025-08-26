@@ -133,14 +133,14 @@ export default function AccountOverview() {
                   {formatCurrency(account?.unrealizedPnl)}
                 </span>
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-1">
                 <button
                   onClick={handleBalanceTrendClick}
-                  className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors group border border-gray-300 dark:border-gray-600"
                   title="View Balance History"
                   data-testid="balance-trend-button"
                 >
-                  <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                  <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300 transition-colors" />
                 </button>
               </div>
             </div>
