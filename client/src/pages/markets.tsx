@@ -167,7 +167,7 @@ export default function Markets() {
   };
 
   const handleEditScreener = (screenerId: string) => {
-    setLocation(`/screener-builder?edit=${screenerId}`);
+    setLocation(`/edit-screener/${screenerId}`);
   };
 
   const handleDeleteScreener = async (screenerId: string) => {
@@ -462,6 +462,34 @@ export default function Markets() {
 
               {/* Screener Management */}
               <div className="space-y-4">
+                {/* Screener Selection Dropdown */}
+                {userScreeners.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Apply Screener Filter:</label>
+                    <Select value={selectedScreener} onValueChange={handleScreenerChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a screener to filter results..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                            No Filter (Show All)
+                          </div>
+                        </SelectItem>
+                        {userScreeners.map((screener: any) => (
+                          <SelectItem key={screener.id} value={screener.id}>
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                              {screener.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
                   <Button
                     variant="ghost"
