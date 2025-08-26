@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function AccountOverview() {
+  const [, setLocation] = useLocation();
+  
   const { data: accountData, isLoading } = useQuery({
     queryKey: ['/api/account', 'user1'], // Using a default user ID for demo
     refetchInterval: 30000, // Refresh every 30 seconds for better performance
@@ -113,16 +117,26 @@ export default function AccountOverview() {
                 {formatCurrency(account?.marginUsed)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">Unrealized PnL:</span>
-              <span 
-                className={`text-sm font-mono ${
-                  account?.unrealizedPnl && parseFloat(account.unrealizedPnl) >= 0 ? 'text-success' : 'text-error'
-                }`}
-                data-testid="unrealized-pnl"
-              >
-                {formatCurrency(account?.unrealizedPnl)}
-              </span>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-sm text-text-secondary">Unrealized PnL:</span>
+                <span 
+                  className={`text-sm font-mono ${
+                    account?.unrealizedPnl && parseFloat(account.unrealizedPnl) >= 0 ? 'text-success' : 'text-error'
+                  }`}
+                  data-testid="unrealized-pnl"
+                >
+                  {formatCurrency(account?.unrealizedPnl)}
+                </span>
+              </div>
+              <div className="flex justify-center">
+                <TrendingUp 
+                  className="w-4 h-4 text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-800 dark:hover:text-blue-300 transition-colors" 
+                  onClick={() => setLocation('/balance-history')}
+                  title="View Balance History"
+                  data-testid="balance-trend-icon"
+                />
+              </div>
             </div>
             <div className="flex justify-between border-t border-border-color pt-2">
               <span className="text-sm font-medium">Total Equity:</span>
