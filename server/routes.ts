@@ -713,15 +713,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('🔍 DEBUG - Raw positions from API:', JSON.stringify(positions, null, 2));
 
+      // Calculate total margin used from all positions
+      const totalMarginUsed = positions.reduce((sum, pos) => {
+        return sum + parseFloat(pos.marginSize || '0');
+      }, 0);
+
       // Update local storage
       if (accountData.length > 0) {
         const account = accountData[0];
+        const availableBalance = parseFloat(account.available || '0');
+        const calculatedTotalEquity = availableBalance + totalMarginUsed;
+        
         await storage.updateAccountInfo(userId, {
           userId,
           availableBalance: account.available,
-          marginUsed: (parseFloat(account.equity) - parseFloat(account.available)).toString(),
+          marginUsed: totalMarginUsed.toString(),
           unrealizedPnl: account.unrealizedPL,
-          totalEquity: account.equity,
+          totalEquity: calculatedTotalEquity.toString(),
           marginRatio: account.crossRiskRate,
           maintenanceMargin: '0' // This would need to be calculated
         });
