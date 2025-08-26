@@ -1070,10 +1070,13 @@ export function Trade() {
                       <div>
                         <div>{order.orderCategory === 'plan' ? 'Trigger' : 'Price'}</div>
                         <div className="font-medium text-foreground">
-                          ${order.orderCategory === 'plan' ? 
-                            parseFloat(order.triggerPrice).toFixed(6) : 
-                            (order.price ? parseFloat(order.price).toFixed(2) : 'Market')
-                          }
+                          {order.orderCategory === 'plan' ? (
+                            order.planType === 'track_plan' ? 
+                              'Market Price' : 
+                              `$${parseFloat(order.triggerPrice).toFixed(6)}`
+                          ) : (
+                            order.price ? `$${parseFloat(order.price).toFixed(2)}` : 'Market'
+                          )}
                         </div>
                       </div>
                       <div>
