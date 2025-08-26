@@ -155,35 +155,35 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
   return (
     <div className="bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-3 text-xs font-medium text-muted-foreground border-b border-border">
+      <div className="flex items-center justify-between px-4 py-4 text-sm font-medium text-muted-foreground border-b border-border">
         <div 
-          className={`flex items-center gap-1 min-w-0 flex-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center gap-2 min-w-0 flex-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('volume')}
           data-testid="header-coin-volume"
         >
           <span className="truncate">Coin/Volume</span>
           {onSort && sortBy === 'volume' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
           )}
         </div>
         <div 
-          className={`flex items-center justify-center gap-1 w-20 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-center gap-2 w-20 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('price')}
           data-testid="header-price"
         >
           <span>Price</span>
           {onSort && sortBy === 'price' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
           )}
         </div>
         <div 
-          className={`flex items-center justify-end gap-1 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-end gap-2 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('change')}
           data-testid="header-change"
         >
           <span>Change</span>
           {onSort && sortBy === 'change' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
           )}
         </div>
       </div>
@@ -194,7 +194,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           <ContextMenu key={item.symbol}>
             <ContextMenuTrigger asChild>
               <div 
-                className="flex items-center justify-between px-3 py-3 hover:bg-accent/50 transition-colors cursor-pointer min-w-0" 
+                className="flex items-center justify-between px-4 py-4 hover:bg-accent/50 transition-colors cursor-pointer min-w-0" 
                 data-testid={`row-${item.symbol}`}
                 onClick={() => setLocation(`/charts?pair=${item.symbol}`)}
                 onTouchStart={() => handleLongPressStart(item.symbol)}
@@ -205,17 +205,17 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
               >
                 {/* Coin/Volume Column */}
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-foreground text-sm truncate" data-testid={`symbol-${item.symbol}`}>
+                  <div className="font-medium text-foreground text-base truncate" data-testid={`symbol-${item.symbol}`}>
                     {item.symbol}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate" data-testid={`volume-${item.symbol}`}>
+                  <div className="text-sm text-muted-foreground truncate" data-testid={`volume-${item.symbol}`}>
                     {formatVolume(item.volume24h)}
                   </div>
                 </div>
 
                 {/* Price Column */}
                 <div className="w-20 text-center">
-                  <div className="font-medium text-foreground text-xs" data-testid={`price-${item.symbol}`}>
+                  <div className="font-medium text-foreground text-sm" data-testid={`price-${item.symbol}`}>
                     {formatPrice(item.price)}
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
                 {/* Change Column */}
                 <div className="w-24 flex items-center justify-end gap-1">
                   <div 
-                    className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium text-white ${getChangeBackground(item.change24h)}`}
+                    className={`inline-block px-2 py-1 rounded text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
                     data-testid={`change-${item.symbol}`}
                   >
                     {formatChange(item.change24h)}
@@ -232,14 +232,14 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-5 w-5 p-0 ml-1"
+                      className="h-6 w-6 p-0 ml-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         onRiskAnalysis(item.symbol);
                       }}
                       title="Risk Analysis"
                     >
-                      <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                      <Shield className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                     </Button>
                   )}
                 </div>

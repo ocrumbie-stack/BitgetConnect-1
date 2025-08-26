@@ -245,20 +245,20 @@ export default function Markets() {
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-semibold">Markets</h1>
+            <h1 className="text-xl font-semibold">Markets</h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setLocation('/folders')}
-                className="flex items-center gap-1.5 text-xs"
+                className="flex items-center gap-2 text-sm"
                 data-testid="button-folders"
               >
-                <Folder className="h-3 w-3" />
+                <Folder className="h-4 w-4" />
                 Folders
               </Button>
-              <div className="flex items-center gap-1.5 text-xs">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-muted-foreground">Live</span>
               </div>
             </div>
@@ -266,52 +266,170 @@ export default function Markets() {
           
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-8">
-              <TabsTrigger value="screener" className="flex items-center gap-1.5 text-xs">
-                <BarChart3 className="h-3 w-3" />
+            <TabsList className="grid w-full grid-cols-2 h-10">
+              <TabsTrigger value="screener" className="flex items-center gap-2 text-sm">
+                <BarChart3 className="h-4 w-4" />
                 Screener
               </TabsTrigger>
-              <TabsTrigger value="opportunities" className="flex items-center gap-1.5 text-xs">
-                <Brain className="h-3 w-3" />
+              <TabsTrigger value="opportunities" className="flex items-center gap-2 text-sm">
+                <Brain className="h-4 w-4" />
                 AI Opportunities
               </TabsTrigger>
             </TabsList>
 
             {/* Screener Tab Content */}
-            <TabsContent value="screener" className="space-y-3 mt-3">
-              <div className="px-4 space-y-3">
+            <TabsContent value="screener" className="space-y-4 mt-3">
+              {/* Market Overview Cards */}
+              <div className="px-4 space-y-4">
+                {/* Market Statistics Cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500 rounded-lg">
+                          <BarChart3 className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="total-pairs">
+                            {isLoading ? '...' : marketStats?.total || 0}
+                          </div>
+                          <div className="text-sm text-blue-600 dark:text-blue-400">Total Markets</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-500 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-green-700 dark:text-green-300" data-testid="total-gainers">
+                            {isLoading ? '...' : marketStats?.gainers || 0}
+                          </div>
+                          <div className="text-sm text-green-600 dark:text-green-400">Gainers (24h)</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-500 rounded-lg">
+                          <TrendingDown className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-red-700 dark:text-red-300" data-testid="total-losers">
+                            {isLoading ? '...' : marketStats?.losers || 0}
+                          </div>
+                          <div className="text-sm text-red-600 dark:text-red-400">Losers (24h)</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500 rounded-lg">
+                          <Volume2 className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-purple-700 dark:text-purple-300" data-testid="high-volume">
+                            {isLoading ? '...' : marketStats?.highVolume || 0}
+                          </div>
+                          <div className="text-sm text-purple-600 dark:text-purple-400">High Volume</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Market Average Change Card */}
+                <Card className={`bg-gradient-to-br ${
+                  marketStats && marketStats.avgChange >= 0
+                    ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800'
+                    : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          marketStats && marketStats.avgChange >= 0 ? 'bg-emerald-500' : 'bg-orange-500'
+                        }`}>
+                          <Activity className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-lg font-medium mb-1">Market Sentiment</div>
+                          <div className={`text-xl font-bold ${
+                            marketStats && marketStats.avgChange >= 0
+                              ? 'text-emerald-700 dark:text-emerald-300'
+                              : 'text-orange-700 dark:text-orange-300'
+                          }`} data-testid="avg-change">
+                            {isLoading ? '...' : marketStats ? `${(marketStats.avgChange * 100).toFixed(2)}%` : '0.00%'}
+                          </div>
+                          <div className={`text-sm ${
+                            marketStats && marketStats.avgChange >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-orange-600 dark:text-orange-400'
+                          }`}>
+                            Average Change (24h)
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-sm font-medium ${
+                          marketStats && marketStats.avgChange >= 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-orange-600 dark:text-orange-400'
+                        }`}>
+                          {marketStats && marketStats.avgChange >= 0 ? 'Bullish' : 'Bearish'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Vol: {marketStats ? formatVolume(marketStats.totalVolume.toString()) : '$0'}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Search Functionality */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search markets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9 text-sm"
+                    className="pl-10 h-10 text-base"
                     data-testid="input-search-markets"
                   />
                 </div>
 
                 {/* Screener Filter Selection */}
                 {userScreeners.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Apply Filter:</label>
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-muted-foreground">Apply Filter:</label>
                     <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
-                      <SelectTrigger className="w-full h-9 text-sm">
+                      <SelectTrigger className="w-full h-10 text-base">
                         <SelectValue placeholder="Select screener..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">
                           <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-1.5 bg-gray-400 rounded-full"></div>
-                            <span className="text-xs">Show All</span>
+                            <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                            <span className="text-sm">Show All</span>
                           </div>
                         </SelectItem>
                         {userScreeners.map((screener: any) => (
                           <SelectItem key={screener.id} value={screener.id}>
                             <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-1.5 bg-blue-500 rounded-full"></div>
-                              <span className="text-xs">{screener.name}</span>
+                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm">{screener.name}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -325,13 +443,13 @@ export default function Markets() {
                   <Button
                     variant="ghost"
                     onClick={() => setIsScreenersCollapsed(!isScreenersCollapsed)}
-                    className="flex items-center gap-1.5 text-sm font-medium p-0 h-auto hover:bg-transparent"
+                    className="flex items-center gap-2 text-base font-medium p-0 h-auto hover:bg-transparent"
                   >
                     <span>Manage Screeners</span>
                     {isScreenersCollapsed ? (
-                      <ChevronDown className="h-3 w-3" />
+                      <ChevronDown className="h-4 w-4" />
                     ) : (
-                      <ChevronUp className="h-3 w-3" />
+                      <ChevronUp className="h-4 w-4" />
                     )}
                   </Button>
                   <div className="flex items-center gap-2">
@@ -339,17 +457,17 @@ export default function Markets() {
                       variant="outline"
                       size="sm"
                       onClick={() => refetchScreeners()}
-                      className="h-7 px-2 text-xs"
+                      className="h-9 px-3 text-sm"
                     >
-                      <RefreshCw className="h-3 w-3" />
+                      <RefreshCw className="h-4 w-4" />
                     </Button>
                     <Button
                       onClick={() => setLocation('/create-screener')}
                       size="sm"
-                      className="h-7 px-2 text-xs"
+                      className="h-9 px-3 text-sm"
                       data-testid="button-create-screener"
                     >
-                      <Plus className="h-3 w-3 mr-1" />
+                      <Plus className="h-4 w-4 mr-1" />
                       New
                     </Button>
                   </div>
@@ -362,14 +480,14 @@ export default function Markets() {
                     {userScreeners.length > 0 ? (
                       <div className="grid gap-3">
                         {userScreeners.map((screener: { id: string; name: string; userId: string }) => (
-                          <Card key={screener.id} className="p-4">
+                          <Card key={screener.id} className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 border-slate-200 dark:border-slate-700">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                                  <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <div className="h-12 w-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                                  <BarChart3 className="h-6 w-6 text-slate-600 dark:text-slate-400" />
                                 </div>
                                 <div>
-                                  <h4 className="font-medium">{screener.name}</h4>
+                                  <h4 className="text-base font-medium">{screener.name}</h4>
                                   <p className="text-sm text-muted-foreground">Custom screener</p>
                                 </div>
                               </div>
@@ -378,6 +496,7 @@ export default function Markets() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleEditScreener(screener.id)}
+                                  className="text-sm"
                                   data-testid={`edit-screener-${screener.id}`}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
@@ -396,6 +515,7 @@ export default function Markets() {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
                                       onClick={() => handleEditScreener(screener.id)}
+                                      className="text-sm"
                                       data-testid={`edit-screener-menu-${screener.id}`}
                                     >
                                       <Edit className="h-4 w-4 mr-2" />
@@ -403,7 +523,7 @@ export default function Markets() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() => handleDeleteScreener(screener.id)}
-                                      className="text-red-600"
+                                      className="text-sm text-red-600"
                                       data-testid={`delete-screener-${screener.id}`}
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -417,19 +537,19 @@ export default function Markets() {
                         ))}
                       </div>
                     ) : (
-                      <Card className="p-8 text-center">
+                      <Card className="p-8 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-700">
                         <div className="flex flex-col items-center gap-4">
                           <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center">
                             <BarChart3 className="h-8 w-8 text-muted-foreground" />
                           </div>
                           <div>
-                            <h4 className="font-medium mb-2">No Screeners Yet</h4>
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <h4 className="text-lg font-medium mb-2">No Screeners Yet</h4>
+                            <p className="text-base text-muted-foreground mb-4">
                               Create your first market screener to filter and analyze trading pairs
                             </p>
                             <Button
                               onClick={() => setLocation('/create-screener')}
-                              className="flex items-center gap-2"
+                              className="flex items-center gap-2 text-base"
                               data-testid="button-create-first-screener"
                             >
                               <Plus className="h-4 w-4" />
