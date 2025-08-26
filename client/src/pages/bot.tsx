@@ -2681,7 +2681,7 @@ export default function BotPage() {
 
       {/* Bot Info Dialog */}
       <Dialog open={showBotInfo} onOpenChange={setShowBotInfo}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-blue-600" />
@@ -2693,7 +2693,7 @@ export default function BotPage() {
           </DialogHeader>
 
           {selectedBotInfo && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto flex-1 pr-2">
               {/* Bot Description */}
               <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
                 <h4 className="font-medium text-sm mb-2">Strategy Overview</h4>
@@ -2773,7 +2773,7 @@ export default function BotPage() {
             </div>
           )}
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4 flex-shrink-0">
             <Button 
               variant="outline" 
               onClick={() => setShowBotInfo(false)}
