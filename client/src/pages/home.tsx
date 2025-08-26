@@ -9,6 +9,7 @@ import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, 
 import { Link, useLocation } from 'wouter';
 import { AlertDemoCreator } from '@/components/AlertDemoCreator';
 import DynamicRiskMeter from '@/components/DynamicRiskMeter';
+import AccountOverview from '@/components/AccountOverview';
 
 export function Home() {
   const { data, isLoading } = useBitgetData();
@@ -1164,6 +1165,9 @@ export function Home() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Account Overview Section */}
+        <AccountOverview />
 
         {/* Dynamic Risk Meter Dialog */}
         <DynamicRiskMeter
