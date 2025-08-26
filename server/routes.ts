@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bitgetAPI.getPositions()
       ]);
 
-      console.log('🔍 DEBUG - Raw positions from API:', JSON.stringify(positions, null, 2));
+
 
       // Calculate total margin used from all positions
       const totalMarginUsed = positions.reduce((sum, pos) => {

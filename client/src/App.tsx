@@ -21,6 +21,7 @@ import { StrategyRecommender } from "@/pages/strategy-recommender";
 import { Charts } from "@/pages/charts";
 import { Assets } from "@/pages/assets";
 import { Settings } from "@/pages/settings";
+import BalanceHistory from "@/pages/balance-history";
 
 function Router() {
   useScrollToTop(); // Auto-scroll to top on route changes
@@ -44,6 +45,7 @@ function Router() {
         <Route path="/create-screener" component={CreateScreener} />
         <Route path="/edit-screener/:id" component={EditScreener} />
         <Route path="/advanced" component={Screener} />
+        <Route path="/balance-history" component={BalanceHistory} />
         <Route component={NotFound} />
       </Switch>
       <BottomNavigation />
