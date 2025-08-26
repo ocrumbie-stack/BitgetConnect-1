@@ -163,7 +163,7 @@ export default function Markets() {
 
   // Screener handlers
   const handleScreenerChange = (value: string) => {
-    setSelectedScreener(value);
+    setSelectedScreener(value === 'none' ? '' : value);
   };
 
   const handleEditScreener = (screenerId: string) => {
@@ -466,12 +466,12 @@ export default function Markets() {
                 {userScreeners.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Apply Screener Filter:</label>
-                    <Select value={selectedScreener} onValueChange={handleScreenerChange}>
+                    <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a screener to filter results..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">
+                        <SelectItem value="none">
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
                             No Filter (Show All)
