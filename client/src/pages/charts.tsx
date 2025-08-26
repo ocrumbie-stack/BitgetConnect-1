@@ -10,7 +10,10 @@ import { BackButton } from '@/components/BackButton';
 export function Charts() {
   const [, setLocation] = useLocation();
   const { data } = useBitgetData();
-  const [selectedPair, setSelectedPair] = useState('BTCUSDT');
+  const [selectedPair, setSelectedPair] = useState(() => {
+    // Try to get last viewed pair from localStorage, fallback to BTCUSDT
+    return localStorage.getItem('lastViewedTradingPair') || 'BTCUSDT';
+  });
   const [timeframe, setTimeframe] = useState('1H');
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -35,8 +38,15 @@ export function Charts() {
     const pairParam = urlParams.get('pair');
     if (pairParam) {
       setSelectedPair(pairParam);
+      // Save to localStorage for future visits
+      localStorage.setItem('lastViewedTradingPair', pairParam);
     }
   }, []);
+
+  // Save to localStorage whenever selectedPair changes (for direct navigation)
+  useEffect(() => {
+    localStorage.setItem('lastViewedTradingPair', selectedPair);
+  }, [selectedPair]);
 
   // Initialize TradingView widget
   useEffect(() => {
