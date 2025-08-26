@@ -27,6 +27,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'Test endpoint works!' });
   });
 
+
+
   // Catch-all middleware for positions endpoints
   app.use('/api/positions/*', (req, res, next) => {
     console.log('🎯🎯🎯 POSITIONS ROUTE INTERCEPTED:', req.method, req.url);
@@ -723,15 +725,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const account = accountData[0];
         const availableBalance = parseFloat(account.available || '0');
         const unrealizedPnl = parseFloat(account.unrealizedPL || '0');
-        const calculatedTotalEquity = availableBalance + totalMarginUsed;
-        const calculatedTotalBalance = calculatedTotalEquity + unrealizedPnl; // Total Balance = Total Equity + P&L
+        
+        // Use Bitget's actual equity field instead of calculating it
+        const actualTotalEquity = parseFloat(account.accountEquity || '0');
+        const calculatedTotalBalance = actualTotalEquity + unrealizedPnl; // Total Balance = Bitget's Equity + P&L
+        
+
         
         await storage.updateAccountInfo(userId, {
           userId,
           availableBalance: account.available,
           marginUsed: totalMarginUsed.toString(),
           unrealizedPnl: account.unrealizedPL,
-          totalEquity: calculatedTotalEquity.toString(),
+          totalEquity: actualTotalEquity.toString(),
           totalBalance: calculatedTotalBalance.toString(),
           marginRatio: account.crossRiskRate,
           maintenanceMargin: '0' // This would need to be calculated
