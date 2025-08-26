@@ -129,9 +129,10 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
 
   const formatPrice = (price: string) => {
     const num = parseFloat(price);
-    if (num >= 1) return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-    if (num >= 0.01) return num.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
-    return num.toLocaleString('en-US', { minimumFractionDigits: 8, maximumFractionDigits: 8 });
+    if (num >= 1000) return num.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    if (num >= 1) return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    if (num >= 0.01) return num.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+    return num.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 8 });
   };
 
   const formatChange = (change: string | null) => {
