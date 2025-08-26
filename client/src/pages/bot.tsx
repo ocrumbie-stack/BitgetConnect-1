@@ -114,6 +114,45 @@ export default function BotPage() {
       recommendedPairs: ['BTCUSDT', 'ETHUSDT'],
       suggestedCapital: '500-3000',
       suggestedLeverage: '5-10'
+    },
+    {
+      id: 'arbitrage',
+      name: 'Smart Arbitrage',
+      description: 'Cross-market arbitrage opportunities with instant execution',
+      risk: 'Low',
+      winRate: '89.2%',
+      gradient: 'from-green-500 to-emerald-500',
+      icon: Target,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'],
+      suggestedCapital: '5000-20000',
+      suggestedLeverage: '1-3'
+    },
+    {
+      id: 'dca',
+      name: 'AI Dollar Cost Average',
+      description: 'Intelligent DCA with market timing and trend analysis',
+      risk: 'Low',
+      winRate: '76.8%',
+      gradient: 'from-orange-500 to-red-500',
+      icon: DollarSign,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT'],
+      suggestedCapital: '1000-8000',
+      suggestedLeverage: '1-2'
+    },
+    {
+      id: 'swing',
+      name: 'Smart Swing Trader',
+      description: 'Multi-day swing trading with AI pattern recognition',
+      risk: 'Medium',
+      winRate: '79.6%',
+      gradient: 'from-teal-500 to-blue-500',
+      icon: Trend,
+      isAI: true,
+      recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT'],
+      suggestedCapital: '2000-15000',
+      suggestedLeverage: '2-4'
     }
   ];
 
