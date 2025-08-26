@@ -49,10 +49,10 @@ export default function FoldersPage() {
 
   // Fetch folders (using screeners API as base for now)
   const { data: folders = [], isLoading } = useQuery({
-    queryKey: ['/api/folders', 'default-user'],
+    queryKey: ['/api/folders', 'user1'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/screeners/default-user');
+        const response = await fetch('/api/screeners/user1');
         if (!response.ok) {
           throw new Error('Failed to fetch folders');
         }
@@ -85,7 +85,7 @@ export default function FoldersPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/folders', 'user1'] });
       setShowCreateDialog(false);
       resetForm();
     },
@@ -115,7 +115,7 @@ export default function FoldersPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/folders', 'default-user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/folders', 'user1'] });
       setShowEditDialog(false);
       resetForm();
     }
