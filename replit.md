@@ -5,6 +5,7 @@ This project is a mobile-optimized crypto trading application for real-time Bitg
 Preferred communication style: Simple, everyday language.
 Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
 Navigation preference: Pages should open instantly at the top without scrolling animations for immediate access to content.
+Account balance display: Total Balance = Available Balance + Margin Used (complete account value including position allocations).
 
 # System Architecture
 
@@ -12,7 +13,7 @@ Navigation preference: Pages should open instantly at the top without scrolling 
 The client-side is built with React 18, TypeScript, and Vite. It uses Tailwind CSS with shadcn/ui for mobile-first, responsive design. State management uses React Query for server state and caching, and Wouter for client-side routing. Real-time updates are via WebSocket. The application has a component-based structure, organized around a bottom navigation bar with five main sections: Home, Markets, Trade, Bot, and Assets.
 
 ## Backend Architecture
-The server-side uses Express.js with TypeScript. It integrates with the Bitget API for futures market data and provides a WebSocket server for live updates. Data is currently stored in-memory, designed with an abstract `IStorage` interface for future database integration.
+The server-side uses Express.js with TypeScript. It integrates with the Bitget API for futures market data and provides a WebSocket server for live updates. Data is currently stored in-memory, designed with an abstract `IStorage` interface for future database integration. Account balance calculation properly aggregates margin used from all individual positions to provide accurate total balance (available + margin used).
 
 ## Data Storage Solutions
 The system uses in-memory storage with an `IStorage` interface, prepared for future integration with PostgreSQL using Drizzle ORM. The schema defines models for users, Bitget credentials, futures data, positions, and account information.
