@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
@@ -879,7 +879,14 @@ export default function BotPage() {
       {/* Bot Statistics Overview */}
       <div className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <Card 
+            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+              activeTab === 'strategies' 
+                ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600 shadow-lg scale-105' 
+                : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+            }`}
+            onClick={() => setActiveTab('strategies')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500 rounded-lg">
@@ -895,7 +902,14 @@ export default function BotPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+          <Card 
+            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+              activeTab === 'executions' 
+                ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/40 dark:to-green-900/40 border-green-300 dark:border-green-600 shadow-lg scale-105' 
+                : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+            }`}
+            onClick={() => setActiveTab('executions')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500 rounded-lg">
@@ -911,7 +925,14 @@ export default function BotPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+          <Card 
+            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+              activeTab === 'ai' 
+                ? 'bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800/40 dark:to-purple-900/40 border-purple-300 dark:border-purple-600 shadow-lg scale-105' 
+                : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
+            }`}
+            onClick={() => setActiveTab('ai')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500 rounded-lg">
@@ -935,16 +956,7 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    {(() => {
-                      const activeBots = (activeExecutions as any[]) || [];
-                      if (activeBots.length === 0) {
-                        return 'N/A';
-                      }
-                      // Calculate average win rate from active bots
-                      // For now, since we don't have win rate data from active executions,
-                      // we'll show N/A until bots are actually running
-                      return 'N/A';
-                    })()}
+                    N/A
                   </div>
                   <div className="text-xs text-orange-600 dark:text-orange-400">Avg Win Rate</div>
                 </div>
@@ -955,15 +967,11 @@ export default function BotPage() {
       </div>
 
       <div className="p-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="ai">AI Bots</TabsTrigger>
-            <TabsTrigger value="strategies">My Strategies</TabsTrigger>
-            <TabsTrigger value="executions">Active Bots</TabsTrigger>
-          </TabsList>
+        <div className="w-full">
 
-          {/* AI Bots Tab */}
-          <TabsContent value="ai" className="space-y-4 mt-4">
+          {/* AI Bots Section */}
+          {activeTab === 'ai' && (
+          <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">AI Trading Bots</h3>
               <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -1114,10 +1122,12 @@ export default function BotPage() {
                 </div>
               );
             })()}
-          </TabsContent>
+          </div>
+          )}
 
-          {/* Strategies Tab */}
-          <TabsContent value="strategies" className="space-y-4 mt-4">
+          {/* Strategies Section */}
+          {activeTab === 'strategies' && (
+          <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">My Trading Strategies</h3>
               <Button onClick={() => setShowCreateForm(true)} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
@@ -1226,10 +1236,12 @@ export default function BotPage() {
                 ))}
               </div>
             )}
-          </TabsContent>
+          </div>
+          )}
 
-          {/* Active Executions Tab */}
-          <TabsContent value="executions" className="space-y-4 mt-4">
+          {/* Active Executions Section */}
+          {activeTab === 'executions' && (
+          <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Active Bot Executions</h3>
             </div>
@@ -1484,8 +1496,9 @@ export default function BotPage() {
                 })()}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+          )}
+        </div>
       </div>
 
       {/* Alert Center Dialog */}
