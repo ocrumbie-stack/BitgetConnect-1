@@ -93,24 +93,33 @@ export function Assets() {
                     <p className="text-xs text-muted-foreground">Loading account data...</p>
                   </div>
                 ) : account ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center">
-                      <div className="text-lg font-bold">${parseFloat(account.totalEquity || '0').toFixed(2)}</div>
-                      <div className="text-xs text-muted-foreground">Total Equity</div>
+                  <div>
+                    {/* Main Total Balance Display */}
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold">${parseFloat(account.totalEquity || '0').toFixed(2)}</div>
+                      <div className="text-sm text-muted-foreground">Total Balance</div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">${parseFloat(account.availableBalance || '0').toFixed(2)}</div>
-                      <div className="text-xs text-muted-foreground">Available Balance</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-base font-semibold">${parseFloat(account.marginUsed || '0').toFixed(2)}</div>
-                      <div className="text-xs text-muted-foreground">Margin Used</div>
-                    </div>
-                    <div className="text-center">
-                      <div className={`text-base font-semibold ${unrealizedProfits >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        ${unrealizedProfits >= 0 ? '+' : ''}${unrealizedProfits.toFixed(2)}
+                    
+                    {/* Secondary Balance Details */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center">
+                        <div className="text-lg font-bold">${parseFloat(account.totalEquity || '0').toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">Total Equity</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">Unrealized PnL</div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-green-600">${parseFloat(account.availableBalance || '0').toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">Available Balance</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-base font-semibold">${parseFloat(account.marginUsed || '0').toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">Margin Used</div>
+                      </div>
+                      <div className="text-center">
+                        <div className={`text-base font-semibold ${unrealizedProfits >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${unrealizedProfits >= 0 ? '+' : ''}${unrealizedProfits.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Unrealized PnL</div>
+                      </div>
                     </div>
                   </div>
                 ) : (

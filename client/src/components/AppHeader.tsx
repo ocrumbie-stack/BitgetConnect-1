@@ -65,15 +65,15 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
             </span>
           </div>
           <div className="text-sm">
-            <span className="text-text-secondary">Available:</span>
-            <span className="font-mono font-medium ml-1" data-testid="available-balance">
-              {formatCurrency(account?.availableBalance)}
+            <span className="text-text-secondary">Total Equity:</span>
+            <span className="font-mono font-medium ml-1" data-testid="total-equity">
+              {formatCurrency(account?.totalEquity)}
             </span>
           </div>
           <div className="text-sm">
-            <span className="text-text-secondary">Margin Used:</span>
-            <span className="font-mono font-medium ml-1" data-testid="margin-used">
-              {formatCurrency(account?.marginUsed)}
+            <span className="text-text-secondary">Available Balance:</span>
+            <span className="font-mono font-medium ml-1" data-testid="available-balance">
+              {formatCurrency(account?.availableBalance)}
             </span>
           </div>
           <div className="text-sm">

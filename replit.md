@@ -6,6 +6,7 @@ Preferred communication style: Simple, everyday language.
 Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
 Navigation preference: Pages should open instantly at the top without scrolling animations for immediate access to content.
 Account balance display: Total Balance = Available Balance + Margin Used (complete account value including position allocations).
+Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 
 # System Architecture
 
