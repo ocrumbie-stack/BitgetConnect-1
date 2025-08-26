@@ -153,37 +153,37 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
   };
 
   return (
-    <div className="bg-background">
+    <div className="bg-background overflow-hidden">
       {/* Header */}
-      <div className="grid grid-cols-3 gap-4 p-4 text-sm font-medium text-muted-foreground border-b border-border">
+      <div className="flex items-center justify-between px-3 py-3 text-xs font-medium text-muted-foreground border-b border-border">
         <div 
-          className={`flex items-center gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center gap-1 min-w-0 flex-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('volume')}
           data-testid="header-coin-volume"
         >
-          Coin/Volume
+          <span className="truncate">Coin/Volume</span>
           {onSort && sortBy === 'volume' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
           )}
         </div>
         <div 
-          className={`text-center flex items-center justify-center gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-center gap-1 w-20 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('price')}
           data-testid="header-price"
         >
-          Price
+          <span>Price</span>
           {onSort && sortBy === 'price' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
           )}
         </div>
         <div 
-          className={`text-right flex items-center justify-end gap-1 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-end gap-1 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('change')}
           data-testid="header-change"
         >
-          Change
+          <span>Change</span>
           {onSort && sortBy === 'change' && (
-            sortDirection === 'desc' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />
+            sortDirection === 'desc' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
           )}
         </div>
       </div>
@@ -194,7 +194,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           <ContextMenu key={item.symbol}>
             <ContextMenuTrigger asChild>
               <div 
-                className="grid grid-cols-3 gap-4 p-4 hover:bg-accent/50 transition-colors cursor-pointer" 
+                className="flex items-center justify-between px-3 py-3 hover:bg-accent/50 transition-colors cursor-pointer min-w-0" 
                 data-testid={`row-${item.symbol}`}
                 onClick={() => setLocation(`/charts?pair=${item.symbol}`)}
                 onTouchStart={() => handleLongPressStart(item.symbol)}
@@ -204,49 +204,44 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
                 onMouseLeave={handleLongPressEnd}
               >
                 {/* Coin/Volume Column */}
-                <div>
-                  <div className="font-medium text-foreground text-sm" data-testid={`symbol-${item.symbol}`}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-foreground text-sm truncate" data-testid={`symbol-${item.symbol}`}>
                     {item.symbol}
                   </div>
-                  <div className="text-xs text-muted-foreground" data-testid={`volume-${item.symbol}`}>
+                  <div className="text-xs text-muted-foreground truncate" data-testid={`volume-${item.symbol}`}>
                     {formatVolume(item.volume24h)}
                   </div>
                 </div>
 
                 {/* Price Column */}
-                <div className="text-center">
-                  <div className="font-medium text-foreground text-sm" data-testid={`price-${item.symbol}`}>
+                <div className="w-20 text-center">
+                  <div className="font-medium text-foreground text-xs" data-testid={`price-${item.symbol}`}>
                     {formatPrice(item.price)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    ${formatPrice(item.price)}
                   </div>
                 </div>
 
                 {/* Change Column */}
-                <div className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <div 
-                      className={`inline-block px-2 py-1 rounded-lg text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
-                      data-testid={`change-${item.symbol}`}
-                    >
-                      {formatChange(item.change24h)}
-                    </div>
-                    {onRiskAnalysis && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRiskAnalysis(item.symbol);
-                        }}
-                        title="Risk Analysis"
-                      >
-                        <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                      </Button>
-                    )}
+                <div className="w-24 flex items-center justify-end gap-1">
+                  <div 
+                    className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium text-white ${getChangeBackground(item.change24h)}`}
+                    data-testid={`change-${item.symbol}`}
+                  >
+                    {formatChange(item.change24h)}
                   </div>
+                  {onRiskAnalysis && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-5 w-5 p-0 ml-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRiskAnalysis(item.symbol);
+                      }}
+                      title="Risk Analysis"
+                    >
+                      <Shield className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </ContextMenuTrigger>
