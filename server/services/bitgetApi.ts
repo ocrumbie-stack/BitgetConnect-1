@@ -376,6 +376,7 @@ export class BitgetAPI {
           triggerPrice: currentPrice.toString(), // Required trigger price
           triggerType: 'mark_price', // mark_price or fill_price
           reduceOnly: 'YES', // Reduce existing position only
+          holdSide: orderParams.side === 'buy' ? 'long' : 'short', // CRITICAL: Specify which position we're closing
           // DON'T include price for track_plan - must be empty per docs
           clientOid: `trail_${Date.now()}` // Optional client order ID
         };
