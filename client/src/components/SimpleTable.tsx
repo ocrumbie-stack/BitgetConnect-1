@@ -195,7 +195,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           <ContextMenu key={item.symbol}>
             <ContextMenuTrigger asChild>
               <div 
-                className="flex items-center justify-between px-4 py-4 hover:bg-accent/50 transition-colors cursor-pointer min-w-0" 
+                className="flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer min-w-0" 
                 data-testid={`row-${item.symbol}`}
                 onClick={() => setLocation(`/charts?pair=${item.symbol}`)}
                 onTouchStart={() => handleLongPressStart(item.symbol)}
