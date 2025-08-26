@@ -26,16 +26,10 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
 
   const account = accountData?.account;
   
-  // Calculate total balance: available balance + margin used = total account value
+  // Calculate total balance: use totalEquity (which is now calculated as available + margin used on backend)
   const calculateTotalBalance = () => {
-    // Use totalEquity if available (this is the complete account value)
-    if (account?.totalEquity && parseFloat(account.totalEquity) > 0) {
-      return account.totalEquity;
-    }
-    // Fallback: available + margin used
-    const available = parseFloat(account?.availableBalance || '0');
-    const marginUsed = parseFloat(account?.marginUsed || '0');
-    return (available + marginUsed).toString();
+    // totalEquity is now properly calculated in the backend as available + margin used from positions
+    return account?.totalEquity || '0';
   };
   
   const totalBalance = calculateTotalBalance();
