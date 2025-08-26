@@ -58,8 +58,10 @@ export default function Markets() {
     },
     enabled: true,
     staleTime: 0, // Always refetch to ensure fresh data
-    cacheTime: 0, // Don't cache to prevent stale data
   });
+
+  // Get selected screener object
+  const selectedScreenerObj = userScreeners.find((s: any) => s.id === selectedScreener);
 
   // Function to apply screener criteria
   const applyScreenerFilter = (item: any, screenerCriteria: any) => {
@@ -157,8 +159,6 @@ export default function Markets() {
       
       return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
     }) : [];
-
-  const selectedScreenerObj = userScreeners.find((s: any) => s.id === selectedScreener);
 
   // Market stats calculation
   const marketStats = data ? {
