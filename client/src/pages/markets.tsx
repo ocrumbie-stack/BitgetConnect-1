@@ -47,14 +47,18 @@ export default function Markets() {
   const [isScreenersCollapsed, setIsScreenersCollapsed] = useState(true); // Start collapsed by default
 
   // Fetch user screeners
-  const { data: userScreeners = [] } = useQuery<any[]>({
+  const { data: userScreeners = [], refetch: refetchScreeners } = useQuery<any[]>({
     queryKey: ['/api/screeners', 'user1'],
     queryFn: async () => {
       const response = await fetch('/api/screeners/user1');
       if (!response.ok) throw new Error('Failed to fetch screeners');
-      return response.json();
+      const data = await response.json();
+      console.log('Fetched screeners:', data);
+      return data;
     },
     enabled: true,
+    staleTime: 0, // Always refetch to ensure fresh data
+    cacheTime: 0, // Don't cache to prevent stale data
   });
 
   // Function to apply screener criteria
@@ -523,14 +527,24 @@ export default function Markets() {
                       <ChevronUp className="h-4 w-4" />
                     )}
                   </Button>
-                  <Button
-                    onClick={() => setLocation('/create-screener')}
-                    className="flex items-center gap-2"
-                    data-testid="button-create-screener"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create New Screener
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetchScreeners()}
+                      className="flex items-center gap-2"
+                    >
+                      🔄 Refresh
+                    </Button>
+                    <Button
+                      onClick={() => setLocation('/create-screener')}
+                      className="flex items-center gap-2"
+                      data-testid="button-create-screener"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create New Screener
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Collapsible Screeners Content */}
