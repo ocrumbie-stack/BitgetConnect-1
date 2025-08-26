@@ -62,20 +62,26 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
           </div>
         </div>
         
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-4">
           <div className="text-sm">
-            <span className="text-text-secondary">Total Balance:</span>
-            <span className="font-mono font-medium ml-2" data-testid="account-balance">
-              {formatCurrency(totalBalance)}
+            <span className="text-text-secondary">Available:</span>
+            <span className="font-mono font-medium ml-1" data-testid="available-balance">
+              {formatCurrency(account?.availableBalance)}
             </span>
           </div>
           <div className="text-sm">
-            <span className="text-text-secondary">Unrealized PnL:</span>
+            <span className="text-text-secondary">Total Equity:</span>
+            <span className="font-mono font-medium ml-1" data-testid="total-equity">
+              {formatCurrency(account?.totalEquity)}
+            </span>
+          </div>
+          <div className="text-sm">
+            <span className="text-text-secondary">PnL:</span>
             <span 
-              className={`font-mono font-medium ml-2 ${
+              className={`font-mono font-medium ml-1 ${
                 parseFloat(unrealizedPnl) >= 0 ? 'text-success' : 'text-error'
               }`}
-              data-testid="total-pnl"
+              data-testid="unrealized-pnl"
             >
               {formatCurrency(unrealizedPnl)}
             </span>
