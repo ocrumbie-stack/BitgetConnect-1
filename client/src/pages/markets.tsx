@@ -471,7 +471,7 @@ export default function Markets() {
                               <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                               <span className="text-sm truncate">{screener.name}</span>
                             </div>
-                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                            <div className="flex items-center gap-1 ml-6 flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
