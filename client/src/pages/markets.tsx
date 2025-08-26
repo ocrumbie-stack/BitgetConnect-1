@@ -35,7 +35,7 @@ export default function Markets() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'change' | 'volume' | 'price'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers' | 'high-volume'>('all');
+  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers' | 'volatile' | 'stable' | 'large-cap'>('all');
   const [selectedScreener, setSelectedScreener] = useState<string>('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [selectedRiskPair, setSelectedRiskPair] = useState<string | null>(null);
@@ -337,8 +337,12 @@ export default function Markets() {
         return parseFloat(item.change24h || '0') > 0;
       } else if (filter === 'losers') {
         return parseFloat(item.change24h || '0') < 0;
-      } else if (filter === 'high-volume') {
-        return parseFloat(item.volume24h || '0') > 5000000; // High volume threshold
+      } else if (filter === 'volatile') {
+        return Math.abs(parseFloat(item.change24h || '0')) > 0.05; // >5% movement
+      } else if (filter === 'stable') {
+        return Math.abs(parseFloat(item.change24h || '0')) < 0.02; // <2% movement
+      } else if (filter === 'large-cap') {
+        return parseFloat(item.volume24h || '0') > 20000000; // Very high volume as proxy for large cap
       }
       
       return true;
@@ -563,7 +567,7 @@ export default function Markets() {
                   <Card 
                     className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
                     onClick={() => {
-                      setFilter('high-volume');
+                      setFilter('volatile');
                       setSearchQuery('');
                       setSelectedScreener('');
                     }}
@@ -571,13 +575,62 @@ export default function Markets() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-purple-500 rounded-lg">
-                          <Volume2 className="h-5 w-5 text-white" />
+                          <Activity className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <div className="text-xl font-bold text-purple-700 dark:text-purple-300" data-testid="high-volume">
-                            {isLoading ? '...' : marketStats?.highVolume || 0}
+                          <div className="text-xl font-bold text-purple-700 dark:text-purple-300" data-testid="volatile-pairs">
+                            {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) > 0.05).length || 0}
                           </div>
-                          <div className="text-sm text-purple-600 dark:text-purple-400">High Volume</div>
+                          <div className="text-sm text-purple-600 dark:text-purple-400">Volatile (&gt;5%)</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Additional Filter Options */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Card 
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('stable');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500 rounded-lg">
+                          <Eye className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="stable-pairs">
+                            {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) < 0.02).length || 0}
+                          </div>
+                          <div className="text-sm text-blue-600 dark:text-blue-400">Stable (&lt;2%)</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('large-cap');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-yellow-500 rounded-lg">
+                          <DollarSign className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-yellow-700 dark:text-yellow-300" data-testid="large-cap-pairs">
+                            {isLoading ? '...' : data?.filter(item => parseFloat(item.volume24h || '0') > 20000000).length || 0}
+                          </div>
+                          <div className="text-sm text-yellow-600 dark:text-yellow-400">Large Cap</div>
                         </div>
                       </div>
                     </CardContent>
