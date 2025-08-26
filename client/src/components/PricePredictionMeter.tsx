@@ -234,7 +234,7 @@ export function PricePredictionMeter({ onPredictionGenerated }: PricePredictionM
   };
 
   const formatPrice = (price: number) => {
-    return `$${price.toFixed(4)}`;
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`;
   };
 
   const formatChange = (change: number, percent: number) => {

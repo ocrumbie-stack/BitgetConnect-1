@@ -439,12 +439,15 @@ export function UnifiedAnalysisTools({ prefilledPair, autoTrigger }: UnifiedAnal
   };
 
   const formatPrice = (price: number) => {
-    return price > 1 ? price.toFixed(2) : price.toFixed(6);
+    if (price > 1) {
+      return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return price.toLocaleString('en-US', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
   };
 
   const formatChange = (change: number, changePercent: number) => {
     const sign = change > 0 ? '+' : '';
-    return `${sign}$${change.toFixed(4)} (${sign}${changePercent.toFixed(2)}%)`;
+    return `${sign}$${change.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} (${sign}${changePercent.toFixed(2)}%)`;
   };
 
   const getConfidenceColor = (confidence: number) => {
