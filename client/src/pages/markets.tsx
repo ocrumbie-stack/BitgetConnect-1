@@ -455,7 +455,19 @@ export default function Markets() {
                   
                   <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
                     <SelectTrigger className="w-full h-10 text-base">
-                      <SelectValue placeholder="Select screener filter..." />
+                      <SelectValue placeholder="Select screener filter...">
+                        {selectedScreener === 'none' || !selectedScreener ? (
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                            <span className="text-sm">Show All Markets</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-sm">{userScreeners.find((s: any) => s.id === selectedScreener)?.name || 'Selected Screener'}</span>
+                          </div>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">
