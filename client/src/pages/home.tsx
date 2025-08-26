@@ -375,17 +375,17 @@ export function Home() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Account Balance</h3>
+                <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Total Balance</h3>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   ${(accountData as any)?.account?.totalBalance ? parseFloat((accountData as any).account.totalBalance).toFixed(2) : '0.00'}
-                </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Total Balance
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-blue-700 dark:text-blue-300">
                   Total Equity: ${(accountData as any)?.account?.totalEquity ? parseFloat((accountData as any).account.totalEquity).toFixed(2) : '0.00'}
+                </div>
+                <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  Account Balance: ${(accountData as any)?.account?.availableBalance ? parseFloat((accountData as any).account.availableBalance).toFixed(2) : '0.00'}
                 </div>
                 <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   P&L: {(accountData as any)?.account?.unrealizedPnl ? `$${parseFloat((accountData as any).account.unrealizedPnl).toFixed(2)}` : '$0.00'}
