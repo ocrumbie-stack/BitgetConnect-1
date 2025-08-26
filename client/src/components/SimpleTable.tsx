@@ -167,7 +167,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           )}
         </div>
         <div 
-          className={`flex items-center justify-center gap-2 w-20 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-center gap-2 w-32 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('price')}
           data-testid="header-price"
         >
@@ -177,7 +177,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           )}
         </div>
         <div 
-          className={`flex items-center justify-end gap-2 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-end gap-2 w-32 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('change')}
           data-testid="header-change"
         >
@@ -214,14 +214,14 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
                 </div>
 
                 {/* Price Column */}
-                <div className="w-20 text-center">
+                <div className="w-32 text-center">
                   <div className="font-medium text-foreground text-sm" data-testid={`price-${item.symbol}`}>
                     {formatPrice(item.price)}
                   </div>
                 </div>
 
                 {/* Change Column */}
-                <div className="w-24 flex items-center justify-end gap-1">
+                <div className="w-32 flex items-center justify-end gap-1">
                   <div 
                     className={`inline-block px-2 py-1 rounded text-sm font-medium text-white ${getChangeBackground(item.change24h)}`}
                     data-testid={`change-${item.symbol}`}
