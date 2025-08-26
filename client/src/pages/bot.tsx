@@ -2678,6 +2678,130 @@ export default function BotPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bot Info Dialog */}
+      <Dialog open={showBotInfo} onOpenChange={setShowBotInfo}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              {selectedBotInfo?.name || 'Bot Information'}
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about this AI trading bot
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBotInfo && (
+            <div className="space-y-4">
+              {/* Bot Description */}
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                <h4 className="font-medium text-sm mb-2">Strategy Overview</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedBotInfo.description}
+                </p>
+              </div>
+
+              {/* Key Statistics */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
+                  <div className="text-lg font-bold text-green-700 dark:text-green-300">{selectedBotInfo.winRate}</div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Avg Return</div>
+                  <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{selectedBotInfo.avgReturn}</div>
+                </div>
+              </div>
+
+              {/* Risk Level */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-amber-700 dark:text-amber-300">Risk Level</span>
+                  <span className={`text-sm font-bold px-2 py-1 rounded ${
+                    selectedBotInfo.risk === 'Low' 
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                      : selectedBotInfo.risk === 'Medium'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
+                      : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200'
+                  }`}>
+                    {selectedBotInfo.risk}
+                  </span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <h4 className="font-medium text-sm mb-2">Key Features</h4>
+                <div className="flex flex-wrap gap-1">
+                  {selectedBotInfo.features?.map((feature: string, idx: number) => (
+                    <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommended Settings */}
+              <div>
+                <h4 className="font-medium text-sm mb-2">Recommended Settings</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Capital:</span>
+                    <span className="font-medium">${selectedBotInfo.suggestedCapital}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Leverage:</span>
+                    <span className="font-medium">{selectedBotInfo.suggestedLeverage}x</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Best Pairs:</span>
+                    <span className="font-medium text-right">{selectedBotInfo.recommendedPairs?.slice(0, 2).join(', ')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Usage Suggestion */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2">
+                  <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                    {selectedBotInfo.suggestedText}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBotInfo(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowBotInfo(false);
+                setSelectedStrategy({ ...selectedBotInfo, isAI: true });
+                // Pre-fill with suggested defaults
+                const defaultPair = selectedBotInfo?.recommendedPairs?.[0] || 'BTCUSDT';
+                setPairSearch(defaultPair);
+                setTradingPair(defaultPair);
+                setCapital(selectedBotInfo?.suggestedCapital?.split('-')[0] || '1000');
+                setLeverage(selectedBotInfo?.suggestedLeverage?.split('-')[0] || '1');
+                // Trigger auto-suggest filtering for the pre-filled pair
+                handlePairSearchChange(defaultPair);
+                setShowRunDialog(true);
+              }}
+              className={`flex-1 bg-gradient-to-r ${selectedBotInfo?.gradient || 'from-blue-500 to-cyan-500'} hover:opacity-90 text-white`}
+            >
+              Deploy Bot
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
