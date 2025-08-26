@@ -44,7 +44,6 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
 
   // Fetch user screeners
@@ -454,63 +453,55 @@ export default function Markets() {
                     </Button>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <Select 
-                      value={selectedScreener || 'none'} 
-                      onValueChange={handleScreenerChange}
-                      onOpenChange={setIsDropdownOpen}
-                    >
-                      <SelectTrigger className="flex-1 h-10 text-base">
-                        <SelectValue placeholder="Select screener filter..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                            <span className="text-sm">Show All Markets</span>
+                  <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
+                    <SelectTrigger className="w-full h-10 text-base">
+                      <SelectValue placeholder="Select screener filter..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                          <span className="text-sm">Show All Markets</span>
+                        </div>
+                      </SelectItem>
+                      {userScreeners.map((screener: any) => (
+                        <SelectItem key={screener.id} value={screener.id}>
+                          <div className="flex items-center justify-between w-full min-w-0">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                              <span className="text-sm truncate">{screener.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditScreener(screener.id);
+                                }}
+                                title="Edit screener"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm" 
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteScreener(screener.id);
+                                }}
+                                title="Delete screener"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </SelectItem>
-                        {userScreeners.map((screener: any) => (
-                          <SelectItem key={screener.id} value={screener.id}>
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-sm">{screener.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    {/* Edit and Delete buttons - only show when dropdown is open and a screener is selected */}
-                    {isDropdownOpen && selectedScreener && selectedScreener !== 'none' && (
-                      <div className="flex items-center gap-1 ml-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-10 w-10 p-0"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            handleEditScreener(selectedScreener);
-                          }}
-                          title="Edit selected screener"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm" 
-                          className="h-10 w-10 p-0 text-red-500 hover:text-red-700 border-red-200 hover:border-red-300"
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            handleDeleteScreener(selectedScreener);
-                          }}
-                          title="Delete selected screener"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
