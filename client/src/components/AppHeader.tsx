@@ -26,11 +26,16 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
 
   const account = accountData?.account;
   
-  // Calculate total balance: available balance + total equity
+  // Calculate total balance: available balance + margin used = total account value
   const calculateTotalBalance = () => {
+    // Use totalEquity if available (this is the complete account value)
+    if (account?.totalEquity && parseFloat(account.totalEquity) > 0) {
+      return account.totalEquity;
+    }
+    // Fallback: available + margin used
     const available = parseFloat(account?.availableBalance || '0');
-    const equity = parseFloat(account?.totalEquity || '0');
-    return (available + equity).toString();
+    const marginUsed = parseFloat(account?.marginUsed || '0');
+    return (available + marginUsed).toString();
   };
   
   const totalBalance = calculateTotalBalance();
@@ -72,9 +77,9 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
             </span>
           </div>
           <div className="text-sm">
-            <span className="text-text-secondary">Equity:</span>
-            <span className="font-mono font-medium ml-1" data-testid="total-equity">
-              {formatCurrency(account?.totalEquity)}
+            <span className="text-text-secondary">Margin Used:</span>
+            <span className="font-mono font-medium ml-1" data-testid="margin-used">
+              {formatCurrency(account?.marginUsed)}
             </span>
           </div>
           <div className="text-sm">
