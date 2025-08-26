@@ -178,7 +178,7 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
           )}
         </div>
         <div 
-          className={`flex items-center justify-end gap-2 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
+          className={`flex items-center justify-center gap-2 w-24 ${onSort ? 'cursor-pointer hover:text-foreground' : ''}`}
           onClick={() => onSort?.('change')}
           data-testid="header-change"
         >
