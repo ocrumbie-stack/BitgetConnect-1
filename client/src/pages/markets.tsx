@@ -283,7 +283,14 @@ export default function Markets() {
               <div className="px-4 space-y-4">
                 {/* Market Statistics Cards */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                  <Card 
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('all');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-500 rounded-lg">
@@ -299,7 +306,14 @@ export default function Markets() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800">
+                  <Card 
+                    className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('gainers');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-500 rounded-lg">
@@ -317,7 +331,14 @@ export default function Markets() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800">
+                  <Card 
+                    className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('losers');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-red-500 rounded-lg">
@@ -333,7 +354,14 @@ export default function Markets() {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                  <Card 
+                    className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('high-volume');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-purple-500 rounded-lg">
@@ -573,6 +601,194 @@ export default function Markets() {
                   onSort={handleSort}
                   onRiskAnalysis={setSelectedRiskPair}
                 />
+              </div>
+            </TabsContent>
+
+            {/* AI Opportunities Tab Content */}
+            <TabsContent value="opportunities" className="space-y-4 mt-3">
+              <div className="px-4">
+                {/* AI Opportunities Grid */}
+                <div className="grid gap-4">
+                  {/* Momentum Trading */}
+                  <Card className="border-2 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <CardTitle className="text-lg">Momentum Trading</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">Strong directional moves with volume</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          1-4 Hours
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        const momentumOpportunities = data?.filter((coin: any) => {
+                          const change24h = parseFloat(coin.change24h || '0');
+                          const volume24h = parseFloat(coin.volume24h || '0');
+                          return Math.abs(change24h) >= 0.08 && volume24h >= 10000000; // 8%+ move with good volume
+                        }).slice(0, 3) || [];
+
+                        return momentumOpportunities.length > 0 ? (
+                          <div className="space-y-3">
+                            {momentumOpportunities.map((coin: any, index: number) => (
+                              <div 
+                                key={coin.symbol}
+                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-base">{coin.symbol}</div>
+                                    <div className="text-sm text-muted-foreground">Strong momentum signal</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className={`text-sm font-medium ${parseFloat(coin.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {parseFloat(coin.change24h) >= 0 ? '+' : ''}{parseFloat(coin.change24h).toFixed(2)}%
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(95, 60 + Math.abs(parseFloat(coin.change24h)) * 2).toFixed(0)}%</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-muted-foreground">
+                            <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <div className="text-sm">No strong momentum signals detected</div>
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+
+                  {/* Breakout Trading */}
+                  <Card className="border-2 border-green-500 bg-green-50/50 dark:bg-green-950/20">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <BarChart3 className="h-5 w-5 text-green-600" />
+                          <div>
+                            <CardTitle className="text-lg">Breakout Trading</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">Volume spikes with price movement</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          30Min-2H
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        const breakoutOpportunities = data?.filter((coin: any) => {
+                          const change24h = parseFloat(coin.change24h || '0');
+                          const volume24h = parseFloat(coin.volume24h || '0');
+                          return Math.abs(change24h) >= 0.05 && volume24h >= 20000000; // 5%+ move with high volume
+                        }).slice(0, 3) || [];
+
+                        return breakoutOpportunities.length > 0 ? (
+                          <div className="space-y-3">
+                            {breakoutOpportunities.map((coin: any, index: number) => (
+                              <div 
+                                key={coin.symbol}
+                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-base">{coin.symbol}</div>
+                                    <div className="text-sm text-muted-foreground">Volume breakout detected</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className={`text-sm font-medium ${parseFloat(coin.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {parseFloat(coin.change24h) >= 0 ? '+' : ''}{parseFloat(coin.change24h).toFixed(2)}%
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(90, 55 + Math.abs(parseFloat(coin.change24h)) * 3).toFixed(0)}%</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-muted-foreground">
+                            <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <div className="text-sm">No breakout signals detected</div>
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+
+                  {/* Scalping Opportunities */}
+                  <Card className="border-2 border-orange-500 bg-orange-50/50 dark:bg-orange-950/20">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Zap className="h-5 w-5 text-orange-600" />
+                          <div>
+                            <CardTitle className="text-lg">Scalping</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">Quick profits from micro movements</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          1-5 Minutes
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        const scalpingOpportunities = data?.filter((coin: any) => {
+                          const volume24h = parseFloat(coin.volume24h || '0');
+                          const price = parseFloat(coin.price || '0');
+                          return volume24h >= 50000000 && price > 0.01; // High volume for liquidity
+                        }).slice(0, 3) || [];
+
+                        return scalpingOpportunities.length > 0 ? (
+                          <div className="space-y-3">
+                            {scalpingOpportunities.map((coin: any, index: number) => (
+                              <div 
+                                key={coin.symbol}
+                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-base">{coin.symbol}</div>
+                                    <div className="text-sm text-muted-foreground">High liquidity scalping</div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-orange-600">
+                                    ${parseFloat(coin.price).toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(85, 70 + Math.log10(parseFloat(coin.volume24h) / 1000000) * 5).toFixed(0)}%</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-muted-foreground">
+                            <Zap className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <div className="text-sm">No scalping opportunities detected</div>
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
