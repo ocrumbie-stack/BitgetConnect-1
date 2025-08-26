@@ -5,8 +5,9 @@ This project is a mobile-optimized crypto trading application for real-time Bitg
 Preferred communication style: Simple, everyday language.
 Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
 Navigation preference: Pages should open instantly at the top without scrolling animations for immediate access to content.
-Account balance display: Total Balance = Available Balance + Margin Used (complete account value including position allocations).
+Account balance display: Total Balance = Total Equity + Available Balance (complete account value including position allocations).
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
+Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance.
 
 # System Architecture
 

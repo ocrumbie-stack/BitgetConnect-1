@@ -96,7 +96,7 @@ export function Assets() {
                   <div>
                     {/* Main Total Balance Display */}
                     <div className="text-center mb-4">
-                      <div className="text-2xl font-bold">${parseFloat(account.totalEquity || '0').toFixed(2)}</div>
+                      <div className="text-2xl font-bold">${parseFloat(account.totalBalance || '0').toFixed(2)}</div>
                       <div className="text-sm text-muted-foreground">Total Balance</div>
                     </div>
                     

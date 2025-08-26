@@ -52,6 +52,7 @@ export const accountInfo = pgTable("account_info", {
   marginUsed: decimal("margin_used", { precision: 20, scale: 8 }),
   unrealizedPnl: decimal("unrealized_pnl", { precision: 20, scale: 8 }),
   totalEquity: decimal("total_equity", { precision: 20, scale: 8 }),
+  totalBalance: decimal("total_balance", { precision: 20, scale: 8 }),
   marginRatio: decimal("margin_ratio", { precision: 5, scale: 2 }),
   maintenanceMargin: decimal("maintenance_margin", { precision: 20, scale: 8 }),
   lastUpdated: timestamp("last_updated").defaultNow(),
