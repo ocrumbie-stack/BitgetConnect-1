@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -44,6 +44,212 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
+
+  // AI Opportunity Analysis - Enhanced from Home page
+  const generateOpportunities = (strategy: string) => {
+    if (!data || data.length === 0) return [];
+
+    const analyzed = data.map((coin: any) => {
+      const price = parseFloat(coin.price || '0');
+      const change24h = parseFloat(coin.change24h || '0');
+      const volume24h = parseFloat(coin.volume24h || '0');
+      const absChange = Math.abs(change24h);
+      
+      let score = 0;
+      let confidence = 0;
+      let reasons: string[] = [];
+      let risk = 'Medium';
+      let timeframe = '1-4h';
+      
+      switch (strategy) {
+        case 'momentum':
+          // Momentum trading - strong directional moves with volume
+          if (absChange >= 0.08) { // 8%+ move
+            score += 40;
+            reasons.push('Strong momentum');
+          } else if (absChange >= 0.05) { // 5%+ move
+            score += 25;
+            reasons.push('Moderate momentum');
+          }
+          
+          if (volume24h > 10000000) { // > 10M volume
+            score += 30;
+            confidence += 25;
+            reasons.push('High volume confirmation');
+          } else if (volume24h > 1000000) { // > 1M volume
+            score += 15;
+            confidence += 15;
+            reasons.push('Adequate volume');
+          }
+          
+          if (absChange >= 0.15) { // 15%+ extreme moves
+            risk = 'High';
+            timeframe = '30m-2h';
+            score += 20;
+            reasons.push('Extreme volatility');
+          } else if (absChange >= 0.08) {
+            risk = 'Medium';
+            timeframe = '1-4h';
+          } else {
+            risk = 'Low';
+            timeframe = '4-8h';
+          }
+          break;
+
+        case 'breakout':
+          // Breakout trading - moderate moves with accelerating volume
+          if (absChange >= 0.03 && absChange <= 0.12) { // 3-12% sweet spot
+            score += 35;
+            reasons.push('Breakout range');
+          }
+          
+          if (volume24h > 5000000) { // Strong volume for breakouts
+            score += 35;
+            confidence += 30;
+            reasons.push('Volume breakout');
+          }
+          
+          if (change24h > 0 && change24h < 0.08) { // Positive but not overextended
+            score += 20;
+            reasons.push('Healthy uptrend');
+          }
+          
+          risk = 'Medium';
+          timeframe = '2-6h';
+          break;
+
+        case 'scalping':
+          // Scalping - high volume, moderate volatility
+          if (volume24h > 20000000) { // Very high volume
+            score += 45;
+            confidence += 35;
+            reasons.push('Ultra-high liquidity');
+          } else if (volume24h > 5000000) {
+            score += 25;
+            confidence += 20;
+            reasons.push('High liquidity');
+          }
+          
+          if (absChange >= 0.02 && absChange <= 0.06) { // 2-6% moderate volatility
+            score += 30;
+            reasons.push('Ideal volatility');
+          }
+          
+          if (price > 0.01) { // Avoid micro-cap coins
+            score += 15;
+            reasons.push('Stable asset');
+          }
+          
+          risk = 'Low';
+          timeframe = '5-30m';
+          break;
+
+        case 'swing':
+          // Swing trading - established trends, good risk/reward
+          if (absChange >= 0.05 && absChange <= 0.20) { // 5-20% range
+            score += 30;
+            reasons.push('Swing range');
+          }
+          
+          if (volume24h > 2000000) { // Moderate volume requirement
+            score += 25;
+            confidence += 20;
+            reasons.push('Good liquidity');
+          }
+          
+          // Favor trending but not overextended moves
+          if (Math.abs(change24h) >= 0.03) {
+            score += 20;
+            reasons.push('Trending move');
+          }
+          
+          risk = 'Medium';
+          timeframe = '1-3 days';
+          break;
+
+        case 'reversal':
+          // Mean reversion - oversold/overbought conditions
+          if (absChange >= 0.10) { // 10%+ moves for reversal
+            score += 35;
+            reasons.push('Oversold/overbought');
+          }
+          
+          if (volume24h > 3000000) {
+            score += 25;
+            confidence += 20;
+            reasons.push('Volume support');
+          }
+          
+          // Extreme moves more likely to reverse
+          if (absChange >= 0.15) {
+            score += 25;
+            reasons.push('Extreme move');
+          }
+          
+          risk = 'High';
+          timeframe = '4-12h';
+          break;
+
+        case 'remarkable':
+          // Remarkable changes - significant movements
+          if (absChange >= 0.15) { // 15%+ very significant
+            score += 50;
+            reasons.push('Extreme price movement');
+          } else if (absChange >= 0.08) { // 8%+ significant
+            score += 30;
+            reasons.push('Significant movement');
+          }
+          
+          if (volume24h > 1000000) {
+            score += 20;
+            confidence += 15;
+            reasons.push('Volume confirmation');
+          }
+          
+          risk = absChange >= 0.20 ? 'Extreme' : absChange >= 0.15 ? 'High' : 'Medium';
+          timeframe = 'Real-time';
+          break;
+      }
+
+      confidence = Math.min(100, confidence + score * 0.8);
+      
+      return {
+        ...coin,
+        score,
+        confidence: Math.round(confidence),
+        reasons,
+        risk,
+        timeframe
+      };
+    })
+    .filter(coin => coin.score >= 30) // Minimum threshold
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10); // Top 10 opportunities per strategy
+
+    return analyzed;
+  };
+
+  // Generate opportunities for all strategies
+  const opportunities = {
+    momentum: generateOpportunities('momentum'),
+    breakout: generateOpportunities('breakout'), 
+    scalping: generateOpportunities('scalping'),
+    swing: generateOpportunities('swing'),
+    reversal: generateOpportunities('reversal'),
+    remarkable: generateOpportunities('remarkable')
+  };
+
+  const toggleStrategyExpansion = (strategy: string) => {
+    setExpandedStrategies(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(strategy)) {
+        newSet.delete(strategy);
+      } else {
+        newSet.add(strategy);
+      }
+      return newSet;
+    });
+  };
 
 
   // Fetch user screeners
@@ -533,187 +739,181 @@ export default function Markets() {
             {/* AI Opportunities Tab Content */}
             <TabsContent value="opportunities" className="space-y-4 mt-3">
               <div className="px-4">
-                {/* AI Opportunities Grid */}
-                <div className="grid gap-4">
-                  {/* Momentum Trading */}
-                  <Card className="border-2 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <TrendingUp className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <CardTitle className="text-lg">Momentum Trading</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">Strong directional moves with volume</p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          1-4 Hours
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {(() => {
-                        const momentumOpportunities = data?.filter((coin: any) => {
-                          const change24h = parseFloat(coin.change24h || '0');
-                          const volume24h = parseFloat(coin.volume24h || '0');
-                          return Math.abs(change24h) >= 0.08 && volume24h >= 10000000; // 8%+ move with good volume
-                        }).slice(0, 3) || [];
+                {/* Header with controls */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-blue-500" />
+                    AI Trading Opportunities
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-300">
+                      Live Analysis
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
 
-                        return momentumOpportunities.length > 0 ? (
-                          <div className="space-y-3">
-                            {momentumOpportunities.map((coin: any, index: number) => (
-                              <div 
-                                key={coin.symbol}
-                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                    {index + 1}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-base">{coin.symbol}</div>
-                                    <div className="text-sm text-muted-foreground">Strong momentum signal</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className={`text-sm font-medium ${parseFloat(coin.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {parseFloat(coin.change24h) >= 0 ? '+' : ''}{parseFloat(coin.change24h).toFixed(2)}%
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(95, 60 + Math.abs(parseFloat(coin.change24h)) * 2).toFixed(0)}%</div>
-                                </div>
+                {/* Trading Strategy Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  {[
+                    { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
+                    { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
+                    { key: 'scalping', label: 'Scalping', icon: Target, iconColor: 'bg-blue-500', desc: 'Quick scalp trades' },
+                    { key: 'swing', label: 'Swing', icon: Trend, iconColor: 'bg-purple-500', desc: 'Trend following' },
+                    { key: 'reversal', label: 'Reversal', icon: Activity, iconColor: 'bg-orange-500', desc: 'Mean reversion' },
+                    { key: 'remarkable', label: 'Remarkable Changes', icon: AlertTriangle, iconColor: 'bg-red-500', desc: 'Significant price movements' }
+                  ].map((strategy) => {
+                    const isExpanded = expandedStrategies.has(strategy.key);
+                    const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
+                    
+                    return (
+                      <Card 
+                        key={strategy.key} 
+                        className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                          isExpanded ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : 'border-border hover:border-accent'
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleStrategyExpansion(strategy.key);
+                        }}
+                      >
+                        <CardContent className="p-6 text-center">
+                          <div className={`w-16 h-16 ${strategy.iconColor} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                            <strategy.icon className="h-8 w-8 text-white" />
+                          </div>
+                          <div className="text-lg font-semibold mb-1">{strategy.label}</div>
+                          <div className="text-sm text-muted-foreground mb-3">{strategy.desc}</div>
+                          <div className="flex items-center justify-center gap-2">
+                            <Badge variant="secondary" className="text-sm">
+                              {strategyOpportunities.length} pairs
+                            </Badge>
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                {/* Expanded Strategy Content */}
+                <div className="space-y-4">
+                  {[
+                    { key: 'momentum', label: 'Momentum Trading', icon: Zap, color: 'text-yellow-500', desc: 'High-momentum pairs with strong volume confirmation for trend following strategies.', badge: 'Strong Directional Moves' },
+                    { key: 'breakout', label: 'Breakout Trading', icon: TrendingUp, color: 'text-green-500', desc: 'Moderate moves with accelerating volume for breakout strategies.', badge: 'Volume Breakouts' },
+                    { key: 'scalping', label: 'Scalping Trading', icon: Target, color: 'text-blue-500', desc: 'Ultra-high liquidity pairs perfect for quick scalping trades.', badge: 'High Liquidity' },
+                    { key: 'swing', label: 'Swing Trading', icon: Trend, color: 'text-purple-500', desc: 'Established trends with good risk/reward for swing trading.', badge: 'Trend Following' },
+                    { key: 'reversal', label: 'Reversal Trading', icon: Activity, color: 'text-orange-500', desc: 'Oversold/overbought conditions for mean reversion plays.', badge: 'Mean Reversion' },
+                    { key: 'remarkable', label: 'Remarkable Price Changes', icon: AlertTriangle, color: 'text-red-500', desc: 'Significant 5-minute and 24-hour price movements with timestamps.', badge: 'Price Alerts' }
+                  ].filter(strategy => expandedStrategies.has(strategy.key)).map((strategy) => {
+                    const strategyOpportunities = opportunities[strategy.key as keyof typeof opportunities] || [];
+                    const showAll = showAllOpportunities[strategy.key] || false;
+                    const displayedOpportunities = showAll ? strategyOpportunities : strategyOpportunities.slice(0, 3);
+                    
+                    return (
+                      <Card key={strategy.key} className="border-2 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <strategy.icon className={`h-5 w-5 ${strategy.color}`} />
+                              <div>
+                                <CardTitle className="text-lg">{strategy.label}</CardTitle>
+                                <p className="text-sm text-muted-foreground mt-1">{strategy.desc}</p>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <div className="text-sm">No strong momentum signals detected</div>
-                          </div>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
-
-                  {/* Breakout Trading */}
-                  <Card className="border-2 border-green-500 bg-green-50/50 dark:bg-green-950/20">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <BarChart3 className="h-5 w-5 text-green-600" />
-                          <div>
-                            <CardTitle className="text-lg">Breakout Trading</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">Volume spikes with price movement</p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          30Min-2H
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {(() => {
-                        const breakoutOpportunities = data?.filter((coin: any) => {
-                          const change24h = parseFloat(coin.change24h || '0');
-                          const volume24h = parseFloat(coin.volume24h || '0');
-                          return Math.abs(change24h) >= 0.05 && volume24h >= 20000000; // 5%+ move with high volume
-                        }).slice(0, 3) || [];
-
-                        return breakoutOpportunities.length > 0 ? (
-                          <div className="space-y-3">
-                            {breakoutOpportunities.map((coin: any, index: number) => (
-                              <div 
-                                key={coin.symbol}
-                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {strategy.badge}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleStrategyExpansion(strategy.key)}
+                                className="h-8 w-8 p-0"
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                    {index + 1}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-base">{coin.symbol}</div>
-                                    <div className="text-sm text-muted-foreground">Volume breakout detected</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className={`text-sm font-medium ${parseFloat(coin.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {parseFloat(coin.change24h) >= 0 ? '+' : ''}{parseFloat(coin.change24h).toFixed(2)}%
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(90, 55 + Math.abs(parseFloat(coin.change24h)) * 3).toFixed(0)}%</div>
-                                </div>
-                              </div>
-                            ))}
+                                <ChevronUp className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        ) : (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <div className="text-sm">No breakout signals detected</div>
-                          </div>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
-
-                  {/* Scalping Opportunities */}
-                  <Card className="border-2 border-orange-500 bg-orange-50/50 dark:bg-orange-950/20">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Zap className="h-5 w-5 text-orange-600" />
-                          <div>
-                            <CardTitle className="text-lg">Scalping</CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">Quick profits from micro movements</p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          1-5 Minutes
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {(() => {
-                        const scalpingOpportunities = data?.filter((coin: any) => {
-                          const volume24h = parseFloat(coin.volume24h || '0');
-                          const price = parseFloat(coin.price || '0');
-                          return volume24h >= 50000000 && price > 0.01; // High volume for liquidity
-                        }).slice(0, 3) || [];
-
-                        return scalpingOpportunities.length > 0 ? (
-                          <div className="space-y-3">
-                            {scalpingOpportunities.map((coin: any, index: number) => (
-                              <div 
-                                key={coin.symbol}
-                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                onClick={() => setLocation(`/trade?pair=${coin.symbol}`)}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                    {index + 1}
+                        </CardHeader>
+                        
+                        <CardContent className="pt-0">
+                          {isLoading ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Brain className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                              Analyzing {strategy.key} opportunities...
+                            </div>
+                          ) : strategyOpportunities.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Info className="h-8 w-8 mx-auto mb-2" />
+                              <p>No {strategy.key} opportunities found at the moment</p>
+                              <p className="text-xs mt-1">Market conditions may change - try refreshing later</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {displayedOpportunities.map((opportunity: any) => (
+                                <Card key={opportunity.symbol} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setLocation(`/trade?pair=${opportunity.symbol}`)}>
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                      <div>
+                                        <div className="font-semibold text-base">{opportunity.symbol}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {opportunity.reasons.join(' • ')}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className={`text-sm font-medium ${parseFloat(opportunity.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {parseFloat(opportunity.change24h) >= 0 ? '+' : ''}{(parseFloat(opportunity.change24h) * 100).toFixed(2)}%
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        AI Score: {opportunity.confidence}%
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <div className="font-medium text-base">{coin.symbol}</div>
-                                    <div className="text-sm text-muted-foreground">High liquidity scalping</div>
+                                  
+                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-4">
+                                      <span>Risk: {opportunity.risk}</span>
+                                      <span>Timeframe: {opportunity.timeframe}</span>
+                                    </div>
+                                    <div>
+                                      ${parseFloat(opportunity.price).toFixed(4)}
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm font-medium text-orange-600">
-                                    ${parseFloat(coin.price).toFixed(2)}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">AI Score: {Math.min(85, 70 + Math.log10(parseFloat(coin.volume24h) / 1000000) * 5).toFixed(0)}%</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <Zap className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <div className="text-sm">No scalping opportunities detected</div>
-                          </div>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
+                                </Card>
+                              ))}
+                              
+                              {/* Show More/Less Button */}
+                              {strategyOpportunities.length > 3 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowAllOpportunities(prev => ({
+                                      ...prev,
+                                      [strategy.key]: !showAll
+                                    }));
+                                  }}
+                                  className="w-full"
+                                >
+                                  {showAll ? 'Show Less' : `Show All ${strategyOpportunities.length} Opportunities`}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             </TabsContent>
