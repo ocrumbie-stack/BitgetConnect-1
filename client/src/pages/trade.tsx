@@ -32,7 +32,10 @@ export function Trade() {
   const [trailingStopEnabled, setTrailingStopEnabled] = useState(false);
   const [trailingStopValue, setTrailingStopValue] = useState('');
   const [trailingStopMode, setTrailingStopMode] = useState<'percentage' | 'price'>('percentage');
-  const [currentPair, setCurrentPair] = useState('BTCUSDT');
+  const [currentPair, setCurrentPair] = useState(() => {
+    // Try to get last viewed pair from localStorage, fallback to BTCUSDT
+    return localStorage.getItem('lastViewedTradingPair') || 'BTCUSDT';
+  });
   const [pairSelectorOpen, setPairSelectorOpen] = useState(false);
   const [amountType, setAmountType] = useState<'usd' | 'tokens'>('usd');
   const [searchQuery, setSearchQuery] = useState('');
@@ -175,8 +178,15 @@ export function Trade() {
     const pair = urlParams.get('pair');
     if (pair) {
       setCurrentPair(pair);
+      // Save to localStorage for future visits
+      localStorage.setItem('lastViewedTradingPair', pair);
     }
   }, []);
+
+  // Save to localStorage whenever currentPair changes
+  useEffect(() => {
+    localStorage.setItem('lastViewedTradingPair', currentPair);
+  }, [currentPair]);
 
   // Get current market data for selected pair
   const currentMarket = data?.find(item => item.symbol === currentPair);
