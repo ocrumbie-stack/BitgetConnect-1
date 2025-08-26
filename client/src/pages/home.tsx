@@ -372,27 +372,40 @@ export function Home() {
       {/* Account Balance Card */}
       <div className="px-4 pb-4">
         <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Total Balance</h3>
-                <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  ${(accountData as any)?.account?.totalBalance ? parseFloat((accountData as any).account.totalBalance).toFixed(2) : '0.00'}
+          <CardContent className="p-6">
+            {/* Main Total Balance */}
+            <div className="text-center mb-6">
+              <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Total Balance</h3>
+              <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                ${(accountData as any)?.account?.totalBalance ? parseFloat((accountData as any).account.totalBalance).toFixed(2) : '0.00'}
+              </div>
+            </div>
+            
+            {/* Balance Breakdown */}
+            <div className="grid grid-cols-3 gap-4 border-t border-blue-200 dark:border-blue-800 pt-4">
+              <div className="text-center">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Equity</div>
+                <div className="text-lg font-semibold text-blue-900 dark:text-blue-100 mt-1">
+                  ${(accountData as any)?.account?.totalEquity ? parseFloat((accountData as any).account.totalEquity).toFixed(2) : '0.00'}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  Total Equity: ${(accountData as any)?.account?.totalEquity ? parseFloat((accountData as any).account.totalEquity).toFixed(2) : '0.00'}
-                </div>
-                <div className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Account Balance: ${(accountData as any)?.account?.availableBalance ? parseFloat((accountData as any).account.availableBalance).toFixed(2) : '0.00'}
-                </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  P&L: {(accountData as any)?.account?.unrealizedPnl ? `$${parseFloat((accountData as any).account.unrealizedPnl).toFixed(2)}` : '$0.00'}
+              
+              <div className="text-center">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Account Balance</div>
+                <div className="text-lg font-semibold text-blue-900 dark:text-blue-100 mt-1">
+                  ${(accountData as any)?.account?.availableBalance ? parseFloat((accountData as any).account.availableBalance).toFixed(2) : '0.00'}
                 </div>
               </div>
-              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-white" />
+              
+              <div className="text-center">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300">P&L</div>
+                <div className={`text-lg font-semibold mt-1 ${
+                  parseFloat((accountData as any)?.account?.unrealizedPnl || '0') >= 0 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {(accountData as any)?.account?.unrealizedPnl ? `$${parseFloat((accountData as any).account.unrealizedPnl).toFixed(2)}` : '$0.00'}
+                </div>
               </div>
             </div>
           </CardContent>
