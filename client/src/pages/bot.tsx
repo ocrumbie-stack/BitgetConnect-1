@@ -1407,7 +1407,7 @@ export default function BotPage() {
                                   {executions.map((execution: any) => (
                                     <div key={execution.id} className={`flex items-center justify-between p-3 rounded-lg ${
                                       (() => {
-                                        const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                        const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                         return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
                                       })()
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
