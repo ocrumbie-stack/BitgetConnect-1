@@ -87,7 +87,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT'],
       suggestedCapital: '1000-5000',
-      suggestedLeverage: '2-5'
+      suggestedLeverage: '2-5',
+      suggestedText: 'Best for volatile markets with consistent price oscillations',
+      avgReturn: '+15.2%',
+      features: ['Dynamic Grid Sizing', 'Auto Position Adjustment', 'Risk Management']
     },
     {
       id: 'momentum',
@@ -100,7 +103,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
       suggestedCapital: '2000-10000',
-      suggestedLeverage: '3-7'
+      suggestedLeverage: '3-7',
+      suggestedText: 'Ideal for strong trending markets with momentum confirmation',
+      avgReturn: '+22.7%',
+      features: ['Trend Detection', 'Momentum Signals', 'Stop Loss Protection']
     },
     {
       id: 'scalping',
@@ -113,7 +119,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT'],
       suggestedCapital: '500-3000',
-      suggestedLeverage: '5-10'
+      suggestedLeverage: '5-10',
+      suggestedText: 'Perfect for high-liquidity pairs with frequent small moves',
+      avgReturn: '+18.9%',
+      features: ['High-Frequency Trading', 'ML Entry Signals', 'Quick Profit Taking']
     },
     {
       id: 'arbitrage',
@@ -126,7 +135,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'],
       suggestedCapital: '5000-20000',
-      suggestedLeverage: '1-3'
+      suggestedLeverage: '1-3',
+      suggestedText: 'Suitable for risk-averse traders seeking consistent profits',
+      avgReturn: '+12.4%',
+      features: ['Cross-Market Analysis', 'Instant Execution', 'Low Risk Strategy']
     },
     {
       id: 'dca',
@@ -139,7 +151,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT'],
       suggestedCapital: '1000-8000',
-      suggestedLeverage: '1-2'
+      suggestedLeverage: '1-2',
+      suggestedText: 'Best for long-term accumulation with smart market timing',
+      avgReturn: '+24.1%',
+      features: ['Smart Timing', 'Position Averaging', 'Long-term Growth']
     },
     {
       id: 'swing',
@@ -152,7 +167,10 @@ export default function BotPage() {
       isAI: true,
       recommendedPairs: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT'],
       suggestedCapital: '2000-15000',
-      suggestedLeverage: '2-4'
+      suggestedLeverage: '2-4',
+      suggestedText: 'Optimal for multi-day trends with pattern confirmation',
+      avgReturn: '+19.3%',
+      features: ['Pattern Recognition', 'Multi-day Trends', 'Support/Resistance']
     }
   ];
 
@@ -1321,7 +1339,7 @@ export default function BotPage() {
                         <Card key={folderName} className={`${
                           executions.some((ex: any) => {
                             // Check if any execution in this folder is an AI bot
-                            const strategy = userStrategies.find(s => s.id === ex.strategyId) || aiBots.find(b => b.id === ex.strategyId);
+                            const strategy = (userStrategies as any[]).find((s: any) => s.id === ex.strategyId) || aiBots.find(b => b.id === ex.strategyId);
                             return strategy && (strategy.isAI || ex.botName?.includes('Smart') || ex.botName?.includes('AI'));
                           }) 
                             ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10' 
@@ -1452,7 +1470,7 @@ export default function BotPage() {
                       {manualExecutions.map((execution: any) => (
                         <Card key={execution.id} className={`${
                           (() => {
-                            const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                            const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                             return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
                           })()
                             ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
@@ -1466,7 +1484,7 @@ export default function BotPage() {
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
                                         (() => {
-                                          const strategy = userStrategies.find(s => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                          const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                           return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
                                         })()
                                           ? 'hover:text-purple-500' 
@@ -1489,7 +1507,7 @@ export default function BotPage() {
                                           <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
                                           <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                           <div className="text-sm text-muted-foreground">Strategy: {(() => {
-                                            const strategy = aiBots.find(b => b.id === execution.strategyId) || userStrategies.find(s => s.id === execution.strategyId);
+                                            const strategy = aiBots.find(b => b.id === execution.strategyId) || (userStrategies as any[]).find((s: any) => s.id === execution.strategyId);
                                             return strategy ? strategy.name : 'Manual';
                                           })()}</div>
                                         </div>
