@@ -3,6 +3,7 @@ This project is a mobile-optimized crypto trading application for real-time Bitg
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
+Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
 
 # System Architecture
 
