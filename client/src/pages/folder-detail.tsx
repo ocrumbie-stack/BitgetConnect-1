@@ -38,10 +38,10 @@ export default function FolderDetailPage() {
 
   // Fetch folder details
   const { data: folders = [] } = useQuery({
-    queryKey: ['/api/folders', 'default-user'],
+    queryKey: ['/api/folders', 'user1'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/screeners/default-user');
+        const response = await fetch('/api/screeners/user1');
         if (!response.ok) return [];
         return await response.json();
       } catch (error) {
