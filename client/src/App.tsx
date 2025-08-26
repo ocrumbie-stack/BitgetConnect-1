@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 import NotFound from "@/pages/not-found";
 import Screener from "@/pages/screener";
@@ -22,6 +23,8 @@ import { Assets } from "@/pages/assets";
 import { Settings } from "@/pages/settings";
 
 function Router() {
+  useScrollToTop(); // Auto-scroll to top on route changes
+  
   return (
     <div className="relative">
 
