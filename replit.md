@@ -5,6 +5,14 @@ This is a complete mobile-optimized crypto trading application designed for real
 Preferred communication style: Simple, everyday language.
 
 # Recent Changes
+- **August 26, 2025**: Streamlined Screener Interface & Restored Interactive Features - COMPLETED ✓
+  - Consolidated "Manage Screeners" and "Apply Filter" into single unified dropdown for cleaner UX
+  - Restored clickable market overview cards with hover animations that filter data table when clicked
+  - Implemented complete AI Opportunities tab with Momentum, Breakout, and Scalping trading strategies
+  - Enhanced text sizing standardization: headers (text-xl), content (text-base), secondary (text-sm)
+  - Added inline edit/delete buttons within screener dropdown for streamlined management
+  - Improved visual hierarchy and spacing throughout Markets page for better usability
+  - All interactive features now working: card filtering, AI opportunities, and screener management
 - **August 25, 2025**: Fixed Charts Page Back Button Overlay Issue - COMPLETED ✓
   - Resolved TradingView chart toolbar overlaying the back button
   - Moved back button from top-left to top-right corner to avoid chart controls
