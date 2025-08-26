@@ -77,6 +77,17 @@ export default function Markets() {
     if (screenerCriteria.minChange && change < screenerCriteria.minChange) return false;
     if (screenerCriteria.maxChange && change > screenerCriteria.maxChange) return false;
     
+    // RSI filters (simulate RSI based on price change)
+    if (screenerCriteria.rsi) {
+      const simulatedRSI = Math.max(0, Math.min(100, 50 + (change * 100))); // Simple RSI simulation
+      const rsiValue = screenerCriteria.rsi.value;
+      const operator = screenerCriteria.rsi.operator;
+      
+      if (operator === 'above' && simulatedRSI <= rsiValue) return false;
+      if (operator === 'below' && simulatedRSI >= rsiValue) return false;
+      if (operator === 'equals' && Math.abs(simulatedRSI - rsiValue) > 5) return false;
+    }
+    
     // Symbols filter (comma-separated list)
     if (screenerCriteria.symbols && screenerCriteria.symbols.length > 0) {
       const symbolList = Array.isArray(screenerCriteria.symbols) 
@@ -98,7 +109,15 @@ export default function Markets() {
       
       // Apply screener criteria if a screener is selected
       if (selectedScreener && selectedScreenerObj) {
-        return applyScreenerFilter(item, selectedScreenerObj.criteria);
+        const result = applyScreenerFilter(item, selectedScreenerObj.criteria);
+        if (item.symbol === 'BTCUSDT') {
+          console.log(`Filtering ${item.symbol}:`, {
+            criteria: selectedScreenerObj.criteria,
+            result,
+            simulatedRSI: Math.max(0, Math.min(100, 50 + (parseFloat(item.change24h || '0') * 100)))
+          });
+        }
+        return result;
       }
       
       // Apply basic filters if no screener is selected
@@ -163,6 +182,7 @@ export default function Markets() {
 
   // Screener handlers
   const handleScreenerChange = (value: string) => {
+    console.log('Screener selection changed:', value);
     setSelectedScreener(value === 'none' ? '' : value);
   };
 
