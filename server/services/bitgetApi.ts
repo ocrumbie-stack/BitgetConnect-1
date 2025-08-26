@@ -484,6 +484,7 @@ export class BitgetAPI {
       console.log('🔧 Close position order data:', JSON.stringify(orderData, null, 2));
 
       // Try the flash close position endpoint first (doesn't require additional margin)
+      let closeResponse: any;
       try {
         const flashCloseData = {
           symbol: symbol,
@@ -492,16 +493,49 @@ export class BitgetAPI {
         };
         console.log('🚀 Trying flash close first:', JSON.stringify(flashCloseData, null, 2));
         
-        const flashResponse = await this.client.post('/api/v2/mix/order/close-positions', flashCloseData);
-        console.log('✅ Flash close successful:', JSON.stringify(flashResponse.data, null, 2));
-        return flashResponse.data;
+        closeResponse = await this.client.post('/api/v2/mix/order/close-positions', flashCloseData);
+        console.log('✅ Flash close successful:', JSON.stringify(closeResponse.data, null, 2));
       } catch (flashError: any) {
         console.log('⚠️ Flash close failed, trying regular order:', flashError.response?.data?.msg || flashError.message);
         
         // Fall back to regular order placement
         const response = await this.client.post('/api/v2/mix/order/place-order', orderData);
-        return response.data;
+        closeResponse = response;
       }
+
+      // CRITICAL: After closing position, cancel any associated trailing stop orders
+      console.log('🧹 Cleaning up orphaned trailing stop orders...');
+      try {
+        // Get all plan orders for this symbol
+        const planOrders = await this.client.get(`/api/v2/mix/order/orders-plan-pending?symbol=${symbol}&productType=USDT-FUTURES&planType=track_plan`);
+        const trailingStops = planOrders.data?.data || [];
+        
+        console.log(`🔍 Found ${trailingStops.length} trailing stop orders for ${symbol}`);
+        
+        if (trailingStops.length > 0) {
+          const cancelPromises = trailingStops.map(async (order: any) => {
+            try {
+              console.log(`🗑️ Canceling orphaned trailing stop: ${order.orderId}`);
+              await this.cancelPlanOrder(order.orderId, symbol, 'track_plan');
+              return { orderId: order.orderId, status: 'canceled' };
+            } catch (cancelError: any) {
+              console.error(`❌ Failed to cancel trailing stop ${order.orderId}:`, cancelError.message);
+              return { orderId: order.orderId, status: 'failed', error: cancelError.message };
+            }
+          });
+          
+          const cancelResults = await Promise.all(cancelPromises);
+          console.log(`✅ Trailing stop cleanup completed:`, cancelResults);
+          
+          // Add cleanup results to response
+          closeResponse.data.trailingStopCleanup = cancelResults;
+        }
+      } catch (cleanupError: any) {
+        console.error('⚠️ Error during trailing stop cleanup:', cleanupError.message);
+        // Don't fail the position close due to cleanup errors
+      }
+
+      return closeResponse.data;
     } catch (error: any) {
       console.error('❌ Error closing position:', error.response?.data || error.message || error);
       
