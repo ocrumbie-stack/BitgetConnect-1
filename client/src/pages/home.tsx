@@ -377,10 +377,10 @@ export function Home() {
               <div>
                 <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Account Balance</h3>
                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  ${(accountData as any)?.account?.availableBalance ? parseFloat((accountData as any).account.availableBalance).toFixed(2) : '0.00'}
+                  ${(accountData as any)?.account?.totalBalance ? parseFloat((accountData as any).account.totalBalance).toFixed(2) : '0.00'}
                 </div>
                 <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Available Balance
+                  Total Balance
                 </div>
               </div>
               <div className="text-right">
