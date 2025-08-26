@@ -26,13 +26,8 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
 
   const account = accountData?.account;
   
-  // Calculate total balance: use totalEquity (which is now calculated as available + margin used on backend)
-  const calculateTotalBalance = () => {
-    // totalEquity is now properly calculated in the backend as available + margin used from positions
-    return account?.totalEquity || '0';
-  };
-  
-  const totalBalance = calculateTotalBalance();
+  // Use the totalBalance field calculated on backend as: totalEquity + availableBalance
+  const totalBalance = account?.totalBalance || '0';
   const unrealizedPnl = account?.unrealizedPnl || '0';
 
   return (

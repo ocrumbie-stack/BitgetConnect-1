@@ -723,6 +723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const account = accountData[0];
         const availableBalance = parseFloat(account.available || '0');
         const calculatedTotalEquity = availableBalance + totalMarginUsed;
+        const calculatedTotalBalance = calculatedTotalEquity + availableBalance; // Total Balance = Total Equity + Available Balance
         
         await storage.updateAccountInfo(userId, {
           userId,
@@ -730,6 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marginUsed: totalMarginUsed.toString(),
           unrealizedPnl: account.unrealizedPL,
           totalEquity: calculatedTotalEquity.toString(),
+          totalBalance: calculatedTotalBalance.toString(),
           marginRatio: account.crossRiskRate,
           maintenanceMargin: '0' // This would need to be calculated
         });
