@@ -572,11 +572,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Get current tickers first
     const tickers = await bitgetAPI.getAllFuturesTickers();
-    // Use a balanced approach: more diverse than before but not overwhelming
+    // Use all available pairs for AI opportunities analysis
     const selectedSymbols = tickers
-      .filter(t => parseFloat(t.quoteVolume) > 100000) // Filter for reasonable volume (was 1M before)
+      .filter(t => parseFloat(t.quoteVolume) > 50000) // Lower volume threshold for more pairs
       .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)) // Sort by volume
-      .slice(0, 80); // Increased from 20 to 80 for more diversity while keeping performance reasonable
+      .slice(0, 150); // Increased from 80 to 150 for comprehensive AI analysis
     
     console.log(`Processing ${selectedSymbols.length} trading pairs for 5-minute movers (balanced approach for performance)`);
 
