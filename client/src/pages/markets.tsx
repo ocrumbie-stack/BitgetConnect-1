@@ -48,11 +48,47 @@ export default function Markets() {
 
   // Fetch user screeners
   const { data: userScreeners = [] } = useQuery<any[]>({
-    queryKey: ['/api/screeners'],
+    queryKey: ['/api/screeners', 'user1'],
+    queryFn: async () => {
+      const response = await fetch('/api/screeners/user1');
+      if (!response.ok) throw new Error('Failed to fetch screeners');
+      return response.json();
+    },
     enabled: true,
   });
 
-  // Processing data similar to original Markets page
+  // Function to apply screener criteria
+  const applyScreenerFilter = (item: any, screenerCriteria: any) => {
+    if (!screenerCriteria) return true;
+    
+    const price = parseFloat(item.price || '0');
+    const volume = parseFloat(item.volume24h || '0');
+    const change = parseFloat(item.change24h || '0');
+    
+    // Price filters
+    if (screenerCriteria.minPrice && price < screenerCriteria.minPrice) return false;
+    if (screenerCriteria.maxPrice && price > screenerCriteria.maxPrice) return false;
+    
+    // Volume filters
+    if (screenerCriteria.minVolume && volume < screenerCriteria.minVolume) return false;
+    if (screenerCriteria.maxVolume && volume > screenerCriteria.maxVolume) return false;
+    
+    // Change filters
+    if (screenerCriteria.minChange && change < screenerCriteria.minChange) return false;
+    if (screenerCriteria.maxChange && change > screenerCriteria.maxChange) return false;
+    
+    // Symbols filter (comma-separated list)
+    if (screenerCriteria.symbols && screenerCriteria.symbols.length > 0) {
+      const symbolList = Array.isArray(screenerCriteria.symbols) 
+        ? screenerCriteria.symbols 
+        : screenerCriteria.symbols.split(',').map((s: string) => s.trim());
+      if (!symbolList.includes(item.symbol)) return false;
+    }
+    
+    return true;
+  };
+
+  // Processing data with screener criteria
   const filteredAndSortedData = data ? data
     .filter(item => {
       const searchMatch = !searchQuery || 
@@ -60,6 +96,12 @@ export default function Markets() {
       
       if (!searchMatch) return false;
       
+      // Apply screener criteria if a screener is selected
+      if (selectedScreener && selectedScreenerObj) {
+        return applyScreenerFilter(item, selectedScreenerObj.criteria);
+      }
+      
+      // Apply basic filters if no screener is selected
       if (filter === 'gainers') {
         return parseFloat(item.change24h || '0') > 0;
       } else if (filter === 'losers') {
