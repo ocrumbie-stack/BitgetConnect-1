@@ -1164,15 +1164,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
         const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
 
-        // Calculate total ROI percentage (not just current position percentage)
-        const unrealizedPL = parseFloat(position.unrealizedPL || '0');
-        const achievedProfits = parseFloat(position.achievedProfits || '0'); // Realized profits from completed trades
-        const totalFee = parseFloat(position.totalFee || '0'); // Total fees paid (negative value)
-        const capital = 10; // $10 per bot
+        // Calculate ROE percentage (same as Position tab for consistency)
+        const entryPrice = parseFloat(position.openPriceAvg || '0');
+        const markPrice = parseFloat(position.markPrice || '0');
+        const leverage = parseFloat(position.leverage || '10'); // Use actual position leverage, not bot mapping
         
-        // Total ROI = (Realized Profits + Unrealized P&L + Total Fees) / Capital * 100
-        const totalPnL = achievedProfits + unrealizedPL + totalFee;
-        const roiPercent = (totalPnL / capital) * 100;
+        // ROE calculation matching Position tab: ((markPrice - entryPrice) / entryPrice) * 100 * leverage
+        let roiPercent = 0;
+        if (entryPrice > 0) {
+          if (position.holdSide === 'long') {
+            roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
+          } else {
+            roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+          }
+        }
 
         // Check exit criteria
         const exitCriteria = mapping.exitCriteria;
@@ -1204,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tradingPair: position.symbol,
           status: exitTriggered ? 'exit_pending' : 'active',
           capital: '10',
-          leverage: mapping.leverage,
+          leverage: position.leverage || '10', // Use actual position leverage
           profit: position.unrealizedPL || position.pnl || '0',
           trades: cyclesCompleted.toString(),
           cycles: cyclesCompleted,
