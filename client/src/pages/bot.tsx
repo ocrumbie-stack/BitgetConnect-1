@@ -276,6 +276,36 @@ export default function BotPage() {
     }
   });
 
+  // Close all positions mutation
+  const closeAllPositionsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/close-all-positions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'default-user' })
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to close positions: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      toast({
+        title: "All Positions Closed",
+        description: "All open positions have been closed successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Close Positions",
+        description: error.message || "Failed to close all positions.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Terminate all bots in a folder
   const handleTerminateFolder = useMutation({
     mutationFn: async (folderName: string) => {
@@ -1317,6 +1347,18 @@ export default function BotPage() {
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Running Bots</h3>
+              {activeExecutions.length > 0 && (
+                <Button 
+                  size="sm"
+                  variant="outline" 
+                  onClick={() => closeAllPositionsMutation.mutate()}
+                  disabled={closeAllPositionsMutation.isPending}
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  {closeAllPositionsMutation.isPending ? 'Closing...' : 'Close All Positions'}
+                </Button>
+              )}
             </div>
 
             {executionsLoading ? (
