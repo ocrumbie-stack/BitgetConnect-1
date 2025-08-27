@@ -1399,9 +1399,24 @@ export default function BotPage() {
                               <div className="mt-4 pt-4 border-t border-border">
                                 <div className="mb-3">
                                   <p className="text-sm text-muted-foreground mb-2">
-                                    Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0)} • 
-                                    Total Trades: {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)}
+                                    Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0).toLocaleString()} • 
+                                    Total Trades: {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)} •
+                                    Total Cycles: {executions.reduce((sum, ex) => sum + parseInt(ex.cycles || '0'), 0)}
                                   </p>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="bg-gradient-to-r from-green-900/20 to-green-800/20 border border-green-500/30 rounded p-2">
+                                      <div className="text-green-400 font-medium">Portfolio P&L</div>
+                                      <div className={`text-sm font-bold ${
+                                        executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0) >= 0 ? 'text-green-400' : 'text-red-400'
+                                      }`}>
+                                        {executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0) >= 0 ? '+' : ''}${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                      </div>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-500/30 rounded p-2">
+                                      <div className="text-blue-400 font-medium">Active Pairs</div>
+                                      <div className="text-sm font-bold text-blue-400">{executions.length} pairs</div>
+                                    </div>
+                                  </div>
                                 </div>
                                 
                                 {/* Individual Bot Details */}
