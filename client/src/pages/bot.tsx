@@ -1504,7 +1504,7 @@ export default function BotPage() {
                                             <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                               <div className="flex flex-col space-y-1">
                                                 <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
-                                                <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
+                                                <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                                 <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                                 <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
                                               </div>
@@ -1512,7 +1512,7 @@ export default function BotPage() {
                                           </DropdownMenuContent>
                                         </DropdownMenu>
                                         <div className="flex items-center gap-2 text-sm">
-                                          <span className="text-gray-400">${execution.capital}</span>
+                                          <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)}</span>
                                           <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                             {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
                                           </span>
@@ -1616,7 +1616,7 @@ export default function BotPage() {
                                           const strategy = aiBots.find(b => b.id === execution.strategyId);
                                           return strategy ? strategy.name : 'Manual Bot';
                                         })()}</div>
-                                        <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
+                                        <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                         <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                         <div className="text-sm text-muted-foreground">Strategy: {(() => {
                                           const strategy = aiBots.find(b => b.id === execution.strategyId) || (userStrategies as any[]).find((s: any) => s.id === execution.strategyId);
@@ -1627,7 +1627,7 @@ export default function BotPage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-gray-400">${execution.capital} • {execution.leverage}x</span>
+                                  <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</span>
                                   <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
                                   </span>
