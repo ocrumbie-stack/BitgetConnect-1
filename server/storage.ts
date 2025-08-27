@@ -42,6 +42,9 @@ import {
   marketOpportunities
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from '@shared/schema';
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -1013,5 +1016,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Use MemStorage for now - it's properly typed and will work
-export const storage = new MemStorage();
+// Use DatabaseStorage for persistent PostgreSQL strategy storage
+export const storage = new DatabaseStorage();
