@@ -40,14 +40,14 @@ export default function BotPage() {
   const [trailingStop, setTrailingStop] = useState('');
   // Removed showAdvancedIndicators state - indicators are now always visible
   
-  // Technical Indicators state
+  // Technical Indicators state (allowing string | number for input flexibility)
   const [indicators, setIndicators] = useState({
-    rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
-    macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
-    ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
-    ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
-    ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
-    bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
+    rsi: { enabled: false, period: 14 as string | number, condition: 'above', value: 70 as string | number },
+    macd: { enabled: false, fastPeriod: 12 as string | number, slowPeriod: 26 as string | number, signalPeriod: 9 as string | number, condition: 'bullish_crossover' },
+    ma1: { enabled: false, type: 'sma', period1: 20 as string | number, condition: 'above', period2: 50 as string | number, comparisonType: 'price', comparisonMAType: 'sma' },
+    ma2: { enabled: false, type: 'ema', period1: 50 as string | number, condition: 'above', period2: 200 as string | number, comparisonType: 'price', comparisonMAType: 'sma' },
+    ma3: { enabled: false, type: 'sma', period1: 10 as string | number, condition: 'crossing_up', period2: 20 as string | number, comparisonType: 'price', comparisonMAType: 'sma' },
+    bollinger: { enabled: false, period: 20 as string | number, stdDev: 2, condition: 'above_upper' },
     stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
     williams: { enabled: false, period: 14, condition: 'above', value: -20 },
     volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
@@ -2098,7 +2098,7 @@ export default function BotPage() {
                             value={indicators.rsi.period}
                             onChange={(e) => setIndicators({
                               ...indicators,
-                              rsi: { ...indicators.rsi, period: parseInt(e.target.value) || 14 }
+                              rsi: { ...indicators.rsi, period: e.target.value === '' ? '' : (parseInt(e.target.value) || 14) }
                             })}
                             placeholder="14"
                           />
@@ -2131,7 +2131,7 @@ export default function BotPage() {
                             value={indicators.rsi.value}
                             onChange={(e) => setIndicators({
                               ...indicators,
-                              rsi: { ...indicators.rsi, value: parseInt(e.target.value) || 70 }
+                              rsi: { ...indicators.rsi, value: e.target.value === '' ? '' : (parseInt(e.target.value) || 70) }
                             })}
                             placeholder="70"
                           />
@@ -2164,7 +2164,7 @@ export default function BotPage() {
                               value={indicators.macd.fastPeriod}
                               onChange={(e) => setIndicators({
                                 ...indicators,
-                                macd: { ...indicators.macd, fastPeriod: parseInt(e.target.value) || 12 }
+                                macd: { ...indicators.macd, fastPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 12) }
                               })}
                               placeholder="12"
                             />
@@ -2176,7 +2176,7 @@ export default function BotPage() {
                               value={indicators.macd.slowPeriod}
                               onChange={(e) => setIndicators({
                                 ...indicators,
-                                macd: { ...indicators.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                                macd: { ...indicators.macd, slowPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 26) }
                               })}
                               placeholder="26"
                             />
@@ -2188,7 +2188,7 @@ export default function BotPage() {
                               value={indicators.macd.signalPeriod}
                               onChange={(e) => setIndicators({
                                 ...indicators,
-                                macd: { ...indicators.macd, signalPeriod: parseInt(e.target.value) || 9 }
+                                macd: { ...indicators.macd, signalPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 9) }
                               })}
                               placeholder="9"
                             />
@@ -2277,7 +2277,7 @@ export default function BotPage() {
                                   value={(indicators[maKey as keyof typeof indicators] as any).period1}
                                   onChange={(e) => setIndicators({
                                     ...indicators,
-                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: parseInt(e.target.value) || 20 }
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: e.target.value === '' ? '' : (parseInt(e.target.value) || 20) }
                                   })}
                                   placeholder="20"
                                   className="text-center"
@@ -2377,7 +2377,7 @@ export default function BotPage() {
                                     value={(indicators[maKey as keyof typeof indicators] as any).period2}
                                     onChange={(e) => setIndicators({
                                       ...indicators,
-                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: parseInt(e.target.value) || 50 }
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: e.target.value === '' ? '' : (parseInt(e.target.value) || 50) }
                                     })}
                                     placeholder="50"
                                     className="text-center"
@@ -2418,7 +2418,7 @@ export default function BotPage() {
                             value={indicators.bollinger.period}
                             onChange={(e) => setIndicators({
                               ...indicators,
-                              bollinger: { ...indicators.bollinger, period: parseInt(e.target.value) || 20 }
+                              bollinger: { ...indicators.bollinger, period: e.target.value === '' ? '' : (parseInt(e.target.value) || 20) }
                             })}
                             placeholder="20"
                           />
