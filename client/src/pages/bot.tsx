@@ -1564,32 +1564,18 @@ export default function BotPage() {
                           <CardContent className="p-4">
                             {/* Folder Header - Always Visible */}
                             <div 
-                              className="flex items-center justify-between cursor-pointer"
+                              className="cursor-pointer"
                               onClick={() => setExpandedFolders(prev => ({ ...prev, [folderName]: !prev[folderName] }))}
                             >
-                              <div className="flex items-center gap-2">
-                                {expandedFolders[folderName] ? (
-                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                )}
-                                <h4 className="font-medium">{folderName}</h4>
-                                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300">
-                                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
-                                  {executions.length} bots
-                                </Badge>
-                                <Badge variant="outline" className="text-purple-600 border-purple-300">
-                                  Bulk Deployed
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="text-right">
-                                  <div className="text-sm font-medium text-green-500">
-                                    +${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {executions.filter(ex => ex.status === 'active').length}/{executions.length} active
-                                  </div>
+                              {/* First row: Folder name and expand/collapse */}
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  {expandedFolders[folderName] ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  )}
+                                  <h4 className="font-medium truncate">{folderName}</h4>
                                 </div>
                                 <Button 
                                   size="sm" 
@@ -1601,10 +1587,32 @@ export default function BotPage() {
                                     }
                                   }}
                                   disabled={handleTerminateFolder.isPending}
+                                  className="flex-shrink-0 h-7 px-2 text-xs"
                                 >
                                   <Square className="h-3 w-3 mr-1" />
-                                  {handleTerminateFolder.isPending ? 'Stopping...' : 'Stop All'}
+                                  Stop
                                 </Button>
+                              </div>
+                              
+                              {/* Second row: Badges and stats */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                    {executions.length} bots
+                                  </Badge>
+                                  <Badge variant="outline" className="text-purple-600 border-purple-300 text-xs">
+                                    Bulk Deployed
+                                  </Badge>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-green-500">
+                                    +${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {executions.filter(ex => ex.status === 'active').length}/{executions.length} active
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
