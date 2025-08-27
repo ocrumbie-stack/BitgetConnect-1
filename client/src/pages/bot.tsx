@@ -1439,7 +1439,7 @@ export default function BotPage() {
                                       <div className="flex items-center gap-3 text-sm">
                                         <span className="text-gray-300">${execution.capital}</span>
                                         <span className={`${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                          {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
+                                          {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'} ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
                                         </span>
                                         {execution.status === 'active' && (
                                           <Button 
@@ -1529,7 +1529,9 @@ export default function BotPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="text-right">
-                                  <div className="text-sm font-medium text-green-500">+${execution.profit || '0'}</div>
+                                  <div className={`text-sm font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'} ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
+                                  </div>
                                   <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
                                 </div>
                                 {execution.status === 'active' && (
