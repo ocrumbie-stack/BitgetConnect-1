@@ -186,8 +186,10 @@ export default function BotPage() {
     queryKey: ['/api/futures']
   });
 
-  // Filter only active executions in frontend
-  const activeExecutions = (allExecutions as any[]).filter((execution: any) => execution.status === 'active');
+  // Show ALL running bots (both active and waiting) - not just ones currently in trades
+  const activeExecutions = (allExecutions as any[]).filter((execution: any) => 
+    execution.status === 'active' || execution.status === 'waiting_entry' || execution.status === 'exit_pending'
+  );
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
