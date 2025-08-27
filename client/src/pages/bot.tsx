@@ -174,9 +174,11 @@ export default function BotPage() {
     }
   ];
 
-  // Fetch active executions
+  // Fetch active executions with regular refresh
   const { data: allExecutions = [], isLoading: executionsLoading } = useQuery({
-    queryKey: ['/api/bot-executions']
+    queryKey: ['/api/bot-executions'],
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time data
+    refetchIntervalInBackground: true
   });
 
   // Fetch futures data for AI suggestions
@@ -186,6 +188,10 @@ export default function BotPage() {
 
   // Filter only active executions in frontend
   const activeExecutions = (allExecutions as any[]).filter((execution: any) => execution.status === 'active');
+  
+  // Debug logging for troubleshooting
+  console.log('All executions received:', allExecutions);
+  console.log('Active executions filtered:', activeExecutions);
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
