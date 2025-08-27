@@ -54,7 +54,7 @@ export default function BotPage() {
   });
   
   // Bot execution form
-  const [tradingPair, setTradingPair] = useState('BTCUSDT');
+  const [tradingPair, setTradingPair] = useState('');
   const [capital, setCapital] = useState('1000');
   const [leverage, setLeverage] = useState('1');
   const [pairSearch, setPairSearch] = useState('');
@@ -417,6 +417,17 @@ export default function BotPage() {
       return;
     }
 
+    // Validate trading pair or folder selection
+    if (deploymentMode === 'individual' && !tradingPair && !pairSearch) {
+      alert('Please select a trading pair before deploying.');
+      return;
+    }
+
+    if (deploymentMode === 'folder' && !selectedFolder) {
+      alert('Please select a folder before deploying.');
+      return;
+    }
+
     try {
       if (selectedFolder) {
         // Deploy to folder
@@ -459,7 +470,9 @@ export default function BotPage() {
           title: "Strategy Deployed Successfully! 🚀",
           description: `Strategy deployed to ${folder.tradingPairs.length} pairs in "${folder.name}" folder`,
         });
-      } else if (tradingPair) {
+      } else if (tradingPair || pairSearch) {
+        // Use either tradingPair or pairSearch as fallback
+        const finalTradingPair = tradingPair || pairSearch;
         // Deploy to individual pair
         let actualStrategyId = strategy.id;
         
@@ -472,7 +485,7 @@ export default function BotPage() {
         const executionData = {
           userId: 'default-user',
           strategyId: actualStrategyId,
-          tradingPair,
+          tradingPair: finalTradingPair,
           capital,
           leverage,
           status: 'active',
@@ -484,7 +497,7 @@ export default function BotPage() {
         setShowRunDialog(false);
         toast({
           title: "Strategy Deployed Successfully! 🚀",
-          description: `Strategy deployed to ${tradingPair}!`,
+          description: `Strategy deployed to ${finalTradingPair}!`,
         });
       } else {
         alert('Please select either a trading pair or a folder to deploy the strategy.');
@@ -950,6 +963,7 @@ export default function BotPage() {
   // Select a pair from auto-suggestions
   const selectPair = (pair: any) => {
     setPairSearch(pair.symbol);
+    setTradingPair(pair.symbol);
     setShowAutoSuggest(false);
     setFilteredPairs([]);
   };
