@@ -1629,10 +1629,10 @@ export default function BotPage() {
                                 <div className="flex items-center gap-2 text-sm">
                                   <span className="text-gray-400">${execution.capital} • {execution.leverage}x</span>
                                   <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
+                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
                                   </span>
                                   <span className={`${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
+                                    ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
                                   </span>
                                 </div>
                               </div>
