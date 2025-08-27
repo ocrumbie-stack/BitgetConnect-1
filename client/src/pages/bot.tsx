@@ -1422,7 +1422,7 @@ export default function BotPage() {
                                 {/* Individual Bot Details */}
                                 <div className="space-y-2">
                                   {executions.map((execution: any) => (
-                                    <div key={execution.id} className={`flex items-center justify-between p-3 rounded-lg ${
+                                    <div key={execution.id} className={`flex flex-col gap-2 p-2.5 rounded-lg ${
                                       (() => {
                                         const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                         return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
@@ -1430,20 +1430,45 @@ export default function BotPage() {
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
                                         : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
-                                      <div className="flex items-center gap-2">
+                                      {/* Top row: Trading pair, cycles, status */}
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="bg-blue-600/80 text-white px-2 py-1 rounded text-xs font-mono">
+                                            {execution.tradingPair}
+                                          </span>
+                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                            {execution.cycles || 0} cycles
+                                          </span>
+                                          <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
+                                            {execution.status}
+                                          </Badge>
+                                        </div>
+                                        {execution.status === 'active' && (
+                                          <Button 
+                                            size="sm" 
+                                            variant="destructive"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleTerminateExecution.mutate(execution.id);
+                                            }}
+                                            disabled={handleTerminateExecution.isPending}
+                                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs h-6"
+                                          >
+                                            <Square className="h-3 w-3 mr-1" />
+                                            Stop
+                                          </Button>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Bottom row: Bot name, capital, P&L */}
+                                      <div className="flex items-center justify-between text-sm">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
-                                              <div className="flex items-center gap-2">
-                                                <span className="bg-blue-600/80 text-white px-2 py-1 rounded text-xs font-mono">
-                                                  {execution.tradingPair}
-                                                </span>
-                                                <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
-                                                  {execution.cycles || 0} cycles
-                                                </span>
-                                                <span className="text-sm">{execution.botName}</span>
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs text-gray-300 truncate max-w-32">{execution.botName}</span>
+                                                <ChevronDown className="h-3 w-3" />
                                               </div>
-                                              <ChevronDown className="h-4 w-4 ml-1" />
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="start" className="w-64">
@@ -1457,30 +1482,15 @@ export default function BotPage() {
                                             </DropdownMenuItem>
                                           </DropdownMenuContent>
                                         </DropdownMenu>
-                                        <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
-                                          {execution.status}
-                                        </Badge>
-                                      </div>
-                                      <div className="flex items-center gap-3 text-sm">
-                                        <span className="text-gray-300">${execution.capital}</span>
-                                        <span className={`${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                          {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'} ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
-                                        </span>
-                                        {execution.status === 'active' && (
-                                          <Button 
-                                            size="sm" 
-                                            variant="destructive"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleTerminateExecution.mutate(execution.id);
-                                            }}
-                                            disabled={handleTerminateExecution.isPending}
-                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs h-7"
-                                          >
-                                            <Square className="h-3 w-3 mr-1" />
-                                            Stop
-                                          </Button>
-                                        )}
+                                        <div className="flex items-center gap-2 text-xs">
+                                          <span className="text-gray-400">${execution.capital}</span>
+                                          <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                            {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
+                                          </span>
+                                          <span className={`${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                            ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
@@ -1501,78 +1511,27 @@ export default function BotPage() {
                             ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
-                                        (() => {
-                                          const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
-                                          return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
-                                        })()
-                                          ? 'hover:text-purple-500' 
-                                          : 'hover:text-blue-500'
-                                      }`}>
-                                        <div className="flex items-center gap-2">
-                                          <span className={`px-2 py-1 rounded text-xs font-mono ${
-                                            (() => {
-                                              const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
-                                              return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
-                                            })()
-                                              ? 'bg-purple-600/80 text-white' 
-                                              : 'bg-blue-600/80 text-white'
-                                          }`}>
-                                            {execution.tradingPair}
-                                          </span>
-                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
-                                            {execution.cycles || 0} cycles
-                                          </span>
-                                          <span className="text-sm">
-                                            {(() => {
-                                              if (execution.botName) return execution.botName;
-                                              const strategy = aiBots.find(b => b.id === execution.strategyId);
-                                              return strategy ? strategy.name : 'Manual Bot';
-                                            })()} 
-                                          </span>
-                                        </div>
-                                        <ChevronDown className="h-4 w-4 ml-1" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start" className="w-64">
-                                      <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
-                                        <div className="flex flex-col space-y-1">
-                                          <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
-                                          <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
-                                          <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
-                                          <div className="text-sm text-muted-foreground">Strategy: {(() => {
-                                            const strategy = aiBots.find(b => b.id === execution.strategyId) || (userStrategies as any[]).find((s: any) => s.id === execution.strategyId);
-                                            return strategy ? strategy.name : 'Manual';
-                                          })()}</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  Capital: ${execution.capital} | Leverage: {execution.leverage}x
-                                </p>
-                                <div className="flex gap-2 mt-1">
-                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'}>
+                          <CardContent className="p-3">
+                            <div className="flex flex-col gap-2">
+                              {/* Top row: Trading pair, cycles, status */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`px-2 py-1 rounded text-xs font-mono ${
+                                    (() => {
+                                      const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                      return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                    })()
+                                      ? 'bg-purple-600/80 text-white' 
+                                      : 'bg-blue-600/80 text-white'
+                                  }`}>
+                                    {execution.tradingPair}
+                                  </span>
+                                  <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                    {execution.cycles || 0} cycles
+                                  </span>
+                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                                     {execution.status}
                                   </Badge>
-                                  <Badge variant="outline">
-                                    {execution.deploymentType === 'folder' ? 'Folder' : 'Manual'}
-                                  </Badge>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div className="text-right">
-                                  <div className={`text-sm font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'} ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">{execution.trades || 0} trades</div>
                                 </div>
                                 {execution.status === 'active' && (
                                   <Button 
@@ -1580,11 +1539,61 @@ export default function BotPage() {
                                     variant="destructive"
                                     onClick={() => handleTerminateExecution.mutate(execution.id)}
                                     disabled={handleTerminateExecution.isPending}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs h-6"
                                   >
                                     <Square className="h-3 w-3 mr-1" />
-                                    {handleTerminateExecution.isPending ? 'Stopping...' : 'Stop'}
+                                    Stop
                                   </Button>
                                 )}
+                              </div>
+                              
+                              {/* Bottom row: Bot name, capital, P&L */}
+                              <div className="flex items-center justify-between text-sm">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                      (() => {
+                                        const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                        return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                      })()
+                                        ? 'hover:text-purple-500' 
+                                        : 'hover:text-blue-500'
+                                    }`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-xs text-gray-300 truncate max-w-32">
+                                          {(() => {
+                                            if (execution.botName) return execution.botName;
+                                            const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                            return strategy ? strategy.name : 'Manual Bot';
+                                          })()}
+                                        </span>
+                                        <ChevronDown className="h-3 w-3" />
+                                      </div>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start" className="w-64">
+                                    <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
+                                      <div className="flex flex-col space-y-1">
+                                        <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
+                                        <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
+                                        <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                        <div className="text-sm text-muted-foreground">Strategy: {(() => {
+                                          const strategy = aiBots.find(b => b.id === execution.strategyId) || (userStrategies as any[]).find((s: any) => s.id === execution.strategyId);
+                                          return strategy ? strategy.name : 'Manual';
+                                        })()}</div>
+                                      </div>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-gray-400">${execution.capital} • {execution.leverage}x</span>
+                                  <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
+                                  </span>
+                                  <span className={`${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </CardContent>
