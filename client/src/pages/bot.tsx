@@ -1636,7 +1636,7 @@ export default function BotPage() {
                                 {/* Individual Bot Details */}
                                 <div className="space-y-2">
                                   {executions.map((execution: any) => (
-                                    <div key={execution.id} className={`flex flex-col gap-2 p-2.5 rounded-lg ${
+                                    <div key={execution.id} className={`p-3 rounded-lg ${
                                       (() => {
                                         const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                         return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
@@ -1644,90 +1644,92 @@ export default function BotPage() {
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
                                         : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
-                                      {/* Top row: Bot name, cycles, status */}
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                          <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
-                                            (() => {
-                                              const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
-                                              return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
-                                            })()
-                                              ? 'bg-purple-600/80 text-white' 
-                                              : 'bg-blue-600/80 text-white'
-                                          }`}>
-                                            {execution.botName || 'Manual Bot'}
-                                          </span>
-                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
-                                            {execution.cycles || 0} cycles
-                                          </span>
-                                          <Badge variant="outline" className={`text-sm ${
-                                            execution.status === 'active' 
-                                              ? 'border-green-500 text-green-400 bg-green-950/30'
-                                              : execution.status === 'waiting_entry'
-                                              ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                              : execution.status === 'exit_pending'
-                                              ? 'border-orange-500 text-orange-400 bg-orange-950/30'
-                                              : 'border-blue-500 text-blue-400 bg-blue-950/30'
-                                          }`}>
-                                            {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
-                                          </Badge>
-                                        </div>
-                                        {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                          <Button 
-                                            size="sm" 
-                                            variant="destructive"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
-                                              handleTerminateExecution.mutate(execution.id);
-                                            }}
-                                            disabled={handleTerminateExecution.isPending}
-                                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
-                                          >
-                                            <Square className="h-3 w-3 mr-1" />
-                                            Stop
-                                          </Button>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Bottom row: Trading pair, capital, P&L */}
-                                      <div className="flex items-center justify-between">
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                      <div className="grid grid-rows-2 gap-3">
+                                        {/* Top row: Bot name, cycles, status */}
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
                                               (() => {
                                                 const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                                 return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
                                               })()
-                                                ? 'hover:text-purple-500' 
-                                                : 'hover:text-blue-500'
+                                                ? 'bg-purple-600/80 text-white' 
+                                                : 'bg-blue-600/80 text-white'
                                             }`}>
-                                              <div className="flex items-center gap-1">
-                                                <span className="text-sm text-gray-300 font-mono truncate max-w-32">{execution.tradingPair}</span>
-                                                <ChevronDown className="h-4 w-4" />
-                                              </div>
+                                              {execution.botName || 'Manual Bot'}
+                                            </span>
+                                            <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
+                                              {execution.cycles || 0} cycles
+                                            </span>
+                                            <Badge variant="outline" className={`text-sm ${
+                                              execution.status === 'active' 
+                                                ? 'border-green-500 text-green-400 bg-green-950/30'
+                                                : execution.status === 'waiting_entry'
+                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                : execution.status === 'exit_pending'
+                                                ? 'border-orange-500 text-orange-400 bg-orange-950/30'
+                                                : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                            }`}>
+                                              {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
+                                            </Badge>
+                                          </div>
+                                          {(execution.status === 'active' || execution.status === 'waiting_entry') && (
+                                            <Button 
+                                              size="sm" 
+                                              variant="destructive"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
+                                                handleTerminateExecution.mutate(execution.id);
+                                              }}
+                                              disabled={handleTerminateExecution.isPending}
+                                              className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                            >
+                                              <Square className="h-3 w-3 mr-1" />
+                                              Stop
                                             </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="start" className="w-64">
-                                            <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
-                                              <div className="flex flex-col space-y-1">
-                                                <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
-                                                <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
-                                                <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
-                                                <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
-                                              </div>
-                                            </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                        <div className="flex items-center gap-2 text-sm">
-                                          <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)}</span>
-                                          <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
-                                          </span>
-                                          <span className={`${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{execution.roi || '0'}%)
-                                          </span>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Bottom row: Trading pair, capital, P&L */}
+                                        <div className="flex items-center justify-between">
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                                (() => {
+                                                  const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                                  return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                                })()
+                                                  ? 'hover:text-purple-500' 
+                                                  : 'hover:text-blue-500'
+                                              }`}>
+                                                <div className="flex items-center gap-1">
+                                                  <span className="text-sm text-gray-300 font-mono truncate max-w-28">{execution.tradingPair}</span>
+                                                  <ChevronDown className="h-4 w-4" />
+                                                </div>
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="start" className="w-64">
+                                              <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
+                                                <div className="flex flex-col space-y-1">
+                                                  <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
+                                                  <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
+                                                  <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                                  <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
+                                                </div>
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                          <div className="flex items-center gap-2 text-sm text-right">
+                                            <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</span>
+                                            <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                              {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                            </span>
+                                            <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                              ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
@@ -1750,7 +1752,7 @@ export default function BotPage() {
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
                           <CardContent className="p-3">
-                            <div className="flex flex-col gap-2">
+                            <div className="grid grid-rows-2 gap-3">
                               {/* Top row: Bot name, cycles, status */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -1794,7 +1796,7 @@ export default function BotPage() {
                                       handleTerminateExecution.mutate(execution.id);
                                     }}
                                     disabled={handleTerminateExecution.isPending}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
+                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
                                   >
                                     <Square className="h-3 w-3 mr-1" />
                                     Stop
@@ -1815,7 +1817,7 @@ export default function BotPage() {
                                         : 'hover:text-blue-500'
                                     }`}>
                                       <div className="flex items-center gap-1">
-                                        <span className="text-sm text-gray-300 font-mono truncate max-w-32">
+                                        <span className="text-sm text-gray-300 font-mono truncate max-w-28">
                                           {execution.tradingPair}
                                         </span>
                                         <ChevronDown className="h-4 w-4" />
@@ -1840,12 +1842,12 @@ export default function BotPage() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                <div className="flex items-center gap-2 text-sm">
+                                <div className="flex items-center gap-2 text-sm text-right">
                                   <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</span>
                                   <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
                                   </span>
-                                  <span className={`${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
                                   </span>
                                 </div>
