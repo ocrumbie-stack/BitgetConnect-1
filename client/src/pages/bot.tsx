@@ -1433,11 +1433,18 @@ export default function BotPage() {
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
                                         : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
-                                      {/* Top row: Trading pair, cycles, status */}
+                                      {/* Top row: Bot name, cycles, status */}
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="bg-blue-600/80 text-white px-2.5 py-1.5 rounded text-sm font-mono">
-                                            {execution.tradingPair}
+                                          <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
+                                            (() => {
+                                              const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                              return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                            })()
+                                              ? 'bg-purple-600/80 text-white' 
+                                              : 'bg-blue-600/80 text-white'
+                                          }`}>
+                                            {execution.botName || 'Manual Bot'}
                                           </span>
                                           <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                             {execution.cycles || 0} cycles
@@ -1471,13 +1478,20 @@ export default function BotPage() {
                                         )}
                                       </div>
                                       
-                                      {/* Bottom row: Bot name, capital, P&L */}
+                                      {/* Bottom row: Trading pair, capital, P&L */}
                                       <div className="flex items-center justify-between">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
+                                            <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                              (() => {
+                                                const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                                return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                              })()
+                                                ? 'hover:text-purple-500' 
+                                                : 'hover:text-blue-500'
+                                            }`}>
                                               <div className="flex items-center gap-1">
-                                                <span className="text-sm text-gray-300 truncate max-w-32">{execution.botName}</span>
+                                                <span className="text-sm text-gray-300 font-mono truncate max-w-32">{execution.tradingPair}</span>
                                                 <ChevronDown className="h-4 w-4" />
                                               </div>
                                             </Button>
@@ -1485,7 +1499,7 @@ export default function BotPage() {
                                           <DropdownMenuContent align="start" className="w-64">
                                             <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                               <div className="flex flex-col space-y-1">
-                                                <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
+                                                <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
                                                 <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
                                                 <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                                 <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
@@ -1524,10 +1538,10 @@ export default function BotPage() {
                         }`}>
                           <CardContent className="p-3">
                             <div className="flex flex-col gap-2">
-                              {/* Top row: Trading pair, cycles, status */}
+                              {/* Top row: Bot name, cycles, status */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`px-2.5 py-1.5 rounded text-sm font-mono ${
+                                  <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
                                     (() => {
                                       const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                       return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
@@ -1535,7 +1549,11 @@ export default function BotPage() {
                                       ? 'bg-purple-600/80 text-white' 
                                       : 'bg-blue-600/80 text-white'
                                   }`}>
-                                    {execution.tradingPair}
+                                    {(() => {
+                                      if (execution.botName) return execution.botName;
+                                      const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                      return strategy ? strategy.name : 'Manual Bot';
+                                    })()}
                                   </span>
                                   <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                     {execution.cycles || 0} cycles
@@ -1566,7 +1584,7 @@ export default function BotPage() {
                                 )}
                               </div>
                               
-                              {/* Bottom row: Bot name, capital, P&L */}
+                              {/* Bottom row: Trading pair, capital, P&L */}
                               <div className="flex items-center justify-between">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1579,12 +1597,8 @@ export default function BotPage() {
                                         : 'hover:text-blue-500'
                                     }`}>
                                       <div className="flex items-center gap-1">
-                                        <span className="text-sm text-gray-300 truncate max-w-32">
-                                          {(() => {
-                                            if (execution.botName) return execution.botName;
-                                            const strategy = aiBots.find(b => b.id === execution.strategyId);
-                                            return strategy ? strategy.name : 'Manual Bot';
-                                          })()}
+                                        <span className="text-sm text-gray-300 font-mono truncate max-w-32">
+                                          {execution.tradingPair}
                                         </span>
                                         <ChevronDown className="h-4 w-4" />
                                       </div>
@@ -1593,7 +1607,11 @@ export default function BotPage() {
                                   <DropdownMenuContent align="start" className="w-64">
                                     <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                       <div className="flex flex-col space-y-1">
-                                        <div className="font-medium">Trading Pair: {execution.tradingPair}</div>
+                                        <div className="font-medium">Bot: {(() => {
+                                          if (execution.botName) return execution.botName;
+                                          const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                          return strategy ? strategy.name : 'Manual Bot';
+                                        })()}</div>
                                         <div className="text-sm text-muted-foreground">Capital: ${execution.capital}</div>
                                         <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                         <div className="text-sm text-muted-foreground">Strategy: {(() => {
