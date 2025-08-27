@@ -1717,8 +1717,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/bot-executions/:id/terminate', async (req, res) => {
     try {
       const { id } = req.params;
-      const execution = await storage.updateBotExecution(id, { status: 'terminated' });
-      res.json(execution);
+      
+      console.log(`🛑 Terminating bot execution: ${id}`);
+      
+      // First get the execution details
+      const executions = await storage.getBotExecutions('default-user');
+      const execution = executions.find(e => e.id === id);
+      
+      if (!execution) {
+        return res.status(404).json({ error: 'Bot execution not found' });
+      }
+      
+      // If we have bitget API, try to close any open position
+      if (bitgetAPI && execution.tradingPair) {
+        try {
+          console.log(`🔄 Attempting to close position for ${execution.tradingPair}`);
+          
+          // Get current positions to check if there's an open position
+          const positions = await bitgetAPI.getPositions();
+          const openPosition = positions.find(p => 
+            p.symbol === execution.tradingPair && 
+            parseFloat(p.total) !== 0
+          );
+          
+          if (openPosition) {
+            console.log(`📊 Found open position for ${execution.tradingPair}, attempting to close`);
+            
+            // Close the position by placing an opposite order
+            const closeOrderSide = openPosition.holdSide === 'long' ? 'close_long' : 'close_short';
+            const closeSize = Math.abs(parseFloat(openPosition.total));
+            
+            if (closeSize > 0) {
+              console.log(`🔄 Closing ${closeOrderSide} position of size ${closeSize} for ${execution.tradingPair}`);
+              
+              await bitgetAPI.placeOrder({
+                symbol: execution.tradingPair,
+                productType: 'usdt-futures',
+                marginMode: 'isolated',
+                marginCoin: 'USDT',
+                size: closeSize.toString(),
+                price: '', // Market order
+                side: closeOrderSide,
+                orderType: 'market',
+                force: 'gtc',
+                reduceOnly: 'YES'
+              });
+              
+              console.log(`✅ Successfully closed position for ${execution.tradingPair}`);
+            }
+          } else {
+            console.log(`ℹ️ No open position found for ${execution.tradingPair}`);
+          }
+        } catch (positionError) {
+          console.error(`❌ Failed to close position for ${execution.tradingPair}:`, positionError.message);
+          // Continue with termination even if position closing fails
+        }
+      }
+      
+      // Update the execution status to terminated
+      const updatedExecution = await storage.updateBotExecution(id, { 
+        status: 'terminated',
+        pausedAt: new Date()
+      });
+      
+      console.log(`✅ Bot execution ${id} terminated successfully`);
+      res.json(updatedExecution);
     } catch (error) {
       console.error('Error terminating bot execution:', error);
       res.status(500).json({ error: 'Failed to terminate bot execution' });
