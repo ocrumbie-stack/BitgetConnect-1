@@ -480,6 +480,7 @@ export default function BotPage() {
         if (strategy.isAI) {
           // AI bots use their existing ID for execution without creating permanent strategies
           actualStrategyId = strategy.id;
+          console.log(`🤖 Deploying AI bot: ${strategy.name} with strategyId: ${actualStrategyId}`);
         }
 
         const executionData = {
