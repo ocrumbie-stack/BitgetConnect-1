@@ -1173,15 +1173,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let exitReason = '';
         
         // Check stop loss
-        if (roePercent <= exitCriteria.stopLoss) {
+        if (roiPercent <= exitCriteria.stopLoss) {
           exitTriggered = true;
-          exitReason = `Stop Loss triggered (${roePercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
+          exitReason = `Stop Loss triggered (${roiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
         }
         
         // Check take profit
-        if (roePercent >= exitCriteria.takeProfit) {
+        if (roiPercent >= exitCriteria.takeProfit) {
           exitTriggered = true;
-          exitReason = `Take Profit triggered (${roePercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
+          exitReason = `Take Profit triggered (${roiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
         }
         
         // Check max runtime
@@ -1203,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cycles: cyclesCompleted,
           cycleTime: `${strategyCycleTime}m`,
           winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
-          roi: roePercent.toFixed(2),
+          roi: roiPercent.toFixed(2),
           runtime: `${runtime}m`,
           deploymentType: 'manual',
           botName: mapping.botName,
