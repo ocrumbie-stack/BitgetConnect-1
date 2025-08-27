@@ -927,13 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const positions = await bitgetAPI.getPositions();
       console.log(`📊 Found ${positions.length} positions to close`);
       
-      if (positions.length === 0) {
-        return res.json({
-          success: true,
-          message: 'No positions to close',
-          closedPositions: []
-        });
-      }
+      // Continue to bot termination even if no positions to close
       
       const closedPositions = [];
       const errors = [];
@@ -959,33 +953,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Now terminate all active bot executions to ensure they don't reappear
-      console.log('🤖 Terminating all active bot executions...');
+      // Now terminate ALL bot executions to ensure they don't reappear
+      console.log('🤖 Terminating all bot executions...');
       try {
-        const activeExecutions = await storage.getBotExecutions(userId || 'default-user');
-        const activeBots = activeExecutions.filter(bot => 
-          bot.status === 'active' || bot.status === 'waiting_entry' || bot.status === 'exit_pending'
-        );
+        // Use a more direct approach - get all executions for the user
+        const allExecutions = await storage.getBotExecutions(userId || 'default-user');
+        console.log(`📋 Found ${allExecutions.length} total bot executions`);
         
-        console.log(`🎯 Found ${activeBots.length} active bots to terminate`);
+        if (allExecutions.length > 0) {
+          console.log(`📊 Bot statuses: ${allExecutions.map(bot => `${bot.tradingPair}:${bot.status}`).join(', ')}`);
+        }
         
-        for (const bot of activeBots) {
-          try {
-            await storage.updateBotExecution(bot.id, {
-              status: 'terminated'
-            });
-            console.log(`🛑 Terminated bot: ${bot.id} (${bot.tradingPair})`);
-          } catch (error: any) {
-            console.error(`❌ Failed to terminate bot ${bot.id}:`, error);
+        // Terminate ALL bots regardless of status (except those already terminated)
+        let terminatedCount = 0;
+        for (const bot of allExecutions) {
+          if (bot.status !== 'terminated') {
+            try {
+              await storage.updateBotExecution(bot.id, {
+                status: 'terminated'
+              });
+              console.log(`🛑 Terminated bot: ${bot.id} (${bot.tradingPair}) - was ${bot.status}`);
+              terminatedCount++;
+            } catch (error: any) {
+              console.error(`❌ Failed to terminate bot ${bot.id}:`, error);
+            }
           }
         }
+        console.log(`✅ Successfully terminated ${terminatedCount} bots`);
       } catch (error: any) {
         console.error('❌ Error terminating bots:', error);
       }
       
       res.json({
         success: true,
-        message: `Closed ${closedPositions.length} of ${positions.length} positions`,
+        message: positions.length === 0 ? 
+          `No positions to close, but terminated all active bots` : 
+          `Closed ${closedPositions.length} of ${positions.length} positions and terminated all active bots`,
         closedPositions,
         errors: errors.length > 0 ? errors : undefined
       });
@@ -1297,8 +1300,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a comprehensive list of all bots (deployed + active)
       const allBots = [];
       
-      // Add deployed bots from database (may include waiting bots)
+      // Add deployed bots from database (exclude terminated bots)
       for (const deployedBot of deployedBots) {
+        // Skip terminated bots - don't show them in the UI
+        if (deployedBot.status === 'terminated') {
+          console.log(`🚫 Skipping terminated bot: ${deployedBot.tradingPair}`);
+          continue;
+        }
+        
         const position = positions.find((pos: any) => pos.symbol === deployedBot.tradingPair);
         const mapping = botMappings.find(m => m.symbol === deployedBot.tradingPair);
         
