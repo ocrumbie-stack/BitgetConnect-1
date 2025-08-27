@@ -428,7 +428,7 @@ export default function BotPage() {
           leverage,
           status: 'active',
           deploymentType: 'manual',
-          botName: strategy.isAI ? strategy.name : null // Set AI bot name for individual deployments
+          botName: strategy.name // Always use the strategy name for bot naming
         };
         
         await runStrategyMutation.mutateAsync(executionData);
