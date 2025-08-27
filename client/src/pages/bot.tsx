@@ -1439,7 +1439,11 @@ export default function BotPage() {
                                           <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                             {execution.cycles || 0} cycles
                                           </span>
-                                          <Badge variant="outline" className="text-sm border-blue-500 text-blue-400 bg-blue-950/30">
+                                          <Badge variant="outline" className={`text-sm ${
+                                            execution.status === 'active' 
+                                              ? 'border-green-500 text-green-400 bg-green-950/30'
+                                              : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                          }`}>
                                             {execution.status}
                                           </Badge>
                                         </div>
@@ -1529,7 +1533,11 @@ export default function BotPage() {
                                   <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                     {execution.cycles || 0} cycles
                                   </span>
-                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-sm">
+                                  <Badge variant="outline" className={`text-sm ${
+                                    execution.status === 'active' 
+                                      ? 'border-green-500 text-green-400 bg-green-950/30'
+                                      : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                  }`}>
                                     {execution.status}
                                   </Badge>
                                 </div>
