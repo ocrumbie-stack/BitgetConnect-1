@@ -2072,8 +2072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { strategyId } = validatedData;
       const aiStrategyIds = ['grid', 'momentum', 'scalping', 'arbitrage', 'dca'];
       
-      console.log(`🔍 Checking if ${strategyId} is an AI strategy. AI IDs:`, aiStrategyIds);
-      console.log(`🔍 Is AI strategy:`, aiStrategyIds.includes(strategyId));
+
       
       if (aiStrategyIds.includes(strategyId)) {
         // Check if strategy exists
