@@ -19,6 +19,13 @@ export default function BotPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('ai');
   const { toast } = useToast();
+  
+  // Scroll to top when changing tabs (per user preference for instant page access)
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Scroll to top for immediate access to content
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRunDialog, setShowRunDialog] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
@@ -251,7 +258,7 @@ export default function BotPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       setShowRunDialog(false);
-      setActiveTab('executions');
+      handleTabChange('executions');
     }
   });
 
@@ -1104,7 +1111,7 @@ export default function BotPage() {
                 ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600 shadow-lg scale-105' 
                 : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
             }`}
-            onClick={() => setActiveTab('strategies')}
+            onClick={() => handleTabChange('strategies')}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -1127,7 +1134,7 @@ export default function BotPage() {
                 ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/40 dark:to-green-900/40 border-green-300 dark:border-green-600 shadow-lg scale-105' 
                 : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
             }`}
-            onClick={() => setActiveTab('executions')}
+            onClick={() => handleTabChange('executions')}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -1150,7 +1157,7 @@ export default function BotPage() {
                 ? 'bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800/40 dark:to-purple-900/40 border-purple-300 dark:border-purple-600 shadow-lg scale-105' 
                 : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
             }`}
-            onClick={() => setActiveTab('ai')}
+            onClick={() => handleTabChange('ai')}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
