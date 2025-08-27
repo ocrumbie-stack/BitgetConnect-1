@@ -1528,7 +1528,7 @@ export default function BotPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 w-full overflow-hidden">
                 {(() => {
                   // Group executions by deployment type and folder
                   const folderGroups: { [key: string]: any[] } = {};
@@ -1646,8 +1646,8 @@ export default function BotPage() {
                                     }`}>
                                       <div className="grid grid-rows-2 gap-3">
                                         {/* Top row: Bot name, cycles, status */}
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2 flex-wrap">
+                                        <div className="flex items-center justify-between min-w-0">
+                                          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
                                             <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
                                               (() => {
                                                 const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
@@ -1693,7 +1693,7 @@ export default function BotPage() {
                                         </div>
                                         
                                         {/* Bottom row: Trading pair, capital, P&L */}
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between min-w-0">
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
@@ -1705,7 +1705,7 @@ export default function BotPage() {
                                                   : 'hover:text-blue-500'
                                               }`}>
                                                 <div className="flex items-center gap-1">
-                                                  <span className="text-sm text-gray-300 font-mono truncate max-w-28">{execution.tradingPair}</span>
+                                                  <span className="text-sm text-gray-300 font-mono truncate max-w-20">{execution.tradingPair}</span>
                                                   <ChevronDown className="h-4 w-4" />
                                                 </div>
                                               </Button>
@@ -1721,14 +1721,16 @@ export default function BotPage() {
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
                                           </DropdownMenu>
-                                          <div className="flex items-center gap-2 text-sm text-right">
-                                            <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</span>
-                                            <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                              {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
-                                            </span>
-                                            <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                              ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
-                                            </span>
+                                          <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                            <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
+                                            <div className="flex items-center gap-1">
+                                              <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                              </span>
+                                              <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
+                                              </span>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
@@ -1754,8 +1756,8 @@ export default function BotPage() {
                           <CardContent className="p-3">
                             <div className="grid grid-rows-2 gap-3">
                               {/* Top row: Bot name, cycles, status */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center justify-between min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
                                   <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
                                     (() => {
                                       const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
@@ -1805,7 +1807,7 @@ export default function BotPage() {
                               </div>
                               
                               {/* Bottom row: Trading pair, capital, P&L */}
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between min-w-0">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
@@ -1817,7 +1819,7 @@ export default function BotPage() {
                                         : 'hover:text-blue-500'
                                     }`}>
                                       <div className="flex items-center gap-1">
-                                        <span className="text-sm text-gray-300 font-mono truncate max-w-28">
+                                        <span className="text-sm text-gray-300 font-mono truncate max-w-20">
                                           {execution.tradingPair}
                                         </span>
                                         <ChevronDown className="h-4 w-4" />
@@ -1842,14 +1844,16 @@ export default function BotPage() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                <div className="flex items-center gap-2 text-sm text-right">
-                                  <span className="text-gray-400">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</span>
-                                  <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
-                                  </span>
-                                  <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                    ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
-                                  </span>
+                                <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                  <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
+                                  <div className="flex items-center gap-1">
+                                    <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                    </span>
+                                    <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
