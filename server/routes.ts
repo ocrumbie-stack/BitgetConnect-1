@@ -201,13 +201,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let takeProfitPrice: string | undefined;
       let stopLossPrice: string | undefined;
 
+      // Map side values for Bitget API compatibility FIRST
+      let bitgetSide: 'buy' | 'sell';
+      if (orderData.side === 'long' || orderData.side === 'buy') {
+        bitgetSide = 'buy';
+      } else if (orderData.side === 'short' || orderData.side === 'sell') {
+        bitgetSide = 'sell';
+      } else {
+        console.log(`❌ Invalid side value: ${orderData.side}`);
+        return res.status(400).json({ 
+          success: false,
+          message: `Invalid side value: ${orderData.side}. Use 'buy', 'sell', 'long', or 'short'` 
+        });
+      }
+      console.log(`🔄 Mapped side ${orderData.side} → ${bitgetSide}`);
+
       if (orderData.takeProfit) {
         console.log('💰 Processing Take Profit:', orderData.takeProfit);
         // If it looks like a percentage, convert to price
         if (parseFloat(orderData.takeProfit) < 100) {
-          // Assume percentage - calculate price
+          // Assume percentage - calculate price using CORRECT side mapping
           const tpPercentage = parseFloat(orderData.takeProfit) / 100;
-          const multiplier = orderData.side === 'buy' ? (1 + tpPercentage) : (1 - tpPercentage);
+          const multiplier = bitgetSide === 'buy' ? (1 + tpPercentage) : (1 - tpPercentage);
           const calculatedPrice = currentPrice * multiplier;
           // Round to correct decimal places based on symbol's precision requirements
           takeProfitPrice = calculatedPrice.toFixed(pricePrecision);
@@ -222,9 +237,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('🛑 Processing Stop Loss:', orderData.stopLoss);
         // If it looks like a percentage, convert to price
         if (parseFloat(orderData.stopLoss) < 100) {
-          // Assume percentage - calculate price
+          // Assume percentage - calculate price using CORRECT side mapping
           const slPercentage = parseFloat(orderData.stopLoss) / 100;
-          const multiplier = orderData.side === 'buy' ? (1 - slPercentage) : (1 + slPercentage);
+          const multiplier = bitgetSide === 'buy' ? (1 - slPercentage) : (1 + slPercentage);
           const calculatedPrice = currentPrice * multiplier;
           // Round to correct decimal places based on symbol's precision requirements
           stopLossPrice = calculatedPrice.toFixed(pricePrecision);
@@ -259,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Place the actual order using Bitget API
       const realOrderResponse = await bitgetAPI.placeOrder({
         symbol: orderData.symbol,
-        side: orderData.side,
+        side: bitgetSide,
         size: adjustedSize,
         orderType: orderData.orderType || 'market',
         leverage: orderData.leverage,
