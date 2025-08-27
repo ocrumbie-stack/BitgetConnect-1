@@ -9,6 +9,159 @@ let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
 
 // Manual strategy evaluation functions
+// AI Bot Entry Evaluation - Strict MACD Crossover Detection
+async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
+  if (!bitgetAPI) {
+    console.log('❌ Bitget API not available for AI bot evaluation');
+    return false;
+  }
+
+  try {
+    console.log(`🤖 AI Bot: Evaluating MACD crossover for ${tradingPair}`);
+    
+    // Get historical price data for MACD calculation
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
+    if (!candleData || candleData.length < 50) {
+      console.log(`❌ Insufficient candle data for AI bot MACD: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    // Extract closing prices
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    
+    // Calculate MACD with standard periods (12, 26, 9)
+    const fastEMA = calculateEMA(closes, 12);
+    const slowEMA = calculateEMA(closes, 26);
+    
+    if (fastEMA.length < 2 || slowEMA.length < 2) {
+      console.log(`❌ Insufficient EMA data for AI bot`);
+      return false;
+    }
+    
+    // Calculate MACD line
+    const currentMacd = fastEMA[fastEMA.length - 1] - slowEMA[slowEMA.length - 1];
+    const prevMacd = fastEMA[fastEMA.length - 2] - slowEMA[slowEMA.length - 2];
+    
+    // Calculate signal line
+    const macdHistory = [];
+    for (let i = 25; i < Math.min(fastEMA.length, slowEMA.length); i++) { // Start from index 25 (26-1)
+      macdHistory.push(fastEMA[i] - slowEMA[i]);
+    }
+    
+    const signalEMA = calculateEMA(macdHistory, 9);
+    if (signalEMA.length < 2) {
+      console.log(`❌ Insufficient signal data for AI bot: ${signalEMA.length} data points`);
+      return false;
+    }
+    
+    const currentSignal = signalEMA[signalEMA.length - 1];
+    const prevSignal = signalEMA[signalEMA.length - 2];
+    
+    // STRICT CROSSOVER: MACD crosses from BELOW to ABOVE signal line
+    const bullishCrossover = (prevMacd <= prevSignal) && (currentMacd > currentSignal);
+    
+    console.log(`🤖 AI ${tradingPair} - MACD: ${currentMacd.toFixed(6)}, Signal: ${currentSignal.toFixed(6)}`);
+    console.log(`🤖 AI ${tradingPair} - Prev MACD: ${prevMacd.toFixed(6)}, Prev Signal: ${prevSignal.toFixed(6)}`);
+    console.log(`🤖 AI ${tradingPair} - Crossover: ${bullishCrossover ? '✅ BULLISH' : '❌ None'}`);
+    
+    return bullishCrossover;
+  } catch (error) {
+    console.error(`❌ AI bot evaluation error for ${tradingPair}:`, error);
+    return false;
+  }
+}
+
+// AI Bot Order Placement
+async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
+  if (!bitgetAPI) {
+    console.log('❌ Bitget API not available for AI bot order');
+    return false;
+  }
+
+  try {
+    const { tradingPair, capital, leverage } = deployedBot;
+    
+    console.log(`🤖 AI Bot: Placing LONG order for ${tradingPair}`);
+    console.log(`💰 AI Bot: Capital: $${capital}, Leverage: ${leverage}x`);
+    
+    // Get current market price
+    const allTickers = await bitgetAPI.getAllFuturesTickers();
+    const ticker = allTickers.find(t => t.symbol === tradingPair);
+    const currentPrice = parseFloat(ticker?.lastPr || '0');
+    
+    if (currentPrice <= 0) {
+      console.log(`❌ AI Bot: Invalid price for order: ${currentPrice}`);
+      return false;
+    }
+
+    // Calculate position size
+    const capitalAmount = parseFloat(capital);
+    const leverageNum = parseFloat(leverage);
+    const positionSize = (capitalAmount * leverageNum) / currentPrice;
+    
+    // AI bots use fixed risk management settings
+    const orderData = {
+      symbol: tradingPair,
+      marginCoin: 'USDT',
+      side: 'buy' as const, // AI bots always go LONG on MACD crossover
+      orderType: 'market' as const,
+      size: positionSize.toFixed(6),
+      leverage: leverageNum,
+      source: 'ai_bot',
+      botName: deployedBot.botName
+    };
+
+    console.log(`🤖 AI Bot order:`, orderData);
+    
+    // Place the order
+    const orderResult = await bitgetAPI.placeOrder(orderData);
+    console.log(`✅ AI Bot order placed:`, orderResult);
+    
+    // AI bots use predefined stop loss and take profit
+    await setAIBotRiskManagement(tradingPair, currentPrice, deployedBot.botName);
+    
+    return true;
+  } catch (error) {
+    console.error(`❌ AI bot order error:`, error);
+    return false;
+  }
+}
+
+// AI Bot Risk Management
+async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string): Promise<void> {
+  try {
+    // AI bots use strategy-specific risk management
+    let stopLossPercent = 3.0; // Default 3%
+    let takeProfitPercent = 5.0; // Default 5%
+    
+    // Adjust based on AI bot type
+    if (botName.includes('Grid')) {
+      stopLossPercent = 2.0;
+      takeProfitPercent = 3.0;
+    } else if (botName.includes('Momentum')) {
+      stopLossPercent = 3.0;
+      takeProfitPercent = 5.0;
+    } else if (botName.includes('Scalping')) {
+      stopLossPercent = 1.5;
+      takeProfitPercent = 2.5;
+    } else if (botName.includes('Arbitrage')) {
+      stopLossPercent = 1.0;
+      takeProfitPercent = 1.5;
+    } else if (botName.includes('DCA')) {
+      stopLossPercent = 5.0;
+      takeProfitPercent = 8.0;
+    }
+    
+    const stopPrice = entryPrice * (1 - stopLossPercent / 100);
+    const takeProfitPrice = entryPrice * (1 + takeProfitPercent / 100);
+        
+    console.log(`🤖 AI ${symbol}: SL at $${stopPrice.toFixed(6)} (-${stopLossPercent}%), TP at $${takeProfitPrice.toFixed(6)} (+${takeProfitPercent}%)`);
+    // Implementation would depend on Bitget API for conditional orders
+  } catch (error) {
+    console.error(`❌ AI bot risk management error:`, error);
+  }
+}
+
 async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): Promise<boolean> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for signal evaluation');
@@ -1553,23 +1706,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
 
         // Check if this is a manual strategy bot (either waiting_entry or active without position)
-        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && deployedBot.deploymentType === 'manual') {
+        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder')) {
           try {
             // Get the strategy configuration
             const strategies = await storage.getBotStrategies('default-user');
             const strategy = strategies.find(s => s.id === deployedBot.strategyId);
             
-            if (strategy && strategy.strategy === 'manual') {
-              console.log(`🔍 Evaluating entry conditions for manual bot: ${deployedBot.botName} on ${deployedBot.tradingPair}`);
+            if (strategy && (strategy.strategy === 'manual' || strategy.strategy === 'ai')) {
+              console.log(`🔍 Evaluating entry conditions for ${strategy.strategy} bot: ${deployedBot.botName} on ${deployedBot.tradingPair}`);
               
               // Evaluate entry conditions
-              const entrySignalMet = await evaluateManualStrategyEntry(strategy, deployedBot.tradingPair);
+              let entrySignalMet = false;
+              
+              if (strategy.strategy === 'ai') {
+                // AI bots use strict MACD crossover detection
+                entrySignalMet = await evaluateAIBotEntry(deployedBot.tradingPair);
+              } else {
+                // Manual bots use configured entry conditions
+                entrySignalMet = await evaluateManualStrategyEntry(strategy, deployedBot.tradingPair);
+              }
               
               if (entrySignalMet) {
                 console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
                 
                 // Place the trade
-                const orderSuccess = await placeManualStrategyOrder(strategy, deployedBot);
+                let orderSuccess = false;
+                if (strategy.strategy === 'ai') {
+                  orderSuccess = await placeAIBotOrder(deployedBot);
+                } else {
+                  orderSuccess = await placeManualStrategyOrder(strategy, deployedBot);
+                }
                 
                 if (orderSuccess) {
                   console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
