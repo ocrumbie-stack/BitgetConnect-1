@@ -1592,7 +1592,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const position = positions.find((pos: any) => pos.symbol === deployedBot.tradingPair);
         const mapping = botMappings.find(m => m.symbol === deployedBot.tradingPair);
         
-        if (position && mapping) {
+        // For manual strategy bots, create exit criteria from strategy config
+        let exitCriteria = null;
+        if (deployedBot.deploymentType === 'manual' && deployedBot.strategyId) {
+          const strategies = await storage.getBotStrategies('default-user');
+          const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+          if (strategy && strategy.config?.riskManagement) {
+            exitCriteria = {
+              stopLoss: -Math.abs(strategy.config.riskManagement.stopLoss || 5), // Negative for loss
+              takeProfit: Math.abs(strategy.config.riskManagement.takeProfit || 10), // Positive for profit
+              maxRuntime: 120, // 2 hours default for manual strategies
+              exitStrategy: 'manual_exit'
+            };
+          }
+        }
+        
+        if (position && (mapping || exitCriteria)) {
+          // Ensure we have exit criteria before proceeding
+          const finalExitCriteria = exitCriteria || mapping?.exitCriteria;
+          if (!finalExitCriteria) {
+            console.log(`⚠️ No exit criteria found for ${deployedBot.tradingPair}, skipping exit evaluation`);
+            continue;
+          }
           // Bot has an active position
           const runtime = deployedBot.startedAt 
             ? Math.floor((Date.now() - new Date(deployedBot.startedAt).getTime()) / 1000 / 60)
@@ -1601,9 +1622,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate trading cycles completed
           const cycleMinutes = {
             'arbitrage_spread_close': 5, 'dca_accumulation': 15, 'swing_trend_reversal': 30,
-            'test_exit': 10, 'grid_rebalancing': 20
+            'test_exit': 10, 'grid_rebalancing': 20, 'manual_exit': 15
           };
-          const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
+          // finalExitCriteria already defined above with safety check
+          const strategyCycleTime = cycleMinutes[(finalExitCriteria?.exitStrategy || 'manual_exit') as keyof typeof cycleMinutes] || 15;
           const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
 
           // Calculate ROI percentage based on profit vs total capital invested
@@ -1630,19 +1652,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           // Check exit criteria using price-based ROI for consistency with trading logic
-          const exitCriteria = mapping.exitCriteria;
+          // finalExitCriteria already defined above
           let exitTriggered = false;
           let exitReason = '';
           
-          if (priceBasedRoiPercent <= exitCriteria.stopLoss) {
+          console.log(`🔍 Exit evaluation for ${deployedBot.tradingPair}:`);
+          console.log(`📊 Price-based ROI: ${priceBasedRoiPercent.toFixed(2)}%`);
+          console.log(`🎯 Stop Loss: ${finalExitCriteria.stopLoss}%, Take Profit: ${finalExitCriteria.takeProfit}%`);
+          
+          if (priceBasedRoiPercent <= finalExitCriteria.stopLoss) {
             exitTriggered = true;
-            exitReason = `Stop Loss triggered (${priceBasedRoiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
-          } else if (priceBasedRoiPercent >= exitCriteria.takeProfit) {
+            exitReason = `Stop Loss triggered (${priceBasedRoiPercent.toFixed(2)}% <= ${finalExitCriteria.stopLoss}%)`;
+          } else if (priceBasedRoiPercent >= finalExitCriteria.takeProfit) {
             exitTriggered = true;
-            exitReason = `Take Profit triggered (${priceBasedRoiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
-          } else if (runtime >= exitCriteria.maxRuntime) {
+            exitReason = `Take Profit triggered (${priceBasedRoiPercent.toFixed(2)}% >= ${finalExitCriteria.takeProfit}%)`;
+          } else if (runtime >= finalExitCriteria.maxRuntime) {
             exitTriggered = true;
-            exitReason = `Max runtime reached (${runtime}m >= ${exitCriteria.maxRuntime}m)`;
+            exitReason = `Max runtime reached (${runtime}m >= ${finalExitCriteria.maxRuntime}m)`;
           }
 
           allBots.push({
@@ -1661,16 +1687,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             roi: roiPercent.toFixed(2),
             runtime: `${runtime}m`,
             deploymentType: deployedBot.deploymentType || 'manual',
-            botName: deployedBot.botName || mapping.botName,
-            riskLevel: mapping.riskLevel,
+            botName: deployedBot.botName || mapping?.botName || `Bot ${deployedBot.tradingPair}`,
+            riskLevel: mapping?.riskLevel || 'Medium',
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
             updatedAt: new Date(),
             exitCriteria: {
-              stopLoss: `${exitCriteria.stopLoss}%`,
-              takeProfit: `${exitCriteria.takeProfit}%`,
-              maxRuntime: `${exitCriteria.maxRuntime}m`,
-              strategy: exitCriteria.exitStrategy
+              stopLoss: `${finalExitCriteria.stopLoss}%`,
+              takeProfit: `${finalExitCriteria.takeProfit}%`,
+              maxRuntime: `${finalExitCriteria.maxRuntime}m`,
+              strategy: finalExitCriteria.exitStrategy
             },
             exitTriggered,
             exitReason: exitTriggered ? exitReason : null,
