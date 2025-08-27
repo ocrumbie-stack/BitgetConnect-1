@@ -66,6 +66,10 @@ export default function BotPage() {
   const [expandedBots, setExpandedBots] = useState<{[key: string]: boolean}>({});
   const [suggestedSettings, setSuggestedSettings] = useState<any>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Edit strategy state
+  const [editingStrategy, setEditingStrategy] = useState<any>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
 
 
@@ -487,6 +491,97 @@ export default function BotPage() {
   const handleDeleteStrategy = (strategyId: string) => {
     if (window.confirm('Are you sure you want to delete this strategy?')) {
       deleteStrategyMutation.mutate(strategyId);
+    }
+  };
+
+  // Handle editing strategy
+  const handleEditStrategy = (strategy: any) => {
+    setEditingStrategy(strategy);
+    // Pre-populate form with existing strategy data
+    setStrategyName(strategy.name);
+    setPositionDirection(strategy.config?.positionDirection || 'long');
+    setTimeframe(strategy.config?.timeframe || '1h');
+    setRiskLevel(strategy.riskLevel || 'medium');
+    setStopLoss(strategy.config?.riskManagement?.stopLoss?.toString() || '');
+    setTakeProfit(strategy.config?.riskManagement?.takeProfit?.toString() || '');
+    setTrailingStop(strategy.config?.riskManagement?.trailingStop?.toString() || '');
+    
+    // Pre-populate indicators
+    if (strategy.config?.indicators) {
+      setIndicators(strategy.config.indicators);
+    }
+    
+    setShowEditForm(true);
+  };
+
+  // Update strategy mutation
+  const updateStrategyMutation = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      const response = await fetch(`/api/bot-strategies/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update strategy');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
+      setShowEditForm(false);
+      setEditingStrategy(null);
+      toast({
+        title: "Strategy Updated! ✅",
+        description: "Your strategy has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update strategy",
+      });
+    }
+  });
+
+  // Handle strategy update
+  const handleUpdateStrategy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!strategyName.trim()) {
+      alert('Please enter a strategy name');
+      return;
+    }
+
+    const strategyData = {
+      id: editingStrategy.id,
+      name: strategyName,
+      description: `${positionDirection === 'long' ? 'Long' : 'Short'} strategy with ${timeframe} timeframe`,
+      strategy: 'manual',
+      riskLevel,
+      config: {
+        timeframe,
+        positionDirection,
+        entryConditions: Object.entries(indicators)
+          .filter(([_, config]: [string, any]) => config.enabled)
+          .map(([name, config]: [string, any]) => ({
+            indicator: name,
+            ...config
+          })),
+        exitConditions: [],
+        indicators: indicators,
+        riskManagement: {
+          stopLoss: parseFloat(stopLoss) || undefined,
+          takeProfit: parseFloat(takeProfit) || undefined,
+          trailingStop: parseFloat(trailingStop) || undefined,
+        }
+      }
+    };
+
+    try {
+      await updateStrategyMutation.mutateAsync(strategyData);
+    } catch (error) {
+      console.error('Strategy update failed:', error);
     }
   };
 
@@ -1322,7 +1417,12 @@ export default function BotPage() {
                           <Play className="h-4 w-4 mr-2" />
                           Deploy
                         </Button>
-                        <Button size="sm" variant="outline" className="px-3">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleEditStrategy(strategy)}
+                          className="px-3"
+                        >
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -2949,6 +3049,115 @@ export default function BotPage() {
               Deploy Bot
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Strategy Dialog */}
+      <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Trading Strategy</DialogTitle>
+            <DialogDescription>
+              Update your existing trading strategy
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleUpdateStrategy} className="space-y-4 overflow-y-auto flex-1 pr-2">
+            <div>
+              <label className="text-sm font-medium block mb-2">Strategy Name</label>
+              <Input 
+                value={strategyName}
+                onChange={(e) => setStrategyName(e.target.value)}
+                placeholder="My Trading Strategy"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Position</label>
+                <Select value={positionDirection} onValueChange={(value: 'long' | 'short') => setPositionDirection(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="long">Long</SelectItem>
+                    <SelectItem value="short">Short</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">Timeframe</label>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1m">1 Minute</SelectItem>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium block mb-2">Risk Level</label>
+              <Select value={riskLevel} onValueChange={setRiskLevel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Risk</SelectItem>
+                  <SelectItem value="medium">Medium Risk</SelectItem>
+                  <SelectItem value="high">High Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Take Profit (%)</label>
+                <Input 
+                  type="number"
+                  placeholder="5"
+                  value={takeProfit}
+                  onChange={(e) => setTakeProfit(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2">Stop Loss (%)</label>
+                <Input 
+                  type="number"
+                  placeholder="2"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4 flex-shrink-0">
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setShowEditForm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={updateStrategyMutation.isPending}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {updateStrategyMutation.isPending ? 'Updating...' : 'Update Strategy'}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
