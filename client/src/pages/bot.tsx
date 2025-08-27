@@ -254,17 +254,25 @@ export default function BotPage() {
   // Terminate execution mutation
   const handleTerminateExecution = useMutation({
     mutationFn: async (executionId: string) => {
+      console.log('🚀 Starting termination request for:', executionId);
       const response = await fetch(`/api/bot-executions/${executionId}/terminate`, {
         method: 'POST'
       });
       if (!response.ok) {
         const error = await response.text();
+        console.error('❌ Termination failed:', error);
         throw new Error(`Failed to stop bot: ${error}`);
       }
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Termination successful:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔄 Refreshing bot list after termination');
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+    },
+    onError: (error) => {
+      console.error('💥 Termination mutation error:', error);
     }
   });
 
@@ -1470,7 +1478,9 @@ export default function BotPage() {
                                             size="sm" 
                                             variant="destructive"
                                             onClick={(e) => {
+                                              e.preventDefault();
                                               e.stopPropagation();
+                                              console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
                                               handleTerminateExecution.mutate(execution.id);
                                             }}
                                             disabled={handleTerminateExecution.isPending}
@@ -1578,7 +1588,12 @@ export default function BotPage() {
                                   <Button 
                                     size="sm" 
                                     variant="destructive"
-                                    onClick={() => handleTerminateExecution.mutate(execution.id)}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('🛑 Terminating bot:', execution.id, execution.botName);
+                                      handleTerminateExecution.mutate(execution.id);
+                                    }}
                                     disabled={handleTerminateExecution.isPending}
                                     className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
                                   >
