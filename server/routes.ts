@@ -1063,7 +1063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             stopLoss: -5.0, // -5% loss
             takeProfit: 8.0, // +8% profit
             maxRuntime: 240, // 4 hours max
-            exitStrategy: 'grid_rebalance'
+            exitStrategy: 'grid_rebalancing'
           }
         },
         { 
@@ -1149,6 +1149,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const startTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
         const runtime = Math.floor((Date.now() - startTime.getTime()) / 1000 / 60); // minutes
 
+        // Calculate trading cycles completed
+        // Different strategies have different cycle durations
+        const cycleMinutes = {
+          'arbitrage_spread_close': 5, // Arbitrage: 5-min cycles
+          'dca_accumulation': 15, // DCA: 15-min cycles
+          'swing_trend_reversal': 30, // Swing: 30-min cycles
+          'test_exit': 10, // Test: 10-min cycles
+          'grid_rebalancing': 20 // Grid: 20-min cycles
+        };
+        
+        const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
+        const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
+
         // Calculate ROI percentage
         const unrealizedPL = parseFloat(position.unrealizedPL || '0');
         const capital = 10; // $10 per bot
@@ -1186,7 +1199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           capital: '10',
           leverage: mapping.leverage,
           profit: position.unrealizedPL || position.pnl || '0',
-          trades: '1',
+          trades: cyclesCompleted.toString(),
+          cycles: cyclesCompleted,
+          cycleTime: `${strategyCycleTime}m`,
           winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
           roi: roiPercent.toFixed(2),
           runtime: `${runtime}m`,
