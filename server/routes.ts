@@ -1336,82 +1336,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Add any positions that don't have corresponding deployed bots (legacy positions)
-      // But skip positions that have recently terminated bots to prevent immediate recreation
-      for (const position of positions) {
-        const hasDeployedBot = deployedBots.some(bot => bot.tradingPair === position.symbol);
-        
-        // Check for recently terminated bots for this trading pair (within last 15 seconds)
-        const recentlyTerminated = deployedBots.some(bot => 
-          bot.tradingPair === position.symbol && 
-          bot.status === 'terminated' &&
-          bot.pausedAt && 
-          (Date.now() - new Date(bot.pausedAt).getTime()) < 15000
-        );
-        
-        if (!hasDeployedBot && !recentlyTerminated) {
-          const mapping = botMappings.find(m => m.symbol === position.symbol);
-          if (mapping) {
-            console.log(`🔄 Creating bot record for legacy position: ${position.symbol} (no recent termination)`);
-            // This is a legacy position, create bot record
-            const startTime = new Date(Date.now() - 30 * 60 * 1000);
-            const runtime = 30;
-            const strategyCycleTime = 15;
-            const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
-
-            const entryPrice = parseFloat(position.openPriceAvg || '0');
-            const markPrice = parseFloat(position.markPrice || '0');
-            const leverage = parseFloat(position.leverage || '10');
-            
-            let roiPercent = 0;
-            if (entryPrice > 0) {
-              if (position.holdSide === 'long') {
-                roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
-              } else {
-                roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
-              }
-            }
-
-            allBots.push({
-              id: `bot-${position.symbol}`,
-              userId: userId,
-              strategyId: `strategy-${position.symbol}`,
-              tradingPair: position.symbol,
-              status: 'active',
-              capital: '10',
-              leverage: position.leverage || '10',
-              profit: position.unrealizedPL || '0',
-              trades: cyclesCompleted.toString(),
-              cycles: cyclesCompleted,
-              cycleTime: `${strategyCycleTime}m`,
-              winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
-              roi: roiPercent.toFixed(2),
-              runtime: `${runtime}m`,
-              deploymentType: 'manual',
-              botName: mapping.botName,
-              riskLevel: mapping.riskLevel,
-              startedAt: startTime,
-              createdAt: startTime,
-              updatedAt: new Date(),
-              exitCriteria: {
-                stopLoss: `${mapping.exitCriteria.stopLoss}%`,
-                takeProfit: `${mapping.exitCriteria.takeProfit}%`,
-                maxRuntime: `${mapping.exitCriteria.maxRuntime}m`,
-                strategy: mapping.exitCriteria.exitStrategy
-              },
-              exitTriggered: false,
-              exitReason: null,
-              positionData: {
-                unrealizedPL: position.unrealizedPL,
-                holdSide: position.holdSide,
-                total: position.total,
-                openPriceAvg: position.openPriceAvg,
-                markPrice: position.markPrice
-              }
-            });
-          }
-        }
-      }
+      // DISABLED: Skip automatic bot creation for legacy positions to prevent endless recreation
+      // Only create bots through manual deployment, not for every existing position
+      console.log(`⚠️ Skipping automatic bot creation for ${positions.length} positions to prevent recreation issues`);
 
       // Check for positions that need to be closed and execute exits
       const exitPendingBots = allBots.filter(bot => bot.exitTriggered);
