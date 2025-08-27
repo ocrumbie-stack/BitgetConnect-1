@@ -1419,7 +1419,15 @@ export default function BotPage() {
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
-                                              <span>{execution.botName || execution.tradingPair}</span>
+                                              <div className="flex items-center gap-2">
+                                                <span className="bg-blue-600/80 text-white px-2 py-1 rounded text-xs font-mono">
+                                                  {execution.tradingPair}
+                                                </span>
+                                                <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                                  {execution.cycles || 0} cycles
+                                                </span>
+                                                <span className="text-sm">{execution.botName}</span>
+                                              </div>
                                               <ChevronDown className="h-4 w-4 ml-1" />
                                             </Button>
                                           </DropdownMenuTrigger>
@@ -1492,13 +1500,28 @@ export default function BotPage() {
                                           ? 'hover:text-purple-500' 
                                           : 'hover:text-blue-500'
                                       }`}>
-                                        <span>
-                                          {(() => {
-                                            if (execution.botName) return execution.botName;
-                                            const strategy = aiBots.find(b => b.id === execution.strategyId);
-                                            return strategy ? strategy.name : execution.tradingPair;
-                                          })()} 
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2 py-1 rounded text-xs font-mono ${
+                                            (() => {
+                                              const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                              return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                            })()
+                                              ? 'bg-purple-600/80 text-white' 
+                                              : 'bg-blue-600/80 text-white'
+                                          }`}>
+                                            {execution.tradingPair}
+                                          </span>
+                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                            {execution.cycles || 0} cycles
+                                          </span>
+                                          <span className="text-sm">
+                                            {(() => {
+                                              if (execution.botName) return execution.botName;
+                                              const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                              return strategy ? strategy.name : 'Manual Bot';
+                                            })()} 
+                                          </span>
+                                        </div>
                                         <ChevronDown className="h-4 w-4 ml-1" />
                                       </Button>
                                     </DropdownMenuTrigger>
