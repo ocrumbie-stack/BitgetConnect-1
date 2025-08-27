@@ -124,8 +124,37 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
     if (condition.condition === 'bullish_crossover') {
       // Bullish crossover: MACD line crosses above signal line
       const crossover = macdLine > signalLine && prevMacdLine <= prevSignalLine;
-      console.log(`🔍 Bullish crossover check: ${crossover} (Current: MACD ${macdLine.toFixed(6)} > Signal ${signalLine.toFixed(6)}, Previous: MACD ${prevMacdLine.toFixed(6)} <= Signal ${prevSignalLine.toFixed(6)})`);
-      return crossover;
+      
+      // Check for bullish momentum (MACD above signal with increasing gap)
+      const currentGap = macdLine - signalLine;
+      const prevGap = prevMacdLine - prevSignalLine;
+      const momentumSignal = macdLine > signalLine && currentGap > prevGap && currentGap > 0.0005;
+      
+      // Also check for recent crossover (within last 3 periods) to avoid missing signals
+      let recentCrossover = false;
+      if (!crossover && macdLine > signalLine) {
+        // Check if crossover happened in the last few periods
+        for (let i = Math.max(0, signalEMA.length - 4); i < signalEMA.length - 1; i++) {
+          const checkMacd = macdHistory[macdHistory.length - (signalEMA.length - i)];
+          const checkSignal = signalEMA[i];
+          const prevCheckMacd = macdHistory[macdHistory.length - (signalEMA.length - i) - 1];
+          const prevCheckSignal = signalEMA[i - 1];
+          
+          if (checkMacd > checkSignal && prevCheckMacd <= prevCheckSignal) {
+            recentCrossover = true;
+            console.log(`🎯 Recent bullish crossover detected ${signalEMA.length - i} periods ago`);
+            break;
+          }
+        }
+      }
+      
+      const finalSignal = crossover || recentCrossover || momentumSignal;
+      console.log(`🔍 Bullish signals: Crossover: ${crossover}, Recent: ${recentCrossover}, Momentum: ${momentumSignal}`);
+      console.log(`📊 Current: MACD ${macdLine.toFixed(6)} ${macdLine > signalLine ? '>' : '<='} Signal ${signalLine.toFixed(6)} (Gap: ${currentGap.toFixed(6)})`);
+      console.log(`📊 Previous: MACD ${prevMacdLine.toFixed(6)} ${prevMacdLine <= prevSignalLine ? '<=' : '>'} Signal ${prevSignalLine.toFixed(6)} (Gap: ${prevGap.toFixed(6)})`);
+      console.log(`🎯 Final signal: ${finalSignal}`);
+      
+      return finalSignal;
     } else if (condition.condition === 'bearish_crossover') {
       // Bearish crossover: MACD line crosses below signal line
       const crossover = macdLine < signalLine && prevMacdLine >= prevSignalLine;
