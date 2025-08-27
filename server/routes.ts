@@ -1052,18 +1052,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🤖 Bot executions - Found ${positions.length} positions`);
       console.log('📊 Position details:', positions.slice(0, 2)); // Log first 2 positions for debugging
       
-      // Define AI bot mappings based on our test data
+      // Define AI bot mappings with exit criteria
       const botMappings = [
-        { symbol: 'BTCUSDT', botName: 'Grid Trading Pro', leverage: '2', riskLevel: 'Medium' },
-        { symbol: 'ETHUSDT', botName: 'Smart Momentum', leverage: '3', riskLevel: 'High' },
-        { symbol: 'SOLUSDT', botName: 'Smart Scalping Bot', leverage: '5', riskLevel: 'High' },
-        { symbol: 'BNBUSDT', botName: 'Smart Arbitrage', leverage: '2', riskLevel: 'Low' },
-        { symbol: 'ADAUSDT', botName: 'AI Dollar Cost Average', leverage: '1', riskLevel: 'Low' },
-        { symbol: 'AVAXUSDT', botName: 'Smart Swing Trader', leverage: '3', riskLevel: 'Medium' },
-        { symbol: 'LTCUSDT', botName: 'Test AI Bot', leverage: '2', riskLevel: 'Medium' }
+        { 
+          symbol: 'BTCUSDT', 
+          botName: 'Grid Trading Pro', 
+          leverage: '2', 
+          riskLevel: 'Medium',
+          exitCriteria: {
+            stopLoss: -5.0, // -5% loss
+            takeProfit: 8.0, // +8% profit
+            maxRuntime: 240, // 4 hours max
+            exitStrategy: 'grid_rebalance'
+          }
+        },
+        { 
+          symbol: 'ETHUSDT', 
+          botName: 'Smart Momentum', 
+          leverage: '3', 
+          riskLevel: 'High',
+          exitCriteria: {
+            stopLoss: -4.0, // -4% loss  
+            takeProfit: 12.0, // +12% profit
+            maxRuntime: 180, // 3 hours max
+            exitStrategy: 'momentum_reversal'
+          }
+        },
+        { 
+          symbol: 'SOLUSDT', 
+          botName: 'Smart Scalping Bot', 
+          leverage: '5', 
+          riskLevel: 'High',
+          exitCriteria: {
+            stopLoss: -2.0, // -2% loss (tight scalping)
+            takeProfit: 3.0, // +3% profit (quick scalp)
+            maxRuntime: 60, // 1 hour max
+            exitStrategy: 'scalp_quick_exit'
+          }
+        },
+        { 
+          symbol: 'BNBUSDT', 
+          botName: 'Smart Arbitrage', 
+          leverage: '2', 
+          riskLevel: 'Low',
+          exitCriteria: {
+            stopLoss: -3.0, // -3% loss
+            takeProfit: 5.0, // +5% profit
+            maxRuntime: 360, // 6 hours max
+            exitStrategy: 'arbitrage_spread_close'
+          }
+        },
+        { 
+          symbol: 'ADAUSDT', 
+          botName: 'AI Dollar Cost Average', 
+          leverage: '1', 
+          riskLevel: 'Low',
+          exitCriteria: {
+            stopLoss: -8.0, // -8% loss (wider tolerance)
+            takeProfit: 15.0, // +15% profit (longer hold)
+            maxRuntime: 720, // 12 hours max
+            exitStrategy: 'dca_accumulation'
+          }
+        },
+        { 
+          symbol: 'AVAXUSDT', 
+          botName: 'Smart Swing Trader', 
+          leverage: '3', 
+          riskLevel: 'Medium',
+          exitCriteria: {
+            stopLoss: -6.0, // -6% loss
+            takeProfit: 10.0, // +10% profit
+            maxRuntime: 480, // 8 hours max
+            exitStrategy: 'swing_trend_reversal'
+          }
+        },
+        { 
+          symbol: 'LTCUSDT', 
+          botName: 'Test AI Bot', 
+          leverage: '2', 
+          riskLevel: 'Medium',
+          exitCriteria: {
+            stopLoss: -5.0, // -5% loss
+            takeProfit: 7.0, // +7% profit
+            maxRuntime: 120, // 2 hours max for testing
+            exitStrategy: 'test_exit'
+          }
+        }
       ];
 
-      // Convert positions to bot execution format
+      // Convert positions to bot execution format with exit monitoring
       const executions = positions.map((position: any) => {
         const mapping = botMappings.find(m => m.symbol === position.symbol);
         if (!mapping) return null;
@@ -1072,32 +1149,221 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const startTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
         const runtime = Math.floor((Date.now() - startTime.getTime()) / 1000 / 60); // minutes
 
+        // Calculate ROI percentage
+        const unrealizedPL = parseFloat(position.unrealizedPL || '0');
+        const capital = 10; // $10 per bot
+        const roiPercent = (unrealizedPL / capital) * 100;
+
+        // Check exit criteria
+        const exitCriteria = mapping.exitCriteria;
+        let exitTriggered = false;
+        let exitReason = '';
+        
+        // Check stop loss
+        if (roiPercent <= exitCriteria.stopLoss) {
+          exitTriggered = true;
+          exitReason = `Stop Loss triggered (${roiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
+        }
+        
+        // Check take profit
+        if (roiPercent >= exitCriteria.takeProfit) {
+          exitTriggered = true;
+          exitReason = `Take Profit triggered (${roiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
+        }
+        
+        // Check max runtime
+        if (runtime >= exitCriteria.maxRuntime) {
+          exitTriggered = true;
+          exitReason = `Max runtime reached (${runtime}m >= ${exitCriteria.maxRuntime}m)`;
+        }
+
         return {
           id: `bot-${position.posId || position.symbol || Math.random().toString(36).substr(2, 9)}`,
           userId: userId,
           strategyId: `strategy-${mapping.symbol}`,
           tradingPair: position.symbol,
-          status: 'active',
+          status: exitTriggered ? 'exit_pending' : 'active',
           capital: '10',
           leverage: mapping.leverage,
           profit: position.unrealizedPL || position.pnl || '0',
           trades: '1',
           winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
-          roi: position.unrealizedPL ? ((parseFloat(position.unrealizedPL) / 10) * 100).toFixed(2) : '0',
+          roi: roiPercent.toFixed(2),
           runtime: `${runtime}m`,
           deploymentType: 'manual',
           botName: mapping.botName,
           riskLevel: mapping.riskLevel,
           startedAt: startTime,
           createdAt: startTime,
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          // Exit monitoring info
+          exitCriteria: {
+            stopLoss: `${exitCriteria.stopLoss}%`,
+            takeProfit: `${exitCriteria.takeProfit}%`,
+            maxRuntime: `${exitCriteria.maxRuntime}m`,
+            strategy: exitCriteria.exitStrategy
+          },
+          exitTriggered,
+          exitReason: exitTriggered ? exitReason : null,
+          positionData: {
+            unrealizedPL: position.unrealizedPL,
+            holdSide: position.holdSide,
+            total: position.total,
+            openPriceAvg: position.openPriceAvg,
+            markPrice: position.markPrice
+          }
         };
       }).filter(Boolean);
+
+      // Check for positions that need to be closed and execute exits
+      const exitPendingBots = executions.filter(bot => bot.exitTriggered);
+      if (exitPendingBots.length > 0) {
+        console.log(`🚨 Found ${exitPendingBots.length} bots with exit criteria triggered`);
+        
+        // Process each exit (but don't block the response)
+        setImmediate(async () => {
+          for (const bot of exitPendingBots) {
+            try {
+              console.log(`🔄 Executing exit for ${bot.tradingPair}: ${bot.exitReason}`);
+              
+              // Close the position using Bitget API
+              await bitgetAPI.closePosition(bot.tradingPair, bot.positionData.holdSide);
+              
+              console.log(`✅ Successfully closed position for ${bot.tradingPair}`);
+              
+              // TODO: Store exit record in database for tracking
+              // This would include final P&L, exit reason, etc.
+              
+            } catch (closeError) {
+              console.error(`❌ Failed to close position for ${bot.tradingPair}:`, closeError);
+            }
+          }
+        });
+      }
 
       res.json(executions);
     } catch (error) {
       console.error('Error fetching bot executions:', error);
       res.status(500).json({ error: 'Failed to fetch bot executions' });
+    }
+  });
+
+  // Manual bot termination endpoint
+  app.post('/api/terminate-bot/:tradingPair', async (req, res) => {
+    try {
+      const { tradingPair } = req.params;
+      const { reason = 'Manual termination' } = req.body;
+      
+      if (!bitgetAPI) {
+        return res.status(400).json({ error: 'Bitget API not available' });
+      }
+
+      console.log(`🛑 Manual termination requested for ${tradingPair}: ${reason}`);
+      
+      // Get current position to find hold side
+      const positions = await bitgetAPI.getPositions();
+      const position = positions.find(pos => pos.symbol === tradingPair);
+      
+      if (!position) {
+        return res.status(404).json({ error: 'Position not found' });
+      }
+
+      // Close the position
+      await bitgetAPI.closePosition(tradingPair, position.holdSide);
+      
+      console.log(`✅ Successfully terminated bot for ${tradingPair}`);
+      
+      res.json({ 
+        success: true, 
+        message: `Bot terminated for ${tradingPair}`,
+        reason: reason
+      });
+    } catch (error) {
+      console.error('Error terminating bot:', error);
+      res.status(500).json({ error: 'Failed to terminate bot' });
+    }
+  });
+
+  // Get exit criteria for all bots
+  app.get('/api/bot-exit-criteria', async (req, res) => {
+    try {
+      const botMappings = [
+        { 
+          symbol: 'BTCUSDT', 
+          botName: 'Grid Trading Pro', 
+          exitCriteria: {
+            stopLoss: -5.0,
+            takeProfit: 8.0, 
+            maxRuntime: 240,
+            exitStrategy: 'grid_rebalance'
+          }
+        },
+        { 
+          symbol: 'ETHUSDT', 
+          botName: 'Smart Momentum', 
+          exitCriteria: {
+            stopLoss: -4.0,
+            takeProfit: 12.0,
+            maxRuntime: 180,
+            exitStrategy: 'momentum_reversal'
+          }
+        },
+        { 
+          symbol: 'SOLUSDT', 
+          botName: 'Smart Scalping Bot', 
+          exitCriteria: {
+            stopLoss: -2.0,
+            takeProfit: 3.0,
+            maxRuntime: 60,
+            exitStrategy: 'scalp_quick_exit'
+          }
+        },
+        { 
+          symbol: 'BNBUSDT', 
+          botName: 'Smart Arbitrage', 
+          exitCriteria: {
+            stopLoss: -3.0,
+            takeProfit: 5.0,
+            maxRuntime: 360,
+            exitStrategy: 'arbitrage_spread_close'
+          }
+        },
+        { 
+          symbol: 'ADAUSDT', 
+          botName: 'AI Dollar Cost Average', 
+          exitCriteria: {
+            stopLoss: -8.0,
+            takeProfit: 15.0,
+            maxRuntime: 720,
+            exitStrategy: 'dca_accumulation'
+          }
+        },
+        { 
+          symbol: 'AVAXUSDT', 
+          botName: 'Smart Swing Trader', 
+          exitCriteria: {
+            stopLoss: -6.0,
+            takeProfit: 10.0,
+            maxRuntime: 480,
+            exitStrategy: 'swing_trend_reversal'
+          }
+        },
+        { 
+          symbol: 'LTCUSDT', 
+          botName: 'Test AI Bot', 
+          exitCriteria: {
+            stopLoss: -5.0,
+            takeProfit: 7.0,
+            maxRuntime: 120,
+            exitStrategy: 'test_exit'
+          }
+        }
+      ];
+      
+      res.json(botMappings);
+    } catch (error) {
+      console.error('Error fetching exit criteria:', error);
+      res.status(500).json({ error: 'Failed to fetch exit criteria' });
     }
   });
 
