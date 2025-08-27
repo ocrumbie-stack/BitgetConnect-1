@@ -1442,12 +1442,16 @@ export default function BotPage() {
                                           <Badge variant="outline" className={`text-sm ${
                                             execution.status === 'active' 
                                               ? 'border-green-500 text-green-400 bg-green-950/30'
+                                              : execution.status === 'waiting_entry'
+                                              ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                              : execution.status === 'exit_pending'
+                                              ? 'border-orange-500 text-orange-400 bg-orange-950/30'
                                               : 'border-blue-500 text-blue-400 bg-blue-950/30'
                                           }`}>
-                                            {execution.status}
+                                            {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
                                           </Badge>
                                         </div>
-                                        {execution.status === 'active' && (
+                                        {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                           <Button 
                                             size="sm" 
                                             variant="destructive"
@@ -1536,12 +1540,16 @@ export default function BotPage() {
                                   <Badge variant="outline" className={`text-sm ${
                                     execution.status === 'active' 
                                       ? 'border-green-500 text-green-400 bg-green-950/30'
+                                      : execution.status === 'waiting_entry'
+                                      ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                      : execution.status === 'exit_pending'
+                                      ? 'border-orange-500 text-orange-400 bg-orange-950/30'
                                       : 'border-blue-500 text-blue-400 bg-blue-950/30'
                                   }`}>
-                                    {execution.status}
+                                    {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
                                   </Badge>
                                 </div>
-                                {execution.status === 'active' && (
+                                {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                   <Button 
                                     size="sm" 
                                     variant="destructive"

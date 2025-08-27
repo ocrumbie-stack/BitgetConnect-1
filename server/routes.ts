@@ -1045,7 +1045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = 'default-user';
       
-      // Get current positions directly from Bitget API
+      // Get current positions from Bitget API
       if (!bitgetAPI) {
         return res.json([]);
       }
@@ -1053,6 +1053,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const positions = await bitgetAPI.getPositions();
       console.log(`🤖 Bot executions - Found ${positions.length} positions`);
       console.log('📊 Position details:', positions.slice(0, 2)); // Log first 2 positions for debugging
+      
+      // Get deployed bots from database
+      const deployedBots = await storage.getBotExecutions(userId);
+      console.log(`📋 Deployed bots from storage: ${deployedBots.length}`);
+      
+      // Initialize with demo waiting bots if none exist
+      if (deployedBots.length === 0) {
+        const demoBots = [
+          { tradingPair: 'ETHUSDT', botName: 'Smart Momentum', leverage: '3' },
+          { tradingPair: 'SOLUSDT', botName: 'Smart Scalping Bot', leverage: '5' },
+        ];
+        
+        for (const demoBot of demoBots) {
+          try {
+            await storage.createBotExecution({
+              userId,
+              strategyId: `strategy-${demoBot.tradingPair}`,
+              tradingPair: demoBot.tradingPair,
+              status: 'active',
+              capital: '10',
+              leverage: demoBot.leverage,
+              profit: '0',
+              trades: '0',
+              winRate: '0',
+              roi: '0',
+              runtime: '0',
+              deploymentType: 'manual',
+              botName: demoBot.botName,
+              startedAt: new Date(),
+            });
+            console.log(`🔧 Created demo waiting bot: ${demoBot.botName}`);
+          } catch (error) {
+            console.log(`⚠️ Demo bot already exists: ${demoBot.tradingPair}`);
+          }
+        }
+        
+        // Refresh deployed bots after adding demos
+        const updatedDeployedBots = await storage.getBotExecutions(userId);
+        console.log(`📋 Updated deployed bots: ${updatedDeployedBots.length}`);
+        deployedBots.splice(0, deployedBots.length, ...updatedDeployedBots);
+      }
       
       // Define AI bot mappings with exit criteria
       const botMappings = [
@@ -1142,108 +1183,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
 
-      // Convert positions to bot execution format with exit monitoring
-      const executions = positions.map((position: any) => {
-        const mapping = botMappings.find(m => m.symbol === position.symbol);
-        if (!mapping) return null;
-
-        // Calculate runtime (assuming bots started ~30 mins ago)
-        const startTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
-        const runtime = Math.floor((Date.now() - startTime.getTime()) / 1000 / 60); // minutes
-
-        // Calculate trading cycles completed
-        // Different strategies have different cycle durations
-        const cycleMinutes = {
-          'arbitrage_spread_close': 5, // Arbitrage: 5-min cycles
-          'dca_accumulation': 15, // DCA: 15-min cycles
-          'swing_trend_reversal': 30, // Swing: 30-min cycles
-          'test_exit': 10, // Test: 10-min cycles
-          'grid_rebalancing': 20 // Grid: 20-min cycles
-        };
+      // Create a comprehensive list of all bots (deployed + active)
+      const allBots = [];
+      
+      // Add deployed bots from database (may include waiting bots)
+      for (const deployedBot of deployedBots) {
+        const position = positions.find((pos: any) => pos.symbol === deployedBot.tradingPair);
+        const mapping = botMappings.find(m => m.symbol === deployedBot.tradingPair);
         
-        const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
-        const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
+        if (position && mapping) {
+          // Bot has an active position
+          const runtime = deployedBot.startedAt 
+            ? Math.floor((Date.now() - new Date(deployedBot.startedAt).getTime()) / 1000 / 60)
+            : 30;
 
-        // Calculate ROE percentage (same as Position tab for consistency)
-        const entryPrice = parseFloat(position.openPriceAvg || '0');
-        const markPrice = parseFloat(position.markPrice || '0');
-        const leverage = parseFloat(position.leverage || '10'); // Use actual position leverage, not bot mapping
-        
-        // ROE calculation matching Position tab: ((markPrice - entryPrice) / entryPrice) * 100 * leverage
-        let roiPercent = 0;
-        if (entryPrice > 0) {
-          if (position.holdSide === 'long') {
-            roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
-          } else {
-            roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+          // Calculate trading cycles completed
+          const cycleMinutes = {
+            'arbitrage_spread_close': 5, 'dca_accumulation': 15, 'swing_trend_reversal': 30,
+            'test_exit': 10, 'grid_rebalancing': 20
+          };
+          const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
+          const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
+
+          // Calculate ROE percentage (same as Position tab for consistency)
+          const entryPrice = parseFloat(position.openPriceAvg || '0');
+          const markPrice = parseFloat(position.markPrice || '0');
+          const leverage = parseFloat(position.leverage || '10');
+          
+          let roiPercent = 0;
+          if (entryPrice > 0) {
+            if (position.holdSide === 'long') {
+              roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
+            } else {
+              roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+            }
+          }
+
+          // Check exit criteria
+          const exitCriteria = mapping.exitCriteria;
+          let exitTriggered = false;
+          let exitReason = '';
+          
+          if (roiPercent <= exitCriteria.stopLoss) {
+            exitTriggered = true;
+            exitReason = `Stop Loss triggered (${roiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
+          } else if (roiPercent >= exitCriteria.takeProfit) {
+            exitTriggered = true;
+            exitReason = `Take Profit triggered (${roiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
+          } else if (runtime >= exitCriteria.maxRuntime) {
+            exitTriggered = true;
+            exitReason = `Max runtime reached (${runtime}m >= ${exitCriteria.maxRuntime}m)`;
+          }
+
+          allBots.push({
+            id: deployedBot.id,
+            userId: userId,
+            strategyId: deployedBot.strategyId,
+            tradingPair: deployedBot.tradingPair,
+            status: exitTriggered ? 'exit_pending' : 'active',
+            capital: deployedBot.capital,
+            leverage: position.leverage || deployedBot.leverage,
+            profit: position.unrealizedPL || position.pnl || '0',
+            trades: cyclesCompleted.toString(),
+            cycles: cyclesCompleted,
+            cycleTime: `${strategyCycleTime}m`,
+            winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
+            roi: roiPercent.toFixed(2),
+            runtime: `${runtime}m`,
+            deploymentType: deployedBot.deploymentType || 'manual',
+            botName: deployedBot.botName || mapping.botName,
+            riskLevel: mapping.riskLevel,
+            startedAt: deployedBot.startedAt || deployedBot.createdAt,
+            createdAt: deployedBot.createdAt,
+            updatedAt: new Date(),
+            exitCriteria: {
+              stopLoss: `${exitCriteria.stopLoss}%`,
+              takeProfit: `${exitCriteria.takeProfit}%`,
+              maxRuntime: `${exitCriteria.maxRuntime}m`,
+              strategy: exitCriteria.exitStrategy
+            },
+            exitTriggered,
+            exitReason: exitTriggered ? exitReason : null,
+            positionData: {
+              unrealizedPL: position.unrealizedPL,
+              holdSide: position.holdSide,
+              total: position.total,
+              openPriceAvg: position.openPriceAvg,
+              markPrice: position.markPrice
+            }
+          });
+        } else {
+          // Bot is deployed but waiting for entry signal
+          const runtime = deployedBot.startedAt 
+            ? Math.floor((Date.now() - new Date(deployedBot.startedAt).getTime()) / 1000 / 60)
+            : 0;
+
+          allBots.push({
+            id: deployedBot.id,
+            userId: userId,
+            strategyId: deployedBot.strategyId,
+            tradingPair: deployedBot.tradingPair,
+            status: 'waiting_entry',
+            capital: deployedBot.capital,
+            leverage: deployedBot.leverage,
+            profit: '0',
+            trades: '0',
+            cycles: 0,
+            cycleTime: '0m',
+            winRate: '0',
+            roi: '0.00',
+            runtime: `${runtime}m`,
+            deploymentType: deployedBot.deploymentType || 'manual',
+            botName: deployedBot.botName || `Bot ${deployedBot.tradingPair}`,
+            riskLevel: mapping?.riskLevel || 'Medium',
+            startedAt: deployedBot.startedAt || deployedBot.createdAt,
+            createdAt: deployedBot.createdAt,
+            updatedAt: new Date(),
+            exitCriteria: mapping ? {
+              stopLoss: `${mapping.exitCriteria.stopLoss}%`,
+              takeProfit: `${mapping.exitCriteria.takeProfit}%`,
+              maxRuntime: `${mapping.exitCriteria.maxRuntime}m`,
+              strategy: mapping.exitCriteria.exitStrategy
+            } : null,
+            exitTriggered: false,
+            exitReason: null,
+            positionData: null
+          });
+        }
+      }
+
+      // Add any positions that don't have corresponding deployed bots (legacy positions)
+      for (const position of positions) {
+        const hasDeployedBot = deployedBots.some(bot => bot.tradingPair === position.symbol);
+        if (!hasDeployedBot) {
+          const mapping = botMappings.find(m => m.symbol === position.symbol);
+          if (mapping) {
+            // This is a legacy position, create bot record
+            const startTime = new Date(Date.now() - 30 * 60 * 1000);
+            const runtime = 30;
+            const strategyCycleTime = 15;
+            const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
+
+            const entryPrice = parseFloat(position.openPriceAvg || '0');
+            const markPrice = parseFloat(position.markPrice || '0');
+            const leverage = parseFloat(position.leverage || '10');
+            
+            let roiPercent = 0;
+            if (entryPrice > 0) {
+              if (position.holdSide === 'long') {
+                roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
+              } else {
+                roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+              }
+            }
+
+            allBots.push({
+              id: `bot-${position.symbol}`,
+              userId: userId,
+              strategyId: `strategy-${position.symbol}`,
+              tradingPair: position.symbol,
+              status: 'active',
+              capital: '10',
+              leverage: position.leverage || '10',
+              profit: position.unrealizedPL || '0',
+              trades: cyclesCompleted.toString(),
+              cycles: cyclesCompleted,
+              cycleTime: `${strategyCycleTime}m`,
+              winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
+              roi: roiPercent.toFixed(2),
+              runtime: `${runtime}m`,
+              deploymentType: 'manual',
+              botName: mapping.botName,
+              riskLevel: mapping.riskLevel,
+              startedAt: startTime,
+              createdAt: startTime,
+              updatedAt: new Date(),
+              exitCriteria: {
+                stopLoss: `${mapping.exitCriteria.stopLoss}%`,
+                takeProfit: `${mapping.exitCriteria.takeProfit}%`,
+                maxRuntime: `${mapping.exitCriteria.maxRuntime}m`,
+                strategy: mapping.exitCriteria.exitStrategy
+              },
+              exitTriggered: false,
+              exitReason: null,
+              positionData: {
+                unrealizedPL: position.unrealizedPL,
+                holdSide: position.holdSide,
+                total: position.total,
+                openPriceAvg: position.openPriceAvg,
+                markPrice: position.markPrice
+              }
+            });
           }
         }
-
-        // Check exit criteria
-        const exitCriteria = mapping.exitCriteria;
-        let exitTriggered = false;
-        let exitReason = '';
-        
-        // Check stop loss
-        if (roiPercent <= exitCriteria.stopLoss) {
-          exitTriggered = true;
-          exitReason = `Stop Loss triggered (${roiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
-        }
-        
-        // Check take profit
-        if (roiPercent >= exitCriteria.takeProfit) {
-          exitTriggered = true;
-          exitReason = `Take Profit triggered (${roiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
-        }
-        
-        // Check max runtime
-        if (runtime >= exitCriteria.maxRuntime) {
-          exitTriggered = true;
-          exitReason = `Max runtime reached (${runtime}m >= ${exitCriteria.maxRuntime}m)`;
-        }
-
-        return {
-          id: `bot-${position.posId || position.symbol || Math.random().toString(36).substr(2, 9)}`,
-          userId: userId,
-          strategyId: `strategy-${mapping.symbol}`,
-          tradingPair: position.symbol,
-          status: exitTriggered ? 'exit_pending' : 'active',
-          capital: '10',
-          leverage: position.leverage || '10', // Use actual position leverage
-          profit: position.unrealizedPL || position.pnl || '0',
-          trades: cyclesCompleted.toString(),
-          cycles: cyclesCompleted,
-          cycleTime: `${strategyCycleTime}m`,
-          winRate: position.unrealizedPL && parseFloat(position.unrealizedPL) > 0 ? '100' : '0',
-          roi: roiPercent.toFixed(2),
-          runtime: `${runtime}m`,
-          deploymentType: 'manual',
-          botName: mapping.botName,
-          riskLevel: mapping.riskLevel,
-          startedAt: startTime,
-          createdAt: startTime,
-          updatedAt: new Date(),
-          // Exit monitoring info
-          exitCriteria: {
-            stopLoss: `${exitCriteria.stopLoss}%`,
-            takeProfit: `${exitCriteria.takeProfit}%`,
-            maxRuntime: `${exitCriteria.maxRuntime}m`,
-            strategy: exitCriteria.exitStrategy
-          },
-          exitTriggered,
-          exitReason: exitTriggered ? exitReason : null,
-          positionData: {
-            unrealizedPL: position.unrealizedPL,
-            holdSide: position.holdSide,
-            total: position.total,
-            openPriceAvg: position.openPriceAvg,
-            markPrice: position.markPrice
-          }
-        };
-      }).filter(Boolean);
+      }
 
       // Check for positions that need to be closed and execute exits
-      const exitPendingBots = executions.filter(bot => bot.exitTriggered);
+      const exitPendingBots = allBots.filter(bot => bot.exitTriggered);
       if (exitPendingBots.length > 0) {
         console.log(`🚨 Found ${exitPendingBots.length} bots with exit criteria triggered`);
         
@@ -1254,12 +1390,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`🔄 Executing exit for ${bot.tradingPair}: ${bot.exitReason}`);
               
               // Close the position using Bitget API
-              await bitgetAPI.closePosition(bot.tradingPair, bot.positionData.holdSide);
-              
-              console.log(`✅ Successfully closed position for ${bot.tradingPair}`);
-              
-              // TODO: Store exit record in database for tracking
-              // This would include final P&L, exit reason, etc.
+              if (bot.positionData) {
+                await bitgetAPI.closePosition(bot.tradingPair, bot.positionData.holdSide);
+                console.log(`✅ Successfully closed position for ${bot.tradingPair}`);
+              }
               
             } catch (closeError) {
               console.error(`❌ Failed to close position for ${bot.tradingPair}:`, closeError);
@@ -1268,10 +1402,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json(executions);
+      res.json(allBots);
     } catch (error) {
       console.error('Error fetching bot executions:', error);
       res.status(500).json({ error: 'Failed to fetch bot executions' });
+    }
+  });
+
+  // Deploy new bot endpoint
+  app.post('/api/deploy-bot', async (req, res) => {
+    try {
+      const { tradingPair, botName, capital = '10', leverage = '1' } = req.body;
+      const userId = 'default-user';
+      
+      if (!tradingPair) {
+        return res.status(400).json({ error: 'Trading pair is required' });
+      }
+
+      // Check if bot is already deployed for this pair
+      const existingBots = await storage.getBotExecutions(userId);
+      const existingBot = existingBots.find(bot => bot.tradingPair === tradingPair && bot.status !== 'inactive');
+      
+      if (existingBot) {
+        return res.status(400).json({ error: `Bot already deployed for ${tradingPair}` });
+      }
+
+      // Create new bot execution record
+      const newBot = await storage.createBotExecution({
+        userId,
+        strategyId: `strategy-${tradingPair}`,
+        tradingPair,
+        status: 'active', // Will show as waiting_entry if no position
+        capital,
+        leverage,
+        profit: '0',
+        trades: '0',
+        winRate: '0',
+        roi: '0',
+        runtime: '0',
+        deploymentType: 'manual',
+        botName: botName || `Bot ${tradingPair}`,
+        startedAt: new Date(),
+      });
+
+      console.log(`🚀 Deployed new bot: ${botName || tradingPair}`);
+      res.json(newBot);
+    } catch (error) {
+      console.error('Error deploying bot:', error);
+      res.status(500).json({ error: 'Failed to deploy bot' });
     }
   });
 
