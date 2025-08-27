@@ -2186,7 +2186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           
-          const strategyConfig = aiStrategyConfigs[strategyId];
+          const strategyConfig = aiStrategyConfigs[strategyId as keyof typeof aiStrategyConfigs];
           if (strategyConfig) {
             try {
               await storage.createBotStrategy({
@@ -2197,7 +2197,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`✅ Created AI strategy: ${strategyId}`);
             } catch (strategyError) {
               console.error(`❌ Failed to create AI strategy ${strategyId}:`, strategyError);
-              throw new Error(`Failed to create AI strategy: ${strategyError.message}`);
+              const errorMessage = strategyError instanceof Error ? strategyError.message : String(strategyError);
+              throw new Error(`Failed to create AI strategy: ${errorMessage}`);
             }
           }
         }
