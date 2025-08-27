@@ -1220,31 +1220,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
           const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
 
-          // Calculate ROE percentage (same as Position tab for consistency)
+          // Calculate ROI percentage based on profit vs total capital invested
           const entryPrice = parseFloat(position.openPriceAvg || '0');
           const markPrice = parseFloat(position.markPrice || '0');
           const leverage = parseFloat(position.leverage || '10');
+          const totalCapital = parseFloat(deployedBot.capital || '0');
+          const unrealizedPL = parseFloat(position.unrealizedPL || '0');
           
+          // ROI = (Profit / Total Capital Invested) * 100
           let roiPercent = 0;
+          if (totalCapital > 0) {
+            roiPercent = (unrealizedPL / totalCapital) * 100;
+          }
+          
+          // For exit criteria, still use price-based calculation for consistency with trading logic
+          let priceBasedRoiPercent = 0;
           if (entryPrice > 0) {
             if (position.holdSide === 'long') {
-              roiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
+              priceBasedRoiPercent = ((markPrice - entryPrice) / entryPrice) * 100 * leverage;
             } else {
-              roiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
+              priceBasedRoiPercent = ((entryPrice - markPrice) / entryPrice) * 100 * leverage;
             }
           }
 
-          // Check exit criteria
+          // Check exit criteria using price-based ROI for consistency with trading logic
           const exitCriteria = mapping.exitCriteria;
           let exitTriggered = false;
           let exitReason = '';
           
-          if (roiPercent <= exitCriteria.stopLoss) {
+          if (priceBasedRoiPercent <= exitCriteria.stopLoss) {
             exitTriggered = true;
-            exitReason = `Stop Loss triggered (${roiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
-          } else if (roiPercent >= exitCriteria.takeProfit) {
+            exitReason = `Stop Loss triggered (${priceBasedRoiPercent.toFixed(2)}% <= ${exitCriteria.stopLoss}%)`;
+          } else if (priceBasedRoiPercent >= exitCriteria.takeProfit) {
             exitTriggered = true;
-            exitReason = `Take Profit triggered (${roiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
+            exitReason = `Take Profit triggered (${priceBasedRoiPercent.toFixed(2)}% >= ${exitCriteria.takeProfit}%)`;
           } else if (runtime >= exitCriteria.maxRuntime) {
             exitTriggered = true;
             exitReason = `Max runtime reached (${runtime}m >= ${exitCriteria.maxRuntime}m)`;
