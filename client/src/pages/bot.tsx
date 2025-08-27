@@ -1196,7 +1196,22 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    N/A
+                    {(() => {
+                      const runningBots = (activeExecutions as any[]).filter(ex => ex.status !== 'terminated');
+                      if (runningBots.length === 0) return 'N/A';
+                      
+                      // Calculate weighted average win rate based on number of trades
+                      const totalTrades = runningBots.reduce((sum, bot) => sum + parseInt(bot.trades || '0'), 0);
+                      if (totalTrades === 0) return '0%';
+                      
+                      const weightedWinRate = runningBots.reduce((sum, bot) => {
+                        const trades = parseInt(bot.trades || '0');
+                        const winRate = parseFloat(bot.winRate || '0');
+                        return sum + (winRate * trades);
+                      }, 0) / totalTrades;
+                      
+                      return `${weightedWinRate.toFixed(1)}%`;
+                    })()}
                   </div>
                   <div className="text-xs text-orange-600 dark:text-orange-400">Avg Win Rate</div>
                 </div>
