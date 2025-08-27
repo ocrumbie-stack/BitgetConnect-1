@@ -9,6 +9,7 @@ Bots page UX preference: Use clickable overview cards for navigation instead of 
 Account balance display: Total Balance = Total Equity + Available Balance + P&L (complete account value including position allocations).
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
+Bot page layout preference: Fixed layout issues in active execution tab with improved two-row vertical design for better mobile display and proper element fitting (August 2025).
 
 # System Architecture
 
