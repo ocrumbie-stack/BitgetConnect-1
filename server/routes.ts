@@ -195,11 +195,11 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
     const leverageNum = parseFloat(leverage);
     const positionSize = (capitalAmount * leverageNum) / currentPrice;
     
-    // Prepare order data
+    // Prepare order data - fix side parameter for Bitget API
     const orderData = {
       symbol: tradingPair,
       marginCoin: 'USDT',
-      side: positionDirection === 'long' ? 'open_long' : 'open_short',
+      side: positionDirection === 'long' ? 'buy' : 'sell', // Fixed: use buy/sell instead of open_long/open_short
       orderType: 'market',
       size: positionSize.toFixed(6),
       leverage: leverageNum,
@@ -1543,16 +1543,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a comprehensive list of all bots (deployed + active)
       const allBots = [];
       
-      // Add deployed bots from database (exclude terminated bots)
-      for (const deployedBot of deployedBots) {
-        // Skip terminated bots - don't show them in the UI
-        if (deployedBot.status === 'terminated') {
-          console.log(`🚫 Skipping terminated bot: ${deployedBot.tradingPair}`);
-          continue;
-        }
+      // Add deployed bots from database (only process non-terminated bots)
+      // Filter out terminated bots before processing to prevent confusion
+      const activeBots = deployedBots.filter(bot => bot.status !== 'terminated');
+      console.log(`📋 Processing ${activeBots.length} active bots (filtered out ${deployedBots.length - activeBots.length} terminated)`);
+      
+      for (const deployedBot of activeBots) {
+        console.log(`🔍 Processing bot ${deployedBot.tradingPair}: status="${deployedBot.status}", deploymentType="${deployedBot.deploymentType}"`);
+      
 
-        // Check if this is a manual strategy bot waiting for entry
-        if (deployedBot.status === 'waiting_entry' && deployedBot.strategyId) {
+        // Check if this is a manual strategy bot (either waiting_entry or active without position)
+        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && deployedBot.deploymentType === 'manual') {
           try {
             // Get the strategy configuration
             const strategies = await storage.getBotStrategies('default-user');
