@@ -938,6 +938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const closedPositions = [];
       const errors = [];
       
+      // First, close all the actual positions on Bitget
       for (const position of positions) {
         try {
           console.log(`🔄 Closing position: ${position.symbol} ${position.holdSide}`);
@@ -956,6 +957,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             error: error.message
           });
         }
+      }
+
+      // Now terminate all active bot executions to ensure they don't reappear
+      console.log('🤖 Terminating all active bot executions...');
+      try {
+        const activeExecutions = await storage.getBotExecutions(userId || 'default-user');
+        const activeBots = activeExecutions.filter(bot => 
+          bot.status === 'active' || bot.status === 'waiting_entry' || bot.status === 'exit_pending'
+        );
+        
+        console.log(`🎯 Found ${activeBots.length} active bots to terminate`);
+        
+        for (const bot of activeBots) {
+          try {
+            await storage.updateBotExecution(bot.id, {
+              status: 'terminated'
+            });
+            console.log(`🛑 Terminated bot: ${bot.id} (${bot.tradingPair})`);
+          } catch (error: any) {
+            console.error(`❌ Failed to terminate bot ${bot.id}:`, error);
+          }
+        }
+      } catch (error: any) {
+        console.error('❌ Error terminating bots:', error);
       }
       
       res.json({
