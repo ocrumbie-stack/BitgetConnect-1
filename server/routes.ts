@@ -1744,7 +1744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`📊 Found open position for ${execution.tradingPair}, attempting to close`);
             
             // Close the position by placing an opposite order
-            const closeOrderSide = openPosition.holdSide === 'long' ? 'close_long' : 'close_short';
+            const closeOrderSide = openPosition.holdSide === 'long' ? 'sell' : 'buy';
             const closeSize = Math.abs(parseFloat(openPosition.total));
             
             if (closeSize > 0) {
@@ -1752,7 +1752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               await bitgetAPI.placeOrder({
                 symbol: execution.tradingPair,
-                productType: 'usdt-futures',
+                productType: 'USDT-FUTURES',
                 marginMode: 'isolated',
                 marginCoin: 'USDT',
                 size: closeSize.toString(),
