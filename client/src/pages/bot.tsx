@@ -1433,13 +1433,13 @@ export default function BotPage() {
                                       {/* Top row: Trading pair, cycles, status */}
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="bg-blue-600/80 text-white px-2 py-1 rounded text-xs font-mono">
+                                          <span className="bg-blue-600/80 text-white px-2.5 py-1.5 rounded text-sm font-mono">
                                             {execution.tradingPair}
                                           </span>
-                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                             {execution.cycles || 0} cycles
                                           </span>
-                                          <Badge variant="outline" className="text-xs border-blue-500 text-blue-400 bg-blue-950/30">
+                                          <Badge variant="outline" className="text-sm border-blue-500 text-blue-400 bg-blue-950/30">
                                             {execution.status}
                                           </Badge>
                                         </div>
@@ -1452,7 +1452,7 @@ export default function BotPage() {
                                               handleTerminateExecution.mutate(execution.id);
                                             }}
                                             disabled={handleTerminateExecution.isPending}
-                                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs h-6"
+                                            className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
                                           >
                                             <Square className="h-3 w-3 mr-1" />
                                             Stop
@@ -1461,13 +1461,13 @@ export default function BotPage() {
                                       </div>
                                       
                                       {/* Bottom row: Bot name, capital, P&L */}
-                                      <div className="flex items-center justify-between text-sm">
+                                      <div className="flex items-center justify-between">
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" className="p-0 h-auto font-medium text-white hover:text-blue-400 transition-colors text-left justify-start">
                                               <div className="flex items-center gap-1">
-                                                <span className="text-xs text-gray-300 truncate max-w-32">{execution.botName}</span>
-                                                <ChevronDown className="h-3 w-3" />
+                                                <span className="text-sm text-gray-300 truncate max-w-32">{execution.botName}</span>
+                                                <ChevronDown className="h-4 w-4" />
                                               </div>
                                             </Button>
                                           </DropdownMenuTrigger>
@@ -1482,7 +1482,7 @@ export default function BotPage() {
                                             </DropdownMenuItem>
                                           </DropdownMenuContent>
                                         </DropdownMenu>
-                                        <div className="flex items-center gap-2 text-xs">
+                                        <div className="flex items-center gap-2 text-sm">
                                           <span className="text-gray-400">${execution.capital}</span>
                                           <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                             {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
@@ -1516,7 +1516,7 @@ export default function BotPage() {
                               {/* Top row: Trading pair, cycles, status */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={`px-2 py-1 rounded text-xs font-mono ${
+                                  <span className={`px-2.5 py-1.5 rounded text-sm font-mono ${
                                     (() => {
                                       const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
                                       return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
@@ -1526,10 +1526,10 @@ export default function BotPage() {
                                   }`}>
                                     {execution.tradingPair}
                                   </span>
-                                  <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                                  <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
                                     {execution.cycles || 0} cycles
                                   </span>
-                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                  <Badge variant={execution.status === 'active' ? 'default' : 'secondary'} className="text-sm">
                                     {execution.status}
                                   </Badge>
                                 </div>
@@ -1539,7 +1539,7 @@ export default function BotPage() {
                                     variant="destructive"
                                     onClick={() => handleTerminateExecution.mutate(execution.id)}
                                     disabled={handleTerminateExecution.isPending}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs h-6"
+                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
                                   >
                                     <Square className="h-3 w-3 mr-1" />
                                     Stop
@@ -1548,7 +1548,7 @@ export default function BotPage() {
                               </div>
                               
                               {/* Bottom row: Bot name, capital, P&L */}
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
@@ -1560,14 +1560,14 @@ export default function BotPage() {
                                         : 'hover:text-blue-500'
                                     }`}>
                                       <div className="flex items-center gap-1">
-                                        <span className="text-xs text-gray-300 truncate max-w-32">
+                                        <span className="text-sm text-gray-300 truncate max-w-32">
                                           {(() => {
                                             if (execution.botName) return execution.botName;
                                             const strategy = aiBots.find(b => b.id === execution.strategyId);
                                             return strategy ? strategy.name : 'Manual Bot';
                                           })()}
                                         </span>
-                                        <ChevronDown className="h-3 w-3" />
+                                        <ChevronDown className="h-4 w-4" />
                                       </div>
                                     </Button>
                                   </DropdownMenuTrigger>
@@ -1585,7 +1585,7 @@ export default function BotPage() {
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                                <div className="flex items-center gap-2 text-xs">
+                                <div className="flex items-center gap-2 text-sm">
                                   <span className="text-gray-400">${execution.capital} • {execution.leverage}x</span>
                                   <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${execution.profit || '0'}
