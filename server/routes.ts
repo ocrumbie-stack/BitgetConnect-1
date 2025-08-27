@@ -1750,18 +1750,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (closeSize > 0) {
               console.log(`🔄 Closing ${closeOrderSide} position of size ${closeSize} for ${execution.tradingPair}`);
               
-              await bitgetAPI.placeOrder({
-                symbol: execution.tradingPair,
-                productType: 'USDT-FUTURES',
-                marginMode: 'isolated',
-                marginCoin: 'USDT',
-                size: closeSize.toString(),
-                price: '', // Market order
-                side: closeOrderSide,
-                orderType: 'market',
-                force: 'gtc',
-                reduceOnly: 'YES'
-              });
+              // Try flash close first (preferred method)
+              try {
+                console.log(`🚀 Trying flash close first: ${JSON.stringify({
+                  symbol: execution.tradingPair,
+                  productType: 'USDT-FUTURES',
+                  holdSide: openPosition.holdSide
+                }, null, 2)}`);
+                
+                const flashCloseResponse = await bitgetAPI.client.flashClosePositions([{
+                  symbol: execution.tradingPair,
+                  productType: 'USDT-FUTURES',
+                  holdSide: openPosition.holdSide
+                }]);
+                
+                console.log(`✅ Flash close successful: ${JSON.stringify(flashCloseResponse, null, 2)}`);
+              } catch (flashError) {
+                console.log(`⚠️ Flash close failed, trying cleanup approach: ${flashError.message}`);
+                
+                // Check for any open trailing stop orders and cancel them first
+                console.log(`🧹 Cleaning up orphaned trailing stop orders...`);
+                try {
+                  const openOrders = await bitgetAPI.getOpenOrders(execution.tradingPair);
+                  console.log(`🔍 Found ${openOrders?.data?.entrustedList?.length || 0} trailing stop orders for ${execution.tradingPair}`);
+                  
+                  if (openOrders?.data?.entrustedList?.length > 0) {
+                    for (const order of openOrders.data.entrustedList) {
+                      if (order.orderType === 'trailing_stop' || order.planType === 'moving_plan') {
+                        await bitgetAPI.cancelOrder(order.orderId, execution.tradingPair);
+                        console.log(`❌ Cancelled trailing stop order ${order.orderId}`);
+                      }
+                    }
+                  }
+                } catch (cleanupError) {
+                  console.log(`⚠️ Cleanup failed but continuing: ${cleanupError.message}`);
+                }
+                
+                console.log(`💡 Position closing failed but bot termination will continue`);
+              }
               
               console.log(`✅ Successfully closed position for ${execution.tradingPair}`);
             }
