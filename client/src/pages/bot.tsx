@@ -506,9 +506,30 @@ export default function BotPage() {
     setTakeProfit(strategy.config?.riskManagement?.takeProfit?.toString() || '');
     setTrailingStop(strategy.config?.riskManagement?.trailingStop?.toString() || '');
     
-    // Pre-populate indicators
+    // Pre-populate indicators with default structure to avoid undefined errors
+    const defaultIndicators = {
+      rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
+      macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
+      ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
+      bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
+      stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
+      williams: { enabled: false, period: 14, condition: 'above', value: -20 },
+      volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
+    };
+    
+    // Merge existing indicators with defaults to ensure all properties exist
     if (strategy.config?.indicators) {
-      setIndicators(strategy.config.indicators);
+      const mergedIndicators = { ...defaultIndicators };
+      Object.keys(strategy.config.indicators).forEach(key => {
+        if (mergedIndicators[key]) {
+          mergedIndicators[key] = { ...mergedIndicators[key], ...strategy.config.indicators[key] };
+        }
+      });
+      setIndicators(mergedIndicators);
+    } else {
+      setIndicators(defaultIndicators);
     }
     
     setShowEditForm(true);
