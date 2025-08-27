@@ -2068,6 +2068,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('✅ Validated bot execution data:', JSON.stringify(validatedData, null, 2));
       const userId = 'default-user'; // In a real app, get from authentication
       
+      // Check if this is an AI bot strategy that doesn't exist yet
+      const { strategyId } = validatedData;
+      const aiStrategyIds = ['grid', 'momentum', 'scalping', 'arbitrage', 'dca'];
+      
+      console.log(`🔍 Checking if ${strategyId} is an AI strategy. AI IDs:`, aiStrategyIds);
+      console.log(`🔍 Is AI strategy:`, aiStrategyIds.includes(strategyId));
+      
+      if (aiStrategyIds.includes(strategyId)) {
+        // Check if strategy exists
+        const existingStrategies = await storage.getBotStrategies(userId);
+        const strategyExists = existingStrategies.find(s => s.id === strategyId);
+        
+        if (!strategyExists) {
+          console.log(`🤖 Creating AI strategy: ${strategyId}`);
+          
+          // Define AI strategy configurations
+          const aiStrategyConfigs = {
+            grid: {
+              name: 'Grid Trading Pro',
+              description: 'Dynamic grid with auto-adjustment based on volatility',
+              strategy: 'ai',
+              riskLevel: 'medium',
+              config: {
+                positionDirection: 'long',
+                timeframe: '15m',
+                riskManagement: {
+                  stopLoss: '2',
+                  takeProfit: '3',
+                  trailingStop: ''
+                },
+                technicalIndicators: {
+                  rsi: { enabled: false },
+                  macd: { enabled: false },
+                  ma1: { enabled: false }
+                }
+              }
+            },
+            momentum: {
+              name: 'Smart Momentum',
+              description: 'AI-powered momentum detection with trend following',
+              strategy: 'ai',
+              riskLevel: 'high',
+              config: {
+                positionDirection: 'long',
+                timeframe: '1h',
+                riskManagement: {
+                  stopLoss: '3',
+                  takeProfit: '5',
+                  trailingStop: ''
+                },
+                technicalIndicators: {
+                  rsi: { enabled: false },
+                  macd: { enabled: false },
+                  ma1: { enabled: false }
+                }
+              }
+            },
+            scalping: {
+              name: 'Smart Scalping Bot',
+              description: 'High-frequency scalping with ML-based entry signals',
+              strategy: 'ai',
+              riskLevel: 'high',
+              config: {
+                positionDirection: 'long',
+                timeframe: '5m',
+                riskManagement: {
+                  stopLoss: '1',
+                  takeProfit: '2',
+                  trailingStop: ''
+                },
+                technicalIndicators: {
+                  rsi: { enabled: false },
+                  macd: { enabled: false },
+                  ma1: { enabled: false }
+                }
+              }
+            },
+            arbitrage: {
+              name: 'Smart Arbitrage',
+              description: 'Cross-market arbitrage opportunities with instant execution',
+              strategy: 'ai',
+              riskLevel: 'low',
+              config: {
+                positionDirection: 'long',
+                timeframe: '15m',
+                riskManagement: {
+                  stopLoss: '1.5',
+                  takeProfit: '2.5',
+                  trailingStop: ''
+                },
+                technicalIndicators: {
+                  rsi: { enabled: false },
+                  macd: { enabled: false },
+                  ma1: { enabled: false }
+                }
+              }
+            },
+            dca: {
+              name: 'AI Dollar Cost Average',
+              description: 'Smart DCA with market timing optimization',
+              strategy: 'ai',
+              riskLevel: 'low',
+              config: {
+                positionDirection: 'long',
+                timeframe: '1h',
+                riskManagement: {
+                  stopLoss: '5',
+                  takeProfit: '8',
+                  trailingStop: ''
+                },
+                technicalIndicators: {
+                  rsi: { enabled: false },
+                  macd: { enabled: false },
+                  ma1: { enabled: false }
+                }
+              }
+            }
+          };
+          
+          const strategyConfig = aiStrategyConfigs[strategyId];
+          if (strategyConfig) {
+            try {
+              await storage.createBotStrategy({
+                id: strategyId,
+                userId,
+                ...strategyConfig
+              });
+              console.log(`✅ Created AI strategy: ${strategyId}`);
+            } catch (strategyError) {
+              console.error(`❌ Failed to create AI strategy ${strategyId}:`, strategyError);
+              throw new Error(`Failed to create AI strategy: ${strategyError.message}`);
+            }
+          }
+        }
+      }
+      
       const execution = await storage.createBotExecution({
         ...validatedData,
         userId
