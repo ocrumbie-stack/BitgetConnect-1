@@ -326,7 +326,15 @@ export class MemStorage implements IStorage {
   }
 
   async getBotExecutions(userId: string): Promise<BotExecution[]> {
-    return Array.from(this.botExecutions.values()).filter(execution => execution.userId === userId);
+    const executions = Array.from(this.botExecutions.values()).filter(execution => execution.userId === userId);
+    
+    // Debug: Log each bot execution status 
+    console.log(`📋 Storage getBotExecutions for ${userId}:`);
+    executions.forEach(bot => {
+      console.log(`  - ${bot.tradingPair}: status="${bot.status}", deploymentType="${bot.deploymentType}"`);
+    });
+    
+    return executions;
   }
 
   async createBotExecution(insertExecution: InsertBotExecution): Promise<BotExecution> {
