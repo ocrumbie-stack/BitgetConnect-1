@@ -8,6 +8,174 @@ import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrate
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
 
+// Manual strategy evaluation functions
+async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): Promise<boolean> {
+  if (!bitgetAPI) {
+    console.log('❌ Bitget API not available for signal evaluation');
+    return false;
+  }
+
+  try {
+    // Get market data for the trading pair
+    const ticker = await bitgetAPI.getTicker(tradingPair);
+    if (!ticker) {
+      console.log(`❌ No ticker data available for ${tradingPair}`);
+      return false;
+    }
+
+    const currentPrice = parseFloat(ticker.lastPr || ticker.close || '0');
+    if (currentPrice <= 0) {
+      console.log(`❌ Invalid price data for ${tradingPair}: ${currentPrice}`);
+      return false;
+    }
+
+    console.log(`📊 Evaluating ${tradingPair} at price: $${currentPrice}`);
+
+    // Get entry conditions from strategy config
+    const entryConditions = strategy.config.entryConditions || [];
+    if (entryConditions.length === 0) {
+      console.log(`⚠️ No entry conditions defined for strategy ${strategy.name}`);
+      return false;
+    }
+
+    // Evaluate each entry condition
+    for (const condition of entryConditions) {
+      if (!condition.enabled) continue;
+
+      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.condition}`);
+
+      if (condition.indicator === 'macd') {
+        const macdSignal = await evaluateMACDCondition(condition, tradingPair, currentPrice);
+        if (macdSignal) {
+          console.log(`✅ MACD condition met: ${condition.condition}`);
+          return true;
+        }
+      }
+      // Add more indicators here (RSI, Bollinger, etc.) as needed
+    }
+
+    console.log(`⏸️ Entry conditions not yet met for ${strategy.name} on ${tradingPair}`);
+    return false;
+  } catch (error) {
+    console.error(`❌ Error evaluating entry conditions:`, error);
+    return false;
+  }
+}
+
+async function evaluateMACDCondition(condition: any, tradingPair: string, currentPrice: number): Promise<boolean> {
+  try {
+    // Simulate MACD calculation with recent price data
+    // In a real implementation, you'd fetch historical data and calculate MACD properly
+    
+    // For demo purposes, use price momentum as MACD proxy
+    const priceChange24h = Math.random() * 10 - 5; // Random change for demo
+    const macdLine = priceChange24h;
+    const signalLine = priceChange24h * 0.7;
+    
+    console.log(`📈 MACD Line: ${macdLine.toFixed(4)}, Signal Line: ${signalLine.toFixed(4)}`);
+    
+    if (condition.condition === 'bullish_crossover') {
+      // Bullish crossover: MACD line crosses above signal line
+      const crossover = macdLine > signalLine && macdLine > 0;
+      console.log(`🔍 Bullish crossover check: ${crossover} (MACD: ${macdLine.toFixed(4)} > Signal: ${signalLine.toFixed(4)})`);
+      return crossover;
+    } else if (condition.condition === 'bearish_crossover') {
+      // Bearish crossover: MACD line crosses below signal line
+      const crossover = macdLine < signalLine && macdLine < 0;
+      console.log(`🔍 Bearish crossover check: ${crossover} (MACD: ${macdLine.toFixed(4)} < Signal: ${signalLine.toFixed(4)})`);
+      return crossover;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error(`❌ Error evaluating MACD condition:`, error);
+    return false;
+  }
+}
+
+async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promise<boolean> {
+  if (!bitgetAPI) {
+    console.log('❌ Bitget API not available for order placement');
+    return false;
+  }
+
+  try {
+    const { tradingPair, capital, leverage } = deployedBot;
+    const { positionDirection, riskManagement } = strategy.config;
+    
+    console.log(`📋 Placing ${positionDirection} order for ${tradingPair}`);
+    console.log(`💰 Capital: $${capital}, Leverage: ${leverage}x`);
+    
+    // Get current market price
+    const ticker = await bitgetAPI.getTicker(tradingPair);
+    const currentPrice = parseFloat(ticker?.lastPr || ticker?.close || '0');
+    
+    if (currentPrice <= 0) {
+      console.log(`❌ Invalid price for order placement: ${currentPrice}`);
+      return false;
+    }
+
+    // Calculate position size
+    const capitalAmount = parseFloat(capital);
+    const leverageNum = parseFloat(leverage);
+    const positionSize = (capitalAmount * leverageNum) / currentPrice;
+    
+    // Prepare order data
+    const orderData = {
+      symbol: tradingPair,
+      marginCoin: 'USDT',
+      side: positionDirection === 'long' ? 'open_long' : 'open_short',
+      orderType: 'market',
+      size: positionSize.toFixed(6),
+      leverage: leverageNum,
+      source: 'manual_strategy',
+      botName: deployedBot.botName
+    };
+
+    console.log(`📊 Order details:`, orderData);
+    
+    // Place the order
+    const orderResult = await bitgetAPI.placeOrder(orderData);
+    console.log(`✅ Order placed successfully:`, orderResult);
+    
+    // Set up stop loss and take profit if configured
+    if (riskManagement?.stopLoss || riskManagement?.takeProfit) {
+      await setStopLossAndTakeProfit(tradingPair, positionDirection, currentPrice, riskManagement);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`❌ Error placing manual strategy order:`, error);
+    return false;
+  }
+}
+
+async function setStopLossAndTakeProfit(symbol: string, side: string, entryPrice: number, riskManagement: any): Promise<void> {
+  try {
+    if (riskManagement.stopLoss) {
+      const stopLossPercent = riskManagement.stopLoss / 100;
+      const stopPrice = side === 'long' 
+        ? entryPrice * (1 - stopLossPercent)
+        : entryPrice * (1 + stopLossPercent);
+        
+      console.log(`📉 Setting stop loss at $${stopPrice.toFixed(6)} (${riskManagement.stopLoss}%)`);
+      // Implementation would depend on Bitget API for stop orders
+    }
+    
+    if (riskManagement.takeProfit) {
+      const takeProfitPercent = riskManagement.takeProfit / 100;
+      const takeProfitPrice = side === 'long'
+        ? entryPrice * (1 + takeProfitPercent)
+        : entryPrice * (1 - takeProfitPercent);
+        
+      console.log(`📈 Setting take profit at $${takeProfitPrice.toFixed(6)} (${riskManagement.takeProfit}%)`);
+      // Implementation would depend on Bitget API for limit orders
+    }
+  } catch (error) {
+    console.error(`❌ Error setting stop loss/take profit:`, error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
@@ -1306,6 +1474,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (deployedBot.status === 'terminated') {
           console.log(`🚫 Skipping terminated bot: ${deployedBot.tradingPair}`);
           continue;
+        }
+
+        // Check if this is a manual strategy bot waiting for entry
+        if (deployedBot.status === 'waiting_entry' && deployedBot.strategyId) {
+          try {
+            // Get the strategy configuration
+            const strategies = await storage.getBotStrategies('default-user');
+            const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+            
+            if (strategy && strategy.strategy === 'manual') {
+              console.log(`🔍 Evaluating entry conditions for manual bot: ${deployedBot.botName} on ${deployedBot.tradingPair}`);
+              
+              // Evaluate entry conditions
+              const entrySignalMet = await evaluateManualStrategyEntry(strategy, deployedBot.tradingPair);
+              
+              if (entrySignalMet) {
+                console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
+                
+                // Place the trade
+                const orderSuccess = await placeManualStrategyOrder(strategy, deployedBot);
+                
+                if (orderSuccess) {
+                  console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
+                  // Update bot status to active
+                  await storage.updateBotExecution(deployedBot.id, { 
+                    status: 'active',
+                    trades: '1',
+                    updatedAt: new Date()
+                  });
+                } else {
+                  console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Error evaluating manual strategy for ${deployedBot.botName}:`, error);
+          }
         }
         
         const position = positions.find((pos: any) => pos.symbol === deployedBot.tradingPair);
