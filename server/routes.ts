@@ -879,6 +879,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔥 Closing ${side} position for ${symbol}`);
       console.log('📝 Request body:', JSON.stringify(req.body, null, 2));
       
+      if (!bitgetAPI) {
+        console.log('❌ Bitget API not configured');
+        return res.status(400).json({ 
+          message: 'Bitget API not configured' 
+        });
+      }
+      
       // Also fetch and show current positions for comparison
       const currentPositions = await bitgetAPI.getPositions();
       console.log('📊 Current positions when closing:', JSON.stringify(currentPositions, null, 2));
@@ -898,6 +905,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('❌ Error details:', error.response?.data || error.message || error);
       res.status(500).json({ 
         message: error.message || 'Failed to close position' 
+      });
+    }
+  });
+
+  // Close all positions endpoint  
+  app.post('/api/close-all-positions', async (req, res) => {
+    try {
+      if (!bitgetAPI) {
+        return res.status(400).json({ 
+          message: 'Bitget API not configured' 
+        });
+      }
+
+      const { userId } = req.body;
+      
+      console.log(`🔥 CLOSE ALL POSITIONS REQUEST: ${JSON.stringify(req.body, null, 2)}`);
+      console.log(`🔥 Closing all positions for user: ${userId || 'default'}`);
+      
+      // Get current positions first
+      const positions = await bitgetAPI.getPositions();
+      console.log(`📊 Found ${positions.length} positions to close`);
+      
+      if (positions.length === 0) {
+        return res.json({
+          success: true,
+          message: 'No positions to close',
+          closedPositions: []
+        });
+      }
+      
+      const closedPositions = [];
+      const errors = [];
+      
+      for (const position of positions) {
+        try {
+          console.log(`🔄 Closing position: ${position.symbol} ${position.holdSide}`);
+          const closeResponse = await bitgetAPI.closePosition(position.symbol, position.holdSide);
+          closedPositions.push({
+            symbol: position.symbol,
+            side: position.holdSide,
+            response: closeResponse
+          });
+          console.log(`✅ Closed ${position.symbol} ${position.holdSide}`);
+        } catch (error: any) {
+          console.error(`❌ Failed to close ${position.symbol} ${position.holdSide}:`, error);
+          errors.push({
+            symbol: position.symbol,
+            side: position.holdSide,
+            error: error.message
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Closed ${closedPositions.length} of ${positions.length} positions`,
+        closedPositions,
+        errors: errors.length > 0 ? errors : undefined
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Error closing all positions:', error);
+      res.status(500).json({ 
+        message: error.message || 'Failed to close all positions' 
       });
     }
   });
