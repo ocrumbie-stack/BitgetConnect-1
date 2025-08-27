@@ -1683,7 +1683,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/bot-executions', async (req, res) => {
     try {
+      console.log('🤖 Creating bot execution with data:', JSON.stringify(req.body, null, 2));
       const validatedData = insertBotExecutionSchema.parse(req.body);
+      console.log('✅ Validated bot execution data:', JSON.stringify(validatedData, null, 2));
       const userId = 'default-user'; // In a real app, get from authentication
       
       const execution = await storage.createBotExecution({
@@ -1691,6 +1693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       });
       
+      console.log('🚀 Created bot execution:', JSON.stringify(execution, null, 2));
       res.json(execution);
     } catch (error) {
       console.error('Error creating bot execution:', error);
