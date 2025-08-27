@@ -1323,15 +1323,16 @@ export default function BotPage() {
                   const folderGroups: { [key: string]: any[] } = {};
                   const manualExecutions: any[] = [];
                   
-                  // Only group active folder executions - exclude terminated ones
+                  // Group ALL running executions (active, waiting, exit_pending) - exclude only terminated ones
                   (activeExecutions as any[]).forEach((execution: any) => {
-                    if (execution.status === 'active' && (execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                    // Show all running bots regardless of status (active, waiting_entry, exit_pending)
+                    if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
                       const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } else if (execution.status === 'active' && (!execution.folderName || execution.deploymentType === 'manual')) {
+                    } else if (!execution.folderName || execution.deploymentType === 'manual') {
                       manualExecutions.push(execution);
                     }
                   });
