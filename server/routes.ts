@@ -1337,11 +1337,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Add any positions that don't have corresponding deployed bots (legacy positions)
+      // But skip positions that have recently terminated bots to prevent immediate recreation
       for (const position of positions) {
         const hasDeployedBot = deployedBots.some(bot => bot.tradingPair === position.symbol);
-        if (!hasDeployedBot) {
+        
+        // Check for recently terminated bots for this trading pair (within last 15 seconds)
+        const recentlyTerminated = deployedBots.some(bot => 
+          bot.tradingPair === position.symbol && 
+          bot.status === 'terminated' &&
+          bot.pausedAt && 
+          (Date.now() - new Date(bot.pausedAt).getTime()) < 15000
+        );
+        
+        if (!hasDeployedBot && !recentlyTerminated) {
           const mapping = botMappings.find(m => m.symbol === position.symbol);
           if (mapping) {
+            console.log(`🔄 Creating bot record for legacy position: ${position.symbol} (no recent termination)`);
             // This is a legacy position, create bot record
             const startTime = new Date(Date.now() - 30 * 60 * 1000);
             const runtime = 30;
@@ -1731,7 +1742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If we have bitget API, try to close any open position
       if (bitgetAPI && execution.tradingPair) {
         try {
-          console.log(`🔄 Attempting to close position for ${execution.tradingPair}`);
+          console.log(`🔄 Attempting to close position for ${execution.tradingPair} (Bot: ${execution.id})`);
           
           // Get current positions to check if there's an open position
           const positions = await bitgetAPI.getPositions();
@@ -1739,6 +1750,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             p.symbol === execution.tradingPair && 
             parseFloat(p.total) !== 0
           );
+          
+          console.log(`🔍 Found ${positions.length} total positions, looking for ${execution.tradingPair}`);
           
           if (openPosition) {
             console.log(`📊 Found open position for ${execution.tradingPair}, attempting to close`);
@@ -1764,29 +1777,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   holdSide: openPosition.holdSide
                 }]);
                 
-                console.log(`✅ Flash close successful: ${JSON.stringify(flashCloseResponse, null, 2)}`);
+                console.log(`✅ Flash close successful for ${execution.tradingPair}: ${JSON.stringify(flashCloseResponse, null, 2)}`);
               } catch (flashError) {
-                console.log(`⚠️ Flash close failed, trying cleanup approach: ${flashError.message}`);
+                console.log(`⚠️ Flash close failed for ${execution.tradingPair}, attempting market order: ${flashError.message}`);
                 
-                // Check for any open trailing stop orders and cancel them first
-                console.log(`🧹 Cleaning up orphaned trailing stop orders...`);
+                // Try a simple market close order
                 try {
-                  const openOrders = await bitgetAPI.getOpenOrders(execution.tradingPair);
-                  console.log(`🔍 Found ${openOrders?.data?.entrustedList?.length || 0} trailing stop orders for ${execution.tradingPair}`);
+                  const marketCloseOrder = {
+                    symbol: execution.tradingPair,
+                    productType: 'USDT-FUTURES',
+                    marginMode: 'isolated',
+                    marginCoin: 'USDT',
+                    size: closeSize.toString(),
+                    side: closeOrderSide,
+                    tradeSide: 'close',
+                    orderType: 'market'
+                  };
                   
-                  if (openOrders?.data?.entrustedList?.length > 0) {
-                    for (const order of openOrders.data.entrustedList) {
-                      if (order.orderType === 'trailing_stop' || order.planType === 'moving_plan') {
+                  console.log(`📋 Placing market close order: ${JSON.stringify(marketCloseOrder, null, 2)}`);
+                  await bitgetAPI.placeOrder(marketCloseOrder);
+                  console.log(`✅ Market close order placed successfully for ${execution.tradingPair}`);
+                } catch (marketError) {
+                  console.log(`❌ Market close failed: ${marketError.message}`);
+                  
+                  // Last resort: try to cancel any pending orders that might be blocking closure
+                  try {
+                    console.log(`🧹 Attempting to cancel all pending orders for ${execution.tradingPair}...`);
+                    const openOrders = await bitgetAPI.getOpenOrders(execution.tradingPair);
+                    
+                    if (openOrders?.data?.entrustedList?.length > 0) {
+                      for (const order of openOrders.data.entrustedList) {
                         await bitgetAPI.cancelOrder(order.orderId, execution.tradingPair);
-                        console.log(`❌ Cancelled trailing stop order ${order.orderId}`);
+                        console.log(`❌ Cancelled pending order ${order.orderId} for ${execution.tradingPair}`);
                       }
                     }
+                  } catch (cancelError) {
+                    console.log(`⚠️ Order cancellation failed: ${cancelError.message}`);
                   }
-                } catch (cleanupError) {
-                  console.log(`⚠️ Cleanup failed but continuing: ${cleanupError.message}`);
                 }
-                
-                console.log(`💡 Position closing failed but bot termination will continue`);
               }
               
               console.log(`✅ Successfully closed position for ${execution.tradingPair}`);
@@ -1805,6 +1833,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'terminated',
         pausedAt: new Date()
       });
+      
+      // Wait a moment for position to actually close before allowing sync to recreate
+      setTimeout(() => {
+        console.log(`⏰ Position close grace period ended for ${execution.tradingPair}`);
+      }, 10000); // 10 second grace period
       
       console.log(`✅ Bot execution ${id} terminated successfully`);
       res.json(updatedExecution);
