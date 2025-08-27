@@ -17,13 +17,14 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
 
   try {
     // Get market data for the trading pair
-    const ticker = await bitgetAPI.getTicker(tradingPair);
+    const allTickers = await bitgetAPI.getAllFuturesTickers();
+    const ticker = allTickers.find(t => t.symbol === tradingPair);
     if (!ticker) {
       console.log(`❌ No ticker data available for ${tradingPair}`);
       return false;
     }
 
-    const currentPrice = parseFloat(ticker.lastPr || ticker.close || '0');
+    const currentPrice = parseFloat(ticker.lastPr || '0');
     if (currentPrice <= 0) {
       console.log(`❌ Invalid price data for ${tradingPair}: ${currentPrice}`);
       return false;
@@ -64,25 +65,71 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
 
 async function evaluateMACDCondition(condition: any, tradingPair: string, currentPrice: number): Promise<boolean> {
   try {
-    // Simulate MACD calculation with recent price data
-    // In a real implementation, you'd fetch historical data and calculate MACD properly
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for MACD calculation');
+      return false;
+    }
+
+    // Get historical price data for MACD calculation (increased to 200 for better MACD accuracy)
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200); // Get 200 5-minute candles (16+ hours of data)
+    if (!candleData || candleData.length < 50) {
+      console.log(`❌ Insufficient candle data for MACD calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    // Extract closing prices
+    const closes = candleData.map(candle => parseFloat(candle.close)); // Use the close property
     
-    // For demo purposes, use price momentum as MACD proxy
-    const priceChange24h = Math.random() * 10 - 5; // Random change for demo
-    const macdLine = priceChange24h;
-    const signalLine = priceChange24h * 0.7;
+    // Calculate MACD with specified periods
+    const fastPeriod = condition.fastPeriod || 12;
+    const slowPeriod = condition.slowPeriod || 26;
+    const signalPeriod = condition.signalPeriod || 9;
     
-    console.log(`📈 MACD Line: ${macdLine.toFixed(4)}, Signal Line: ${signalLine.toFixed(4)}`);
+    // Calculate EMAs
+    const fastEMA = calculateEMA(closes, fastPeriod);
+    const slowEMA = calculateEMA(closes, slowPeriod);
+    
+    console.log(`📊 Data lengths: Closes: ${closes.length}, FastEMA: ${fastEMA.length}, SlowEMA: ${slowEMA.length}`);
+    
+    if (fastEMA.length < 2 || slowEMA.length < 2) {
+      console.log(`❌ Insufficient EMA data for MACD calculation`);
+      return false;
+    }
+    
+    // Calculate MACD line (fastEMA - slowEMA)
+    const macdLine = fastEMA[fastEMA.length - 1] - slowEMA[slowEMA.length - 1];
+    const prevMacdLine = fastEMA[fastEMA.length - 2] - slowEMA[slowEMA.length - 2];
+    
+    // Calculate signal line (EMA of MACD line)
+    const macdHistory = [];
+    for (let i = slowPeriod - 1; i < Math.min(fastEMA.length, slowEMA.length); i++) {
+      macdHistory.push(fastEMA[i] - slowEMA[i]);
+    }
+    
+    console.log(`📈 MACD calculation: SlowPeriod: ${slowPeriod}, MACD history length: ${macdHistory.length}, Signal period: ${signalPeriod}`);
+    
+    const signalEMA = calculateEMA(macdHistory, signalPeriod);
+    console.log(`📊 Signal EMA length: ${signalEMA.length}`);
+    
+    if (signalEMA.length < 2) {
+      console.log(`❌ Insufficient signal line data for MACD calculation: ${signalEMA.length} data points (need 2+)`);
+      return false;
+    }
+    
+    const signalLine = signalEMA[signalEMA.length - 1];
+    const prevSignalLine = signalEMA[signalEMA.length - 2];
+    
+    console.log(`📈 ${tradingPair} MACD: ${macdLine.toFixed(6)}, Signal: ${signalLine.toFixed(6)}, Price: $${currentPrice}`);
     
     if (condition.condition === 'bullish_crossover') {
       // Bullish crossover: MACD line crosses above signal line
-      const crossover = macdLine > signalLine && macdLine > 0;
-      console.log(`🔍 Bullish crossover check: ${crossover} (MACD: ${macdLine.toFixed(4)} > Signal: ${signalLine.toFixed(4)})`);
+      const crossover = macdLine > signalLine && prevMacdLine <= prevSignalLine;
+      console.log(`🔍 Bullish crossover check: ${crossover} (Current: MACD ${macdLine.toFixed(6)} > Signal ${signalLine.toFixed(6)}, Previous: MACD ${prevMacdLine.toFixed(6)} <= Signal ${prevSignalLine.toFixed(6)})`);
       return crossover;
     } else if (condition.condition === 'bearish_crossover') {
       // Bearish crossover: MACD line crosses below signal line
-      const crossover = macdLine < signalLine && macdLine < 0;
-      console.log(`🔍 Bearish crossover check: ${crossover} (MACD: ${macdLine.toFixed(4)} < Signal: ${signalLine.toFixed(4)})`);
+      const crossover = macdLine < signalLine && prevMacdLine >= prevSignalLine;
+      console.log(`🔍 Bearish crossover check: ${crossover} (Current: MACD ${macdLine.toFixed(6)} < Signal ${signalLine.toFixed(6)}, Previous: MACD ${prevMacdLine.toFixed(6)} >= Signal ${prevSignalLine.toFixed(6)})`);
       return crossover;
     }
     
@@ -91,6 +138,33 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
     console.error(`❌ Error evaluating MACD condition:`, error);
     return false;
   }
+}
+
+// Helper function to calculate Exponential Moving Average
+function calculateEMA(data: number[], period: number): number[] {
+  if (data.length < period) {
+    console.log(`❌ EMA: Not enough data. Need ${period}, have ${data.length}`);
+    return [];
+  }
+  
+  const multiplier = 2 / (period + 1);
+  const ema: number[] = [];
+  
+  // Start with SMA for the first value
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    sum += data[i];
+  }
+  ema.push(sum / period);
+  
+  // Calculate EMA for remaining values
+  for (let i = period; i < data.length; i++) {
+    const emaValue: number = (data[i] * multiplier) + (ema[ema.length - 1] * (1 - multiplier));
+    ema.push(emaValue);
+  }
+  
+  console.log(`✅ EMA calculated: period ${period}, input ${data.length} points, output ${ema.length} points`);
+  return ema;
 }
 
 async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promise<boolean> {
@@ -107,8 +181,9 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
     console.log(`💰 Capital: $${capital}, Leverage: ${leverage}x`);
     
     // Get current market price
-    const ticker = await bitgetAPI.getTicker(tradingPair);
-    const currentPrice = parseFloat(ticker?.lastPr || ticker?.close || '0');
+    const allTickers = await bitgetAPI.getAllFuturesTickers();
+    const ticker = allTickers.find(t => t.symbol === tradingPair);
+    const currentPrice = parseFloat(ticker?.lastPr || '0');
     
     if (currentPrice <= 0) {
       console.log(`❌ Invalid price for order placement: ${currentPrice}`);
@@ -1845,6 +1920,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Sync positions to bot executions (utility endpoint)
+  // Test MACD evaluation endpoint
+  app.get('/api/test-macd', async (req, res) => {
+    try {
+      const symbol = req.query.symbol as string || 'CROUSDT';
+      
+      console.log(`🧪 Testing MACD evaluation for ${symbol}`);
+      
+      // Get the test strategy
+      const strategies = await storage.getBotStrategies('default-user');
+      const strategy = strategies.find(s => s.name === 'Test');
+      
+      if (!strategy) {
+        return res.status(404).json({ error: 'Test strategy not found' });
+      }
+      
+      // Test MACD evaluation
+      const result = await evaluateManualStrategyEntry(strategy, symbol);
+      
+      res.json({
+        symbol,
+        strategyName: strategy.name,
+        macdSignalMet: result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Error testing MACD:', error);
+      res.status(500).json({ error: 'Failed to test MACD evaluation' });
+    }
+  });
+
   app.post('/api/sync-bots', async (req, res) => {
     try {
       const userId = 'default-user';
