@@ -1128,8 +1128,13 @@ export function Trade() {
                 {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
                   <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">{bot.tradingPair}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="bg-blue-600 text-white px-3 py-1 rounded font-mono text-sm font-semibold">
+                          {bot.tradingPair}
+                        </span>
+                        <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs font-medium">
+                          {bot.cycles || 0} cycles
+                        </span>
                         <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
                           {bot.status.toUpperCase()}
                         </span>
