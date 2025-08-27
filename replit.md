@@ -10,6 +10,7 @@ Account balance display: Total Balance = Total Equity + Available Balance + P&L 
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
 Bot page layout preference: Fixed layout issues in active execution tab with improved two-row vertical design for better mobile display and proper element fitting (August 2025).
+Bot termination system: Successfully implemented comprehensive bot termination that closes both Bitget positions AND terminates corresponding bot database records. "Close All Positions" button now works completely - no more ghost bots appearing after termination (August 2025).
 
 # System Architecture
 
