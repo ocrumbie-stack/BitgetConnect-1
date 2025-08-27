@@ -72,9 +72,10 @@ export default function BotPage() {
   // Fetch user strategies
   const { data: userStrategies = [], isLoading: strategiesLoading } = useQuery({
     queryKey: ['/api/bot-strategies'],
-    staleTime: 0, // Always refetch
-    cacheTime: 0, // Don't cache
-    refetchOnWindowFocus: true
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   // Define AI bots at component level so they can be accessed everywhere
