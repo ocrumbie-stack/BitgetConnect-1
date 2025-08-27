@@ -188,10 +188,6 @@ export default function BotPage() {
 
   // Filter only active executions in frontend
   const activeExecutions = (allExecutions as any[]).filter((execution: any) => execution.status === 'active');
-  
-  // Debug logging for troubleshooting
-  console.log('All executions received:', allExecutions);
-  console.log('Active executions filtered:', activeExecutions);
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({

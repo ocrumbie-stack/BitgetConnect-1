@@ -1129,22 +1129,22 @@ export function Trade() {
                   <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm">{bot.symbol}</span>
+                        <span className="font-semibold text-sm">{bot.tradingPair}</span>
                         <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">
                           {bot.status.toUpperCase()}
                         </span>
-                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{bot.strategyName}</span>
+                        <span className="text-xs bg-muted px-2 py-0.5 rounded">{bot.botName}</span>
                       </div>
                       <div className={`text-sm font-medium ${
-                        parseFloat(bot.currentPnl || '0') >= 0 ? 'text-green-500' : 'text-red-500'
+                        parseFloat(bot.profit || '0') >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
-                        {parseFloat(bot.currentPnl || '0') >= 0 ? '+' : ''}${parseFloat(bot.currentPnl || '0').toFixed(2)}
+                        {parseFloat(bot.profit || '0') >= 0 ? '+' : ''}${parseFloat(bot.profit || '0').toFixed(2)} ({parseFloat(bot.roi || '0') >= 0 ? '+' : ''}{bot.roi || '0'}%)
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                       <div>
                         <div>Capital</div>
-                        <div className="font-medium text-foreground">${parseFloat(bot.capitalAllocated).toFixed(2)}</div>
+                        <div className="font-medium text-foreground">${parseFloat(bot.capital || '0').toFixed(2)}</div>
                       </div>
                       <div>
                         <div>Leverage</div>
