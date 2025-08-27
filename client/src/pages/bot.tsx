@@ -1304,7 +1304,7 @@ export default function BotPage() {
           {activeTab === 'executions' && (
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Active Bot Executions</h3>
+              <h3 className="text-lg font-semibold">Running Bots</h3>
             </div>
 
             {executionsLoading ? (
