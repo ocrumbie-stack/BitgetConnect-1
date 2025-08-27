@@ -1164,10 +1164,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const strategyCycleTime = cycleMinutes[mapping.exitCriteria.exitStrategy as keyof typeof cycleMinutes] || 15;
         const cyclesCompleted = Math.floor(runtime / strategyCycleTime);
 
-        // Calculate ROI percentage
+        // Calculate total ROI percentage (not just current position percentage)
         const unrealizedPL = parseFloat(position.unrealizedPL || '0');
+        const achievedProfits = parseFloat(position.achievedProfits || '0'); // Realized profits from completed trades
+        const totalFee = parseFloat(position.totalFee || '0'); // Total fees paid (negative value)
         const capital = 10; // $10 per bot
-        const roiPercent = (unrealizedPL / capital) * 100;
+        
+        // Total ROI = (Realized Profits + Unrealized P&L + Total Fees) / Capital * 100
+        const totalPnL = achievedProfits + unrealizedPL + totalFee;
+        const roiPercent = (totalPnL / capital) * 100;
 
         // Check exit criteria
         const exitCriteria = mapping.exitCriteria;
