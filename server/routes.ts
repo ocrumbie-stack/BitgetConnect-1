@@ -780,9 +780,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const availableBalance = parseFloat(account.available || '0');
         const unrealizedPnl = parseFloat(account.unrealizedPL || '0');
         
-        // Use Bitget's actual equity field instead of calculating it
+        // Use Bitget's actual equity field which already includes unrealized P&L
         const actualTotalEquity = parseFloat(account.accountEquity || '0');
-        const calculatedTotalBalance = actualTotalEquity + unrealizedPnl; // Total Balance = Bitget's Equity + P&L
+        // Total Balance should match Bitget's accountEquity as it represents complete account value
+        // accountEquity = availableBalance + marginUsed + unrealizedPnL
+        const calculatedTotalBalance = actualTotalEquity;
         
 
         
