@@ -11,7 +11,7 @@ Header structure preference: Total Balance, Total Equity, Available Balance (in 
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
 Bot page layout preference: Fixed layout issues in active execution tab with improved two-row vertical design for better mobile display and proper element fitting (August 2025).
 Bot termination system: Successfully implemented comprehensive bot termination that closes both Bitget positions AND terminates corresponding bot database records. "Close All Positions" button now works completely - no more ghost bots appearing after termination. Both individual Stop buttons and bulk termination properly filter out terminated bots from the UI display (August 2025).
-Entry system enhancement preference: Enhanced MACD crossover detection with momentum-based signals to capture practical trading opportunities even when crossover signals have already occurred. System should trigger when MACD is above signal line with increasing momentum gap (>0.0005) rather than waiting for exact crossover moments that may be missed (August 2025).
+Entry system preference: Classic MACD crossover detection where signal triggers only when MACD line crosses from below to above the signal line (strict crossover moment). No momentum-based or recent crossover triggers - pure technical analysis crossover detection (August 2025).
 
 # System Architecture
 
