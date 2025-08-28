@@ -413,10 +413,17 @@ export default function BotPage() {
     setIsScanning(true);
     setScannerResults(null);
     
+    // Get current trading style from user preferences
+    let tradingStyle = 'balanced'; // Default
+    if (userPrefs && typeof userPrefs === 'object' && 'tradingStyle' in userPrefs) {
+      tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
+    }
+
     const scannerData = {
       userId: 'default-user',
       maxBots: parseInt(scannerMaxBots),
-      minConfidence: minConfidence
+      minConfidence: minConfidence,
+      tradingStyle: tradingStyle
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
