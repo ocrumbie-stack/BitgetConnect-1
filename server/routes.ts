@@ -159,12 +159,12 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
     
     // Dynamic confidence threshold based on market conditions and signal strength
-    let confidenceThreshold = 60; // Base threshold
+    let confidenceThreshold = 50; // Lower base threshold for better responsiveness
     
-    // Lower threshold for strong directional signals (difference > 15 points)
+    // Lower threshold for strong directional signals (difference > 10 points)
     const signalDifference = Math.abs(bullishScore - bearishScore);
-    if (signalDifference >= 15) {
-      confidenceThreshold = 45; // More lenient for clear directional signals
+    if (signalDifference >= 10) {
+      confidenceThreshold = 35; // More aggressive for directional signals
       console.log(`📊 Strong directional signal detected (${signalDifference} point difference) - lowering threshold to ${confidenceThreshold}%`);
     }
     
@@ -172,11 +172,18 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     const hasHighConvictionSignal = 
       (indicators.macd?.bullishCrossover || indicators.macd?.bearishCrossover) ||
       (indicators.rsi?.value < 30 || indicators.rsi?.value > 70) ||
-      (indicators.bollingerBands && (bullishScore >= 20 || bearishScore >= 20));
+      (indicators.bollingerBands && (bullishScore >= 15 || bearishScore >= 15));
     
     if (hasHighConvictionSignal) {
-      confidenceThreshold = Math.min(confidenceThreshold, 40); // Never below 40% for safety
+      confidenceThreshold = Math.min(confidenceThreshold, 30); // More aggressive threshold for high-conviction signals
       console.log(`🎯 High-conviction signal detected - lowering threshold to ${confidenceThreshold}%`);
+    }
+    
+    // Special handling for auto-scanner bots - they were pre-selected with high confidence
+    // so we can be more aggressive with execution thresholds
+    if (confidence >= 25 && signalDifference >= 5) {
+      confidenceThreshold = Math.min(confidenceThreshold, 25); // Very aggressive for auto-scanner opportunities
+      console.log(`🚀 Auto-scanner optimized threshold: ${confidenceThreshold}%`);
     }
     
     if (confidence >= confidenceThreshold) {
@@ -2079,8 +2086,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🔍 Processing bot ${deployedBot.tradingPair}: status="${deployedBot.status}", deploymentType="${deployedBot.deploymentType}"`);
       
 
-        // Check if this is a manual strategy bot (either waiting_entry or active without position)
-        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder')) {
+        // Check if this is a strategy bot (manual/folder/auto_scanner) that needs entry evaluation
+        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner')) {
           try {
             // Get the strategy configuration
             const strategies = await storage.getBotStrategies('default-user');
