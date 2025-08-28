@@ -91,9 +91,21 @@ const tradingStyles = {
   }
 };
 
+type TradingStyleSettings = {
+  confidenceThreshold: number;
+  maxLeverage: number;
+  riskTolerance: 'low' | 'medium' | 'high' | 'extreme';
+  timeframePreference: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+  tradingStyleSettings: {
+    aggressive: boolean;
+    scalping: boolean;
+    volatilityFocus: boolean;
+  };
+};
+
 export function TradingStyleSelector({ userId = 'default-user', onStyleChange }: TradingStyleSelectorProps) {
-  const [selectedStyle, setSelectedStyle] = useState<keyof typeof tradingStyles>('balanced');
-  const [customSettings, setCustomSettings] = useState(tradingStyles.balanced.settings);
+  const [selectedStyle, setSelectedStyle] = useState<keyof typeof tradingStyles | ''>('');
+  const [customSettings, setCustomSettings] = useState<TradingStyleSettings>(tradingStyles.balanced.settings);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { toast } = useToast();
 
@@ -104,10 +116,13 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
 
   // Save user preferences mutation
   const savePreferencesMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/user-preferences/${userId}`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+    mutationFn: async (data: any) => {
+      return await fetch(`/api/user-preferences/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(res => res.json());
+    },
     onSuccess: () => {
       toast({
         title: "Trading Style Updated",
@@ -127,9 +142,9 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
 
   // Initialize from user preferences
   useEffect(() => {
-    if (userPrefs?.tradingStyle) {
+    if (userPrefs && 'tradingStyle' in userPrefs) {
       setSelectedStyle(userPrefs.tradingStyle);
-      if (userPrefs.preferences) {
+      if ('preferences' in userPrefs && userPrefs.preferences) {
         setCustomSettings(userPrefs.preferences);
       }
     }
@@ -141,6 +156,8 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
   };
 
   const handleSavePreferences = () => {
+    if (!selectedStyle) return;
+    
     const data = {
       tradingStyle: selectedStyle,
       preferences: customSettings,
@@ -155,283 +172,226 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
     }));
   };
 
-  const currentStyle = tradingStyles[selectedStyle];
-  const IconComponent = currentStyle.icon;
-
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse">Loading trading preferences...</div>
-        </CardContent>
-      </Card>
+      <div className="animate-pulse">
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Style Selection Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(tradingStyles).map(([key, style]) => {
-          const Icon = style.icon;
-          const isSelected = selectedStyle === key;
-          
-          return (
-            <Card 
-              key={key}
-              className={`cursor-pointer transition-all duration-200 ${
-                isSelected 
-                  ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950' 
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-              onClick={() => handleStyleSelect(key as keyof typeof tradingStyles)}
-              data-testid={`style-card-${key}`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${style.color}`}>
-                      <Icon className="w-5 h-5 text-white" />
+    <div className="space-y-4">
+      {/* Trading Style Dropdown */}
+      <div className="space-y-2">
+        <Label htmlFor="trading-style">Select Trading Style</Label>
+        <Select 
+          value={selectedStyle} 
+          onValueChange={(value) => handleStyleSelect(value as keyof typeof tradingStyles)}
+        >
+          <SelectTrigger data-testid="select-trading-style">
+            <SelectValue placeholder="Choose your trading approach..." />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(tradingStyles).map(([key, style]) => {
+              const IconComponent = style.icon;
+              return (
+                <SelectItem key={key} value={key} data-testid={`option-${key}`}>
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1 rounded ${style.color}`}>
+                      <IconComponent className="h-3 w-3 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{style.name}</CardTitle>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {style.description}
-                      </p>
+                      <span className="font-medium">{style.name}</span>
+                      <span className="text-xs text-muted-foreground ml-1">- {style.description}</span>
                     </div>
                   </div>
-                  {isSelected && (
-                    <Badge variant="default" className="bg-blue-500">
-                      Selected
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {style.features.map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-sm">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-4 grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-gray-500">Confidence:</span>
-                    <span className="ml-1 font-medium">{style.settings.confidenceThreshold}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Max Leverage:</span>
-                    <span className="ml-1 font-medium">{style.settings.maxLeverage}x</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Current Selection Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <IconComponent className="w-5 h-5" />
-            <span>{currentStyle.name} Trading Style</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-lg font-bold text-blue-600">{customSettings.confidenceThreshold}%</div>
-              <div className="text-xs text-gray-600">Min Confidence</div>
+      {/* Configuration Card - Only shown when style is selected */}
+      {selectedStyle && (
+        <Card className="border-2" data-testid="card-trading-config">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              {(() => {
+                const currentStyle = tradingStyles[selectedStyle];
+                const IconComponent = currentStyle.icon;
+                return (
+                  <>
+                    <div className={`p-2 rounded-lg ${currentStyle.color}`}>
+                      <IconComponent className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{currentStyle.name} Trading Style</CardTitle>
+                      <p className="text-sm text-muted-foreground">{currentStyle.description}</p>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-lg font-bold text-green-600">{customSettings.maxLeverage}x</div>
-              <div className="text-xs text-gray-600">Max Leverage</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-lg font-bold text-purple-600">{customSettings.timeframePreference}</div>
-              <div className="text-xs text-gray-600">Timeframe</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="text-lg font-bold text-orange-600">
-                {customSettings.riskTolerance?.toUpperCase()}
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Key Features */}
+            <div>
+              <Label className="text-sm font-medium">Key Features</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tradingStyles[selectedStyle].features.map((feature, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {feature}
+                  </Badge>
+                ))}
               </div>
-              <div className="text-xs text-gray-600">Risk Level</div>
             </div>
-          </div>
 
-          {/* Advanced Settings Toggle */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <Label htmlFor="advanced-settings" className="text-sm font-medium">
-              Advanced Settings
-            </Label>
-            <Switch
-              id="advanced-settings"
-              checked={showAdvanced}
-              onCheckedChange={setShowAdvanced}
-              data-testid="toggle-advanced-settings"
-            />
-          </div>
-
-          {/* Advanced Settings Panel */}
-          {showAdvanced && (
-            <div className="space-y-4 pt-4 border-t">
-              <div className="space-y-2">
-                <Label>Confidence Threshold: {customSettings.confidenceThreshold}%</Label>
+            {/* Basic Settings */}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">
+                  Confidence Threshold: {customSettings.confidenceThreshold}%
+                </Label>
                 <Slider
                   value={[customSettings.confidenceThreshold]}
                   onValueChange={(value) => handleSettingChange('confidenceThreshold', value[0])}
                   max={90}
                   min={30}
                   step={5}
-                  className="w-full"
+                  className="mt-2"
                   data-testid="slider-confidence"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Minimum confidence level required for trade signals
+                </p>
               </div>
-              
-              <div className="space-y-2">
-                <Label>Maximum Leverage: {customSettings.maxLeverage}x</Label>
+
+              <div>
+                <Label className="text-sm font-medium">
+                  Maximum Leverage: {customSettings.maxLeverage}x
+                </Label>
                 <Slider
                   value={[customSettings.maxLeverage]}
                   onValueChange={(value) => handleSettingChange('maxLeverage', value[0])}
                   max={25}
                   min={1}
                   step={1}
-                  className="w-full"
+                  className="mt-2"
                   data-testid="slider-leverage"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Preferred Timeframe</Label>
-                  <Select
-                    value={customSettings.timeframePreference}
-                    onValueChange={(value) => handleSettingChange('timeframePreference', value)}
-                  >
-                    <SelectTrigger data-testid="select-timeframe">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1m">1 Minute</SelectItem>
-                      <SelectItem value="5m">5 Minutes</SelectItem>
-                      <SelectItem value="15m">15 Minutes</SelectItem>
-                      <SelectItem value="1h">1 Hour</SelectItem>
-                      <SelectItem value="4h">4 Hours</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Risk Tolerance</Label>
-                  <Select
-                    value={customSettings.riskTolerance}
-                    onValueChange={(value) => handleSettingChange('riskTolerance', value)}
-                  >
-                    <SelectTrigger data-testid="select-risk-tolerance">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low Risk</SelectItem>
-                      <SelectItem value="medium">Medium Risk</SelectItem>
-                      <SelectItem value="high">High Risk</SelectItem>
-                      <SelectItem value="extreme">Extreme Risk</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Trading Style Features */}
-              <div className="space-y-3">
-                <Label>Trading Features</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="aggressive-mode" className="text-sm">
-                      Aggressive Mode
-                    </Label>
-                    <Switch
-                      id="aggressive-mode"
-                      checked={customSettings.tradingStyleSettings?.aggressive || false}
-                      onCheckedChange={(checked) => 
-                        handleSettingChange('tradingStyleSettings', {
-                          ...customSettings.tradingStyleSettings,
-                          aggressive: checked
-                        })
-                      }
-                      data-testid="switch-aggressive"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="scalping-mode" className="text-sm">
-                      Scalping Focus
-                    </Label>
-                    <Switch
-                      id="scalping-mode"
-                      checked={customSettings.tradingStyleSettings?.scalping || false}
-                      onCheckedChange={(checked) => 
-                        handleSettingChange('tradingStyleSettings', {
-                          ...customSettings.tradingStyleSettings,
-                          scalping: checked
-                        })
-                      }
-                      data-testid="switch-scalping"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="volatility-focus" className="text-sm">
-                      Volatility Focus
-                    </Label>
-                    <Switch
-                      id="volatility-focus"
-                      checked={customSettings.tradingStyleSettings?.volatilityFocus || false}
-                      onCheckedChange={(checked) => 
-                        handleSettingChange('tradingStyleSettings', {
-                          ...customSettings.tradingStyleSettings,
-                          volatilityFocus: checked
-                        })
-                      }
-                      data-testid="switch-volatility"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Save Button */}
-          <Button
-            onClick={handleSavePreferences}
-            disabled={savePreferencesMutation.isPending}
-            className="w-full"
-            data-testid="button-save-preferences"
-          >
-            {savePreferencesMutation.isPending ? 'Saving...' : 'Save Trading Style'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Risk Warning */}
-      {selectedStyle === 'high_risk' && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-red-800 dark:text-red-200">High Risk Warning</h4>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                  High-risk trading can result in significant losses. Only use capital you can afford to lose.
-                  Consider starting with lower leverage and increasing gradually.
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum leverage allowed for trades
                 </p>
               </div>
+
+              <div>
+                <Label className="text-sm font-medium">Preferred Timeframe</Label>
+                <Select 
+                  value={customSettings.timeframePreference} 
+                  onValueChange={(value) => handleSettingChange('timeframePreference', value)}
+                >
+                  <SelectTrigger className="mt-2" data-testid="select-timeframe">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1m">1 Minute</SelectItem>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Advanced Settings Toggle */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="advanced-settings" className="text-sm font-medium">
+                Advanced Settings
+              </Label>
+              <Switch
+                id="advanced-settings"
+                checked={showAdvanced}
+                onCheckedChange={setShowAdvanced}
+                data-testid="switch-advanced"
+              />
+            </div>
+
+            {/* Advanced Settings */}
+            {showAdvanced && (
+              <div className="space-y-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="aggressive-trading" className="text-sm">
+                    Aggressive Trading
+                  </Label>
+                  <Switch
+                    id="aggressive-trading"
+                    checked={customSettings.tradingStyleSettings.aggressive}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('tradingStyleSettings', {
+                        ...customSettings.tradingStyleSettings,
+                        aggressive: checked
+                      })
+                    }
+                    data-testid="switch-aggressive"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="scalping-mode" className="text-sm">
+                    Scalping Mode
+                  </Label>
+                  <Switch
+                    id="scalping-mode"
+                    checked={customSettings.tradingStyleSettings.scalping}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('tradingStyleSettings', {
+                        ...customSettings.tradingStyleSettings,
+                        scalping: checked
+                      })
+                    }
+                    data-testid="switch-scalping"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="volatility-focus" className="text-sm">
+                    Volatility Focus
+                  </Label>
+                  <Switch
+                    id="volatility-focus"
+                    checked={customSettings.tradingStyleSettings.volatilityFocus}
+                    onCheckedChange={(checked) => 
+                      handleSettingChange('tradingStyleSettings', {
+                        ...customSettings.tradingStyleSettings,
+                        volatilityFocus: checked
+                      })
+                    }
+                    data-testid="switch-volatility"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <Button 
+              onClick={handleSavePreferences} 
+              disabled={savePreferencesMutation.isPending || !selectedStyle}
+              className="w-full"
+              data-testid="button-save-preferences"
+            >
+              {savePreferencesMutation.isPending ? 'Saving...' : 'Save Trading Preferences'}
+            </Button>
           </CardContent>
         </Card>
       )}
     </div>
   );
 }
+
+export default TradingStyleSelector;
