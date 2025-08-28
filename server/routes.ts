@@ -3337,6 +3337,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities`);
       
+      // Create or get the Auto Market Scanner folder
+      const folderName = `🤖 Auto Market Scanner - ${new Date().toLocaleDateString()}`;
+      let scannerFolder;
+      
+      try {
+        // Try to get existing folder first
+        const existingFolders = await storage.getScreeners(userId);
+        scannerFolder = existingFolders.find(folder => folder.name.includes('Auto Market Scanner'));
+        
+        if (!scannerFolder) {
+          // Create new Auto Market Scanner folder
+          scannerFolder = await storage.createScreener({
+            userId,
+            name: folderName,
+            description: 'Automatically generated folder for AI market scanner trades',
+            color: '#10b981', // Green color for auto-scanner
+            tradingPairs: topOpportunities.map(op => op.symbol),
+            isStarred: true, // Star it for easy access
+            criteria: {
+              source: 'auto_market_scanner',
+              minConfidence: minConfidence,
+              maxBots: maxBots,
+              deploymentDate: new Date().toISOString()
+            },
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+        } else {
+          // Update existing folder with new pairs
+          const updatedPairs = [...new Set([...scannerFolder.tradingPairs, ...topOpportunities.map(op => op.symbol)])];
+          await storage.updateScreener(scannerFolder.id, {
+            tradingPairs: updatedPairs,
+            updatedAt: new Date()
+          });
+        }
+      } catch (error) {
+        console.error('Failed to create/update Auto Market Scanner folder:', error);
+        // Continue without folder organization
+      }
+
       // Auto-deploy bots to selected pairs
       const deployedBots = [];
       const capitalPerBot = totalCapital / Math.max(topOpportunities.length, 1);
@@ -3346,7 +3386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create AI strategy for this pair
           const strategy = {
             id: `auto-ai-${Date.now()}-${opportunity.symbol}`,
-            name: `Auto AI Scanner - ${opportunity.symbol}`,
+            name: `🤖 Auto AI Scanner - ${opportunity.symbol}`,
             strategy: 'ai',
             config: {
               confidence: opportunity.confidence,
@@ -3359,21 +3399,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createBotStrategy({
             ...strategy,
             userId,
-            description: `Auto-deployed AI bot with ${opportunity.confidence}% confidence`,
+            description: `Auto-deployed AI bot with ${opportunity.confidence}% confidence (${opportunity.direction?.toUpperCase()})`,
             createdAt: new Date(),
             updatedAt: new Date()
           });
           
-          // Deploy bot execution
+          // Deploy bot execution with folder association
           const botExecution = {
             userId,
             strategyId: strategy.id,
             tradingPair: opportunity.symbol,
-            botName: `Auto AI - ${opportunity.symbol}`,
+            botName: `🤖 Auto AI Scanner - ${opportunity.symbol}`,
             capital: capitalPerBot.toString(),
             leverage: '3', // Conservative 3x leverage
             status: 'waiting_entry',
             deploymentType: 'auto_scanner',
+            folderName: scannerFolder ? scannerFolder.name : 'Auto Market Scanner',
             confidence: opportunity.confidence.toString(),
             direction: opportunity.direction,
             createdAt: new Date(),

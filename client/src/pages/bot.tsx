@@ -216,6 +216,27 @@ export default function BotPage() {
     execution.status === 'active' || execution.status === 'waiting_entry' || execution.status === 'exit_pending'
   );
 
+  // Group auto-scanner bots by folder for better organization
+  const groupedExecutions = useMemo(() => {
+    const groups = {
+      autoScanner: [] as any[],
+      folder: [] as any[],
+      individual: [] as any[]
+    };
+
+    activeExecutions.forEach(execution => {
+      if (execution.deploymentType === 'auto_scanner') {
+        groups.autoScanner.push(execution);
+      } else if (execution.deploymentType === 'folder') {
+        groups.folder.push(execution);
+      } else {
+        groups.individual.push(execution);
+      }
+    });
+
+    return groups;
+  }, [activeExecutions]);
+
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
     queryKey: ['/api/folders', 'user1'],
@@ -1846,12 +1867,15 @@ export default function BotPage() {
                 {(() => {
                   // Group executions by deployment type and folder
                   const folderGroups: { [key: string]: any[] } = {};
+                  const autoScannerBots: any[] = [];
                   const manualExecutions: any[] = [];
                   
                   // Group ALL running executions (active, waiting, exit_pending) - exclude only terminated ones
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
-                    if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                    if (execution.deploymentType === 'auto_scanner') {
+                      autoScannerBots.push(execution);
+                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
                       const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
@@ -1864,6 +1888,161 @@ export default function BotPage() {
 
                   return (
                     <>
+                      {/* Auto Market Scanner Bots - Organized Folder */}
+                      {autoScannerBots.length > 0 && (
+                        <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-900/10 to-emerald-800/10">
+                          <CardContent className="p-4">
+                            <div 
+                              className="cursor-pointer"
+                              onClick={() => setExpandedFolders(prev => ({ ...prev, 'auto_scanner': !prev['auto_scanner'] }))}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  {expandedFolders['auto_scanner'] ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  )}
+                                  <h4 className="font-medium truncate">🤖 Auto Market Scanner</h4>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm(`Stop all ${autoScannerBots.length} auto-scanner bots? This will close all AI market scanner positions.`)) {
+                                      autoScannerBots.forEach(bot => handleTerminateExecution.mutate(bot.id));
+                                    }
+                                  }}
+                                  className="flex-shrink-0 h-7 px-2 text-xs"
+                                >
+                                  <Square className="h-3 w-3 mr-1" />
+                                  Stop All
+                                </Button>
+                              </div>
+                              
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-300 text-xs">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                                    {autoScannerBots.length} AI pairs
+                                  </Badge>
+                                  <Badge variant="outline" className="text-green-600 border-green-300 text-xs">
+                                    Auto Deployed
+                                  </Badge>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm font-medium text-green-500">
+                                    +${autoScannerBots.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {autoScannerBots.filter(ex => ex.status === 'active').length}/{autoScannerBots.length} active
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Expanded Auto Scanner Details */}
+                            {expandedFolders['auto_scanner'] && (
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <div className="space-y-2">
+                                  {autoScannerBots.map((execution: any) => (
+                                    <div key={execution.id} className="p-3 rounded-lg bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/40">
+                                      <div className="space-y-3">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="px-3 py-1.5 rounded text-sm font-medium truncate max-w-[200px] bg-green-600/80 text-white">
+                                            {execution.botName || 'Auto AI Bot'}
+                                          </span>
+                                          {(execution.status === 'active' || execution.status === 'waiting_entry') && (
+                                            <div className="flex gap-1 flex-shrink-0">
+                                              {execution.status === 'active' && execution.positionData && (
+                                                <Button 
+                                                  size="sm" 
+                                                  variant="outline"
+                                                  onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setSelectedBotForVisualization(execution);
+                                                    setShowExitVisualizer(true);
+                                                  }}
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7"
+                                                >
+                                                  <Eye className="h-3 w-3 mr-1" />
+                                                  Exit
+                                                </Button>
+                                              )}
+                                              <Button 
+                                                size="sm" 
+                                                variant="destructive"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  handleTerminateExecution.mutate(execution.id);
+                                                }}
+                                                disabled={handleTerminateExecution.isPending}
+                                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
+                                              >
+                                                <Square className="h-3 w-3 mr-1" />
+                                                Stop
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className={`text-sm ${
+                                            execution.status === 'active' 
+                                              ? 'border-green-500 text-green-400 bg-green-950/30'
+                                              : execution.status === 'waiting_entry'
+                                              ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                              : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                          }`}>
+                                            {execution.status === 'waiting_entry' ? 'scanning signals' : execution.status}
+                                          </Badge>
+                                          {execution.confidence && (
+                                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                                              {execution.confidence}% confidence
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-300 font-mono truncate">
+                                              {execution.tradingPair}
+                                            </span>
+                                            {execution.direction && (
+                                              <Badge variant="outline" className={`text-xs ${
+                                                execution.direction === 'long' 
+                                                  ? 'border-green-500 text-green-400'
+                                                  : 'border-red-500 text-red-400'
+                                              }`}>
+                                                {execution.direction?.toUpperCase()}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                            <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
+                                            <div className="flex items-center gap-1">
+                                              <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                              </span>
+                                              <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+
                       {/* Folder-deployed bots grouped by folder */}
                       {Object.entries(folderGroups).map(([folderName, executions]) => (
                         <Card key={folderName} className={`${
