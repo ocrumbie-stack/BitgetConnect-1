@@ -139,24 +139,49 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       }
     }
     
-    // 5. Moving Average Analysis (Weight: 10%)
+    // 5. Enhanced Moving Average & Crossover Analysis (Weight: 15%)
     const maAnalysis = calculateMovingAverageAnalysis(closes);
     if (maAnalysis) {
       indicators.movingAverages = maAnalysis;
       const { ema20, ema50, crossover, trend } = maAnalysis;
       
+      // Strong crossover signals with price confirmation (15 points)
       if (crossover === 'golden' && currentPrice > ema20) {
-        bullishScore += 10; // Golden cross
-        console.log(`🎯 MA: GOLDEN CROSS (+10)`);
+        bullishScore += 15; // Golden cross with bullish confirmation
+        console.log(`🎯 MA: GOLDEN CROSS (+15)`);
       } else if (crossover === 'death' && currentPrice < ema20) {
-        bearishScore += 10; // Death cross
-        console.log(`🎯 MA: DEATH CROSS (+10)`);
-      } else if (trend === 'bullish') {
+        bearishScore += 15; // Death cross with bearish confirmation
+        console.log(`🎯 MA: DEATH CROSS (+15)`);
+      }
+      
+      // Trend confirmation and price position (8 points)
+      else if (trend === 'bullish' && currentPrice > ema20 && currentPrice > ema50) {
+        bullishScore += 8; // Price above both MAs in uptrend
+        console.log(`🎯 MA: BULLISH trend + price above MAs (+8)`);
+      } else if (trend === 'bearish' && currentPrice < ema20 && currentPrice < ema50) {
+        bearishScore += 8; // Price below both MAs in downtrend
+        console.log(`🎯 MA: BEARISH trend + price below MAs (+8)`);
+      }
+      
+      // Weaker signals for trend only (5 points)
+      else if (trend === 'bullish') {
         bullishScore += 5;
         console.log(`🎯 MA: BULLISH trend (+5)`);
       } else if (trend === 'bearish') {
         bearishScore += 5;
         console.log(`🎯 MA: BEARISH trend (+5)`);
+      }
+      
+      // Additional MA separation analysis for momentum (3 points)
+      const maSeparation = Math.abs(ema20 - ema50) / ema50 * 100;
+      if (maSeparation > 0.5) { // Significant MA separation indicates strong momentum
+        if (ema20 > ema50) {
+          bullishScore += 3;
+          console.log(`🎯 MA: STRONG SEPARATION bullish (+3)`);
+        } else {
+          bearishScore += 3;
+          console.log(`🎯 MA: STRONG SEPARATION bearish (+3)`);
+        }
       }
     }
     
