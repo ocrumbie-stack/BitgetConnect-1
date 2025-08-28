@@ -1290,28 +1290,7 @@ export default function BotPage() {
             </CardContent>
           </Card>
 
-          <Card 
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
-              activeTab === 'style' 
-                ? 'bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-800/40 dark:to-orange-900/40 border-orange-300 dark:border-orange-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
-            }`}
-            onClick={() => handleTabChange('style')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <Target className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    Style
-                  </div>
-                  <div className="text-xs text-orange-600 dark:text-orange-400">Trading Preferences</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
 
           <Card 
             className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
@@ -1372,21 +1351,7 @@ export default function BotPage() {
       <div className="p-4">
         <div className="w-full">
 
-          {/* Trading Style Selector Tab */}
-          {activeTab === 'style' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Trading Style Preferences
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Customize your trading approach to match your risk tolerance and market preferences
-                </p>
-              </div>
-              
-              <TradingStyleSelector />
-            </div>
-          )}
+
 
           {/* AI Bots Section */}
           {activeTab === 'ai' && (
@@ -1397,6 +1362,23 @@ export default function BotPage() {
                 6 Professional Bots Available
               </Badge>
             </div>
+
+            {/* Trading Style Selector for AI Bots */}
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-orange-500 rounded-lg">
+                    <Target className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Trading Style Preferences</h4>
+                    <p className="text-sm text-muted-foreground">Customize AI bot behavior to match your risk tolerance</p>
+                  </div>
+                </div>
+                
+                <TradingStyleSelector />
+              </CardContent>
+            </Card>
 
             {(() => {
               return (
@@ -1552,6 +1534,23 @@ export default function BotPage() {
                 AI-Powered Auto Deployment
               </Badge>
             </div>
+
+            {/* Trading Style Selector for Market Scanner */}
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-orange-500 rounded-lg">
+                    <Target className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Scanner Trading Style</h4>
+                    <p className="text-sm text-muted-foreground">Configure market scanner behavior and risk parameters</p>
+                  </div>
+                </div>
+                
+                <TradingStyleSelector />
+              </CardContent>
+            </Card>
 
             <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-200 dark:border-cyan-800">
               <CardContent className="p-6">
