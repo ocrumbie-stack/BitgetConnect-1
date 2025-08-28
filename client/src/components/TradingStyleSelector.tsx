@@ -6,9 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { Label } from '@/components/ui/label';
 import { TrendingUp, Shield, Zap, Target, AlertTriangle, DollarSign } from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 
 interface TradingStyleSelectorProps {
   userId?: string;
@@ -88,38 +87,14 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
   const [selectedStyle, setSelectedStyle] = useState<keyof typeof tradingStyles | ''>('');
   const [customSettings, setCustomSettings] = useState<TradingStyleSettings>(tradingStyles.balanced.settings);
 
-  const { toast } = useToast();
+
 
   // Fetch current user preferences
   const { data: userPrefs, isLoading } = useQuery({
     queryKey: ['/api/user-preferences', userId],
   });
 
-  // Save user preferences mutation
-  const savePreferencesMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await fetch(`/api/user-preferences/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    onSuccess: () => {
-      toast({
-        title: "Trading Style Updated",
-        description: "Your trading preferences have been saved successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
-      onStyleChange?.(customSettings);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save trading preferences. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+
 
   // Initialize from user preferences
   useEffect(() => {
@@ -137,24 +112,26 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
   const handleStyleSelect = (styleKey: keyof typeof tradingStyles) => {
     setSelectedStyle(styleKey);
     setCustomSettings(tradingStyles[styleKey].settings);
-  };
-
-  const handleSavePreferences = () => {
-    if (!selectedStyle) return;
     
+    // Automatically save the selection without requiring manual save
     const data = {
-      tradingStyle: selectedStyle,
-      preferences: customSettings,
+      tradingStyle: styleKey,
+      preferences: tradingStyles[styleKey].settings,
     };
-    savePreferencesMutation.mutate(data);
+    
+    fetch(`/api/user-preferences/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
+      onStyleChange?.(tradingStyles[styleKey].settings);
+    });
   };
 
-  const handleSettingChange = (key: string, value: any) => {
-    setCustomSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
+
+
+
 
   if (isLoading) {
     return (
@@ -255,15 +232,7 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
 
 
 
-            {/* Save Button */}
-            <Button 
-              onClick={handleSavePreferences} 
-              disabled={savePreferencesMutation.isPending || !selectedStyle}
-              className="w-full"
-              data-testid="button-save-preferences"
-            >
-              {savePreferencesMutation.isPending ? 'Saving...' : 'Save Trading Preferences'}
-            </Button>
+
           </CardContent>
         </Card>
       )}

@@ -3572,8 +3572,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Determine timeframe and analysis parameters based on trading style
       const styleConfig = {
-        conservative: { timeframe: '4h', dataPoints: 100, description: 'Long-term analysis' },
-        balanced: { timeframe: '1h', dataPoints: 150, description: 'Medium-term analysis' },
+        conservative: { timeframe: '4H', dataPoints: 100, description: 'Long-term analysis' },
+        balanced: { timeframe: '1H', dataPoints: 150, description: 'Medium-term analysis' },
         aggressive: { timeframe: '5m', dataPoints: 200, description: 'Short-term scalping' }
       };
 
