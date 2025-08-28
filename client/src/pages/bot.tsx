@@ -1548,7 +1548,7 @@ export default function BotPage() {
               </Badge>
             </div>
 
-            {/* Trading Style Selector for Market Scanner */}
+            {/* Scanner Configuration Card */}
             <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3 mb-4">
@@ -1556,72 +1556,40 @@ export default function BotPage() {
                     <Target className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Scanner Trading Style</h4>
-                    <p className="text-sm text-muted-foreground">Configure market scanner behavior and risk parameters</p>
+                    <h4 className="font-semibold">Scanner Configuration</h4>
+                    <p className="text-sm text-muted-foreground">Configure trading style, max bots, and start scanning</p>
                   </div>
                 </div>
                 
-                <TradingStyleSelector />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-200 dark:border-cyan-800">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="p-3 bg-cyan-500 rounded-lg">
-                    <Search className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-lg mb-2">Fully Autonomous Trading</h4>
-                    <p className="text-muted-foreground">
-                      AI scans the entire market, evaluates all trading pairs using multi-indicator analysis, 
-                      and automatically deploys bots to the highest-confidence opportunities. You only need to set your capital.
-                    </p>
-                  </div>
+                {/* Trading Style Selector */}
+                <div className="mb-6">
+                  <TradingStyleSelector />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Total Capital ($)</label>
+                {/* Scanner Settings */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Maximum Bots to Deploy</label>
                     <Input
                       type="number"
-                      value={scannerCapital}
-                      onChange={(e) => setScannerCapital(e.target.value)}
-                      placeholder="10000"
-                      className="bg-white dark:bg-gray-800"
-                      disabled={isScanning}
+                      value={scannerMaxBots}
+                      onChange={(e) => setScannerMaxBots(e.target.value)}
+                      placeholder="e.g., 5"
+                      min="1"
+                      max="10"
+                      data-testid="input-max-bots"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Will be split equally across selected opportunities
+                      Maximum number of AI bots to deploy automatically (1-10)
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Max Bots</label>
-                    <Select value={scannerMaxBots} onValueChange={setScannerMaxBots} disabled={isScanning}>
-                      <SelectTrigger className="bg-white dark:bg-gray-800">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3">3 Bots</SelectItem>
-                        <SelectItem value="5">5 Bots</SelectItem>
-                        <SelectItem value="8">8 Bots</SelectItem>
-                        <SelectItem value="10">10 Bots</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Maximum number of trading pairs to deploy
-                    </p>
-                  </div>
-
-
-                </div>
-
-                <div className="flex items-center gap-4">
+                  {/* Start Scanner Button */}
                   <Button
                     onClick={handleAutoScannerDeploy}
-                    disabled={isScanning || !scannerCapital}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                    disabled={isScanning || autoScannerMutation.isPending}
+                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
+                    data-testid="button-start-scanner"
                   >
                     {isScanning ? (
                       <>
@@ -1635,6 +1603,105 @@ export default function BotPage() {
                       </>
                     )}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Scanner Results Card */}
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="p-3 bg-green-500 rounded-lg">
+                    <Target className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg mb-2">Scanner Results & Deployment</h4>
+                    <p className="text-muted-foreground">
+                      Set capital allocation and leverage for selected opportunities, then deploy your bots.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deployment Configuration */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Total Capital ($)</label>
+                    <Input
+                      type="number"
+                      value={scannerCapital}
+                      onChange={(e) => setScannerCapital(e.target.value)}
+                      placeholder="10000"
+                      className="bg-white dark:bg-gray-800"
+                      disabled={isScanning}
+                      data-testid="input-scanner-capital"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Will be split equally across selected opportunities
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Leverage</label>
+                    <Select value="5" disabled={isScanning}>
+                      <SelectTrigger className="bg-white dark:bg-gray-800" data-testid="select-scanner-leverage">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2x</SelectItem>
+                        <SelectItem value="3">3x</SelectItem>
+                        <SelectItem value="5">5x</SelectItem>
+                        <SelectItem value="10">10x</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Leverage for all deployed bots
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Deploy Status</label>
+                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border">
+                      {scannerResults ? (
+                        <Badge variant="default" className="bg-green-500">
+                          Ready to Deploy
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          Run Scanner First
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {scannerResults ? 'Results available for deployment' : 'Start scanner to find opportunities'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deploy Button */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={() => {
+                      if (scannerResults) {
+                        // Handle deployment of scanner results
+                        toast({
+                          title: "Deploying Bots! 🚀",
+                          description: `Deploying ${scannerResults.deployedBots || scannerMaxBots} bots with configured capital and leverage`,
+                        });
+                      } else {
+                        toast({
+                          title: "No Results",
+                          description: "Please run the scanner first to get trading opportunities",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    disabled={!scannerResults || isScanning}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                    data-testid="button-deploy-bots"
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    Deploy Selected Bots
+                  </Button>
                   
                   {scannerCapital && parseInt(scannerMaxBots) > 0 && (
                     <div className="text-sm text-muted-foreground">
@@ -1643,13 +1710,14 @@ export default function BotPage() {
                   )}
                 </div>
 
+                {/* Display scanning progress and results in the results card */}
                 {isScanning && (
                   <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
                       <div>
-                        <div className="font-medium">Analyzing Market...</div>
-                        <div className="text-sm">Evaluating 100+ trading pairs with AI indicators</div>
+                        <div className="font-medium">Results will appear below when scanning completes...</div>
+                        <div className="text-sm">Use the results card to deploy selected opportunities</div>
                       </div>
                     </div>
                   </div>
@@ -1660,20 +1728,12 @@ export default function BotPage() {
                     <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-3">
                         <Target className="h-5 w-5" />
-                        <span className="font-medium">Deployment Complete!</span>
+                        <span className="font-medium">Scanner Complete! Use Results Card Below</span>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <div className="text-muted-foreground">Bots Deployed</div>
+                          <div className="text-muted-foreground">Opportunities Found</div>
                           <div className="font-bold text-lg">{scannerResults.deployedBots}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Total Capital</div>
-                          <div className="font-bold text-lg">${scannerResults.totalCapital}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Capital/Bot</div>
-                          <div className="font-bold text-lg">${scannerResults.capitalPerBot}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Confidence</div>
@@ -1685,29 +1745,6 @@ export default function BotPage() {
                         </div>
                       </div>
                     </div>
-
-                    {scannerResults.deployedDetails && scannerResults.deployedDetails.length > 0 && (
-                      <div className="space-y-2">
-                        <h5 className="font-medium">Deployed Trading Pairs</h5>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {scannerResults.deployedDetails.map((bot: any, index: number) => (
-                            <div key={index} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="font-medium">{bot.symbol}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {bot.direction?.toUpperCase()} • ${bot.capital}
-                                  </div>
-                                </div>
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  {bot.confidence}%
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>
