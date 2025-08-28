@@ -1872,15 +1872,17 @@ export default function BotPage() {
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
                     if (execution.deploymentType === 'auto_scanner') {
-                      // Treat auto_scanner bots as individual bots instead of grouping them
+                      // AI bots deployed with Auto Market Scanner show individually with their bot names
                       manualExecutions.push(execution);
-                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
-                      const folderName = execution.folderName || execution.botName;
+                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && execution.folderName) {
+                      // Bots deployed from folders stay grouped by folder
+                      const folderName = execution.folderName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } else if (!execution.folderName || execution.deploymentType === 'manual') {
+                    } else {
+                      // Manual individual bots show individually
                       manualExecutions.push(execution);
                     }
                   });
