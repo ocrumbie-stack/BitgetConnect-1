@@ -73,6 +73,10 @@ export default function BotPage() {
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
+  const [showAutoAICreation, setShowAutoAICreation] = useState(false);
+  const [selectedPairForAutoAI, setSelectedPairForAutoAI] = useState<string | null>(null);
+  const [autoAIBotCapital, setAutoAIBotCapital] = useState('100');
+  const [autoAIBotLeverage, setAutoAIBotLeverage] = useState('3');
   const [selectedBotInfo, setSelectedBotInfo] = useState<any>(null);
   const [expandedBots, setExpandedBots] = useState<{[key: string]: boolean}>({});
   const [suggestedSettings, setSuggestedSettings] = useState<any>(null);
@@ -494,6 +498,62 @@ export default function BotPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
     }
   });
+
+  // Create Auto AI Bot mutation
+  const createAutoAIBotMutation = useMutation({
+    mutationFn: async (botData: any) => {
+      const response = await fetch('/api/bot-executions/ai-bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(botData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to create AI bot: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      setShowAutoAICreation(false);
+      setSelectedPairForAutoAI(null);
+      toast({
+        title: "Auto AI Bot Created",
+        description: `AI bot deployed successfully for ${selectedPairForAutoAI}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to Create Bot",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle Auto AI Bot creation form submission
+  const handleCreateAutoAIBot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedPairForAutoAI || !autoAIBotCapital || !autoAIBotLeverage) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const botData = {
+      userId: 'default-user',
+      tradingPair: selectedPairForAutoAI,
+      capital: parseFloat(autoAIBotCapital),
+      leverage: parseInt(autoAIBotLeverage),
+      deploymentType: 'auto_ai'
+    };
+
+    await createAutoAIBotMutation.mutateAsync(botData);
+  };
 
   const resetForm = () => {
     setStrategyName('');
