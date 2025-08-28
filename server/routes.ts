@@ -1041,6 +1041,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
   
+  // User preferences routes
+  addUserPreferencesRoutes(app, storage);
+  
   // DELETE endpoint for canceling orders (especially plan orders like trailing stops)
   app.delete('/api/orders/:orderId', async (req, res) => {
     console.log('🗑️ ORDER DELETE ENDPOINT - Processing cancel request');
@@ -4028,4 +4031,62 @@ function calculateVolatility(candles: any[]): number {
     console.error('Error calculating volatility:', error);
     return 1.0;
   }
+}
+
+// User preferences endpoints
+export function addUserPreferencesRoutes(app: any, storage: any) {
+  // Get user preferences
+  app.get('/api/user-preferences/:userId', async (req: any, res: any) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user preferences from storage
+      const userPrefs = await storage.getUserPreferences(userId);
+      
+      if (!userPrefs) {
+        // Return default balanced preferences
+        return res.json({
+          tradingStyle: 'balanced',
+          preferences: {
+            confidenceThreshold: 65,
+            maxLeverage: 5,
+            riskTolerance: 'medium',
+            timeframePreference: '1h',
+            tradingStyleSettings: {
+              aggressive: false,
+              scalping: false,
+              volatilityFocus: false,
+            }
+          }
+        });
+      }
+      
+      res.json(userPrefs);
+    } catch (error: any) {
+      console.error('❌ Error fetching user preferences:', error);
+      res.status(500).json({ message: 'Failed to fetch user preferences' });
+    }
+  });
+
+  // Save user preferences
+  app.post('/api/user-preferences/:userId', async (req: any, res: any) => {
+    try {
+      const { userId } = req.params;
+      const { tradingStyle, preferences } = req.body;
+      
+      console.log(`💾 Saving trading style: ${tradingStyle} for user: ${userId}`);
+      console.log(`🎯 Preferences: Confidence=${preferences.confidenceThreshold}%, Leverage=${preferences.maxLeverage}x, Risk=${preferences.riskTolerance}`);
+      
+      // Save user preferences
+      await storage.saveUserPreferences(userId, {
+        tradingStyle,
+        preferences
+      });
+      
+      res.json({ success: true, message: 'Trading preferences saved successfully' });
+    } catch (error: any) {
+      console.error('❌ Error saving user preferences:', error);
+      res.status(500).json({ message: 'Failed to save user preferences' });
+    }
+  });
 }
