@@ -310,6 +310,40 @@ export default function BotPage() {
     }
   });
 
+  // Close single position mutation
+  const closePositionMutation = useMutation({
+    mutationFn: async ({ symbol, side }: { symbol: string, side: string }) => {
+      const response = await fetch('/api/close-position', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: 'default-user',
+          symbol,
+          side 
+        })
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to close position: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      toast({
+        title: "Position Closed",
+        description: "Position has been closed successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Close Position",
+        description: error.message || "Failed to close position.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Close all positions mutation
   const closeAllPositionsMutation = useMutation({
     mutationFn: async () => {
@@ -2282,83 +2316,69 @@ export default function BotPage() {
                                             )}
                                           </div>
                                           
-                                          {/* Position & Exit Info */}
-                                          {execution.status === 'active' && execution.positionData && (
-                                            <div className="bg-gray-900/30 rounded-lg p-3 space-y-2">
-                                              <div className="flex items-center justify-between">
-                                                <span className="text-sm text-muted-foreground">Position</span>
-                                                <div className="flex items-center gap-2">
-                                                  <Badge variant={execution.positionData.holdSide === 'long' ? 'default' : 'destructive'} className="text-xs">
-                                                    {execution.positionData.holdSide === 'long' ? '↗️ LONG' : '↘️ SHORT'}
-                                                  </Badge>
-                                                  <span className="text-sm font-medium">{execution.leverage}x</span>
-                                                </div>
-                                              </div>
-                                              <div className="grid grid-cols-2 gap-3 text-sm">
-                                                <div>
-                                                  <div className="text-muted-foreground">Entry Price</div>
-                                                  <div className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</div>
-                                                </div>
-                                                <div>
-                                                  <div className="text-muted-foreground">Mark Price</div>
-                                                  <div className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</div>
-                                                </div>
-                                              </div>
-                                              
-                                              {/* Exit Levels */}
-                                              <div className="border-t border-gray-700 pt-2">
-                                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                                  <div>
-                                                    <div className="text-red-400 text-xs">Stop Loss</div>
-                                                    <div className="font-medium text-red-400">
-                                                      {execution.stopLoss ? `${execution.stopLoss}%` : '-2.0%'}
-                                                    </div>
-                                                  </div>
-                                                  <div>
-                                                    <div className="text-green-400 text-xs">Take Profit</div>
-                                                    <div className="font-medium text-green-400">
-                                                      {execution.takeProfit ? `${execution.takeProfit}%` : '+3.0%'}
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </div>
+                                          {/* Exit Information - Restored original format */}
+                                          <div className="flex items-center justify-between min-w-0">
+                                            <div className="flex items-center gap-2">
+                                              <Badge variant="outline" className={`text-xs ${
+                                                execution.status === 'active' 
+                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
+                                                  : execution.status === 'waiting_entry'
+                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                              }`}>
+                                                {execution.status === 'waiting_entry' ? 'waiting entry' : execution.status}
+                                              </Badge>
+                                              {execution.confidence && (
+                                                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                                                  {execution.confidence}% confidence
+                                                </Badge>
+                                              )}
                                             </div>
-                                          )}
-
-                                          {/* Bot Stats Display */}
-                                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            <div className="text-center">
-                                              <div className={`text-lg font-bold ${execution.status === 'active' ? (isAutoScanner ? 'text-green-500' : 'text-blue-500') : 'text-muted-foreground'}`}>
-                                                {execution.status === 'active' ? 
-                                                  (execution.positionData?.unrealizedPL ? 
-                                                    `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}` 
-                                                    : `+$${parseFloat(execution.profit || '0').toFixed(2)}`)
-                                                  : `$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                            <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                              <div className="text-gray-400 text-xs">
+                                                {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'} • {execution.leverage}x
                                               </div>
-                                              <div className="text-xs text-muted-foreground">P&L</div>
-                                            </div>
-                                            <div className="text-center">
-                                              <div className={`text-lg font-bold ${isAutoScanner ? 'text-green-600' : 'text-blue-600'}`}>
-                                                {execution.roi || 
-                                                  (execution.positionData?.unrealizedPL && execution.capital ? 
-                                                    ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2) 
-                                                    : '0.00')}%
+                                              <div className="flex items-center gap-1">
+                                                <span className={`font-medium ${
+                                                  execution.positionData?.unrealizedPL ? 
+                                                    parseFloat(execution.positionData.unrealizedPL) >= 0 ? 'text-green-400' : 'text-red-400'
+                                                    : parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'
+                                                }`}>
+                                                  {execution.positionData?.unrealizedPL ? 
+                                                    `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}`
+                                                    : `${parseFloat(execution.profit || '0') >= 0 ? '+' : ''}$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                                </span>
+                                                <span className={`text-xs ${
+                                                  execution.positionData?.unrealizedPL && execution.capital ? 
+                                                    ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? 'text-green-400' : 'text-red-400'
+                                                    : parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'
+                                                }`}>
+                                                  ({execution.positionData?.unrealizedPL && execution.capital ? 
+                                                    `${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? '+' : ''}${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2)}%`
+                                                    : `${parseFloat(execution.roi || '0') >= 0 ? '+' : ''}${parseFloat(execution.roi || '0').toFixed(2)}%`})
+                                                </span>
                                               </div>
-                                              <div className="text-xs text-muted-foreground">ROI</div>
-                                            </div>
-                                            <div className="text-center">
-                                              <div className={`text-lg font-bold ${isAutoScanner ? 'text-green-600' : 'text-blue-600'}`}>
-                                                {execution.trades || '0'}
-                                              </div>
-                                              <div className="text-xs text-muted-foreground">Trades</div>
-                                            </div>
-                                            <div className="text-center">
-                                              <div className={`text-lg font-bold ${isAutoScanner ? 'text-green-600' : 'text-blue-600'}`}>
-                                                {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'}
-                                              </div>
-                                              <div className="text-xs text-muted-foreground">Capital</div>
                                             </div>
                                           </div>
+
+                                          {/* Exit Levels Information */}
+                                          {execution.status === 'active' && (
+                                            <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
+                                              <div className="flex items-center gap-3">
+                                                <span className="text-red-400">
+                                                  SL: {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
+                                                </span>
+                                                <span className="text-green-400">
+                                                  TP: {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
+                                                </span>
+                                              </div>
+                                              {execution.positionData && (
+                                                <span className="text-gray-400">
+                                                  Entry: ${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     ))}
@@ -2479,83 +2499,69 @@ export default function BotPage() {
                                           )}
                                         </div>
 
-                                        {/* Position & Exit Info for Manual Bots */}
-                                        {execution.status === 'active' && execution.positionData && (
-                                          <div className="bg-gray-900/30 rounded-lg p-3 space-y-2">
-                                            <div className="flex items-center justify-between">
-                                              <span className="text-sm text-muted-foreground">Position</span>
-                                              <div className="flex items-center gap-2">
-                                                <Badge variant={execution.positionData.holdSide === 'long' ? 'default' : 'destructive'} className="text-xs">
-                                                  {execution.positionData.holdSide === 'long' ? '↗️ LONG' : '↘️ SHORT'}
-                                                </Badge>
-                                                <span className="text-sm font-medium">{execution.leverage}x</span>
-                                              </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                              <div>
-                                                <div className="text-muted-foreground">Entry Price</div>
-                                                <div className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</div>
-                                              </div>
-                                              <div>
-                                                <div className="text-muted-foreground">Mark Price</div>
-                                                <div className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</div>
-                                              </div>
-                                            </div>
-                                            
-                                            {/* Exit Levels */}
-                                            <div className="border-t border-gray-700 pt-2">
-                                              <div className="grid grid-cols-2 gap-3 text-sm">
-                                                <div>
-                                                  <div className="text-red-400 text-xs">Stop Loss</div>
-                                                  <div className="font-medium text-red-400">
-                                                    {execution.stopLoss ? `${execution.stopLoss}%` : '-2.0%'}
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <div className="text-green-400 text-xs">Take Profit</div>
-                                                  <div className="font-medium text-green-400">
-                                                    {execution.takeProfit ? `${execution.takeProfit}%` : '+3.0%'}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </div>
+                                        {/* Exit Information - Manual Bots */}
+                                        <div className="flex items-center justify-between min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className={`text-xs ${
+                                              execution.status === 'active' 
+                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                : execution.status === 'waiting_entry'
+                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                            }`}>
+                                              {execution.status === 'waiting_entry' ? 'waiting entry' : execution.status}
+                                            </Badge>
+                                            {execution.confidence && (
+                                              <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                                                {execution.confidence}% confidence
+                                              </Badge>
+                                            )}
                                           </div>
-                                        )}
-
-                                        {/* Bot Stats Display for Manual Bots */}
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                          <div className="text-center">
-                                            <div className={`text-lg font-bold ${execution.status === 'active' ? 'text-gray-500' : 'text-muted-foreground'}`}>
-                                              {execution.status === 'active' ? 
-                                                (execution.positionData?.unrealizedPL ? 
-                                                  `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}` 
-                                                  : `+$${parseFloat(execution.profit || '0').toFixed(2)}`)
-                                                : `$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                          <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                            <div className="text-gray-400 text-xs">
+                                              {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'} • {execution.leverage}x
                                             </div>
-                                            <div className="text-xs text-muted-foreground">P&L</div>
-                                          </div>
-                                          <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-600">
-                                              {execution.roi || 
-                                                (execution.positionData?.unrealizedPL && execution.capital ? 
-                                                  ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2) 
-                                                  : '0.00')}%
+                                            <div className="flex items-center gap-1">
+                                              <span className={`font-medium ${
+                                                execution.positionData?.unrealizedPL ? 
+                                                  parseFloat(execution.positionData.unrealizedPL) >= 0 ? 'text-green-400' : 'text-red-400'
+                                                  : parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'
+                                              }`}>
+                                                {execution.positionData?.unrealizedPL ? 
+                                                  `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}`
+                                                  : `${parseFloat(execution.profit || '0') >= 0 ? '+' : ''}$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                              </span>
+                                              <span className={`text-xs ${
+                                                execution.positionData?.unrealizedPL && execution.capital ? 
+                                                  ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? 'text-green-400' : 'text-red-400'
+                                                  : parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'
+                                              }`}>
+                                                ({execution.positionData?.unrealizedPL && execution.capital ? 
+                                                  `${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? '+' : ''}${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2)}%`
+                                                  : `${parseFloat(execution.roi || '0') >= 0 ? '+' : ''}${parseFloat(execution.roi || '0').toFixed(2)}%`})
+                                              </span>
                                             </div>
-                                            <div className="text-xs text-muted-foreground">ROI</div>
-                                          </div>
-                                          <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-600">
-                                              {execution.trades || '0'}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">Trades</div>
-                                          </div>
-                                          <div className="text-center">
-                                            <div className="text-lg font-bold text-gray-600">
-                                              {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">Capital</div>
                                           </div>
                                         </div>
+
+                                        {/* Exit Levels Information for Manual Bots */}
+                                        {execution.status === 'active' && (
+                                          <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
+                                            <div className="flex items-center gap-3">
+                                              <span className="text-red-400">
+                                                SL: {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
+                                              </span>
+                                              <span className="text-green-400">
+                                                TP: {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
+                                              </span>
+                                            </div>
+                                            {execution.positionData && (
+                                              <span className="text-gray-400">
+                                                Entry: ${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
