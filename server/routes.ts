@@ -3790,7 +3790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             riskLevel: 'medium'
           });
           
-          // Deploy bot execution
+          // Deploy bot execution with IMMEDIATE trade execution since criteria are already met
           const botExecution = {
             userId,
             strategyId: strategy.id,
@@ -3798,7 +3798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             botName: strategy.name,
             capital: capitalPerBot.toFixed(2),
             leverage: leverage.toString(),
-            status: 'waiting_entry',
+            status: 'waiting_entry', // Will be updated to 'active' after trade execution
             deploymentType: 'auto_scanner',
             folderName: scannerFolder ? scannerFolder.name : 'Auto Market Scanner',
             confidence: opportunity.confidence.toString(),
@@ -3806,19 +3806,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           const savedBot = await storage.createBotExecution(botExecution);
-          deployedBots.push(savedBot);
           
-          console.log(`🤖 Deployed bot to ${opportunity.symbol}: $${capitalPerBot.toFixed(2)} capital, ${opportunity.confidence}% confidence`);
+          // IMMEDIATE TRADE EXECUTION - Since scanner already confirmed criteria are met
+          console.log(`🚀 AUTO-EXECUTING TRADE: ${opportunity.symbol} ${opportunity.direction?.toUpperCase()} with ${opportunity.confidence}% confidence`);
+          
+          try {
+            if (!bitgetAPI) {
+              throw new Error('Bitget API not available for trade execution');
+            }
+
+            // Calculate position size based on capital and leverage
+            const positionValue = parseFloat(capitalPerBot.toFixed(2)) * parseInt(leverage.toString());
+            const currentPrice = opportunity.price;
+            const quantity = (positionValue / currentPrice).toFixed(4);
+
+            // Execute the trade immediately
+            const orderParams = {
+              symbol: opportunity.symbol,
+              side: opportunity.direction === 'long' ? 'buy' : 'sell',
+              orderType: 'market',
+              size: quantity,
+              marginCoin: 'USDT',
+              timeInForceValue: 'IOC'
+            };
+
+            console.log(`📊 Order Details: ${orderParams.side} ${orderParams.size} ${opportunity.symbol} at market price`);
+            
+            const orderResult = await bitgetAPI.placeOrder(orderParams);
+            
+            if (orderResult.success) {
+              // Update bot status to active with position info
+              await storage.updateBotExecution(savedBot.id, {
+                status: 'active',
+                updatedAt: new Date(),
+                positionData: {
+                  orderId: orderResult.data?.orderId,
+                  quantity: quantity,
+                  entryPrice: currentPrice.toString(),
+                  side: opportunity.direction,
+                  leverage: leverage.toString()
+                }
+              });
+              
+              console.log(`✅ TRADE EXECUTED: ${opportunity.symbol} ${opportunity.direction?.toUpperCase()} - Order ID: ${orderResult.data?.orderId}`);
+              
+              // Update the bot object for response
+              savedBot.status = 'active';
+              savedBot.positionData = orderResult.data;
+              
+            } else {
+              console.log(`⚠️ Trade execution failed for ${opportunity.symbol}: ${orderResult.message || 'Unknown error'}`);
+              console.log(`🔄 Bot will remain in waiting_entry status for manual monitoring`);
+            }
+            
+          } catch (tradeError) {
+            console.error(`❌ Auto-execution failed for ${opportunity.symbol}:`, tradeError);
+            console.log(`🔄 Bot deployed in waiting_entry status - will enter on next evaluation cycle`);
+          }
+          
+          deployedBots.push(savedBot);
+          console.log(`🤖 Bot deployed to ${opportunity.symbol}: $${capitalPerBot.toFixed(2)} capital, ${opportunity.confidence}% confidence`);
           
         } catch (error) {
           console.error(`❌ Failed to deploy bot to ${opportunity.symbol}:`, error);
         }
       }
       
+      // Count how many trades were immediately executed
+      const activeBots = deployedBots.filter(bot => bot.status === 'active').length;
+      const waitingBots = deployedBots.filter(bot => bot.status === 'waiting_entry').length;
+
       res.json({
         success: true,
-        message: `Successfully deployed ${deployedBots.length} AI bots`,
+        message: `Successfully deployed ${deployedBots.length} AI bots - ${activeBots} trades executed immediately, ${waitingBots} waiting for entry`,
         deployedBots: deployedBots.length,
+        activeTradesExecuted: activeBots,
+        waitingForEntry: waitingBots,
         totalCapital,
         capitalPerBot: capitalPerBot.toFixed(2),
         deployedDetails: deployedBots.map(bot => ({
@@ -3826,6 +3889,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           confidence: bot.confidence,
           direction: bot.direction,
           capital: bot.capital,
+          status: bot.status,
+          positionExecuted: bot.status === 'active',
           botId: bot.id
         }))
       });
