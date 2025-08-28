@@ -2439,9 +2439,8 @@ export default function BotPage() {
             )}
           </div>
         )}
-      </div>
 
-      {/* Only show Exit Strategy Visualizer if the bot has positionData and exit strategy parameters */}
+        {/* Only show Exit Strategy Visualizer if the bot has positionData and exit strategy parameters */}
         {showExitVisualizer && selectedBotForVisualization && selectedBotForVisualization.positionData && (
           <Dialog open={showExitVisualizer} onOpenChange={(open) => {
             setShowExitVisualizer(open);
