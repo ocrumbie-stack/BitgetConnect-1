@@ -9,80 +9,172 @@ let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
 
 // Manual strategy evaluation functions
-// AI Bot Entry Evaluation - Both Long/Short MACD Crossover Detection
-async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null }> {
+// AI Bot Entry Evaluation - Multi-Indicator Analysis
+async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
-    return { hasSignal: false, direction: null };
+    return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
   try {
-    console.log(`🤖 AI Bot: Evaluating MACD crossover for ${tradingPair}`);
+    console.log(`🤖 AI Bot: Evaluating multi-indicator analysis for ${tradingPair}`);
     
-    // Get historical price data for MACD calculation
+    // Get historical price data
     const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
     if (!candleData || candleData.length < 50) {
-      console.log(`❌ Insufficient candle data for AI bot MACD: ${candleData?.length || 0} candles`);
-      return { hasSignal: false, direction: null };
+      console.log(`❌ Insufficient candle data for AI bot: ${candleData?.length || 0} candles`);
+      return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
     }
 
-    // Extract closing prices
+    // Extract price data
     const closes = candleData.map(candle => parseFloat(candle.close));
+    const highs = candleData.map(candle => parseFloat(candle.high));
+    const lows = candleData.map(candle => parseFloat(candle.low));
+    const volumes = candleData.map(candle => parseFloat(candle.volume));
     
-    // Calculate MACD with standard periods (12, 26, 9)
-    const fastEMA = calculateEMA(closes, 12);
-    const slowEMA = calculateEMA(closes, 26);
+    const currentPrice = closes[closes.length - 1];
     
-    if (fastEMA.length < 2 || slowEMA.length < 2) {
-      console.log(`❌ Insufficient EMA data for AI bot`);
-      return { hasSignal: false, direction: null };
+    // Initialize scoring system
+    let bullishScore = 0;
+    let bearishScore = 0;
+    const indicators: any = {};
+    
+    // 1. MACD Analysis (Weight: 25%)
+    const macdAnalysis = await calculateMACD(closes);
+    if (macdAnalysis) {
+      indicators.macd = macdAnalysis;
+      if (macdAnalysis.bullishCrossover) {
+        bullishScore += 25;
+        console.log(`🎯 MACD: BULLISH crossover (+25)`);
+      } else if (macdAnalysis.bearishCrossover) {
+        bearishScore += 25;
+        console.log(`🎯 MACD: BEARISH crossover (+25)`);
+      } else if (macdAnalysis.bullishMomentum) {
+        bullishScore += 15;
+        console.log(`🎯 MACD: BULLISH momentum (+15)`);
+      } else if (macdAnalysis.bearishMomentum) {
+        bearishScore += 15;
+        console.log(`🎯 MACD: BEARISH momentum (+15)`);
+      }
     }
     
-    // Calculate MACD line
-    const currentMacd = fastEMA[fastEMA.length - 1] - slowEMA[slowEMA.length - 1];
-    const prevMacd = fastEMA[fastEMA.length - 2] - slowEMA[slowEMA.length - 2];
-    
-    // Calculate signal line
-    const macdHistory = [];
-    for (let i = 25; i < Math.min(fastEMA.length, slowEMA.length); i++) { // Start from index 25 (26-1)
-      macdHistory.push(fastEMA[i] - slowEMA[i]);
+    // 2. RSI Analysis (Weight: 20%)
+    const rsiAnalysis = calculateRSI(closes, 14);
+    if (rsiAnalysis) {
+      indicators.rsi = rsiAnalysis;
+      if (rsiAnalysis.value < 30) {
+        bullishScore += 20; // Oversold -> Buy signal
+        console.log(`🎯 RSI: OVERSOLD ${rsiAnalysis.value.toFixed(1)} (+20)`);
+      } else if (rsiAnalysis.value > 70) {
+        bearishScore += 20; // Overbought -> Sell signal
+        console.log(`🎯 RSI: OVERBOUGHT ${rsiAnalysis.value.toFixed(1)} (+20)`);
+      } else if (rsiAnalysis.value < 50 && rsiAnalysis.trend === 'rising') {
+        bullishScore += 10; // Rising from low
+        console.log(`🎯 RSI: RISING from low (+10)`);
+      } else if (rsiAnalysis.value > 50 && rsiAnalysis.trend === 'falling') {
+        bearishScore += 10; // Falling from high
+        console.log(`🎯 RSI: FALLING from high (+10)`);
+      }
     }
     
-    const signalEMA = calculateEMA(macdHistory, 9);
-    if (signalEMA.length < 2) {
-      console.log(`❌ Insufficient signal data for AI bot: ${signalEMA.length} data points`);
-      return { hasSignal: false, direction: null };
+    // 3. Bollinger Bands Analysis (Weight: 20%)
+    const bbAnalysis = calculateBollingerBands(closes, 20, 2);
+    if (bbAnalysis) {
+      indicators.bollingerBands = bbAnalysis;
+      const { current, upper, lower, squeeze } = bbAnalysis;
+      
+      if (currentPrice <= lower) {
+        bullishScore += 20; // Price at lower band -> Buy
+        console.log(`🎯 BB: LOWER BAND touch (+20)`);
+      } else if (currentPrice >= upper) {
+        bearishScore += 20; // Price at upper band -> Sell
+        console.log(`🎯 BB: UPPER BAND touch (+20)`);
+      } else if (squeeze && currentPrice > current) {
+        bullishScore += 10; // Squeeze breakout up
+        console.log(`🎯 BB: SQUEEZE breakout UP (+10)`);
+      } else if (squeeze && currentPrice < current) {
+        bearishScore += 10; // Squeeze breakout down
+        console.log(`🎯 BB: SQUEEZE breakout DOWN (+10)`);
+      }
     }
     
-    const currentSignal = signalEMA[signalEMA.length - 1];
-    const prevSignal = signalEMA[signalEMA.length - 2];
-    
-    // STRICT CROSSOVERS: Detect both bullish and bearish
-    const bullishCrossover = (prevMacd <= prevSignal) && (currentMacd > currentSignal);
-    const bearishCrossover = (prevMacd >= prevSignal) && (currentMacd < currentSignal);
-    
-    // TEMPORARY TEST: Also detect momentum conditions for faster signals
-    const bullishMomentum = (currentMacd > currentSignal) && (currentMacd > prevMacd);
-    const bearishMomentum = (currentMacd < currentSignal) && (currentMacd < prevMacd);
-    
-    console.log(`🤖 AI ${tradingPair} - MACD: ${currentMacd.toFixed(6)}, Signal: ${currentSignal.toFixed(6)}`);
-    console.log(`🤖 AI ${tradingPair} - Prev MACD: ${prevMacd.toFixed(6)}, Prev Signal: ${prevSignal.toFixed(6)}`);
-    console.log(`🤖 AI ${tradingPair} - Bullish: ${bullishCrossover ? '✅ CROSSOVER' : bullishMomentum ? '✅ MOMENTUM' : '❌ None'}`);
-    console.log(`🤖 AI ${tradingPair} - Bearish: ${bearishCrossover ? '✅ CROSSOVER' : bearishMomentum ? '✅ MOMENTUM' : '❌ None'}`);
-    
-    // Determine signal direction
-    if (bullishCrossover || bullishMomentum) {
-      console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! ${bullishCrossover ? 'BULLISH CROSSOVER' : 'BULLISH MOMENTUM'}`);
-      return { hasSignal: true, direction: 'long' };
-    } else if (bearishCrossover || bearishMomentum) {
-      console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! ${bearishCrossover ? 'BEARISH CROSSOVER' : 'BEARISH MOMENTUM'}`);
-      return { hasSignal: true, direction: 'short' };
+    // 4. Volume Analysis (Weight: 15%)
+    const volumeAnalysis = calculateVolumeAnalysis(volumes, closes);
+    if (volumeAnalysis) {
+      indicators.volume = volumeAnalysis;
+      const { trend, strength, priceVolumeAlignment } = volumeAnalysis;
+      
+      if (priceVolumeAlignment === 'bullish' && strength > 1.5) {
+        bullishScore += 15; // High volume + price up
+        console.log(`🎯 VOLUME: BULLISH alignment (+15)`);
+      } else if (priceVolumeAlignment === 'bearish' && strength > 1.5) {
+        bearishScore += 15; // High volume + price down
+        console.log(`🎯 VOLUME: BEARISH alignment (+15)`);
+      } else if (trend === 'increasing') {
+        bullishScore += 8; // Volume increasing
+        console.log(`🎯 VOLUME: INCREASING (+8)`);
+      }
     }
     
-    return { hasSignal: false, direction: null };
+    // 5. Moving Average Analysis (Weight: 10%)
+    const maAnalysis = calculateMovingAverageAnalysis(closes);
+    if (maAnalysis) {
+      indicators.movingAverages = maAnalysis;
+      const { ema20, ema50, crossover, trend } = maAnalysis;
+      
+      if (crossover === 'golden' && currentPrice > ema20) {
+        bullishScore += 10; // Golden cross
+        console.log(`🎯 MA: GOLDEN CROSS (+10)`);
+      } else if (crossover === 'death' && currentPrice < ema20) {
+        bearishScore += 10; // Death cross
+        console.log(`🎯 MA: DEATH CROSS (+10)`);
+      } else if (trend === 'bullish') {
+        bullishScore += 5;
+        console.log(`🎯 MA: BULLISH trend (+5)`);
+      } else if (trend === 'bearish') {
+        bearishScore += 5;
+        console.log(`🎯 MA: BEARISH trend (+5)`);
+      }
+    }
+    
+    // 6. Support/Resistance Analysis (Weight: 10%)
+    const srAnalysis = calculateSupportResistance(highs, lows, closes);
+    if (srAnalysis) {
+      indicators.supportResistance = srAnalysis;
+      const { nearSupport, nearResistance, supportStrength, resistanceStrength } = srAnalysis;
+      
+      if (nearSupport && supportStrength > 0.7) {
+        bullishScore += 10; // Strong support bounce
+        console.log(`🎯 S/R: STRONG SUPPORT bounce (+10)`);
+      } else if (nearResistance && resistanceStrength > 0.7) {
+        bearishScore += 10; // Strong resistance rejection
+        console.log(`🎯 S/R: STRONG RESISTANCE rejection (+10)`);
+      }
+    }
+    
+    // Calculate confidence and final decision
+    const totalScore = Math.max(bullishScore, bearishScore);
+    const confidence = Math.min(95, totalScore);
+    
+    console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
+    
+    // Minimum confidence threshold of 60% for signal
+    if (confidence >= 60) {
+      if (bullishScore > bearishScore) {
+        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
+        return { hasSignal: true, direction: 'long', confidence, indicators };
+      } else {
+        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
+        return { hasSignal: true, direction: 'short', confidence, indicators };
+      }
+    }
+    
+    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < 60%)`);
+    return { hasSignal: false, direction: null, confidence, indicators };
+    
   } catch (error) {
     console.error(`❌ AI bot evaluation error for ${tradingPair}:`, error);
-    return { hasSignal: false, direction: null };
+    return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 }
 
@@ -183,6 +275,247 @@ async function setAIBotRiskManagement(symbol: string, entryPrice: number, botNam
     console.error(`❌ AI bot risk management error:`, error);
   }
 
+}
+
+// Technical Indicator Calculation Functions
+async function calculateMACD(closes: number[]) {
+  try {
+    const fastEMA = calculateEMA(closes, 12);
+    const slowEMA = calculateEMA(closes, 26);
+    
+    if (fastEMA.length < 2 || slowEMA.length < 2) return null;
+    
+    const currentMacd = fastEMA[fastEMA.length - 1] - slowEMA[slowEMA.length - 1];
+    const prevMacd = fastEMA[fastEMA.length - 2] - slowEMA[slowEMA.length - 2];
+    
+    const macdHistory = [];
+    for (let i = 25; i < Math.min(fastEMA.length, slowEMA.length); i++) {
+      macdHistory.push(fastEMA[i] - slowEMA[i]);
+    }
+    
+    const signalEMA = calculateEMA(macdHistory, 9);
+    if (signalEMA.length < 2) return null;
+    
+    const currentSignal = signalEMA[signalEMA.length - 1];
+    const prevSignal = signalEMA[signalEMA.length - 2];
+    
+    return {
+      macd: currentMacd,
+      signal: currentSignal,
+      histogram: currentMacd - currentSignal,
+      bullishCrossover: (prevMacd <= prevSignal) && (currentMacd > currentSignal),
+      bearishCrossover: (prevMacd >= prevSignal) && (currentMacd < currentSignal),
+      bullishMomentum: (currentMacd > currentSignal) && (currentMacd > prevMacd),
+      bearishMomentum: (currentMacd < currentSignal) && (currentMacd < prevMacd)
+    };
+  } catch (error) {
+    console.error('MACD calculation error:', error);
+    return null;
+  }
+}
+
+function calculateRSI(closes: number[], period: number = 14) {
+  if (closes.length < period + 1) return null;
+  
+  try {
+    let gains = 0;
+    let losses = 0;
+    
+    // Initial average
+    for (let i = 1; i <= period; i++) {
+      const change = closes[i] - closes[i - 1];
+      if (change > 0) gains += change;
+      else losses += Math.abs(change);
+    }
+    
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    
+    // Calculate RSI for latest periods
+    for (let i = period + 1; i < closes.length; i++) {
+      const change = closes[i] - closes[i - 1];
+      const gain = change > 0 ? change : 0;
+      const loss = change < 0 ? Math.abs(change) : 0;
+      
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+    }
+    
+    const rs = avgGain / avgLoss;
+    const rsi = 100 - (100 / (1 + rs));
+    
+    // Determine trend
+    const prevRsi = closes.length > period + 5 ? 
+      calculateRSI(closes.slice(0, -5), period)?.value || rsi : rsi;
+    
+    return {
+      value: rsi,
+      trend: rsi > prevRsi ? 'rising' : rsi < prevRsi ? 'falling' : 'neutral',
+      oversold: rsi < 30,
+      overbought: rsi > 70
+    };
+  } catch (error) {
+    console.error('RSI calculation error:', error);
+    return null;
+  }
+}
+
+function calculateBollingerBands(closes: number[], period: number = 20, stdDev: number = 2) {
+  if (closes.length < period) return null;
+  
+  try {
+    const recentCloses = closes.slice(-period);
+    const sma = recentCloses.reduce((sum, price) => sum + price, 0) / period;
+    
+    const variance = recentCloses.reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
+    const standardDeviation = Math.sqrt(variance);
+    
+    const upper = sma + (standardDeviation * stdDev);
+    const lower = sma - (standardDeviation * stdDev);
+    
+    // Check for squeeze (bands getting narrow)
+    const bandWidth = (upper - lower) / sma;
+    const avgBandWidth = 0.1; // Typical band width
+    const squeeze = bandWidth < avgBandWidth * 0.7;
+    
+    return {
+      upper,
+      lower,
+      current: sma,
+      squeeze,
+      bandWidth
+    };
+  } catch (error) {
+    console.error('Bollinger Bands calculation error:', error);
+    return null;
+  }
+}
+
+function calculateVolumeAnalysis(volumes: number[], closes: number[]) {
+  if (volumes.length < 20 || closes.length < 20) return null;
+  
+  try {
+    const recentVolumes = volumes.slice(-20);
+    const avgVolume = recentVolumes.reduce((sum, vol) => sum + vol, 0) / 20;
+    const currentVolume = volumes[volumes.length - 1];
+    
+    const volumeStrength = currentVolume / avgVolume;
+    
+    // Price-Volume relationship
+    const priceChange = closes[closes.length - 1] - closes[closes.length - 2];
+    let priceVolumeAlignment = 'neutral';
+    
+    if (priceChange > 0 && volumeStrength > 1.2) {
+      priceVolumeAlignment = 'bullish'; // Price up + high volume
+    } else if (priceChange < 0 && volumeStrength > 1.2) {
+      priceVolumeAlignment = 'bearish'; // Price down + high volume
+    }
+    
+    // Volume trend
+    const oldAvgVolume = volumes.slice(-40, -20).reduce((sum, vol) => sum + vol, 0) / 20;
+    const volumeTrend = avgVolume > oldAvgVolume ? 'increasing' : 'decreasing';
+    
+    return {
+      current: currentVolume,
+      average: avgVolume,
+      strength: volumeStrength,
+      trend: volumeTrend,
+      priceVolumeAlignment
+    };
+  } catch (error) {
+    console.error('Volume analysis error:', error);
+    return null;
+  }
+}
+
+function calculateMovingAverageAnalysis(closes: number[]) {
+  if (closes.length < 50) return null;
+  
+  try {
+    const ema20 = calculateEMA(closes, 20);
+    const ema50 = calculateEMA(closes, 50);
+    
+    if (ema20.length < 2 || ema50.length < 2) return null;
+    
+    const currentEma20 = ema20[ema20.length - 1];
+    const currentEma50 = ema50[ema50.length - 1];
+    const prevEma20 = ema20[ema20.length - 2];
+    const prevEma50 = ema50[ema50.length - 2];
+    
+    // Detect crossovers
+    let crossover = 'none';
+    if (prevEma20 <= prevEma50 && currentEma20 > currentEma50) {
+      crossover = 'golden'; // Bullish
+    } else if (prevEma20 >= prevEma50 && currentEma20 < currentEma50) {
+      crossover = 'death'; // Bearish
+    }
+    
+    // Overall trend
+    const trend = currentEma20 > currentEma50 ? 'bullish' : 'bearish';
+    
+    return {
+      ema20: currentEma20,
+      ema50: currentEma50,
+      crossover,
+      trend
+    };
+  } catch (error) {
+    console.error('Moving average analysis error:', error);
+    return null;
+  }
+}
+
+function calculateSupportResistance(highs: number[], lows: number[], closes: number[]) {
+  if (highs.length < 50) return null;
+  
+  try {
+    const currentPrice = closes[closes.length - 1];
+    
+    // Find recent highs and lows
+    const recentHighs = highs.slice(-50).sort((a, b) => b - a);
+    const recentLows = lows.slice(-50).sort((a, b) => a - b);
+    
+    // Identify key levels (remove duplicates within 1%)
+    const supportLevels = [];
+    const resistanceLevels = [];
+    
+    for (const low of recentLows) {
+      if (!supportLevels.find(level => Math.abs(level - low) / level < 0.01)) {
+        supportLevels.push(low);
+      }
+    }
+    
+    for (const high of recentHighs) {
+      if (!resistanceLevels.find(level => Math.abs(level - high) / level < 0.01)) {
+        resistanceLevels.push(high);
+      }
+    }
+    
+    // Find nearest levels
+    const nearestSupport = supportLevels
+      .filter(level => level < currentPrice)
+      .sort((a, b) => (currentPrice - a) - (currentPrice - b))[0];
+      
+    const nearestResistance = resistanceLevels
+      .filter(level => level > currentPrice)
+      .sort((a, b) => (a - currentPrice) - (b - currentPrice))[0];
+    
+    // Calculate strength based on distance
+    const supportDistance = nearestSupport ? (currentPrice - nearestSupport) / currentPrice : 1;
+    const resistanceDistance = nearestResistance ? (nearestResistance - currentPrice) / currentPrice : 1;
+    
+    return {
+      support: nearestSupport,
+      resistance: nearestResistance,
+      nearSupport: supportDistance < 0.02, // Within 2%
+      nearResistance: resistanceDistance < 0.02, // Within 2%
+      supportStrength: 1 - supportDistance,
+      resistanceStrength: 1 - resistanceDistance
+    };
+  } catch (error) {
+    console.error('Support/Resistance calculation error:', error);
+    return null;
+  }
 }
 
 // Manual Strategy Evaluation Functions
@@ -1743,22 +2076,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               let entrySignalMet = false;
               
               if (strategy.strategy === 'ai') {
-                // AI bots use strict MACD crossover detection for both long and short
+                // AI bots use multi-indicator analysis for both long and short
                 const aiResult = await evaluateAIBotEntry(deployedBot.tradingPair);
                 entrySignalMet = aiResult.hasSignal;
                 
                 if (entrySignalMet && aiResult.direction) {
-                  console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
+                  console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}! Confidence: ${aiResult.confidence}%`);
+                  console.log(`📊 Indicators: MACD ${aiResult.indicators.macd ? '✅' : '❌'}, RSI ${aiResult.indicators.rsi ? '✅' : '❌'}, BB ${aiResult.indicators.bollingerBands ? '✅' : '❌'}, Volume ${aiResult.indicators.volume ? '✅' : '❌'}`);
                   
                   // Place the trade with direction
                   const orderSuccess = await placeAIBotOrder(deployedBot, aiResult.direction);
                   
                   if (orderSuccess) {
                     console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
-                    // Update bot status to active
+                    // Update bot status to active with confidence score
                     await storage.updateBotExecution(deployedBot.id, { 
                       status: 'active',
                       trades: '1',
+                      confidence: aiResult.confidence.toString(),
                       updatedAt: new Date()
                     });
                   } else {
@@ -2166,8 +2501,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         symbol,
         aiSignalMet: aiResult.hasSignal,
         direction: aiResult.direction,
+        confidence: aiResult.confidence,
+        indicators: aiResult.indicators,
         timestamp: new Date().toISOString(),
-        message: aiResult.hasSignal ? `${aiResult.direction?.toUpperCase()} SIGNAL DETECTED!` : 'No signal yet'
+        message: aiResult.hasSignal ? 
+          `${aiResult.direction?.toUpperCase()} SIGNAL DETECTED! Confidence: ${aiResult.confidence}%` : 
+          `No signal yet (confidence ${aiResult.confidence}%)`
       });
     } catch (error) {
       console.error('❌ Error testing MACD:', error);
