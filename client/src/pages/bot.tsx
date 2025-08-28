@@ -86,6 +86,7 @@ export default function BotPage() {
   const [scannerCapital, setScannerCapital] = useState('10000');
   const [scannerMaxBots, setScannerMaxBots] = useState('5');
   const [scannerLeverage, setScannerLeverage] = useState('3'); // Default 3x leverage
+  const [scannerName, setScannerName] = useState(''); // Custom scanner name for folder organization
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
@@ -456,7 +457,8 @@ export default function BotPage() {
       userId: 'default-user',
       opportunities: scannerResults.opportunities,
       totalCapital: parseFloat(scannerCapital),
-      leverage: parseInt(scannerLeverage)
+      leverage: parseInt(scannerLeverage),
+      scannerName: scannerName.trim() || `Auto Scanner - ${new Date().toLocaleDateString()}`
     };
 
     await autoDeployMutation.mutateAsync(deployData);
@@ -1643,6 +1645,20 @@ export default function BotPage() {
                     />
                     <p className="text-xs text-muted-foreground">
                       Maximum number of AI bots to deploy automatically (1-10)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Scanner Name</label>
+                    <Input
+                      type="text"
+                      value={scannerName}
+                      onChange={(e) => setScannerName(e.target.value)}
+                      placeholder="e.g., Morning Scalp Session"
+                      data-testid="input-scanner-name"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Custom name for organizing deployed bots in a dedicated folder
                     </p>
                   </div>
 

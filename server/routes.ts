@@ -3729,7 +3729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto Scanner - DEPLOY selected opportunities
   app.post('/api/auto-scanner/deploy', async (req, res) => {
     try {
-      const { userId = 'default-user', opportunities, totalCapital, leverage = 3 } = req.body;
+      const { userId = 'default-user', opportunities, totalCapital, leverage = 3, scannerName } = req.body;
       
       if (!opportunities || opportunities.length === 0) {
         return res.status(400).json({ error: 'No opportunities provided for deployment' });
@@ -3740,29 +3740,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deployedBots = [];
       const capitalPerBot = totalCapital / opportunities.length;
       
-      // Create Auto Market Scanner folder
-      const folderName = `🤖 Auto Market Scanner - ${new Date().toLocaleDateString()}`;
+      // Create scanner folder with custom name
+      const folderName = scannerName && scannerName.trim() 
+        ? `🤖 ${scannerName}` 
+        : `🤖 Auto Scanner - ${new Date().toLocaleDateString()}`;
       let scannerFolder;
       
       try {
-        const existingFolders = await storage.getUserScreeners(userId);
-        scannerFolder = existingFolders.find(folder => folder.name.includes('Auto Market Scanner'));
-        
-        if (!scannerFolder) {
-          scannerFolder = await storage.createUserScreener({
-            userId,
-            name: folderName,
-            description: 'Auto-deployed trading opportunities from AI market scanner',
-            color: '#10b981',
-            tradingPairs: opportunities.map((op: any) => op.symbol),
-            isStarred: true,
-            criteria: {
-              deploymentType: 'auto_scanner',
-              totalCapital: totalCapital,
-              leverageUsed: leverage
-            }
-          });
-        }
+        // Always create a new folder for each named scan deployment
+        scannerFolder = await storage.createUserScreener({
+          userId,
+          name: folderName,
+          description: `Auto-deployed trading opportunities: ${opportunities.length} bots with $${capitalPerBot.toFixed(2)} each`,
+          color: '#10b981',
+          tradingPairs: opportunities.map((op: any) => op.symbol),
+          isStarred: true,
+          criteria: {
+            deploymentType: 'auto_scanner',
+            totalCapital: totalCapital,
+            leverageUsed: leverage,
+            scannerName: scannerName || 'Unnamed Scan',
+            deployedAt: new Date().toISOString()
+          }
+        });
+        console.log(`📁 Created scanner folder: ${folderName}`);
       } catch (error) {
         console.error('Failed to create scanner folder:', error);
       }
@@ -3770,10 +3771,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Deploy bots for each opportunity
       for (const opportunity of opportunities) {
         try {
-          // Create AI strategy
+          // Create AI strategy with custom scanner name
+          const scannerPrefix = scannerName && scannerName.trim() 
+            ? scannerName.replace(/🤖\s*/, '') // Remove robot emoji if already present
+            : 'Auto Scanner';
+          
           const strategy = {
             id: `auto-ai-${Date.now()}-${opportunity.symbol}`,
-            name: `🤖 Auto Scanner - ${opportunity.symbol}`,
+            name: `🤖 ${scannerPrefix} - ${opportunity.symbol}`,
             strategy: 'ai',
             config: {
               confidence: opportunity.confidence,
