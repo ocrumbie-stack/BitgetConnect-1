@@ -3570,7 +3570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Bitget API not available' });
       }
 
-      console.log(`🔍 Auto Market Scanner: Scanning entire market with $${totalCapital} capital, max ${maxBots} bots, min ${minConfidence}% confidence`);
+      console.log(`🔍 AUTO SCANNER: Scanning market for max ${maxBots} opportunities with min ${minConfidence}% confidence`);
       
       // Get all available futures pairs
       const allTickers = await bitgetAPI.getAllFuturesTickers();
