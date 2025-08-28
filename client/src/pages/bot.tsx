@@ -1872,25 +1872,25 @@ export default function BotPage() {
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
                     if (execution.deploymentType === 'auto_scanner') {
-                      // AI bots deployed with Auto Market Scanner show individually with their bot names
-                      manualExecutions.push(execution);
-                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && execution.folderName) {
-                      // Bots deployed from folders stay grouped by folder
-                      const folderName = execution.folderName;
+                      // Auto Market Scanner bots grouped under "Auto Market Scanner"
+                      autoScannerBots.push(execution);
+                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                      // Folder-deployed or AI strategy bots grouped by folder/bot name
+                      const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } else {
-                      // Manual individual bots show individually
+                    } else if (!execution.folderName || execution.deploymentType === 'manual') {
+                      // Manual individual bots
                       manualExecutions.push(execution);
                     }
                   });
 
                   return (
                     <>
-                      {/* Auto Market Scanner section removed - bots now display individually */}
-                      {false && autoScannerBots.length > 0 && (
+                      {/* Auto Market Scanner Bots - Organized Folder */}
+                      {autoScannerBots.length > 0 && (
                         <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-900/10 to-emerald-800/10">
                           <CardContent className="p-4">
                             <div 
