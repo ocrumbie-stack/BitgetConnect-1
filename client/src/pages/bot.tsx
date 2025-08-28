@@ -1225,7 +1225,17 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                    {(activeExecutions as any[]).filter(ex => ex.status === 'active').length}
+                    {(() => {
+                      // Count unique bot instances (by strategyId + botName combination) that have at least one active execution
+                      const uniqueBots = new Set();
+                      (activeExecutions as any[]).forEach(ex => {
+                        if (ex.status === 'active') {
+                          const botKey = `${ex.strategyId}-${ex.botName || 'default'}`;
+                          uniqueBots.add(botKey);
+                        }
+                      });
+                      return uniqueBots.size;
+                    })()}
                   </div>
                   <div className="text-xs text-green-600 dark:text-green-400">Active Bots</div>
                 </div>
@@ -1939,8 +1949,8 @@ export default function BotPage() {
                                       </div>
                                     </div>
                                     <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-500/30 rounded p-2">
-                                      <div className="text-blue-400 font-medium">Active Bots</div>
-                                      <div className="text-sm font-bold text-blue-400">{executions.filter(ex => ex.status === 'active').length} bots</div>
+                                      <div className="text-blue-400 font-medium">Active Pairs</div>
+                                      <div className="text-sm font-bold text-blue-400">{executions.filter(ex => ex.status === 'active').length} pairs</div>
                                     </div>
                                   </div>
                                 </div>
