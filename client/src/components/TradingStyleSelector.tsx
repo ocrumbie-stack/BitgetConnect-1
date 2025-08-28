@@ -33,7 +33,7 @@ const tradingStyles = {
         volatilityFocus: false,
       }
     },
-    features: ['High confidence trades', 'Low leverage', 'Longer timeframes', 'Risk-first approach']
+    features: ['High confidence trades (80%)', 'Low leverage', 'Longer timeframes', 'Risk-first approach']
   },
   balanced: {
     name: 'Balanced',
@@ -51,7 +51,7 @@ const tradingStyles = {
         volatilityFocus: false,
       }
     },
-    features: ['Balanced risk/reward', 'Medium leverage', 'Diverse timeframes', 'Steady growth']
+    features: ['Balanced risk/reward (65%)', 'Medium leverage', 'Diverse timeframes', 'Steady growth']
   },
   aggressive: {
     name: 'Aggressive',
@@ -69,7 +69,7 @@ const tradingStyles = {
         volatilityFocus: true,
       }
     },
-    features: ['Quick scalping trades', 'High leverage allowed', '5-minute timeframes', 'Volatility focus']
+    features: ['Quick scalping trades (50%)', 'High leverage allowed', '5-minute timeframes', 'Volatility focus']
   },
   high_risk: {
     name: 'High Risk',
@@ -87,7 +87,7 @@ const tradingStyles = {
         volatilityFocus: true,
       }
     },
-    features: ['Extreme leverage', '1-minute scalping', 'Maximum volatility', 'High-frequency trading']
+    features: ['Extreme leverage', '1-minute scalping (40%)', 'Maximum volatility', 'High-frequency trading']
   }
 };
 
@@ -259,18 +259,12 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
                 <Label className="text-sm font-medium">
                   Confidence Threshold: {customSettings.confidenceThreshold}%
                 </Label>
-                <Slider
-                  value={[customSettings.confidenceThreshold]}
-                  onValueChange={(value) => handleSettingChange('confidenceThreshold', value[0])}
-                  max={90}
-                  min={30}
-                  step={5}
-                  className="mt-2"
-                  data-testid="slider-confidence"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Minimum confidence level required for trade signals
-                </p>
+                <div className="mt-2 p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Standardized threshold for optimal {tradingStyles[selectedStyle].name.toLowerCase()} trading performance. 
+                    This setting is automatically optimized and cannot be manually adjusted.
+                  </p>
+                </div>
               </div>
 
               <div>
