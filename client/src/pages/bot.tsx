@@ -1883,9 +1883,9 @@ export default function BotPage() {
                     if (execution.deploymentType === 'auto_scanner' && !isAIStrategy && execution.botName?.includes('Auto AI')) {
                       autoScannerBots.push(execution);
                     } 
-                    // AI Strategy bots - group by strategy name
+                    // AI Strategy bots - group by strategy name with proper naming
                     else if (isAIStrategy || (execution.deploymentType === 'folder_bulk' && execution.botName && (execution.botName.includes('Smart ') || execution.botName.includes('Grid Trading Pro')))) {
-                      // Extract strategy name from bot name
+                      // Extract and format strategy name from bot name
                       let strategyName = execution.botName;
                       if (strategyName.includes(' - ')) {
                         strategyName = strategyName.split(' - ')[0];
@@ -1894,10 +1894,13 @@ export default function BotPage() {
                         strategyName = strategyName.replace('Auto AI - ', '');
                       }
                       
-                      if (!folderGroups[strategyName]) {
-                        folderGroups[strategyName] = [];
+                      // Create descriptive folder name for AI strategies
+                      const folderDisplayName = `🤖 ${strategyName}`;
+                      
+                      if (!folderGroups[folderDisplayName]) {
+                        folderGroups[folderDisplayName] = [];
                       }
-                      folderGroups[strategyName].push(execution);
+                      folderGroups[folderDisplayName].push(execution);
                     }
                     // Regular folder deployments
                     else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && execution.folderName) {
