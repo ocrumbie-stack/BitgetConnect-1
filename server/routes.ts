@@ -3578,15 +3578,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`💧 ${liquidPairs.length} pairs meet liquidity requirements (>$${volumeThreshold.toLocaleString()})`);
       
+      // If no liquid pairs found, lower the threshold temporarily
+      if (liquidPairs.length === 0) {
+        console.log(`🔄 No pairs meet volume requirement, lowering threshold to $10K...`);
+        const lowVolumeThreshold = 10000;
+        const fallbackPairs = allTickers.filter(ticker => 
+          parseFloat(ticker.quoteVolume || '0') > lowVolumeThreshold
+        );
+        console.log(`💧 ${fallbackPairs.length} pairs meet lower liquidity requirements (>$${lowVolumeThreshold.toLocaleString()})`);
+        liquidPairs.push(...fallbackPairs);
+      }
+      
       // Analyze each pair with AI indicators
       const analysisResults = [];
+      let analyzedCount = 0;
+      let validSignalCount = 0;
       
-      for (const ticker of liquidPairs.slice(0, 100)) { // Analyze top 100 by volume
+      for (const ticker of liquidPairs.slice(0, 50)) { // Analyze top 50 by volume for faster scanning
         try {
-          console.log(`🔬 Analyzing ${ticker.symbol}...`);
-          const aiResult = await evaluateAIBotEntry(ticker.symbol);
+          console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${Math.min(liquidPairs.length, 50)})...`);
+          analyzedCount++;
           
-          if (aiResult.confidence >= minConfidence) {
+          const aiResult = await evaluateAIBotEntry(ticker.symbol);
+          console.log(`📊 ${ticker.symbol}: Confidence ${aiResult.confidence}%, Direction: ${aiResult.direction || 'None'}`);
+          
+          if (aiResult.confidence > 0) { // Track all signals, not just high confidence ones
+            validSignalCount++;
+            console.log(`🎯 Valid signal #${validSignalCount}: ${ticker.symbol} with ${aiResult.confidence}% confidence`);
+          }
+          
+          if (aiResult.confidence >= minConfidence && aiResult.direction) {
             analysisResults.push({
               symbol: ticker.symbol,
               direction: aiResult.direction,
@@ -3597,10 +3618,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
               change24h: parseFloat(ticker.change24h || '0')
             });
             
-            console.log(`✨ ${ticker.symbol}: ${aiResult.direction?.toUpperCase()} signal with ${aiResult.confidence}% confidence`);
+            console.log(`✨ HIGH CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} signal with ${aiResult.confidence}% confidence`);
           }
         } catch (error) {
           console.error(`❌ Error analyzing ${ticker.symbol}:`, error);
+        }
+      }
+      
+      console.log(`🔍 Scanner Summary: Analyzed ${analyzedCount} pairs, found ${validSignalCount} valid signals, ${analysisResults.length} meet confidence threshold (${minConfidence}%)`);
+      
+      // If no high-confidence results, lower confidence threshold temporarily
+      if (analysisResults.length === 0 && validSignalCount > 0) {
+        console.log(`🔄 No results at ${minConfidence}% confidence, searching with lower threshold...`);
+        const lowerThreshold = Math.max(30, minConfidence - 20); // Lower by 20% but not below 30%
+        
+        for (const ticker of liquidPairs.slice(0, 20)) { // Quick scan of top 20
+          try {
+            const aiResult = await evaluateAIBotEntry(ticker.symbol);
+            if (aiResult.confidence >= lowerThreshold && aiResult.direction) {
+              analysisResults.push({
+                symbol: ticker.symbol,
+                direction: aiResult.direction,
+                confidence: aiResult.confidence,
+                indicators: aiResult.indicators,
+                price: parseFloat(ticker.lastPr || '0'),
+                volume24h: parseFloat(ticker.quoteVolume || '0'),
+                change24h: parseFloat(ticker.change24h || '0')
+              });
+              
+              console.log(`📉 LOWER CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} with ${aiResult.confidence}%`);
+            }
+          } catch (error) {
+            console.error(`❌ Error in lower confidence scan for ${ticker.symbol}:`, error);
+          }
         }
       }
       
