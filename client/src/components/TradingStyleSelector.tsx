@@ -19,55 +19,55 @@ const tradingStyles = {
     name: 'Conservative',
     icon: Shield,
     color: 'bg-blue-500',
-    description: '4H-1D timeframes for stable growth',
+    description: '4H + 1D timeframes for stable growth',
     settings: {
       confidenceThreshold: 75,
       maxLeverage: 3,
       riskTolerance: 'low' as const,
-      timeframePreference: '4h' as const,
+      timeframePreference: '4H+1D' as const,
       tradingStyleSettings: {
         aggressive: false,
         scalping: false,
         volatilityFocus: false,
       }
     },
-    features: ['4H-1D timeframes', 'High confidence (75%)', 'Low leverage (3x)', 'Long-term trends']
+    features: ['4H + 1D timeframes', 'High confidence (75%)', 'Low leverage (3x)', 'Long-term trends']
   },
   balanced: {
     name: 'Balanced',
     icon: Target,
     color: 'bg-green-500',
-    description: '15M-1H timeframes for steady returns',
+    description: '15M + 1H timeframes for steady returns',
     settings: {
       confidenceThreshold: 60,
       maxLeverage: 5,
       riskTolerance: 'medium' as const,
-      timeframePreference: '1h' as const,
+      timeframePreference: '15m+1H' as const,
       tradingStyleSettings: {
         aggressive: false,
         scalping: false,
         volatilityFocus: false,
       }
     },
-    features: ['15M-1H timeframes', 'Medium confidence (60%)', 'Moderate leverage (5x)', 'Balanced approach']
+    features: ['15M + 1H timeframes', 'Medium confidence (60%)', 'Moderate leverage (5x)', 'Balanced approach']
   },
   aggressive: {
     name: 'Aggressive',
     icon: Zap,
     color: 'bg-red-500',
-    description: '1M-5M timeframes for quick profits',
+    description: '1M + 5M timeframes for quick profits',
     settings: {
       confidenceThreshold: 45,
       maxLeverage: 10,
       riskTolerance: 'high' as const,
-      timeframePreference: '5m' as const,
+      timeframePreference: '1m+5m' as const,
       tradingStyleSettings: {
         aggressive: true,
         scalping: true,
         volatilityFocus: true,
       }
     },
-    features: ['1M-5M timeframes', 'Quick trades (45%)', 'High leverage (10x)', 'Fast scalping']
+    features: ['1M + 5M timeframes', 'Quick trades (45%)', 'High leverage (10x)', 'Fast scalping']
   }
 };
 
