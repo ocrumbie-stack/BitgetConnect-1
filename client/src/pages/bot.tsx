@@ -1872,7 +1872,8 @@ export default function BotPage() {
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
                     if (execution.deploymentType === 'auto_scanner') {
-                      autoScannerBots.push(execution);
+                      // Treat auto_scanner bots as individual bots instead of grouping them
+                      manualExecutions.push(execution);
                     } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
                       const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
@@ -1886,8 +1887,8 @@ export default function BotPage() {
 
                   return (
                     <>
-                      {/* Auto Market Scanner Bots - Organized Folder */}
-                      {autoScannerBots.length > 0 && (
+                      {/* Auto Market Scanner section removed - bots now display individually */}
+                      {false && autoScannerBots.length > 0 && (
                         <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-900/10 to-emerald-800/10">
                           <CardContent className="p-4">
                             <div 
