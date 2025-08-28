@@ -1887,11 +1887,14 @@ export default function BotPage() {
                     else if (isAIStrategy || (execution.deploymentType === 'folder_bulk' && execution.botName && (execution.botName.includes('Smart ') || execution.botName.includes('Grid Trading Pro')))) {
                       // Extract and format strategy name from bot name
                       let strategyName = execution.botName;
-                      if (strategyName.includes(' - ')) {
-                        strategyName = strategyName.split(' - ')[0];
-                      }
+                      
+                      // Handle "Auto AI - Strategy Name" format
                       if (strategyName.startsWith('Auto AI - ')) {
                         strategyName = strategyName.replace('Auto AI - ', '');
+                      }
+                      // Handle "Strategy - Pair" format  
+                      else if (strategyName.includes(' - ') && !strategyName.startsWith('Auto AI')) {
+                        strategyName = strategyName.split(' - ')[0];
                       }
                       
                       // Create descriptive folder name for AI strategies
