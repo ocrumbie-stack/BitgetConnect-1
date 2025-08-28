@@ -1896,7 +1896,7 @@ export default function BotPage() {
                                   variant="destructive"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm(`Stop all ${executions.length} bots in ${folderName} folder? This will remove the entire folder from active bots.`)) {
+                                    if (window.confirm(`Stop all ${executions.length} pairs in ${folderName} folder? This will remove the entire folder from active bots.`)) {
                                       handleTerminateFolder.mutate(folderName);
                                     }
                                   }}
@@ -1913,7 +1913,7 @@ export default function BotPage() {
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
-                                    {executions.length} bots
+                                    {executions.length} pairs
                                   </Badge>
                                   <Badge variant="outline" className="text-purple-600 border-purple-300 text-xs">
                                     Bulk Deployed
