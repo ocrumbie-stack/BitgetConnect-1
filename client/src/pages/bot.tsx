@@ -2285,17 +2285,25 @@ export default function BotPage() {
                                                 {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
                                               </Badge>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                              {execution.status === 'active' && (
+                                            <div className="flex gap-2">
+                                              {execution.status === 'active' && execution.positionData && (
                                                 <TooltipProvider>
                                                   <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-6 w-6 p-0"
+                                                      <Button 
+                                                        size="sm" 
+                                                        className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                        onClick={(e) => {
+                                                          e.preventDefault();
+                                                          if (execution.positionData) {
+                                                            closePositionMutation.mutate({
+                                                              symbol: execution.tradingPair,
+                                                              side: execution.positionData.holdSide === 'long' ? 'short' : 'long'
+                                                            });
+                                                          }
+                                                        }}
                                                       >
-                                                        <Info className="h-4 w-4 text-blue-400" />
+                                                        👁 Exit
                                                       </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent className="p-3 bg-gray-900 border border-gray-700 max-w-xs">
@@ -2340,6 +2348,16 @@ export default function BotPage() {
                                                   </Tooltip>
                                                 </TooltipProvider>
                                               )}
+                                              <Button 
+                                                size="sm"
+                                                className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  handleTerminateExecution.mutate(execution.id);
+                                                }}
+                                              >
+                                                ⏹ Stop
+                                              </Button>
                                             </div>
                                           </div>
                                           
