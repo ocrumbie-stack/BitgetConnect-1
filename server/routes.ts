@@ -3280,8 +3280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allTickers = await bitgetAPI.getAllFuturesTickers();
       console.log(`📊 Found ${allTickers.length} trading pairs to analyze`);
       
-      // Filter pairs with sufficient volume (minimum $1K daily volume for maximum coverage)
-      const volumeThreshold = 1000;
+      // Filter pairs with sufficient volume (minimum $50K daily volume for diverse coverage)
+      const volumeThreshold = 50000;
       const liquidPairs = allTickers.filter(ticker => 
         parseFloat(ticker.quoteVolume || '0') > volumeThreshold
       );
