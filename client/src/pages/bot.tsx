@@ -401,24 +401,27 @@ export default function BotPage() {
 
   // Handle auto scanner - SCAN ONLY
   const handleAutoScannerScan = async () => {
-    // Get confidence threshold from trading style preferences
-    let minConfidence = 25; // More realistic default for auto scanner
-    if (userPrefs && typeof userPrefs === 'object' && 'preferences' in userPrefs) {
-      const prefs = (userPrefs as any).preferences;
-      if (prefs && prefs.confidenceThreshold) {
-        minConfidence = prefs.confidenceThreshold;
-      }
-    }
-
-    setIsScanning(true);
-    setScannerResults(null);
+    // Use selected trading style from the TradingStyleSelector
+    // Default to balanced if no style is selected
+    let tradingStyle = 'balanced';
+    let minConfidence = 60; // Default balanced confidence
     
-    // Get current trading style from user preferences
-    let tradingStyle = 'balanced'; // Default
+    // Try to get current trading style from user preferences
     if (userPrefs && typeof userPrefs === 'object' && 'tradingStyle' in userPrefs) {
       tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
     }
 
+    // Set confidence based on trading style presets
+    const styleConfidenceMap: { [key: string]: number } = {
+      'conservative': 75,
+      'balanced': 60,
+      'aggressive': 45
+    };
+    minConfidence = styleConfidenceMap[tradingStyle] || 60;
+
+    setIsScanning(true);
+    setScannerResults(null);
+    
     const scannerData = {
       userId: 'default-user',
       maxBots: parseInt(scannerMaxBots),

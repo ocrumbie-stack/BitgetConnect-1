@@ -10,11 +10,11 @@ Account balance display: Total Balance = Total Equity + Available Balance + P&L 
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
 Bot page layout preference: Improved two-row vertical design for better mobile display and proper element fitting. Financial data now displays in vertical stacks, folder headers use two-row layout to prevent overflow, and all elements properly fit within screen width.
-Trading style simplification: Streamlined to 3 focused trading styles with timeframe-based analysis:
-- Conservative: 4H-1D timeframes for stable growth (75% confidence, 3x max leverage)
-- Balanced: 15M-1H timeframes for steady returns (60% confidence, 5x max leverage)  
-- Aggressive: 1M-5M timeframes for quick scalping profits (45% confidence, 10x max leverage)
-Auto scanner timeframe integration: Scanner dynamically uses different timeframes and data analysis based on selected trading style for optimized signal detection.
+Trading style automation: Fully automated 3-style preset system without manual configuration:
+- Conservative: 4H timeframes for stable growth (75% confidence, 3x max leverage)
+- Balanced: 1H timeframes for steady returns (60% confidence, 5x max leverage)  
+- Aggressive: 5M timeframes for quick scalping profits (45% confidence, 10x max leverage)
+Auto scanner preset integration: Scanner automatically uses preset configurations when trading style is selected. No manual timeframe selection or save button required - settings are applied instantly upon style selection.
 Bot termination system: Comprehensive bot termination that closes both Bitget positions AND terminates corresponding bot database records.
 Entry system preference: VOLATILITY-OPTIMIZED multi-indicator analysis system for 5-minute scalping with leverage. AI bots use weighted technical analysis combining MACD (25%), RSI (20%), Bollinger Bands (20%), Volume Analysis (15%), Moving Averages (10%), and Enhanced Support/Resistance (15%). OPTIMIZATIONS FOR HIGH VOLATILITY: Base confidence threshold 60% (50% for volatile pairs >3%), volatility-adaptive signal requirements (15-20 points based on pair movement), enhanced support/resistance with multi-touch confirmation and volume-confirmed breakouts, automatic overbought/oversold blocking, minimum 5-minute evaluation intervals per pair, 5-minute timeframes for quick leveraged gains targeting minimum 5% profits.
 Auto Market Scanner: FULLY OPERATIONAL autonomous market-wide scanning system that evaluates 100+ trading pairs, automatically selects optimal opportunities using multi-indicator AI analysis, and deploys bots with just capital allocation required from user. Features configurable parameters for maximum bots (3-10), minimum confidence threshold (30-90%), and automatic capital distribution across selected opportunities.
