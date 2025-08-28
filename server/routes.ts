@@ -7,12 +7,18 @@ import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrate
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
+let tradingPaused = false; // Emergency pause for all trading
 
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
 async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
+    return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
+  }
+  
+  if (tradingPaused) {
+    console.log('⏸️ Trading paused - no new entries allowed');
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
@@ -152,38 +158,43 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
       }
     }
     
-    // Calculate confidence and final decision
+    // Calculate confidence and final decision with STRICT REQUIREMENTS
     const totalScore = Math.max(bullishScore, bearishScore);
+    const signalDifference = Math.abs(bullishScore - bearishScore);
     const confidence = Math.min(95, totalScore);
     
     console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
     
-    // Dynamic confidence threshold based on market conditions and signal strength
-    let confidenceThreshold = 50; // Lower base threshold for better responsiveness
+    // MUCH STRICTER REQUIREMENTS - Prevent frequent losses
+    let confidenceThreshold = 75; // Raised from 50 to 75 - only best signals
     
-    // Lower threshold for strong directional signals (difference > 10 points)
-    const signalDifference = Math.abs(bullishScore - bearishScore);
-    if (signalDifference >= 10) {
-      confidenceThreshold = 35; // More aggressive for directional signals
-      console.log(`📊 Strong directional signal detected (${signalDifference} point difference) - lowering threshold to ${confidenceThreshold}%`);
+    // Require SIGNIFICANT score difference (prevent weak signals)
+    if (signalDifference < 25) {
+      console.log(`❌ Signal too weak: ${signalDifference} point difference < 25 required`);
+      return { hasSignal: false, direction: null, confidence: indicators };
     }
     
-    // Further lower for high-conviction indicators (MACD crossovers, extreme RSI, band touches)
-    const hasHighConvictionSignal = 
-      (indicators.macd?.bullishCrossover || indicators.macd?.bearishCrossover) ||
-      (indicators.rsi?.value < 30 || indicators.rsi?.value > 70) ||
-      (indicators.bollingerBands && (bullishScore >= 15 || bearishScore >= 15));
+    // CRITICAL: Block dangerous overbought/oversold entries
+    const isOverboughtLong = indicators.rsi?.value > 70 && bullishScore > bearishScore;
+    const isOversoldShort = indicators.rsi?.value < 30 && bearishScore > bullishScore;
+    const isBandRejection = (indicators.bollingerBands?.current >= indicators.bollingerBands?.upper && bullishScore > bearishScore) ||
+                           (indicators.bollingerBands?.current <= indicators.bollingerBands?.lower && bearishScore > bullishScore);
     
-    if (hasHighConvictionSignal) {
-      confidenceThreshold = Math.min(confidenceThreshold, 30); // More aggressive threshold for high-conviction signals
-      console.log(`🎯 High-conviction signal detected - lowering threshold to ${confidenceThreshold}%`);
+    if (isOverboughtLong || isOversoldShort || isBandRejection) {
+      console.log(`❌ BLOCKED dangerous entry: RSI ${indicators.rsi?.value}, BB rejection ${isBandRejection}`);
+      return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // Special handling for auto-scanner bots - they were pre-selected with high confidence
-    // so we can be more aggressive with execution thresholds
-    if (confidence >= 25 && signalDifference >= 5) {
-      confidenceThreshold = Math.min(confidenceThreshold, 25); // Very aggressive for auto-scanner opportunities
-      console.log(`🚀 Auto-scanner optimized threshold: ${confidenceThreshold}%`);
+    // Only strong signals with overwhelming evidence
+    if (signalDifference >= 30 && totalScore >= 65) {
+      confidenceThreshold = 70; // Still very strict
+      console.log(`🎯 Strong signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+    } else if (signalDifference >= 35 && totalScore >= 70) {
+      confidenceThreshold = 65; // Slightly more lenient for exceptional signals
+      console.log(`📊 Exceptional signal: ${signalDifference} diff, ${totalScore} total`);
+    } else {
+      console.log(`⚠️ Insufficient strength: ${signalDifference} diff, ${totalScore} total`);
+      return { hasSignal: false, direction: null, confidence, indicators };
     }
     
     if (confidence >= confidenceThreshold) {
@@ -258,15 +269,26 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
   }
 }
 
-// Smart Trade Selection: Find low-percentage, high-probability setups based on leverage
+// Conservative Trade Selection: Wider stops, higher win rate
 function calculateOptimalTradeSetup(leverage: number, botType: string = 'default'): { stopLoss: number, takeProfit: number, tradeProfile: string } {
-  // Fixed account risk tolerance (maintain consistent account safety)
-  const maxAccountLoss = 5.0; // Always 5% max account loss
-  const targetAccountGain = 8.0; // Always 8% target account gain
+  // CONSERVATIVE account risk - wider stops to avoid noise
+  const maxAccountLoss = 3.0; // Reduced from 5% to 3% for safety
+  const targetAccountGain = 6.0; // Reduced from 8% to 6% - more realistic
   
-  // Calculate required position percentages
-  const stopLossPercent = maxAccountLoss / leverage;
-  const takeProfitPercent = targetAccountGain / leverage;
+  // Calculate required position percentages with WIDER STOPS
+  let stopLossPercent = maxAccountLoss / leverage;
+  let takeProfitPercent = targetAccountGain / leverage;
+  
+  // CRITICAL: Minimum stop loss to avoid market noise
+  if (stopLossPercent < 2.0) {
+    stopLossPercent = 2.0; // Minimum 2% stop loss regardless of leverage
+    console.log(`🛡️ Stop loss widened to 2.0% minimum (was ${(maxAccountLoss / leverage).toFixed(2)}%)`);
+  }
+  
+  if (takeProfitPercent < 3.0) {
+    takeProfitPercent = 3.0; // Minimum 3% take profit
+    console.log(`🎯 Take profit adjusted to 3.0% minimum (was ${(targetAccountGain / leverage).toFixed(2)}%)`);
+  }
   
   // Determine trade profile based on required percentages
   let tradeProfile = 'standard';
@@ -292,8 +314,8 @@ function calculateOptimalTradeSetup(leverage: number, botType: string = 'default
   console.log(`🎯 ${leverage}x leverage requires ${stopLossPercent.toFixed(2)}% SL, ${takeProfitPercent.toFixed(2)}% TP - Profile: ${tradeProfile}`);
   
   return {
-    stopLoss: Math.max(stopLossPercent, 0.1), // Minimum 0.1% (even for extreme leverage)
-    takeProfit: Math.max(takeProfitPercent, 0.2), // Minimum 0.2%
+    stopLoss: Math.max(stopLossPercent, 2.0), // Minimum 2.0% stop loss to avoid noise
+    takeProfit: Math.max(takeProfitPercent, 3.0), // Minimum 3.0% take profit
     tradeProfile
   };
 }
