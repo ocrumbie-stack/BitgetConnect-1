@@ -158,18 +158,38 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     
     console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
     
-    // Minimum confidence threshold of 60% for signal
-    if (confidence >= 60) {
+    // Dynamic confidence threshold based on market conditions and signal strength
+    let confidenceThreshold = 60; // Base threshold
+    
+    // Lower threshold for strong directional signals (difference > 15 points)
+    const signalDifference = Math.abs(bullishScore - bearishScore);
+    if (signalDifference >= 15) {
+      confidenceThreshold = 45; // More lenient for clear directional signals
+      console.log(`📊 Strong directional signal detected (${signalDifference} point difference) - lowering threshold to ${confidenceThreshold}%`);
+    }
+    
+    // Further lower for high-conviction indicators (MACD crossovers, extreme RSI, band touches)
+    const hasHighConvictionSignal = 
+      (indicators.macd?.bullishCrossover || indicators.macd?.bearishCrossover) ||
+      (indicators.rsi?.value < 30 || indicators.rsi?.value > 70) ||
+      (indicators.bollingerBands && (bullishScore >= 20 || bearishScore >= 20));
+    
+    if (hasHighConvictionSignal) {
+      confidenceThreshold = Math.min(confidenceThreshold, 40); // Never below 40% for safety
+      console.log(`🎯 High-conviction signal detected - lowering threshold to ${confidenceThreshold}%`);
+    }
+    
+    if (confidence >= confidenceThreshold) {
       if (bullishScore > bearishScore) {
-        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
+        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}% (threshold: ${confidenceThreshold}%)`);
         return { hasSignal: true, direction: 'long', confidence, indicators };
       } else {
-        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
+        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}% (threshold: ${confidenceThreshold}%)`);
         return { hasSignal: true, direction: 'short', confidence, indicators };
       }
     }
     
-    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < 60%)`);
+    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < ${confidenceThreshold}%)`);
     return { hasSignal: false, direction: null, confidence, indicators };
     
   } catch (error) {
