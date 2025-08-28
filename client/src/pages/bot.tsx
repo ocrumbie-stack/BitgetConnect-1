@@ -2250,11 +2250,11 @@ export default function BotPage() {
                                               </Badge>
                                             </div>
                                             {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                              <div className="flex gap-1 flex-shrink-0">
+                                              <div className="flex gap-2 flex-shrink-0">
                                                 {execution.status === 'active' && execution.positionData && (
                                                   <Button 
                                                     size="sm" 
-                                                    variant="outline"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
                                                     onClick={(e) => {
                                                       e.preventDefault();
                                                       if (execution.positionData) {
@@ -2264,23 +2264,19 @@ export default function BotPage() {
                                                         });
                                                       }
                                                     }}
-                                                    className="h-6 px-2 text-xs"
                                                   >
-                                                    <Square className="h-3 w-3 mr-1" />
-                                                    Close
+                                                    👁 Exit
                                                   </Button>
                                                 )}
                                                 <Button 
-                                                  size="sm" 
-                                                  variant="destructive"
+                                                  size="sm"
+                                                  className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     handleTerminateExecution.mutate(execution.id);
                                                   }}
-                                                  className="h-6 px-2 text-xs"
                                                 >
-                                                  <Square className="h-3 w-3 mr-1" />
-                                                  Stop
+                                                  ⏹ Stop
                                                 </Button>
                                               </div>
                                             )}
@@ -2451,11 +2447,11 @@ export default function BotPage() {
                                             </Badge>
                                           </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                            <div className="flex gap-1 flex-shrink-0">
+                                            <div className="flex gap-2 flex-shrink-0">
                                               {execution.status === 'active' && execution.positionData && (
                                                 <Button 
                                                   size="sm" 
-                                                  variant="outline"
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     if (execution.positionData) {
@@ -2465,23 +2461,19 @@ export default function BotPage() {
                                                       });
                                                     }
                                                   }}
-                                                  className="h-6 px-2 text-xs"
                                                 >
-                                                  <Square className="h-3 w-3 mr-1" />
-                                                  Close
+                                                  👁 Exit
                                                 </Button>
                                               )}
                                               <Button 
-                                                size="sm" 
-                                                variant="destructive"
+                                                size="sm"
+                                                className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
                                                 onClick={(e) => {
                                                   e.preventDefault();
                                                   handleTerminateExecution.mutate(execution.id);
                                                 }}
-                                                className="h-6 px-2 text-xs"
                                               >
-                                                <Square className="h-3 w-3 mr-1" />
-                                                Stop
+                                                ⏹ Stop
                                               </Button>
                                             </div>
                                           )}
