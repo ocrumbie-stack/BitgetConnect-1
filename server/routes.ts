@@ -4106,6 +4106,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return recommendations;
   }
 
+  // Update folder names for existing bot executions
+  app.post('/api/bot-executions/update-folder-names', async (req, res) => {
+    try {
+      const { userId, deploymentType, folderName } = req.body;
+      
+      if (!userId || !deploymentType || !folderName) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // Get all bot executions matching the criteria
+      const executions = await storage.getAllBotExecutions();
+      const targetExecutions = executions.filter(ex => 
+        ex.userId === userId && 
+        ex.deploymentType === deploymentType &&
+        !ex.folderName // Only update ones without folder names
+      );
+      
+      // Update each execution with the folder name
+      for (const execution of targetExecutions) {
+        await storage.updateBotExecution(execution.id, {
+          folderName: folderName
+        });
+      }
+      
+      console.log(`✅ Updated ${targetExecutions.length} bot executions with folder name: ${folderName}`);
+      
+      res.json({ 
+        success: true, 
+        updated: targetExecutions.length,
+        message: `Successfully updated ${targetExecutions.length} bot executions with folder name`
+      });
+      
+    } catch (error) {
+      console.error('Error updating folder names:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Duplicate order endpoint removed - using the one defined at the top
 
   // Initialize sample market opportunities
