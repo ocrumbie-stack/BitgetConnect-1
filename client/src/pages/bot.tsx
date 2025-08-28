@@ -85,6 +85,7 @@ export default function BotPage() {
   // Auto Market Scanner state
   const [scannerCapital, setScannerCapital] = useState('10000');
   const [scannerMaxBots, setScannerMaxBots] = useState('5');
+  const [scannerLeverage, setScannerLeverage] = useState('3'); // Default 3x leverage
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
