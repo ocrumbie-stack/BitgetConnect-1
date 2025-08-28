@@ -608,8 +608,8 @@ export default function BotPage() {
     if (strategy.config?.indicators) {
       const mergedIndicators = { ...defaultIndicators };
       Object.keys(strategy.config.indicators).forEach(key => {
-        if (mergedIndicators[key]) {
-          mergedIndicators[key] = { ...mergedIndicators[key], ...strategy.config.indicators[key] };
+        if ((mergedIndicators as any)[key]) {
+          (mergedIndicators as any)[key] = { ...(mergedIndicators as any)[key], ...strategy.config.indicators[key] };
         }
       });
       setIndicators(mergedIndicators);
