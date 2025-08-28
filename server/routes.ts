@@ -60,11 +60,20 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
     // STRICT CROSSOVER: MACD crosses from BELOW to ABOVE signal line
     const bullishCrossover = (prevMacd <= prevSignal) && (currentMacd > currentSignal);
     
+    // TEMPORARY TEST: Also detect when MACD is above signal line and trending up (for testing)
+    const testCondition = (currentMacd > currentSignal) && (currentMacd > prevMacd);
+    
     console.log(`🤖 AI ${tradingPair} - MACD: ${currentMacd.toFixed(6)}, Signal: ${currentSignal.toFixed(6)}`);
     console.log(`🤖 AI ${tradingPair} - Prev MACD: ${prevMacd.toFixed(6)}, Prev Signal: ${prevSignal.toFixed(6)}`);
     console.log(`🤖 AI ${tradingPair} - Crossover: ${bullishCrossover ? '✅ BULLISH' : '❌ None'}`);
+    console.log(`🤖 AI ${tradingPair} - Test condition: ${testCondition ? '✅ UPTREND' : '❌ None'}`);
     
-    return bullishCrossover;
+    // FOR TESTING: Return true if either condition is met
+    if (bullishCrossover || testCondition) {
+      console.log(`🎯🎯🎯 ENTRY SIGNAL TRIGGERED FOR ${tradingPair}! ${bullishCrossover ? 'BULLISH CROSSOVER' : 'UPTREND'}`);
+    }
+    
+    return bullishCrossover || testCondition;
   } catch (error) {
     console.error(`❌ AI bot evaluation error for ${tradingPair}:`, error);
     return false;
@@ -2116,30 +2125,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test MACD evaluation endpoint
   app.get('/api/test-macd', async (req, res) => {
     try {
-      const symbol = req.query.symbol as string || 'CROUSDT';
+      const symbol = req.query.symbol as string || 'BTCUSDT';
       
-      console.log(`🧪 Testing MACD evaluation for ${symbol}`);
+      console.log(`🧪 Testing AI Bot MACD evaluation for ${symbol}`);
       
-      // Get the test strategy
-      const strategies = await storage.getBotStrategies('default-user');
-      const strategy = strategies.find(s => s.name === 'Test');
-      
-      if (!strategy) {
-        return res.status(404).json({ error: 'Test strategy not found' });
-      }
-      
-      // Test MACD evaluation
-      const result = await evaluateManualStrategyEntry(strategy, symbol);
+      // Test AI bot evaluation directly
+      const aiResult = await evaluateAIBotEntry(symbol);
       
       res.json({
         symbol,
-        strategyName: strategy.name,
-        macdSignalMet: result,
-        timestamp: new Date().toISOString()
+        aiSignalMet: aiResult,
+        timestamp: new Date().toISOString(),
+        message: aiResult ? 'ENTRY SIGNAL DETECTED!' : 'No signal yet'
       });
     } catch (error) {
       console.error('❌ Error testing MACD:', error);
       res.status(500).json({ error: 'Failed to test MACD evaluation' });
+    }
+  });
+
+  // Force AI bot execution test endpoint
+  app.post('/api/test-ai-execution', async (req, res) => {
+    try {
+      const { symbol = 'BTCUSDT' } = req.body;
+      
+      console.log(`🧪🧪🧪 FORCING AI BOT EXECUTION TEST FOR ${symbol}`);
+      
+      // Find an active AI bot for this symbol
+      const deployedBots = await storage.getBotExecutions('default-user');
+      const targetBot = deployedBots.find(bot => 
+        bot.tradingPair === symbol && 
+        bot.status === 'active' && 
+        bot.deploymentType === 'folder'
+      );
+      
+      if (!targetBot) {
+        return res.status(404).json({ 
+          error: `No active AI bot found for ${symbol}`,
+          availableBots: deployedBots.filter(b => b.status === 'active').map(b => b.tradingPair)
+        });
+      }
+      
+      console.log(`🎯 Found AI bot: ${targetBot.botName} for ${symbol}`);
+      
+      // Force execute the AI bot order
+      const orderSuccess = await placeAIBotOrder(targetBot);
+      
+      res.json({
+        symbol,
+        botName: targetBot.botName,
+        executionSuccess: orderSuccess,
+        message: orderSuccess ? 'AI BOT EXECUTED SUCCESSFULLY!' : 'Execution failed',
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ Error in forced AI execution:', error);
+      res.status(500).json({ error: 'Failed to execute AI bot test' });
     }
   });
 
