@@ -216,26 +216,7 @@ export default function BotPage() {
     execution.status === 'active' || execution.status === 'waiting_entry' || execution.status === 'exit_pending'
   );
 
-  // Group auto-scanner bots by folder for better organization
-  const groupedExecutions = useMemo(() => {
-    const groups = {
-      autoScanner: [] as any[],
-      folder: [] as any[],
-      individual: [] as any[]
-    };
 
-    activeExecutions.forEach(execution => {
-      if (execution.deploymentType === 'auto_scanner') {
-        groups.autoScanner.push(execution);
-      } else if (execution.deploymentType === 'folder') {
-        groups.folder.push(execution);
-      } else {
-        groups.individual.push(execution);
-      }
-    });
-
-    return groups;
-  }, [activeExecutions]);
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
