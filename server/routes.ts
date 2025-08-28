@@ -3230,6 +3230,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Historical price data for Dynamic Exit Visualizer
+  app.get('/api/futures/:symbol/history', async (req, res) => {
+    try {
+      const { symbol } = req.params;
+      
+      if (!bitgetAPI) {
+        return res.status(503).json({ error: 'API not available' });
+      }
+
+      // Get 1 hour of 1-minute candles for price history
+      const candleData = await bitgetAPI.getCandlestickData(symbol, '1m', 60);
+      
+      if (!candleData || candleData.length === 0) {
+        return res.json([]);
+      }
+
+      // Transform data for chart consumption
+      const priceHistory = candleData.map((candle, index) => ({
+        time: new Date(parseInt(candle.timestamp)).toLocaleTimeString(),
+        price: parseFloat(candle.close),
+        high: parseFloat(candle.high),
+        low: parseFloat(candle.low),
+        volume: parseFloat(candle.volume),
+        timestamp: parseInt(candle.timestamp),
+        index
+      })).reverse(); // Most recent first
+
+      res.json(priceHistory);
+    } catch (error) {
+      console.error('Error fetching price history:', error);
+      res.status(500).json({ error: 'Failed to fetch price history' });
+    }
+  });
+
   // Auto Market Scanner AI Bot - Scans entire market and auto-deploys to best pairs
   app.post('/api/auto-scanner/deploy', async (req, res) => {
     try {
