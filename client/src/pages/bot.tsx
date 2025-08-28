@@ -1225,7 +1225,7 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                    {(activeExecutions as any[]).length}
+                    {(activeExecutions as any[]).filter(ex => ex.status === 'active').length}
                   </div>
                   <div className="text-xs text-green-600 dark:text-green-400">Active Bots</div>
                 </div>
