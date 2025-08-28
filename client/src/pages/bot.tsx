@@ -334,27 +334,26 @@ export default function BotPage() {
     }
   });
 
-  // Auto Market Scanner mutation
+  // Auto Market Scanner - SCAN ONLY
   const autoScannerMutation = useMutation({
     mutationFn: async (scannerData: any) => {
-      const response = await fetch('/api/auto-scanner/deploy', {
+      const response = await fetch('/api/auto-scanner/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scannerData)
       });
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to deploy auto scanner: ${error}`);
+        throw new Error(`Failed to scan market: ${error}`);
       }
       return response.json();
     },
     onSuccess: (results) => {
       setScannerResults(results);
       setIsScanning(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       toast({
-        title: "Auto Market Scanner Complete! 🎯",
-        description: `Deployed ${results.deployedBots} AI bots to top market opportunities`,
+        title: "Market Scan Complete! 🔍",
+        description: `Found ${results.opportunities.length} trading opportunities`,
       });
     },
     onError: (error: any) => {
@@ -367,19 +366,42 @@ export default function BotPage() {
     }
   });
 
-  // Handle auto scanner deployment
-  const handleAutoScannerDeploy = async () => {
-    if (!scannerCapital || parseFloat(scannerCapital) <= 0) {
+  // Auto Market Scanner - DEPLOY BOTS
+  const autoDeployMutation = useMutation({
+    mutationFn: async (deployData: any) => {
+      const response = await fetch('/api/auto-scanner/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deployData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to deploy bots: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: (results) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       toast({
-        title: "Invalid Capital",
-        description: "Please enter a valid capital amount for auto scanner deployment",
+        title: "Bots Deployed Successfully! 🤖",
+        description: `Deployed ${results.deployedBots} AI bots with $${results.capitalPerBot} each`,
+      });
+      // Clear scan results after successful deployment
+      setScannerResults(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Deployment Failed",
+        description: error.message || "Failed to deploy bots",
         variant: "destructive",
       });
-      return;
     }
+  });
 
+  // Handle auto scanner - SCAN ONLY
+  const handleAutoScannerScan = async () => {
     // Get confidence threshold from trading style preferences
-    let minConfidence = 70; // Default fallback
+    let minConfidence = 25; // More realistic default for auto scanner
     if (userPrefs && typeof userPrefs === 'object' && 'preferences' in userPrefs) {
       const prefs = (userPrefs as any).preferences;
       if (prefs && prefs.confidenceThreshold) {
@@ -392,12 +414,41 @@ export default function BotPage() {
     
     const scannerData = {
       userId: 'default-user',
-      totalCapital: parseFloat(scannerCapital),
       maxBots: parseInt(scannerMaxBots),
       minConfidence: minConfidence
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
+  };
+
+  // Handle bot deployment from scan results
+  const handleDeployBots = async () => {
+    if (!scannerResults?.opportunities || scannerResults.opportunities.length === 0) {
+      toast({
+        title: "No Opportunities",
+        description: "No trading opportunities available to deploy",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!scannerCapital || parseFloat(scannerCapital) <= 0) {
+      toast({
+        title: "Invalid Capital",
+        description: "Please enter a valid capital amount for bot deployment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const deployData = {
+      userId: 'default-user',
+      opportunities: scannerResults.opportunities,
+      totalCapital: parseFloat(scannerCapital),
+      leverage: parseInt(scannerLeverage)
+    };
+
+    await autoDeployMutation.mutateAsync(deployData);
   };
 
   // Terminate all bots in a folder
@@ -1586,7 +1637,7 @@ export default function BotPage() {
 
                   {/* Start Scanner Button */}
                   <Button
-                    onClick={handleAutoScannerDeploy}
+                    onClick={handleAutoScannerScan}
                     disabled={isScanning || autoScannerMutation.isPending}
                     className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
                     data-testid="button-start-scanner"
@@ -1642,7 +1693,7 @@ export default function BotPage() {
 
                   <div className="space-y-3">
                     <label className="text-sm font-medium">Leverage</label>
-                    <Select value="5" disabled={isScanning}>
+                    <Select value={scannerLeverage} onValueChange={setScannerLeverage} disabled={isScanning}>
                       <SelectTrigger className="bg-white dark:bg-gray-800" data-testid="select-scanner-leverage">
                         <SelectValue />
                       </SelectTrigger>
@@ -1680,32 +1731,27 @@ export default function BotPage() {
                 {/* Deploy Button */}
                 <div className="flex items-center gap-4">
                   <Button
-                    onClick={() => {
-                      if (scannerResults) {
-                        // Handle deployment of scanner results
-                        toast({
-                          title: "Deploying Bots! 🚀",
-                          description: `Deploying ${scannerResults.deployedBots || scannerMaxBots} bots with configured capital and leverage`,
-                        });
-                      } else {
-                        toast({
-                          title: "No Results",
-                          description: "Please run the scanner first to get trading opportunities",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                    disabled={!scannerResults || isScanning}
+                    onClick={handleDeployBots}
+                    disabled={!scannerResults?.opportunities || autoDeployMutation.isPending || isScanning}
                     className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
                     data-testid="button-deploy-bots"
                   >
-                    <Target className="h-4 w-4 mr-2" />
-                    Deploy Selected Bots
+                    {autoDeployMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 mr-2 border-b-2 border-white"></div>
+                        Deploying...
+                      </>
+                    ) : (
+                      <>
+                        <Target className="h-4 w-4 mr-2" />
+                        Deploy Selected Bots
+                      </>
+                    )}
                   </Button>
                   
-                  {scannerCapital && parseInt(scannerMaxBots) > 0 && (
+                  {scannerResults?.opportunities && scannerCapital && (
                     <div className="text-sm text-muted-foreground">
-                      Capital per bot: ${(parseFloat(scannerCapital) / parseInt(scannerMaxBots)).toFixed(2)}
+                      {scannerResults.opportunities.length} opportunities • Capital per bot: ${(parseFloat(scannerCapital) / scannerResults.opportunities.length).toFixed(2)}
                     </div>
                   )}
                 </div>
