@@ -1939,8 +1939,8 @@ export default function BotPage() {
                                       </div>
                                     </div>
                                     <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-500/30 rounded p-2">
-                                      <div className="text-blue-400 font-medium">Active Pairs</div>
-                                      <div className="text-sm font-bold text-blue-400">{executions.length} pairs</div>
+                                      <div className="text-blue-400 font-medium">Active Bots</div>
+                                      <div className="text-sm font-bold text-blue-400">{executions.filter(ex => ex.status === 'active').length} bots</div>
                                     </div>
                                   </div>
                                 </div>
@@ -2045,7 +2045,7 @@ export default function BotPage() {
                                             <DropdownMenuContent align="start" className="w-64">
                                               <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                                 <div className="flex flex-col space-y-1">
-                                                  <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
+                                                  <div className="font-medium">{execution.tradingPair}</div>
                                                   <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                                   <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                                   <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
@@ -2181,11 +2181,7 @@ export default function BotPage() {
                                   <DropdownMenuContent align="start" className="w-64">
                                     <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
                                       <div className="flex flex-col space-y-1">
-                                        <div className="font-medium">Bot: {(() => {
-                                          if (execution.botName) return execution.botName;
-                                          const strategy = aiBots.find(b => b.id === execution.strategyId);
-                                          return strategy ? strategy.name : 'Manual Bot';
-                                        })()}</div>
+                                        <div className="font-medium">{execution.tradingPair}</div>
                                         <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                         <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
                                         <div className="text-sm text-muted-foreground">Strategy: {(() => {
