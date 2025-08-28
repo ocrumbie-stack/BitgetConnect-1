@@ -21,10 +21,10 @@ const tradingStyles = {
     name: 'Conservative',
     icon: Shield,
     color: 'bg-blue-500',
-    description: 'Stable growth with minimal risk',
+    description: '4H-1D timeframes for stable growth',
     settings: {
-      confidenceThreshold: 80,
-      maxLeverage: 2,
+      confidenceThreshold: 75,
+      maxLeverage: 3,
       riskTolerance: 'low' as const,
       timeframePreference: '4h' as const,
       tradingStyleSettings: {
@@ -33,15 +33,15 @@ const tradingStyles = {
         volatilityFocus: false,
       }
     },
-    features: ['High confidence trades (80%)', 'Low leverage', 'Longer timeframes', 'Risk-first approach']
+    features: ['4H-1D timeframes', 'High confidence (75%)', 'Low leverage (3x)', 'Long-term trends']
   },
   balanced: {
     name: 'Balanced',
     icon: Target,
     color: 'bg-green-500',
-    description: 'Moderate risk with steady returns',
+    description: '15M-1H timeframes for steady returns',
     settings: {
-      confidenceThreshold: 65,
+      confidenceThreshold: 60,
       maxLeverage: 5,
       riskTolerance: 'medium' as const,
       timeframePreference: '1h' as const,
@@ -51,15 +51,15 @@ const tradingStyles = {
         volatilityFocus: false,
       }
     },
-    features: ['Balanced risk/reward (65%)', 'Medium leverage', 'Diverse timeframes', 'Steady growth']
+    features: ['15M-1H timeframes', 'Medium confidence (60%)', 'Moderate leverage (5x)', 'Balanced approach']
   },
   aggressive: {
     name: 'Aggressive',
-    icon: TrendingUp,
-    color: 'bg-orange-500',
-    description: 'Higher risk for faster gains',
+    icon: Zap,
+    color: 'bg-red-500',
+    description: '1M-5M timeframes for quick profits',
     settings: {
-      confidenceThreshold: 50,
+      confidenceThreshold: 45,
       maxLeverage: 10,
       riskTolerance: 'high' as const,
       timeframePreference: '5m' as const,
@@ -69,32 +69,14 @@ const tradingStyles = {
         volatilityFocus: true,
       }
     },
-    features: ['Quick scalping trades (50%)', 'High leverage allowed', '5-minute timeframes', 'Volatility focus']
-  },
-  high_risk: {
-    name: 'High Risk',
-    icon: Zap,
-    color: 'bg-red-500',
-    description: 'Maximum leverage and volatility',
-    settings: {
-      confidenceThreshold: 40,
-      maxLeverage: 20,
-      riskTolerance: 'extreme' as const,
-      timeframePreference: '1m' as const,
-      tradingStyleSettings: {
-        aggressive: true,
-        scalping: true,
-        volatilityFocus: true,
-      }
-    },
-    features: ['Extreme leverage', '1-minute scalping (40%)', 'Maximum volatility', 'High-frequency trading']
+    features: ['1M-5M timeframes', 'Quick trades (45%)', 'High leverage (10x)', 'Fast scalping']
   }
 };
 
 type TradingStyleSettings = {
   confidenceThreshold: number;
   maxLeverage: number;
-  riskTolerance: 'low' | 'medium' | 'high' | 'extreme';
+  riskTolerance: 'low' | 'medium' | 'high';
   timeframePreference: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
   tradingStyleSettings: {
     aggressive: boolean;

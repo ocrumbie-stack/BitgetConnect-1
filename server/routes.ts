@@ -12,7 +12,7 @@ let lastEvaluationTime: { [key: string]: number } = {}; // Track last evaluation
 
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
-async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
+async function evaluateAIBotEntry(tradingPair: string, timeframe: string = '5m', dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -40,8 +40,8 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
   try {
     console.log(`🤖 AI Bot: Evaluating multi-indicator analysis for ${tradingPair}`);
     
-    // Get historical price data - Using 5M timeframe for quick scalping opportunities
-    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
+    // Get historical price data - Using dynamic timeframe based on trading style
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, dataPoints);
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for AI bot: ${candleData?.length || 0} candles`);
       return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -3564,13 +3564,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto Market Scanner - SCAN ONLY (returns opportunities, no deployment)
   app.post('/api/auto-scanner/scan', async (req, res) => {
     try {
-      const { userId = 'default-user', maxBots = 5, minConfidence = 25 } = req.body;
+      const { userId = 'default-user', maxBots = 5, minConfidence = 25, tradingStyle = 'balanced' } = req.body;
       
       if (!bitgetAPI) {
         return res.status(400).json({ error: 'Bitget API not available' });
       }
 
-      console.log(`🔍 AUTO SCANNER: Scanning market for max ${maxBots} opportunities with min ${minConfidence}% confidence`);
+      // Determine timeframe and analysis parameters based on trading style
+      const styleConfig = {
+        conservative: { timeframe: '4h', dataPoints: 100, description: 'Long-term analysis' },
+        balanced: { timeframe: '1h', dataPoints: 150, description: 'Medium-term analysis' },
+        aggressive: { timeframe: '5m', dataPoints: 200, description: 'Short-term scalping' }
+      };
+
+      const config = styleConfig[tradingStyle as keyof typeof styleConfig] || styleConfig.balanced;
+      
+      console.log(`🔍 AUTO SCANNER (${tradingStyle.toUpperCase()}): ${config.description} - ${config.timeframe} timeframe`);
+      console.log(`📊 Looking for max ${maxBots} opportunities with min ${minConfidence}% confidence`);
       
       // Get all available futures pairs
       const allTickers = await bitgetAPI.getAllFuturesTickers();
@@ -3605,7 +3615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${Math.min(liquidPairs.length, 50)})...`);
           analyzedCount++;
           
-          const aiResult = await evaluateAIBotEntry(ticker.symbol);
+          const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframe, config.dataPoints);
           console.log(`📊 ${ticker.symbol}: Confidence ${aiResult.confidence}%, Direction: ${aiResult.direction || 'None'}`);
           
           if (aiResult.confidence > 0) { // Track all signals, not just high confidence ones
@@ -3640,7 +3650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         for (const ticker of liquidPairs.slice(0, 20)) { // Quick scan of top 20
           try {
-            const aiResult = await evaluateAIBotEntry(ticker.symbol);
+            const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframe, config.dataPoints);
             if (aiResult.confidence >= lowerThreshold && aiResult.direction) {
               analysisResults.push({
                 symbol: ticker.symbol,
