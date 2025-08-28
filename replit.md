@@ -11,7 +11,7 @@ Header structure preference: Total Balance, Total Equity, Available Balance (in 
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
 Bot page layout preference: Fixed layout issues in active execution tab with improved two-row vertical design for better mobile display and proper element fitting (August 2025). Successfully resolved horizontal scrolling issues on mobile devices - financial data now displays in vertical stacks, folder headers use two-row layout to prevent overflow, and all elements properly fit within screen width (August 2025).
 Bot termination system: Successfully implemented comprehensive bot termination that closes both Bitget positions AND terminates corresponding bot database records. "Close All Positions" button now works completely - no more ghost bots appearing after termination. Both individual Stop buttons and bulk termination properly filter out terminated bots from the UI display (August 2025).
-Entry system preference: Classic MACD crossover detection where signal triggers only when MACD line crosses from below to above the signal line (strict crossover moment). No momentum-based or recent crossover triggers - pure technical analysis crossover detection (August 2025).
+Entry system preference: Evolved from MACD-only to comprehensive multi-indicator analysis system. AI bots now use weighted technical analysis combining MACD (25%), RSI (20%), Bollinger Bands (20%), Volume Analysis (15%), Moving Averages (10%), and Support/Resistance (10%) with 60% minimum confidence threshold for signal generation. System supports both long and short positions with directional scoring (August 2025).
 
 # System Architecture
 
@@ -32,6 +32,8 @@ The application prioritizes a clean, professional design optimized for mobile de
 
 ## Technical Implementations
 Key technical implementations include real-time data streaming via WebSockets, a comprehensive trading pair organization system with folder management and bulk bot deployment, and an AI-powered trading opportunity recommendation system. The AI analyzes price movements, volume patterns, and risk factors across multiple strategies (Momentum, Breakout, Scalping, Swing, Reversal) to provide smart scoring and confidence ratings. The bot system uses reusable strategy templates with configurable technical indicators and risk management settings.
+
+**Enhanced Multi-Indicator AI Bot System (August 2025)**: Upgraded from MACD-only to sophisticated technical analysis engine combining 6 indicators with weighted scoring - MACD crossover/momentum detection, RSI oversold/overbought levels, Bollinger Bands squeeze/breakout analysis, volume-price relationship assessment, moving average golden/death crosses, and support/resistance proximity analysis. Each indicator contributes weighted scores (totaling 100%) with 60% minimum confidence threshold required for trade execution. System provides detailed indicator breakdown, confidence ratings, and supports both long/short position directions.
 
 ## Feature Specifications
 The application includes:
