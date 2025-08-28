@@ -23,15 +23,15 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
-  // Minimum 5-minute interval between evaluations for same pair
+  // For auto scanner, skip the 5-minute cooldown to get fresh results
   const now = Date.now();
   const lastEval = lastEvaluationTime[tradingPair] || 0;
   const timeDiff = now - lastEval;
-  const minInterval = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const minInterval = 30 * 1000; // Reduce to 30 seconds for auto scanner
   
   if (timeDiff < minInterval) {
-    const remainingTime = Math.ceil((minInterval - timeDiff) / (60 * 1000));
-    console.log(`⏸️ ${tradingPair}: Waiting ${remainingTime}min before next evaluation`);
+    const remainingTime = Math.ceil((minInterval - timeDiff) / 1000);
+    console.log(`⏸️ ${tradingPair}: Waiting ${remainingTime}s before next evaluation (rate limit)`);
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
   
@@ -218,8 +218,8 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
       console.log(`📈 MODERATE VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     }
     
-    // Adjust signal requirements based on volatility
-    let minSignalDifference = volatility > 2.5 ? 15 : 20; // Lower requirements for volatile pairs
+    // AUTO SCANNER: Reduced signal requirements for more opportunities  
+    let minSignalDifference = volatility > 2.5 ? 10 : 15; // Lower requirements for auto scanner
     
     if (signalDifference < minSignalDifference) {
       console.log(`❌ Signal too weak: ${signalDifference} point difference < ${minSignalDifference} required`);
@@ -237,13 +237,19 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // Only strong signals with overwhelming evidence
-    if (signalDifference >= 30 && totalScore >= 65) {
-      confidenceThreshold = 70; // Still very strict
-      console.log(`🎯 Strong signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
-    } else if (signalDifference >= 35 && totalScore >= 70) {
-      confidenceThreshold = 65; // Slightly more lenient for exceptional signals
-      console.log(`📊 Exceptional signal: ${signalDifference} diff, ${totalScore} total`);
+    // AUTO SCANNER OPTIMIZED - More realistic signal requirements
+    if (signalDifference >= 15 && totalScore >= 25) {
+      // Strong signals with good evidence
+      if (signalDifference >= 25 && totalScore >= 45) {
+        confidenceThreshold = 50; // Strong signal
+        console.log(`🎯 Strong signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+      } else if (signalDifference >= 20 && totalScore >= 35) {
+        confidenceThreshold = 40; // Good signal
+        console.log(`📊 Good signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+      } else {
+        confidenceThreshold = 30; // Moderate signal for auto scanner
+        console.log(`📈 Moderate signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+      }
     } else {
       console.log(`⚠️ Insufficient strength: ${signalDifference} diff, ${totalScore} total`);
       return { hasSignal: false, direction: null, confidence, indicators };
@@ -3666,12 +3672,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         // Try to get existing folder first
-        const existingFolders = await storage.getScreeners(userId);
+        const existingFolders = await storage.getUserScreeners(userId);
         scannerFolder = existingFolders.find(folder => folder.name.includes('Auto Market Scanner'));
         
         if (!scannerFolder) {
           // Create new Auto Market Scanner folder
-          scannerFolder = await storage.createScreener({
+          scannerFolder = await storage.createUserScreener({
             userId,
             name: folderName,
             description: 'Automatically generated folder for AI market scanner trades',
@@ -3679,20 +3685,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tradingPairs: topOpportunities.map(op => op.symbol),
             isStarred: true, // Star it for easy access
             criteria: {
-              source: 'auto_market_scanner',
               minConfidence: minConfidence,
-              maxBots: maxBots,
-              deploymentDate: new Date().toISOString()
-            },
-            createdAt: new Date(),
-            updatedAt: new Date()
+              maxBots: maxBots
+            }
           });
         } else {
           // Update existing folder with new pairs
-          const updatedPairs = [...new Set([...scannerFolder.tradingPairs, ...topOpportunities.map(op => op.symbol)])];
-          await storage.updateScreener(scannerFolder.id, {
-            tradingPairs: updatedPairs,
-            updatedAt: new Date()
+          const updatedPairs = [...new Set([...scannerFolder.tradingPairs || [], ...topOpportunities.map(op => op.symbol)])];
+          await storage.updateUserScreener(scannerFolder.id, {
+            tradingPairs: updatedPairs
           });
         }
       } catch (error) {
