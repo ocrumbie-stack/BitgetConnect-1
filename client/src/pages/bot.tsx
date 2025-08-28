@@ -78,6 +78,13 @@ export default function BotPage() {
   const [editingStrategy, setEditingStrategy] = useState<any>(null);
   const [showEditForm, setShowEditForm] = useState(false);
 
+  // Auto Market Scanner state
+  const [scannerCapital, setScannerCapital] = useState('10000');
+  const [scannerMaxBots, setScannerMaxBots] = useState('5');
+  const [scannerMinConfidence, setScannerMinConfidence] = useState('70');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannerResults, setScannerResults] = useState<any>(null);
+
 
 
   // Fetch user strategies
@@ -316,6 +323,63 @@ export default function BotPage() {
       });
     }
   });
+
+  // Auto Market Scanner mutation
+  const autoScannerMutation = useMutation({
+    mutationFn: async (scannerData: any) => {
+      const response = await fetch('/api/auto-scanner/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scannerData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to deploy auto scanner: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: (results) => {
+      setScannerResults(results);
+      setIsScanning(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      toast({
+        title: "Auto Market Scanner Complete! 🎯",
+        description: `Deployed ${results.deployedBots} AI bots to top market opportunities`,
+      });
+    },
+    onError: (error: any) => {
+      setIsScanning(false);
+      toast({
+        title: "Scanner Failed",
+        description: error.message || "Failed to complete market scan",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle auto scanner deployment
+  const handleAutoScannerDeploy = async () => {
+    if (!scannerCapital || parseFloat(scannerCapital) <= 0) {
+      toast({
+        title: "Invalid Capital",
+        description: "Please enter a valid capital amount for auto scanner deployment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsScanning(true);
+    setScannerResults(null);
+    
+    const scannerData = {
+      userId: 'default-user',
+      totalCapital: parseFloat(scannerCapital),
+      maxBots: parseInt(scannerMaxBots),
+      minConfidence: parseInt(scannerMinConfidence)
+    };
+
+    await autoScannerMutation.mutateAsync(scannerData);
+  };
 
   // Terminate all bots in a folder
   const handleTerminateFolder = useMutation({
@@ -1119,7 +1183,7 @@ export default function BotPage() {
 
       {/* Bot Statistics Overview */}
       <div className="p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           <Card 
             className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
               activeTab === 'strategies' 
@@ -1184,6 +1248,29 @@ export default function BotPage() {
                     6
                   </div>
                   <div className="text-xs text-purple-600 dark:text-purple-400">AI Bots</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+              activeTab === 'scanner' 
+                ? 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-800/40 dark:to-cyan-900/40 border-cyan-300 dark:border-cyan-600 shadow-lg scale-105' 
+                : 'bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800'
+            }`}
+            onClick={() => handleTabChange('scanner')}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-cyan-500 rounded-lg">
+                  <Search className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
+                    Auto
+                  </div>
+                  <div className="text-xs text-cyan-600 dark:text-cyan-400">Market Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -1378,6 +1465,219 @@ export default function BotPage() {
                 </div>
               );
             })()}
+          </div>
+          )}
+
+          {/* Auto Market Scanner Section */}
+          {activeTab === 'scanner' && (
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Autonomous Market Scanner
+              </h3>
+              <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200">
+                AI-Powered Auto Deployment
+              </Badge>
+            </div>
+
+            <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-200 dark:border-cyan-800">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="p-3 bg-cyan-500 rounded-lg">
+                    <Search className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg mb-2">Fully Autonomous Trading</h4>
+                    <p className="text-muted-foreground">
+                      AI scans the entire market, evaluates all trading pairs using multi-indicator analysis, 
+                      and automatically deploys bots to the highest-confidence opportunities. You only need to set your capital.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Total Capital ($)</label>
+                    <Input
+                      type="number"
+                      value={scannerCapital}
+                      onChange={(e) => setScannerCapital(e.target.value)}
+                      placeholder="10000"
+                      className="bg-white dark:bg-gray-800"
+                      disabled={isScanning}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Will be split equally across selected opportunities
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Max Bots</label>
+                    <Select value={scannerMaxBots} onValueChange={setScannerMaxBots} disabled={isScanning}>
+                      <SelectTrigger className="bg-white dark:bg-gray-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 Bots</SelectItem>
+                        <SelectItem value="5">5 Bots</SelectItem>
+                        <SelectItem value="8">8 Bots</SelectItem>
+                        <SelectItem value="10">10 Bots</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Maximum number of trading pairs to deploy
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Min Confidence</label>
+                    <Select value={scannerMinConfidence} onValueChange={setScannerMinConfidence} disabled={isScanning}>
+                      <SelectTrigger className="bg-white dark:bg-gray-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="60">60% - More Opportunities</SelectItem>
+                        <SelectItem value="70">70% - Balanced</SelectItem>
+                        <SelectItem value="80">80% - Conservative</SelectItem>
+                        <SelectItem value="90">90% - Ultra Conservative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Minimum AI confidence required for deployment
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={handleAutoScannerDeploy}
+                    disabled={isScanning || !scannerCapital}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                  >
+                    {isScanning ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Scanning Market...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4 mr-2" />
+                        Start Auto Scanner
+                      </>
+                    )}
+                  </Button>
+                  
+                  {scannerCapital && parseInt(scannerMaxBots) > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      Capital per bot: ${(parseFloat(scannerCapital) / parseInt(scannerMaxBots)).toFixed(2)}
+                    </div>
+                  )}
+                </div>
+
+                {isScanning && (
+                  <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      <div>
+                        <div className="font-medium">Analyzing Market...</div>
+                        <div className="text-sm">Evaluating 100+ trading pairs with AI indicators</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {scannerResults && (
+                  <div className="mt-6 space-y-4">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-3">
+                        <Target className="h-5 w-5" />
+                        <span className="font-medium">Deployment Complete!</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <div className="text-muted-foreground">Bots Deployed</div>
+                          <div className="font-bold text-lg">{scannerResults.deployedBots}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Total Capital</div>
+                          <div className="font-bold text-lg">${scannerResults.totalCapital}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Capital/Bot</div>
+                          <div className="font-bold text-lg">${scannerResults.capitalPerBot}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Avg Confidence</div>
+                          <div className="font-bold text-lg">
+                            {scannerResults.opportunities?.length > 0 
+                              ? Math.round(scannerResults.opportunities.reduce((sum: number, opp: any) => sum + opp.confidence, 0) / scannerResults.opportunities.length)
+                              : 0}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {scannerResults.deployedDetails && scannerResults.deployedDetails.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium">Deployed Trading Pairs</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {scannerResults.deployedDetails.map((bot: any, index: number) => (
+                            <div key={index} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-medium">{bot.symbol}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {bot.direction?.toUpperCase()} • ${bot.capital}
+                                  </div>
+                                </div>
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  {bot.confidence}%
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-dashed border-2 border-cyan-200 dark:border-cyan-800">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <Lightbulb className="h-12 w-12 text-cyan-500 mx-auto mb-3" />
+                    <h4 className="font-semibold text-lg mb-2">How Auto Scanner Works</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div className="space-y-2">
+                      <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold mx-auto">1</div>
+                      <div className="font-medium">Market Analysis</div>
+                      <div className="text-muted-foreground">
+                        Scans 100+ trading pairs using multi-indicator analysis (MACD, RSI, Bollinger Bands, Volume, etc.)
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold mx-auto">2</div>
+                      <div className="font-medium">Opportunity Selection</div>
+                      <div className="text-muted-foreground">
+                        Ranks opportunities by confidence score and selects top pairs meeting your criteria
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold mx-auto">3</div>
+                      <div className="font-medium">Auto Deployment</div>
+                      <div className="text-muted-foreground">
+                        Automatically deploys AI bots with optimized settings and risk management
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           )}
 
