@@ -204,12 +204,25 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     
     console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
     
-    // MUCH STRICTER REQUIREMENTS - Prevent frequent losses
-    let confidenceThreshold = 75; // Raised from 50 to 75 - only best signals
+    // VOLATILITY-BASED CONFIDENCE ADJUSTMENT - High volatility = easier profit targets
+    const recentCandles = candleData.slice(-20);
+    const volatility = calculateVolatility(recentCandles);
+    let confidenceThreshold = 60; // Base threshold for volatile pairs
     
-    // Require SIGNIFICANT score difference (prevent weak signals)
-    if (signalDifference < 25) {
-      console.log(`❌ Signal too weak: ${signalDifference} point difference < 25 required`);
+    // Adjust threshold based on volatility - higher volatility = lower threshold
+    if (volatility > 3.0) {
+      confidenceThreshold = 50; // Very volatile pairs need lower confidence
+      console.log(`🔥 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Lowered threshold to ${confidenceThreshold}%`);
+    } else if (volatility > 2.0) {
+      confidenceThreshold = 55; // Moderate volatility
+      console.log(`📈 MODERATE VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
+    }
+    
+    // Adjust signal requirements based on volatility
+    let minSignalDifference = volatility > 2.5 ? 15 : 20; // Lower requirements for volatile pairs
+    
+    if (signalDifference < minSignalDifference) {
+      console.log(`❌ Signal too weak: ${signalDifference} point difference < ${minSignalDifference} required`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
@@ -1667,11 +1680,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Sort and get top gainer/loser
     const gainers = fiveMinMovers
-      .filter(m => parseFloat(m.change5m) > 0)
+      .filter(m => parseFloat(m.change5m) > 0.8) // Minimum 0.8% move for volatility
       .sort((a, b) => parseFloat(b.change5m) - parseFloat(a.change5m));
     
     const losers = fiveMinMovers
-      .filter(m => parseFloat(m.change5m) < 0)
+      .filter(m => parseFloat(m.change5m) < -0.8) // Minimum -0.8% move for volatility
       .sort((a, b) => parseFloat(a.change5m) - parseFloat(b.change5m));
 
     return {
@@ -3992,5 +4005,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.log('Failed to initialize sample data:', error);
     }
+  }
+}
+
+// Calculate volatility from recent price data
+function calculateVolatility(candles: any[]): number {
+  if (candles.length < 10) return 1.0;
+  
+  try {
+    const priceChanges = [];
+    for (let i = 1; i < candles.length; i++) {
+      const prevClose = parseFloat(candles[i-1].close);
+      const currentClose = parseFloat(candles[i].close);
+      const change = Math.abs((currentClose - prevClose) / prevClose) * 100;
+      priceChanges.push(change);
+    }
+    
+    // Average price change percentage over recent candles
+    const avgVolatility = priceChanges.reduce((sum, change) => sum + change, 0) / priceChanges.length;
+    return avgVolatility;
+  } catch (error) {
+    console.error('Error calculating volatility:', error);
+    return 1.0;
   }
 }
