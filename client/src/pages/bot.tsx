@@ -1956,37 +1956,21 @@ export default function BotPage() {
                                         ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
                                         : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
                                     }`}>
-                                      <div className="grid grid-rows-2 gap-3">
-                                        {/* Top row: Bot name, cycles, status */}
-                                        <div className="flex items-center justify-between min-w-0">
-                                          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
-                                            <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
-                                              (() => {
-                                                const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
-                                                return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
-                                              })()
-                                                ? 'bg-purple-600/80 text-white' 
-                                                : 'bg-blue-600/80 text-white'
-                                            }`}>
-                                              {execution.botName || 'Manual Bot'}
-                                            </span>
-                                            <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
-                                              {execution.cycles || 0} cycles
-                                            </span>
-                                            <Badge variant="outline" className={`text-sm ${
-                                              execution.status === 'active' 
-                                                ? 'border-green-500 text-green-400 bg-green-950/30'
-                                                : execution.status === 'waiting_entry'
-                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                : execution.status === 'exit_pending'
-                                                ? 'border-orange-500 text-orange-400 bg-orange-950/30'
-                                                : 'border-blue-500 text-blue-400 bg-blue-950/30'
-                                            }`}>
-                                              {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
-                                            </Badge>
-                                          </div>
+                                      <div className="space-y-3">
+                                        {/* First row: Bot name and action buttons */}
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className={`px-3 py-1.5 rounded text-sm font-medium truncate max-w-[200px] ${
+                                            (() => {
+                                              const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                              return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                            })()
+                                              ? 'bg-purple-600/80 text-white' 
+                                              : 'bg-blue-600/80 text-white'
+                                          }`}>
+                                            {execution.botName || 'Manual Bot'}
+                                          </span>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1 flex-shrink-0">
                                               {execution.status === 'active' && execution.positionData && (
                                                 <Button 
                                                   size="sm" 
@@ -1997,7 +1981,7 @@ export default function BotPage() {
                                                     setSelectedBotForVisualization(execution);
                                                     setShowExitVisualizer(true);
                                                   }}
-                                                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7"
                                                 >
                                                   <Eye className="h-3 w-3 mr-1" />
                                                   Exit
@@ -2013,7 +1997,7 @@ export default function BotPage() {
                                                   handleTerminateExecution.mutate(execution.id);
                                                 }}
                                                 disabled={handleTerminateExecution.isPending}
-                                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
                                               >
                                                 <Square className="h-3 w-3 mr-1" />
                                                 Stop
@@ -2021,8 +2005,26 @@ export default function BotPage() {
                                             </div>
                                           )}
                                         </div>
+
+                                        {/* Second row: Cycles and status badges */}
+                                        <div className="flex items-center gap-2">
+                                          <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
+                                            {execution.cycles || 0} cycles
+                                          </span>
+                                          <Badge variant="outline" className={`text-sm ${
+                                            execution.status === 'active' 
+                                              ? 'border-green-500 text-green-400 bg-green-950/30'
+                                              : execution.status === 'waiting_entry'
+                                              ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                              : execution.status === 'exit_pending'
+                                              ? 'border-orange-500 text-orange-400 bg-orange-950/30'
+                                              : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                          }`}>
+                                            {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
+                                          </Badge>
+                                        </div>
                                         
-                                        {/* Bottom row: Trading pair, capital, P&L */}
+                                        {/* Third row: Trading pair, capital, P&L */}
                                         <div className="flex items-center justify-between min-w-0">
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -2084,41 +2086,25 @@ export default function BotPage() {
                             : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
                         }`}>
                           <CardContent className="p-3">
-                            <div className="grid grid-rows-2 gap-3">
-                              {/* Top row: Bot name, cycles, status */}
-                              <div className="flex items-center justify-between min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
-                                  <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
-                                    (() => {
-                                      const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
-                                      return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
-                                    })()
-                                      ? 'bg-purple-600/80 text-white' 
-                                      : 'bg-blue-600/80 text-white'
-                                  }`}>
-                                    {(() => {
-                                      if (execution.botName) return execution.botName;
-                                      const strategy = aiBots.find(b => b.id === execution.strategyId);
-                                      return strategy ? strategy.name : 'Manual Bot';
-                                    })()}
-                                  </span>
-                                  <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
-                                    {execution.cycles || 0} cycles
-                                  </span>
-                                  <Badge variant="outline" className={`text-sm ${
-                                    execution.status === 'active' 
-                                      ? 'border-green-500 text-green-400 bg-green-950/30'
-                                      : execution.status === 'waiting_entry'
-                                      ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                      : execution.status === 'exit_pending'
-                                      ? 'border-orange-500 text-orange-400 bg-orange-950/30'
-                                      : 'border-blue-500 text-blue-400 bg-blue-950/30'
-                                  }`}>
-                                    {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
-                                  </Badge>
-                                </div>
+                            <div className="space-y-3">
+                              {/* First row: Bot name and action buttons */}
+                              <div className="flex items-center justify-between gap-2">
+                                <span className={`px-3 py-1.5 rounded text-sm font-medium truncate max-w-[200px] ${
+                                  (() => {
+                                    const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                    return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                  })()
+                                    ? 'bg-purple-600/80 text-white' 
+                                    : 'bg-blue-600/80 text-white'
+                                }`}>
+                                  {(() => {
+                                    if (execution.botName) return execution.botName;
+                                    const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                    return strategy ? strategy.name : 'Manual Bot';
+                                  })()}
+                                </span>
                                 {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-1 flex-shrink-0">
                                     {execution.status === 'active' && execution.positionData && (
                                       <Button 
                                         size="sm" 
@@ -2129,7 +2115,7 @@ export default function BotPage() {
                                           setSelectedBotForVisualization(execution);
                                           setShowExitVisualizer(true);
                                         }}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7"
                                       >
                                         <Eye className="h-3 w-3 mr-1" />
                                         Exit
@@ -2145,7 +2131,7 @@ export default function BotPage() {
                                         handleTerminateExecution.mutate(execution.id);
                                       }}
                                       disabled={handleTerminateExecution.isPending}
-                                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7"
                                     >
                                       <Square className="h-3 w-3 mr-1" />
                                       Stop
@@ -2153,8 +2139,26 @@ export default function BotPage() {
                                   </div>
                                 )}
                               </div>
+
+                              {/* Second row: Cycles and status badges */}
+                              <div className="flex items-center gap-2">
+                                <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
+                                  {execution.cycles || 0} cycles
+                                </span>
+                                <Badge variant="outline" className={`text-sm ${
+                                  execution.status === 'active' 
+                                    ? 'border-green-500 text-green-400 bg-green-950/30'
+                                    : execution.status === 'waiting_entry'
+                                    ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                    : execution.status === 'exit_pending'
+                                    ? 'border-orange-500 text-orange-400 bg-orange-950/30'
+                                    : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                }`}>
+                                  {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
+                                </Badge>
+                              </div>
                               
-                              {/* Bottom row: Trading pair, capital, P&L */}
+                              {/* Third row: Trading pair, capital, P&L */}
                               <div className="flex items-center justify-between min-w-0">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
