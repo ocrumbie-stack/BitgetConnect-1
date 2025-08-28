@@ -261,26 +261,26 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
 // AI Bot Risk Management with Long/Short Support
 async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string, direction: 'long' | 'short'): Promise<void> {
   try {
-    // AI bots use strategy-specific risk management
-    let stopLossPercent = 3.0; // Default 3%
-    let takeProfitPercent = 5.0; // Default 5%
+    // AI bots use leverage-safe risk management (Auto Market Scanner typically uses 3x leverage)
+    let stopLossPercent = 1.5; // Default 1.5% (4.5% account loss at 3x leverage)
+    let takeProfitPercent = 2.5; // Default 2.5% (7.5% account gain at 3x leverage)
     
-    // Adjust based on AI bot type
+    // Adjust based on AI bot type - all values reduced for leverage safety
     if (botName.includes('Grid')) {
-      stopLossPercent = 2.0;
-      takeProfitPercent = 3.0;
+      stopLossPercent = 1.0; // 3% account loss at 3x
+      takeProfitPercent = 2.0; // 6% account gain at 3x
     } else if (botName.includes('Momentum')) {
-      stopLossPercent = 3.0;
-      takeProfitPercent = 5.0;
+      stopLossPercent = 1.5; // 4.5% account loss at 3x
+      takeProfitPercent = 2.5; // 7.5% account gain at 3x
     } else if (botName.includes('Scalping')) {
-      stopLossPercent = 1.5;
-      takeProfitPercent = 2.5;
+      stopLossPercent = 0.8; // 2.4% account loss at 3x
+      takeProfitPercent = 1.2; // 3.6% account gain at 3x
     } else if (botName.includes('Arbitrage')) {
-      stopLossPercent = 1.0;
-      takeProfitPercent = 1.5;
-    } else if (botName.includes('DCA')) {
-      stopLossPercent = 5.0;
-      takeProfitPercent = 8.0;
+      stopLossPercent = 0.5; // 1.5% account loss at 3x
+      takeProfitPercent = 1.0; // 3% account gain at 3x
+    } else if (botName.includes('DCA') || botName.includes('Auto AI')) {
+      stopLossPercent = 1.5; // 4.5% account loss at 3x (for Auto Market Scanner)
+      takeProfitPercent = 2.5; // 7.5% account gain at 3x
     }
     
     // Calculate prices based on position direction
@@ -2004,10 +2004,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           symbol: 'ETHUSDT', 
           botName: 'Smart Momentum', 
           leverage: '3', 
-          riskLevel: 'High',
+          riskLevel: 'Medium', // Reduced risk level
           exitCriteria: {
-            stopLoss: -4.0, // -4% loss  
-            takeProfit: 12.0, // +12% profit
+            stopLoss: -2.5, // Reduced from -4% to -2.5% (-7.5% account loss at 3x)
+            takeProfit: 8.0, // Reduced from 12% to 8% for safer exits
             maxRuntime: 180, // 3 hours max
             exitStrategy: 'momentum_reversal'
           }
@@ -2015,11 +2015,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { 
           symbol: 'SOLUSDT', 
           botName: 'Smart Scalping Bot', 
-          leverage: '5', 
-          riskLevel: 'High',
+          leverage: '3', // Reduced from 5x to 3x for safety
+          riskLevel: 'Medium', // Reduced risk level
           exitCriteria: {
-            stopLoss: -2.0, // -2% loss (tight scalping)
-            takeProfit: 3.0, // +3% profit (quick scalp)
+            stopLoss: -1.5, // Tighter stop loss for leverage safety (-1.5% = 4.5% account loss at 3x)
+            takeProfit: 2.5, // Reduced take profit for quicker exits
             maxRuntime: 60, // 1 hour max
             exitStrategy: 'scalp_quick_exit'
           }
@@ -2051,11 +2051,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { 
           symbol: 'AVAXUSDT', 
           botName: 'Smart Swing Trader', 
-          leverage: '3', 
+          leverage: '2', // Reduced from 3x to 2x for swing trading safety
           riskLevel: 'Medium',
           exitCriteria: {
-            stopLoss: -6.0, // -6% loss
-            takeProfit: 10.0, // +10% profit
+            stopLoss: -3.0, // Reduced from -6% to -3% (-6% account loss at 2x)
+            takeProfit: 8.0, // Reduced from 10% to 8%
             maxRuntime: 480, // 8 hours max
             exitStrategy: 'swing_trend_reversal'
           }
@@ -2160,8 +2160,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const strategy = strategies.find(s => s.id === deployedBot.strategyId);
           if (strategy && strategy.config?.riskManagement) {
             exitCriteria = {
-              stopLoss: -Math.abs(strategy.config.riskManagement.stopLoss || 5), // Negative for loss
-              takeProfit: Math.abs(strategy.config.riskManagement.takeProfit || 10), // Positive for profit
+              stopLoss: -Math.abs(strategy.config.riskManagement.stopLoss || 2.5), // Reduced default from 5% to 2.5%
+              takeProfit: Math.abs(strategy.config.riskManagement.takeProfit || 6), // Reduced default from 10% to 6%
               maxRuntime: 120, // 2 hours default for manual strategies
               exitStrategy: 'manual_exit'
             };
@@ -2169,10 +2169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (position) {
-          // Get exit criteria from various sources, with defaults for folder bots
+          // Get exit criteria from various sources, with defaults for folder bots (leverage-safe)
           const finalExitCriteria = exitCriteria || mapping?.exitCriteria || {
-            stopLoss: -5, // Default 5% stop loss
-            takeProfit: 10, // Default 10% take profit  
+            stopLoss: -2.5, // Default 2.5% stop loss (safer for leverage)
+            takeProfit: 6.0, // Default 6% take profit (more conservative)  
             maxRuntime: 240, // Default 4 hours
             exitStrategy: 'manual_exit'
           };

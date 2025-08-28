@@ -18,6 +18,17 @@ This project is a mobile-optimized crypto trading application for real-time Bitg
 
 **🚫 DO NOT REDO THESE WORKING FEATURES - THEY ARE COMPLETE**
 
+# Risk Management Updates (August 28, 2025)
+**✅ LEVERAGE-SAFE EXIT LIMITS IMPLEMENTED:**
+- Auto Market Scanner: Reduced to 1.5% stop loss, 2.5% take profit (4.5%/7.5% account impact at 3x leverage)
+- Scalping Bots: Reduced leverage from 5x to 3x, tighter 1.5% stop loss (4.5% account impact)
+- Smart Momentum: Reduced stop loss from 4% to 2.5% (7.5% account impact at 3x leverage)
+- Swing Trader: Reduced leverage from 3x to 2x, stop loss from 6% to 3% (6% account impact)
+- Default Manual Strategy: Reduced from 5%/10% to 2.5%/6% stop loss/take profit
+- All AI Bot Types: Specialized leverage-safe limits (0.5%-1.5% stop loss range)
+
+**🔒 LIQUIDATION PREVENTION MEASURES ACTIVE**
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
