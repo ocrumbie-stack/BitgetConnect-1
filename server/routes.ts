@@ -3230,6 +3230,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto Market Scanner AI Bot - Scans entire market and auto-deploys to best pairs
+  app.post('/api/auto-scanner/deploy', async (req, res) => {
+    try {
+      const { userId = 'default-user', totalCapital, maxBots = 5, minConfidence = 70 } = req.body;
+      
+      if (!bitgetAPI) {
+        return res.status(400).json({ error: 'Bitget API not available' });
+      }
+
+      console.log(`🔍 Auto Market Scanner: Scanning entire market with $${totalCapital} capital, max ${maxBots} bots, min ${minConfidence}% confidence`);
+      
+      // Get all available futures pairs
+      const allTickers = await bitgetAPI.getAllFuturesTickers();
+      console.log(`📊 Found ${allTickers.length} trading pairs to analyze`);
+      
+      // Filter pairs with sufficient volume (minimum $5M daily volume)
+      const volumeThreshold = 5000000;
+      const liquidPairs = allTickers.filter(ticker => 
+        parseFloat(ticker.volume24h || '0') > volumeThreshold
+      );
+      
+      console.log(`💧 ${liquidPairs.length} pairs meet liquidity requirements (>$${volumeThreshold.toLocaleString()})`);
+      
+      // Analyze each pair with AI indicators
+      const analysisResults = [];
+      
+      for (const ticker of liquidPairs.slice(0, 100)) { // Analyze top 100 by volume
+        try {
+          console.log(`🔬 Analyzing ${ticker.symbol}...`);
+          const aiResult = await evaluateAIBotEntry(ticker.symbol);
+          
+          if (aiResult.confidence >= minConfidence) {
+            analysisResults.push({
+              symbol: ticker.symbol,
+              direction: aiResult.direction,
+              confidence: aiResult.confidence,
+              indicators: aiResult.indicators,
+              price: parseFloat(ticker.lastPr || '0'),
+              volume24h: parseFloat(ticker.volume24h || '0'),
+              change24h: parseFloat(ticker.change24h || '0')
+            });
+            
+            console.log(`✨ ${ticker.symbol}: ${aiResult.direction?.toUpperCase()} signal with ${aiResult.confidence}% confidence`);
+          }
+        } catch (error) {
+          console.error(`❌ Error analyzing ${ticker.symbol}:`, error);
+        }
+      }
+      
+      // Sort by confidence score and select top opportunities
+      analysisResults.sort((a, b) => b.confidence - a.confidence);
+      const topOpportunities = analysisResults.slice(0, maxBots);
+      
+      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities`);
+      
+      // Auto-deploy bots to selected pairs
+      const deployedBots = [];
+      const capitalPerBot = totalCapital / Math.max(topOpportunities.length, 1);
+      
+      for (const opportunity of topOpportunities) {
+        try {
+          // Create AI strategy for this pair
+          const strategy = {
+            id: `auto-ai-${Date.now()}-${opportunity.symbol}`,
+            name: `Auto AI Scanner - ${opportunity.symbol}`,
+            strategy: 'ai',
+            config: {
+              confidence: opportunity.confidence,
+              indicators: opportunity.indicators,
+              direction: opportunity.direction
+            }
+          };
+          
+          // Save strategy
+          await storage.createBotStrategy({
+            ...strategy,
+            userId,
+            description: `Auto-deployed AI bot with ${opportunity.confidence}% confidence`,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          
+          // Deploy bot execution
+          const botExecution = {
+            userId,
+            strategyId: strategy.id,
+            tradingPair: opportunity.symbol,
+            botName: `Auto AI - ${opportunity.symbol}`,
+            capital: capitalPerBot.toString(),
+            leverage: '3', // Conservative 3x leverage
+            status: 'waiting_entry',
+            deploymentType: 'auto_scanner',
+            confidence: opportunity.confidence.toString(),
+            direction: opportunity.direction,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          const savedBot = await storage.createBotExecution(botExecution);
+          deployedBots.push({
+            ...savedBot,
+            opportunity
+          });
+          
+          console.log(`🤖 Auto-deployed AI bot to ${opportunity.symbol} with $${capitalPerBot.toFixed(2)} capital`);
+          
+        } catch (error) {
+          console.error(`❌ Failed to deploy bot to ${opportunity.symbol}:`, error);
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Auto-deployed ${deployedBots.length} AI bots across the market`,
+        deployedBots: deployedBots.length,
+        totalCapital,
+        capitalPerBot: capitalPerBot.toFixed(2),
+        opportunities: topOpportunities,
+        deployedDetails: deployedBots.map(bot => ({
+          symbol: bot.tradingPair,
+          confidence: bot.confidence,
+          direction: bot.direction,
+          capital: bot.capital
+        }))
+      });
+      
+    } catch (error) {
+      console.error('Auto scanner deployment error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get Auto Scanner Status
+  app.get('/api/auto-scanner/status/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get all auto-scanner deployed bots
+      const allBots = await storage.getBotExecutions(userId);
+      const autoScannerBots = allBots.filter(bot => bot.deploymentType === 'auto_scanner');
+      
+      // Calculate statistics
+      const activeBots = autoScannerBots.filter(bot => bot.status === 'active').length;
+      const waitingBots = autoScannerBots.filter(bot => bot.status === 'waiting_entry').length;
+      const terminatedBots = autoScannerBots.filter(bot => bot.status === 'terminated').length;
+      
+      const totalCapital = autoScannerBots.reduce((sum, bot) => 
+        sum + parseFloat(bot.capital || '0'), 0
+      );
+      
+      const totalProfit = autoScannerBots.reduce((sum, bot) => 
+        sum + parseFloat(bot.profit || '0'), 0
+      );
+      
+      res.json({
+        totalBots: autoScannerBots.length,
+        activeBots,
+        waitingBots,
+        terminatedBots,
+        totalCapital: totalCapital.toFixed(2),
+        totalProfit: totalProfit.toFixed(2),
+        profitPercentage: totalCapital > 0 ? ((totalProfit / totalCapital) * 100).toFixed(2) : '0.00',
+        bots: autoScannerBots
+      });
+      
+    } catch (error) {
+      console.error('Auto scanner status error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Initialize sample data on startup
   await initializeBitgetAPI();
   await initializeSampleData();
