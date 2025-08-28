@@ -3280,10 +3280,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allTickers = await bitgetAPI.getAllFuturesTickers();
       console.log(`📊 Found ${allTickers.length} trading pairs to analyze`);
       
-      // Filter pairs with sufficient volume (minimum $5M daily volume)
-      const volumeThreshold = 5000000;
+      // Filter pairs with sufficient volume (minimum $1K daily volume for maximum coverage)
+      const volumeThreshold = 1000;
       const liquidPairs = allTickers.filter(ticker => 
-        parseFloat(ticker.volume24h || '0') > volumeThreshold
+        parseFloat(ticker.quoteVolume || '0') > volumeThreshold
       );
       
       console.log(`💧 ${liquidPairs.length} pairs meet liquidity requirements (>$${volumeThreshold.toLocaleString()})`);
@@ -3303,7 +3303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               confidence: aiResult.confidence,
               indicators: aiResult.indicators,
               price: parseFloat(ticker.lastPr || '0'),
-              volume24h: parseFloat(ticker.volume24h || '0'),
+              volume24h: parseFloat(ticker.quoteVolume || '0'),
               change24h: parseFloat(ticker.change24h || '0')
             });
             
