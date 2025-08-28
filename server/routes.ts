@@ -8,6 +8,7 @@ import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrate
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
 let tradingPaused = false; // Emergency pause for all trading
+let lastEvaluationTime: { [key: string]: number } = {}; // Track last evaluation time per pair
 
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
@@ -22,11 +23,25 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
+  // Minimum 30-minute interval between evaluations for same pair
+  const now = Date.now();
+  const lastEval = lastEvaluationTime[tradingPair] || 0;
+  const timeDiff = now - lastEval;
+  const minInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
+  
+  if (timeDiff < minInterval) {
+    const remainingTime = Math.ceil((minInterval - timeDiff) / (60 * 1000));
+    console.log(`⏸️ ${tradingPair}: Waiting ${remainingTime}min before next evaluation`);
+    return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
+  }
+  
+  lastEvaluationTime[tradingPair] = now;
+
   try {
     console.log(`🤖 AI Bot: Evaluating multi-indicator analysis for ${tradingPair}`);
     
-    // Get historical price data
-    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
+    // Get historical price data - Using 1H timeframe to reduce signal frequency
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '1H', 200);
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for AI bot: ${candleData?.length || 0} candles`);
       return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -649,8 +664,8 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
       return false;
     }
 
-    // Get historical price data for MACD calculation (increased to 200 for better MACD accuracy)
-    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200); // Get 200 5-minute candles (16+ hours of data)
+    // Get historical price data for MACD calculation - Using 1H timeframe for less frequent signals
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '1H', 200); // Get 200 1-hour candles (200 hours of data)
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for MACD calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
       return false;
