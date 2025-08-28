@@ -171,7 +171,7 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     // Require SIGNIFICANT score difference (prevent weak signals)
     if (signalDifference < 25) {
       console.log(`❌ Signal too weak: ${signalDifference} point difference < 25 required`);
-      return { hasSignal: false, direction: null, confidence: indicators };
+      return { hasSignal: false, direction: null, confidence, indicators };
     }
     
     // CRITICAL: Block dangerous overbought/oversold entries
