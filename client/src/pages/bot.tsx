@@ -2034,6 +2034,29 @@ export default function BotPage() {
                                             </div>
                                           </div>
                                         </div>
+
+                                        {/* Stop Loss and Take Profit Info */}
+                                        {execution.status === 'active' && (execution.stopLoss || execution.takeProfit) && (
+                                          <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
+                                            <div className="flex items-center gap-3">
+                                              {execution.stopLoss && (
+                                                <span className="text-red-400">
+                                                  SL: {parseFloat(execution.stopLoss).toFixed(2)}%
+                                                </span>
+                                              )}
+                                              {execution.takeProfit && (
+                                                <span className="text-green-400">
+                                                  TP: {parseFloat(execution.takeProfit).toFixed(2)}%
+                                                </span>
+                                              )}
+                                            </div>
+                                            {execution.entryPrice && (
+                                              <span className="text-gray-400">
+                                                Entry: ${parseFloat(execution.entryPrice).toFixed(6)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
@@ -2255,6 +2278,29 @@ export default function BotPage() {
                                             </div>
                                           </div>
                                         </div>
+
+                                        {/* Stop Loss and Take Profit Info */}
+                                        {execution.status === 'active' && (execution.stopLoss || execution.takeProfit) && (
+                                          <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
+                                            <div className="flex items-center gap-3">
+                                              {execution.stopLoss && (
+                                                <span className="text-red-400">
+                                                  SL: {parseFloat(execution.stopLoss).toFixed(2)}%
+                                                </span>
+                                              )}
+                                              {execution.takeProfit && (
+                                                <span className="text-green-400">
+                                                  TP: {parseFloat(execution.takeProfit).toFixed(2)}%
+                                                </span>
+                                              )}
+                                            </div>
+                                            {execution.entryPrice && (
+                                              <span className="text-gray-400">
+                                                Entry: ${parseFloat(execution.entryPrice).toFixed(6)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   ))}
