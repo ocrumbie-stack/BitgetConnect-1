@@ -9,11 +9,11 @@ let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
 
 // Manual strategy evaluation functions
-// AI Bot Entry Evaluation - Strict MACD Crossover Detection
-async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
+// AI Bot Entry Evaluation - Both Long/Short MACD Crossover Detection
+async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
-    return false;
+    return { hasSignal: false, direction: null };
   }
 
   try {
@@ -23,7 +23,7 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
     const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for AI bot MACD: ${candleData?.length || 0} candles`);
-      return false;
+      return { hasSignal: false, direction: null };
     }
 
     // Extract closing prices
@@ -35,7 +35,7 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
     
     if (fastEMA.length < 2 || slowEMA.length < 2) {
       console.log(`❌ Insufficient EMA data for AI bot`);
-      return false;
+      return { hasSignal: false, direction: null };
     }
     
     // Calculate MACD line
@@ -51,37 +51,43 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<boolean> {
     const signalEMA = calculateEMA(macdHistory, 9);
     if (signalEMA.length < 2) {
       console.log(`❌ Insufficient signal data for AI bot: ${signalEMA.length} data points`);
-      return false;
+      return { hasSignal: false, direction: null };
     }
     
     const currentSignal = signalEMA[signalEMA.length - 1];
     const prevSignal = signalEMA[signalEMA.length - 2];
     
-    // STRICT CROSSOVER: MACD crosses from BELOW to ABOVE signal line
+    // STRICT CROSSOVERS: Detect both bullish and bearish
     const bullishCrossover = (prevMacd <= prevSignal) && (currentMacd > currentSignal);
+    const bearishCrossover = (prevMacd >= prevSignal) && (currentMacd < currentSignal);
     
-    // TEMPORARY TEST: Also detect when MACD is above signal line and trending up (for testing)
-    const testCondition = (currentMacd > currentSignal) && (currentMacd > prevMacd);
+    // TEMPORARY TEST: Also detect momentum conditions for faster signals
+    const bullishMomentum = (currentMacd > currentSignal) && (currentMacd > prevMacd);
+    const bearishMomentum = (currentMacd < currentSignal) && (currentMacd < prevMacd);
     
     console.log(`🤖 AI ${tradingPair} - MACD: ${currentMacd.toFixed(6)}, Signal: ${currentSignal.toFixed(6)}`);
     console.log(`🤖 AI ${tradingPair} - Prev MACD: ${prevMacd.toFixed(6)}, Prev Signal: ${prevSignal.toFixed(6)}`);
-    console.log(`🤖 AI ${tradingPair} - Crossover: ${bullishCrossover ? '✅ BULLISH' : '❌ None'}`);
-    console.log(`🤖 AI ${tradingPair} - Test condition: ${testCondition ? '✅ UPTREND' : '❌ None'}`);
+    console.log(`🤖 AI ${tradingPair} - Bullish: ${bullishCrossover ? '✅ CROSSOVER' : bullishMomentum ? '✅ MOMENTUM' : '❌ None'}`);
+    console.log(`🤖 AI ${tradingPair} - Bearish: ${bearishCrossover ? '✅ CROSSOVER' : bearishMomentum ? '✅ MOMENTUM' : '❌ None'}`);
     
-    // FOR TESTING: Return true if either condition is met
-    if (bullishCrossover || testCondition) {
-      console.log(`🎯🎯🎯 ENTRY SIGNAL TRIGGERED FOR ${tradingPair}! ${bullishCrossover ? 'BULLISH CROSSOVER' : 'UPTREND'}`);
+    // Determine signal direction
+    if (bullishCrossover || bullishMomentum) {
+      console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! ${bullishCrossover ? 'BULLISH CROSSOVER' : 'BULLISH MOMENTUM'}`);
+      return { hasSignal: true, direction: 'long' };
+    } else if (bearishCrossover || bearishMomentum) {
+      console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! ${bearishCrossover ? 'BEARISH CROSSOVER' : 'BEARISH MOMENTUM'}`);
+      return { hasSignal: true, direction: 'short' };
     }
     
-    return bullishCrossover || testCondition;
+    return { hasSignal: false, direction: null };
   } catch (error) {
     console.error(`❌ AI bot evaluation error for ${tradingPair}:`, error);
-    return false;
+    return { hasSignal: false, direction: null };
   }
 }
 
-// AI Bot Order Placement
-async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
+// AI Bot Order Placement with Long/Short Support
+async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): Promise<boolean> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot order');
     return false;
@@ -90,7 +96,7 @@ async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
   try {
     const { tradingPair, capital, leverage } = deployedBot;
     
-    console.log(`🤖 AI Bot: Placing LONG order for ${tradingPair}`);
+    console.log(`🤖 AI Bot: Placing ${direction.toUpperCase()} order for ${tradingPair}`);
     console.log(`💰 AI Bot: Capital: $${capital}, Leverage: ${leverage}x`);
     
     // Get current market price
@@ -108,11 +114,11 @@ async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
     const leverageNum = parseFloat(leverage);
     const positionSize = (capitalAmount * leverageNum) / currentPrice;
     
-    // AI bots use fixed risk management settings
+    // AI bots support both directions based on MACD signal
     const orderData = {
       symbol: tradingPair,
       marginCoin: 'USDT',
-      side: 'buy' as const, // AI bots always go LONG on MACD crossover
+      side: direction === 'long' ? 'buy' as const : 'sell' as const,
       orderType: 'market' as const,
       size: positionSize.toFixed(6),
       leverage: leverageNum,
@@ -120,14 +126,14 @@ async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
       botName: deployedBot.botName
     };
 
-    console.log(`🤖 AI Bot order:`, orderData);
+    console.log(`🤖 AI Bot ${direction.toUpperCase()} order:`, orderData);
     
     // Place the order
     const orderResult = await bitgetAPI.placeOrder(orderData);
-    console.log(`✅ AI Bot order placed:`, orderResult);
+    console.log(`✅ AI Bot ${direction.toUpperCase()} order placed:`, orderResult);
     
     // AI bots use predefined stop loss and take profit
-    await setAIBotRiskManagement(tradingPair, currentPrice, deployedBot.botName);
+    await setAIBotRiskManagement(tradingPair, currentPrice, deployedBot.botName, direction);
     
     return true;
   } catch (error) {
@@ -136,8 +142,8 @@ async function placeAIBotOrder(deployedBot: any): Promise<boolean> {
   }
 }
 
-// AI Bot Risk Management
-async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string): Promise<void> {
+// AI Bot Risk Management with Long/Short Support
+async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string, direction: 'long' | 'short'): Promise<void> {
   try {
     // AI bots use strategy-specific risk management
     let stopLossPercent = 3.0; // Default 3%
@@ -161,16 +167,25 @@ async function setAIBotRiskManagement(symbol: string, entryPrice: number, botNam
       takeProfitPercent = 8.0;
     }
     
-    const stopPrice = entryPrice * (1 - stopLossPercent / 100);
-    const takeProfitPrice = entryPrice * (1 + takeProfitPercent / 100);
+    // Calculate prices based on position direction
+    let stopPrice, takeProfitPrice;
+    if (direction === 'long') {
+      stopPrice = entryPrice * (1 - stopLossPercent / 100);
+      takeProfitPrice = entryPrice * (1 + takeProfitPercent / 100);
+    } else { // short
+      stopPrice = entryPrice * (1 + stopLossPercent / 100);
+      takeProfitPrice = entryPrice * (1 - takeProfitPercent / 100);
+    }
         
-    console.log(`🤖 AI ${symbol}: SL at $${stopPrice.toFixed(6)} (-${stopLossPercent}%), TP at $${takeProfitPrice.toFixed(6)} (+${takeProfitPercent}%)`);
+    console.log(`🤖 AI ${symbol} ${direction.toUpperCase()}: SL at $${stopPrice.toFixed(6)} (-${stopLossPercent}%), TP at $${takeProfitPrice.toFixed(6)} (+${takeProfitPercent}%)`);
     // Implementation would depend on Bitget API for conditional orders
   } catch (error) {
     console.error(`❌ AI bot risk management error:`, error);
   }
+
 }
 
+// Manual Strategy Evaluation Functions
 async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): Promise<boolean> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for signal evaluation');
@@ -1728,34 +1743,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
               let entrySignalMet = false;
               
               if (strategy.strategy === 'ai') {
-                // AI bots use strict MACD crossover detection
-                entrySignalMet = await evaluateAIBotEntry(deployedBot.tradingPair);
+                // AI bots use strict MACD crossover detection for both long and short
+                const aiResult = await evaluateAIBotEntry(deployedBot.tradingPair);
+                entrySignalMet = aiResult.hasSignal;
+                
+                if (entrySignalMet && aiResult.direction) {
+                  console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
+                  
+                  // Place the trade with direction
+                  const orderSuccess = await placeAIBotOrder(deployedBot, aiResult.direction);
+                  
+                  if (orderSuccess) {
+                    console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
+                    // Update bot status to active
+                    await storage.updateBotExecution(deployedBot.id, { 
+                      status: 'active',
+                      trades: '1',
+                      updatedAt: new Date()
+                    });
+                  } else {
+                    console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
+                  }
+                }
               } else {
                 // Manual bots use configured entry conditions
                 entrySignalMet = await evaluateManualStrategyEntry(strategy, deployedBot.tradingPair);
-              }
-              
-              if (entrySignalMet) {
-                console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
                 
-                // Place the trade
-                let orderSuccess = false;
-                if (strategy.strategy === 'ai') {
-                  orderSuccess = await placeAIBotOrder(deployedBot);
-                } else {
-                  orderSuccess = await placeManualStrategyOrder(strategy, deployedBot);
-                }
-                
-                if (orderSuccess) {
-                  console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
-                  // Update bot status to active
-                  await storage.updateBotExecution(deployedBot.id, { 
-                    status: 'active',
-                    trades: '1',
-                    updatedAt: new Date()
-                  });
-                } else {
-                  console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
+                if (entrySignalMet) {
+                  console.log(`🎯 Entry signal detected for ${deployedBot.botName} on ${deployedBot.tradingPair}!`);
+                  
+                  // Place the trade
+                  const orderSuccess = await placeManualStrategyOrder(strategy, deployedBot);
+                  
+                  if (orderSuccess) {
+                    console.log(`✅ Trade placed successfully for ${deployedBot.botName}`);
+                    // Update bot status to active
+                    await storage.updateBotExecution(deployedBot.id, { 
+                      status: 'active',
+                      trades: '1',
+                      updatedAt: new Date()
+                    });
+                  } else {
+                    console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
+                  }
                 }
               }
             }
@@ -2134,9 +2164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         symbol,
-        aiSignalMet: aiResult,
+        aiSignalMet: aiResult.hasSignal,
+        direction: aiResult.direction,
         timestamp: new Date().toISOString(),
-        message: aiResult ? 'ENTRY SIGNAL DETECTED!' : 'No signal yet'
+        message: aiResult.hasSignal ? `${aiResult.direction?.toUpperCase()} SIGNAL DETECTED!` : 'No signal yet'
       });
     } catch (error) {
       console.error('❌ Error testing MACD:', error);
