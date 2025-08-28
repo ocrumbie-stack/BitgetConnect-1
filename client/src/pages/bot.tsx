@@ -1550,12 +1550,9 @@ export default function BotPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="30">30% - Maximum Opportunities</SelectItem>
-                        <SelectItem value="40">40% - Active Trading</SelectItem>
-                        <SelectItem value="50">50% - Moderate</SelectItem>
-                        <SelectItem value="60">60% - Balanced</SelectItem>
-                        <SelectItem value="70">70% - Conservative</SelectItem>
-                        <SelectItem value="80">80% - Very Conservative</SelectItem>
+                        <SelectItem value="60">60% - More Opportunities</SelectItem>
+                        <SelectItem value="70">70% - Balanced</SelectItem>
+                        <SelectItem value="80">80% - Conservative</SelectItem>
                         <SelectItem value="90">90% - Ultra Conservative</SelectItem>
                       </SelectContent>
                     </Select>
