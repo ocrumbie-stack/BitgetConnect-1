@@ -1818,47 +1818,18 @@ export default function BotPage() {
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Running Bots</h3>
-              <div className="flex gap-2">
-                {activeExecutions.filter(ex => ex.status === 'waiting_entry').length > 0 && (
-                  <Button 
-                    size="sm"
-                    variant="outline" 
-                    onClick={async () => {
-                      const waitingBots = activeExecutions.filter(ex => ex.status === 'waiting_entry');
-                      if (window.confirm(`Terminate ${waitingBots.length} waiting bots? This will remove all bots that are waiting for entry signals.`)) {
-                        for (const bot of waitingBots) {
-                          try {
-                            await handleTerminateExecution.mutateAsync(bot.id);
-                          } catch (error) {
-                            console.error(`Failed to terminate ${bot.tradingPair}:`, error);
-                          }
-                        }
-                        toast({
-                          title: "Waiting Bots Terminated",
-                          description: `Successfully terminated ${waitingBots.length} waiting bots.`,
-                        });
-                      }
-                    }}
-                    disabled={handleTerminateExecution.isPending}
-                    className="text-yellow-600 border-yellow-300 hover:bg-yellow-50 hover:text-yellow-700"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Terminate All Waiting
-                  </Button>
-                )}
-                {activeExecutions.filter(ex => ex.positionData).length > 0 && (
-                  <Button 
-                    size="sm"
-                    variant="outline" 
-                    onClick={() => closeAllPositionsMutation.mutate()}
-                    disabled={closeAllPositionsMutation.isPending}
-                    className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-                  >
-                    <Square className="h-4 w-4 mr-2" />
-                    {closeAllPositionsMutation.isPending ? 'Closing...' : 'Close All Positions'}
-                  </Button>
-                )}
-              </div>
+              {activeExecutions.length > 0 && (
+                <Button 
+                  size="sm"
+                  variant="outline" 
+                  onClick={() => closeAllPositionsMutation.mutate()}
+                  disabled={closeAllPositionsMutation.isPending}
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  {closeAllPositionsMutation.isPending ? 'Closing...' : 'Close All Positions'}
+                </Button>
+              )}
             </div>
 
             {executionsLoading ? (
@@ -2087,7 +2058,6 @@ export default function BotPage() {
                                                   <div className="font-medium">{execution.tradingPair}</div>
                                                   <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                                   <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
-                                                  <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
                                                 </div>
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
