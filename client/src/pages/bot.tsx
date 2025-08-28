@@ -3403,13 +3403,45 @@ export default function BotPage() {
               <Input
                 type="number"
                 value={leverage}
-                onChange={(e) => setLeverage(e.target.value)}
+                onChange={(e) => {
+                  setLeverage(e.target.value);
+                  // Calculate risk warning when leverage changes
+                  const leverageNum = parseFloat(e.target.value || '1');
+                  if (leverageNum > 5) {
+                    console.log(`⚠️ High leverage warning: ${leverageNum}x leverage detected`);
+                  }
+                }}
                 placeholder={selectedStrategy?.suggestedLeverage?.split('-')[0] || "1"}
                 min="1"
                 max="100"
               />
               {selectedStrategy?.suggestedLeverage && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Suggested: {selectedStrategy.suggestedLeverage}x leverage</p>
+              )}
+              
+              {/* Dynamic Risk Warning */}
+              {parseFloat(leverage || '1') > 5 && (
+                <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-300 dark:border-yellow-600 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                        High Leverage Risk ({leverage}x)
+                      </p>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                        System will automatically use safer stop loss limits to prevent liquidation. 
+                        With {leverage}x leverage, position losses amplify {leverage}x to your account.
+                      </p>
+                      {parseFloat(leverage || '1') > 10 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">
+                          ⚠️ Extreme risk above 10x leverage - consider lower leverage for safety
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>

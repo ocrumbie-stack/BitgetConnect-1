@@ -248,8 +248,8 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
     const orderResult = await bitgetAPI.placeOrder(orderData);
     console.log(`✅ AI Bot ${direction.toUpperCase()} order placed:`, orderResult);
     
-    // AI bots use predefined stop loss and take profit
-    await setAIBotRiskManagement(tradingPair, currentPrice, deployedBot.botName, direction);
+    // AI bots use dynamic leverage-safe stop loss and take profit
+    await setAIBotRiskManagement(tradingPair, currentPrice, deployedBot.botName, direction, leverageNum);
     
     return true;
   } catch (error) {
@@ -258,30 +258,45 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
   }
 }
 
-// AI Bot Risk Management with Long/Short Support
-async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string, direction: 'long' | 'short'): Promise<void> {
+// Dynamic Risk Management: Calculate leverage-safe limits
+function calculateLeverageSafeLimits(leverage: number, botType: string = 'default'): { stopLoss: number, takeProfit: number } {
+  // Maximum allowed account loss per trade (configurable by bot type)
+  let maxAccountLoss = 5.0; // Default 5% max account loss
+  let targetAccountGain = 8.0; // Default 8% target account gain
+  
+  // Adjust max account risk based on bot type
+  if (botType.includes('Scalping') || botType.includes('scalping')) {
+    maxAccountLoss = 4.0; // Tighter for scalping
+    targetAccountGain = 6.0;
+  } else if (botType.includes('Grid') || botType.includes('grid')) {
+    maxAccountLoss = 3.0; // Even tighter for grid
+    targetAccountGain = 5.0;
+  } else if (botType.includes('Arbitrage') || botType.includes('arbitrage')) {
+    maxAccountLoss = 2.0; // Very tight for arbitrage
+    targetAccountGain = 3.0;
+  } else if (botType.includes('Auto AI') || botType.includes('auto_scanner')) {
+    maxAccountLoss = 5.0; // Standard for auto scanner
+    targetAccountGain = 7.5;
+  }
+  
+  // Calculate position-level limits: Account Loss % / Leverage = Position Loss %
+  const stopLossPercent = Math.min(maxAccountLoss / leverage, 2.0); // Cap at 2% position loss
+  const takeProfitPercent = Math.min(targetAccountGain / leverage, 4.0); // Cap at 4% position gain
+  
+  // Ensure minimum viable limits (at least 0.3% for stop loss, 0.5% for take profit)
+  return {
+    stopLoss: Math.max(stopLossPercent, 0.3),
+    takeProfit: Math.max(takeProfitPercent, 0.5)
+  };
+}
+
+// AI Bot Risk Management with Long/Short Support and Dynamic Leverage Safety
+async function setAIBotRiskManagement(symbol: string, entryPrice: number, botName: string, direction: 'long' | 'short', leverage: number = 3): Promise<void> {
   try {
-    // AI bots use leverage-safe risk management (Auto Market Scanner typically uses 3x leverage)
-    let stopLossPercent = 1.5; // Default 1.5% (4.5% account loss at 3x leverage)
-    let takeProfitPercent = 2.5; // Default 2.5% (7.5% account gain at 3x leverage)
-    
-    // Adjust based on AI bot type - all values reduced for leverage safety
-    if (botName.includes('Grid')) {
-      stopLossPercent = 1.0; // 3% account loss at 3x
-      takeProfitPercent = 2.0; // 6% account gain at 3x
-    } else if (botName.includes('Momentum')) {
-      stopLossPercent = 1.5; // 4.5% account loss at 3x
-      takeProfitPercent = 2.5; // 7.5% account gain at 3x
-    } else if (botName.includes('Scalping')) {
-      stopLossPercent = 0.8; // 2.4% account loss at 3x
-      takeProfitPercent = 1.2; // 3.6% account gain at 3x
-    } else if (botName.includes('Arbitrage')) {
-      stopLossPercent = 0.5; // 1.5% account loss at 3x
-      takeProfitPercent = 1.0; // 3% account gain at 3x
-    } else if (botName.includes('DCA') || botName.includes('Auto AI')) {
-      stopLossPercent = 1.5; // 4.5% account loss at 3x (for Auto Market Scanner)
-      takeProfitPercent = 2.5; // 7.5% account gain at 3x
-    }
+    // Calculate leverage-safe limits dynamically
+    const safeLimits = calculateLeverageSafeLimits(leverage, botName);
+    const stopLossPercent = safeLimits.stopLoss;
+    const takeProfitPercent = safeLimits.takeProfit;
     
     // Calculate prices based on position direction
     let stopPrice, takeProfitPrice;
@@ -2159,23 +2174,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const strategies = await storage.getBotStrategies('default-user');
           const strategy = strategies.find(s => s.id === deployedBot.strategyId);
           if (strategy && strategy.config?.riskManagement) {
+            // Get leverage from deployed bot (default to 3x if not specified)
+            const botLeverage = parseFloat(deployedBot.leverage || '3');
+            
+            // Use dynamic limits if user didn't specify custom ones
+            const userStopLoss = strategy.config.riskManagement.stopLoss;
+            const userTakeProfit = strategy.config.riskManagement.takeProfit;
+            
+            let finalStopLoss, finalTakeProfit;
+            
+            if (userStopLoss && userTakeProfit) {
+              // User specified custom limits - validate they're leverage-safe
+              const maxAccountLoss = userStopLoss * botLeverage;
+              const maxAccountGain = userTakeProfit * botLeverage;
+              
+              if (maxAccountLoss > 10) { // More than 10% account risk
+                console.log(`⚠️ Manual strategy ${deployedBot.botName}: User stop loss ${userStopLoss}% with ${botLeverage}x leverage = ${maxAccountLoss}% account risk! Using safer limits.`);
+                const safeLimits = calculateLeverageSafeLimits(botLeverage, 'manual');
+                finalStopLoss = safeLimits.stopLoss;
+                finalTakeProfit = safeLimits.takeProfit;
+              } else {
+                finalStopLoss = userStopLoss;
+                finalTakeProfit = userTakeProfit;
+              }
+            } else {
+              // No user limits - use dynamic calculation
+              const safeLimits = calculateLeverageSafeLimits(botLeverage, 'manual');
+              finalStopLoss = safeLimits.stopLoss;
+              finalTakeProfit = safeLimits.takeProfit;
+            }
+            
             exitCriteria = {
-              stopLoss: -Math.abs(strategy.config.riskManagement.stopLoss || 2.5), // Reduced default from 5% to 2.5%
-              takeProfit: Math.abs(strategy.config.riskManagement.takeProfit || 6), // Reduced default from 10% to 6%
+              stopLoss: -Math.abs(finalStopLoss), // Negative for loss
+              takeProfit: Math.abs(finalTakeProfit), // Positive for profit
               maxRuntime: 120, // 2 hours default for manual strategies
               exitStrategy: 'manual_exit'
             };
+            
+            console.log(`🛡️ Manual strategy ${deployedBot.botName} (${botLeverage}x leverage): SL ${finalStopLoss}% (${(finalStopLoss * botLeverage).toFixed(1)}% account), TP ${finalTakeProfit}% (${(finalTakeProfit * botLeverage).toFixed(1)}% account)`);
           }
         }
         
         if (position) {
-          // Get exit criteria from various sources, with defaults for folder bots (leverage-safe)
-          const finalExitCriteria = exitCriteria || mapping?.exitCriteria || {
-            stopLoss: -2.5, // Default 2.5% stop loss (safer for leverage)
-            takeProfit: 6.0, // Default 6% take profit (more conservative)  
-            maxRuntime: 240, // Default 4 hours
-            exitStrategy: 'manual_exit'
-          };
+          // Get exit criteria from various sources, with dynamic leverage-safe defaults
+          let finalExitCriteria = exitCriteria || mapping?.exitCriteria;
+          
+          if (!finalExitCriteria) {
+            // No predefined criteria - calculate dynamic leverage-safe limits
+            const botLeverage = parseFloat(deployedBot.leverage || '3');
+            const deploymentType = deployedBot.deploymentType || 'folder';
+            const safeLimits = calculateLeverageSafeLimits(botLeverage, deploymentType);
+            
+            finalExitCriteria = {
+              stopLoss: -safeLimits.stopLoss, // Negative for loss
+              takeProfit: safeLimits.takeProfit, // Positive for profit
+              maxRuntime: 240, // Default 4 hours
+              exitStrategy: 'dynamic_safe'
+            };
+            
+            console.log(`🛡️ Dynamic limits for ${deployedBot.botName} (${botLeverage}x leverage): SL ${safeLimits.stopLoss}% (${(safeLimits.stopLoss * botLeverage).toFixed(1)}% account), TP ${safeLimits.takeProfit}% (${(safeLimits.takeProfit * botLeverage).toFixed(1)}% account)`);
+          }
           // Bot has an active position
           const runtime = deployedBot.startedAt 
             ? Math.floor((Date.now() - new Date(deployedBot.startedAt).getTime()) / 1000 / 60)

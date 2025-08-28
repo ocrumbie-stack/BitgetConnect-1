@@ -19,15 +19,26 @@ This project is a mobile-optimized crypto trading application for real-time Bitg
 **🚫 DO NOT REDO THESE WORKING FEATURES - THEY ARE COMPLETE**
 
 # Risk Management Updates (August 28, 2025)
-**✅ LEVERAGE-SAFE EXIT LIMITS IMPLEMENTED:**
-- Auto Market Scanner: Reduced to 1.5% stop loss, 2.5% take profit (4.5%/7.5% account impact at 3x leverage)
-- Scalping Bots: Reduced leverage from 5x to 3x, tighter 1.5% stop loss (4.5% account impact)
-- Smart Momentum: Reduced stop loss from 4% to 2.5% (7.5% account impact at 3x leverage)
-- Swing Trader: Reduced leverage from 3x to 2x, stop loss from 6% to 3% (6% account impact)
-- Default Manual Strategy: Reduced from 5%/10% to 2.5%/6% stop loss/take profit
-- All AI Bot Types: Specialized leverage-safe limits (0.5%-1.5% stop loss range)
+**✅ DYNAMIC LEVERAGE SAFETY SYSTEM IMPLEMENTED:**
+- **Dynamic Risk Calculation**: System now automatically calculates leverage-safe limits based on user's entered leverage
+- **Safety Formula**: Account Risk % ÷ Leverage = Position Risk % (prevents >10% account loss per trade)
+- **User Leverage Validation**: Warns users when leverage + stop loss would exceed safe account risk thresholds
+- **Automatic Limit Adjustment**: High user leverage triggers safer stop loss/take profit percentages
+- **Frontend Risk Warnings**: Visual alerts for leverage >5x with real-time risk calculations
+- **Bot Type Optimization**: Different max account risk levels per bot type (2-5% range)
+- **Legacy Static Limits**: Previous fixed percentages replaced with dynamic calculations
 
-**🔒 LIQUIDATION PREVENTION MEASURES ACTIVE**
+**🔒 LIQUIDATION PREVENTION MEASURES:**
+- Auto Market Scanner: Now calculates dynamic limits based on actual leverage (typically 1.5%/2.5% at 3x)
+- Manual Strategies: User limits validated against leverage; unsafe combinations auto-corrected
+- All Bot Types: Guaranteed account risk caps per strategy type with leverage awareness
+- High Leverage Protection: 10x+ leverage gets extra safety warnings and tighter limits
+
+**🛡️ SAFETY EXAMPLES:**
+- 2x leverage: Max 2.5% stop loss (5% account risk)
+- 5x leverage: Max 1.0% stop loss (5% account risk)  
+- 10x leverage: Max 0.5% stop loss (5% account risk)
+- 20x leverage: Max 0.3% stop loss (6% account risk) + warnings
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
