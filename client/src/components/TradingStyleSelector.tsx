@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
+
 import { Label } from '@/components/ui/label';
 import { TrendingUp, Shield, Zap, Target, AlertTriangle, DollarSign } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -88,7 +87,7 @@ type TradingStyleSettings = {
 export function TradingStyleSelector({ userId = 'default-user', onStyleChange }: TradingStyleSelectorProps) {
   const [selectedStyle, setSelectedStyle] = useState<keyof typeof tradingStyles | ''>('');
   const [customSettings, setCustomSettings] = useState<TradingStyleSettings>(tradingStyles.balanced.settings);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const { toast } = useToast();
 
   // Fetch current user preferences
@@ -251,95 +250,10 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
 
 
 
-              <div>
-                <Label className="text-sm font-medium">Preferred Timeframe</Label>
-                <Select 
-                  value={customSettings.timeframePreference} 
-                  onValueChange={(value) => handleSettingChange('timeframePreference', value)}
-                >
-                  <SelectTrigger className="mt-2" data-testid="select-timeframe">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1m">1 Minute</SelectItem>
-                    <SelectItem value="5m">5 Minutes</SelectItem>
-                    <SelectItem value="15m">15 Minutes</SelectItem>
-                    <SelectItem value="1h">1 Hour</SelectItem>
-                    <SelectItem value="4h">4 Hours</SelectItem>
-                    <SelectItem value="1d">1 Day</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
             </div>
 
-            {/* Advanced Settings Toggle */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="advanced-settings" className="text-sm font-medium">
-                Advanced Settings
-              </Label>
-              <Switch
-                id="advanced-settings"
-                checked={showAdvanced}
-                onCheckedChange={setShowAdvanced}
-                data-testid="switch-advanced"
-              />
-            </div>
 
-            {/* Advanced Settings */}
-            {showAdvanced && (
-              <div className="space-y-4 p-4 bg-muted rounded-lg">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="aggressive-trading" className="text-sm">
-                    Aggressive Trading
-                  </Label>
-                  <Switch
-                    id="aggressive-trading"
-                    checked={customSettings.tradingStyleSettings.aggressive}
-                    onCheckedChange={(checked) => 
-                      handleSettingChange('tradingStyleSettings', {
-                        ...customSettings.tradingStyleSettings,
-                        aggressive: checked
-                      })
-                    }
-                    data-testid="switch-aggressive"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="scalping-mode" className="text-sm">
-                    Scalping Mode
-                  </Label>
-                  <Switch
-                    id="scalping-mode"
-                    checked={customSettings.tradingStyleSettings.scalping}
-                    onCheckedChange={(checked) => 
-                      handleSettingChange('tradingStyleSettings', {
-                        ...customSettings.tradingStyleSettings,
-                        scalping: checked
-                      })
-                    }
-                    data-testid="switch-scalping"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="volatility-focus" className="text-sm">
-                    Volatility Focus
-                  </Label>
-                  <Switch
-                    id="volatility-focus"
-                    checked={customSettings.tradingStyleSettings.volatilityFocus}
-                    onCheckedChange={(checked) => 
-                      handleSettingChange('tradingStyleSettings', {
-                        ...customSettings.tradingStyleSettings,
-                        volatilityFocus: checked
-                      })
-                    }
-                    data-testid="switch-volatility"
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Save Button */}
             <Button 
