@@ -2686,12 +2686,29 @@ export default function BotPage() {
         </Dialog>
         
         {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
-            showExitVisualizer: {showExitVisualizer.toString()}<br/>
-            selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
-          </div>
-        )}
+        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
+          showExitVisualizer: {showExitVisualizer.toString()}<br/>
+          selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}<br/>
+          positionData: {selectedBotForVisualization?.positionData ? 'yes' : 'no'}<br/>
+          exitCriteria: {selectedBotForVisualization?.exitCriteria ? 'yes' : 'no'}
+        </div>
+        
+        {/* Simple test dialog */}
+        <Dialog open={showExitVisualizer}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Test Dialog</DialogTitle>
+              <DialogDescription>This should appear when showExitVisualizer is true</DialogDescription>
+            </DialogHeader>
+            <div className="p-4">
+              <p>Selected Bot: {selectedBotForVisualization?.tradingPair || 'none'}</p>
+              <Button onClick={() => {
+                setShowExitVisualizer(false);
+                setSelectedBotForVisualization(null);
+              }}>Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
