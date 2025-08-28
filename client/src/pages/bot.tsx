@@ -2058,6 +2058,7 @@ export default function BotPage() {
                                                   <div className="font-medium">{execution.tradingPair}</div>
                                                   <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
                                                   <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                                  <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
                                                 </div>
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
