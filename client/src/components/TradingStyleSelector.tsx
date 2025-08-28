@@ -267,23 +267,7 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
                 </div>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium">
-                  Maximum Leverage: {customSettings.maxLeverage}x
-                </Label>
-                <Slider
-                  value={[customSettings.maxLeverage]}
-                  onValueChange={(value) => handleSettingChange('maxLeverage', value[0])}
-                  max={25}
-                  min={1}
-                  step={1}
-                  className="mt-2"
-                  data-testid="slider-leverage"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Maximum leverage allowed for trades
-                </p>
-              </div>
+
 
               <div>
                 <Label className="text-sm font-medium">Preferred Timeframe</Label>
