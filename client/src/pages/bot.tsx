@@ -2235,9 +2235,20 @@ export default function BotPage() {
                                       <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
                                         <div className="space-y-3">
                                           <div className="flex items-center justify-between gap-2">
-                                            <span className={`px-3 py-1.5 rounded text-sm font-medium truncate max-w-[200px] ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
-                                              {execution.botName || 'Bot'}
-                                            </span>
+                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                              <span className={`px-3 py-1.5 rounded text-sm font-medium truncate ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
+                                                {execution.tradingPair}
+                                              </span>
+                                              <Badge variant="outline" className={`text-xs ${
+                                                execution.status === 'active' 
+                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
+                                                  : execution.status === 'waiting_entry'
+                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                              }`}>
+                                                {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
+                                              </Badge>
+                                            </div>
                                             {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                               <div className="flex gap-1 flex-shrink-0">
                                                 {execution.status === 'active' && execution.positionData && (
@@ -2275,17 +2286,67 @@ export default function BotPage() {
                                             )}
                                           </div>
                                           
+                                          {/* Position & Exit Info */}
+                                          {execution.status === 'active' && execution.positionData && (
+                                            <div className="bg-gray-900/30 rounded-lg p-3 space-y-2">
+                                              <div className="flex items-center justify-between">
+                                                <span className="text-sm text-muted-foreground">Position</span>
+                                                <div className="flex items-center gap-2">
+                                                  <Badge variant={execution.positionData.holdSide === 'long' ? 'default' : 'destructive'} className="text-xs">
+                                                    {execution.positionData.holdSide === 'long' ? '↗️ LONG' : '↘️ SHORT'}
+                                                  </Badge>
+                                                  <span className="text-sm font-medium">{execution.leverage}x</span>
+                                                </div>
+                                              </div>
+                                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                  <div className="text-muted-foreground">Entry Price</div>
+                                                  <div className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</div>
+                                                </div>
+                                                <div>
+                                                  <div className="text-muted-foreground">Mark Price</div>
+                                                  <div className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</div>
+                                                </div>
+                                              </div>
+                                              
+                                              {/* Exit Levels */}
+                                              <div className="border-t border-gray-700 pt-2">
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                  <div>
+                                                    <div className="text-red-400 text-xs">Stop Loss</div>
+                                                    <div className="font-medium text-red-400">
+                                                      {execution.stopLoss ? `${execution.stopLoss}%` : '-2.0%'}
+                                                    </div>
+                                                  </div>
+                                                  <div>
+                                                    <div className="text-green-400 text-xs">Take Profit</div>
+                                                    <div className="font-medium text-green-400">
+                                                      {execution.takeProfit ? `${execution.takeProfit}%` : '+3.0%'}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          )}
+
                                           {/* Bot Stats Display */}
                                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                             <div className="text-center">
                                               <div className={`text-lg font-bold ${execution.status === 'active' ? (isAutoScanner ? 'text-green-500' : 'text-blue-500') : 'text-muted-foreground'}`}>
-                                                {execution.status === 'active' ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                                {execution.status === 'active' ? 
+                                                  (execution.positionData?.unrealizedPL ? 
+                                                    `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}` 
+                                                    : `+$${parseFloat(execution.profit || '0').toFixed(2)}`)
+                                                  : `$${parseFloat(execution.profit || '0').toFixed(2)}`}
                                               </div>
-                                              <div className="text-xs text-muted-foreground">Profit</div>
+                                              <div className="text-xs text-muted-foreground">P&L</div>
                                             </div>
                                             <div className="text-center">
                                               <div className={`text-lg font-bold ${isAutoScanner ? 'text-green-600' : 'text-blue-600'}`}>
-                                                {execution.roi || '0.00'}%
+                                                {execution.roi || 
+                                                  (execution.positionData?.unrealizedPL && execution.capital ? 
+                                                    ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2) 
+                                                    : '0.00')}%
                                               </div>
                                               <div className="text-xs text-muted-foreground">ROI</div>
                                             </div>
@@ -2297,9 +2358,9 @@ export default function BotPage() {
                                             </div>
                                             <div className="text-center">
                                               <div className={`text-lg font-bold ${isAutoScanner ? 'text-green-600' : 'text-blue-600'}`}>
-                                                {execution.winRate || '0'}%
+                                                {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'}
                                               </div>
-                                              <div className="text-xs text-muted-foreground">Win Rate</div>
+                                              <div className="text-xs text-muted-foreground">Capital</div>
                                             </div>
                                           </div>
                                         </div>
@@ -2375,9 +2436,20 @@ export default function BotPage() {
                                     <div key={execution.id} className="p-3 rounded-lg bg-gradient-to-r from-gray-900/20 to-slate-900/20 border border-gray-500/40">
                                       <div className="space-y-3">
                                         <div className="flex items-center justify-between gap-2">
-                                          <span className="px-3 py-1.5 rounded text-sm font-medium truncate max-w-[200px] bg-gray-600/80 text-white">
-                                            {execution.botName || 'Manual Bot'}
-                                          </span>
+                                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <span className="px-3 py-1.5 rounded text-sm font-medium truncate bg-gray-600/80 text-white">
+                                              {execution.tradingPair}
+                                            </span>
+                                            <Badge variant="outline" className={`text-xs ${
+                                              execution.status === 'active' 
+                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                : execution.status === 'waiting_entry'
+                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                            }`}>
+                                              {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
+                                            </Badge>
+                                          </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                             <div className="flex gap-1 flex-shrink-0">
                                               {execution.status === 'active' && execution.positionData && (
@@ -2415,73 +2487,83 @@ export default function BotPage() {
                                           )}
                                         </div>
 
-                                        <div className="flex items-center gap-2">
-                                          <Badge variant="outline" className={`text-sm ${
-                                            execution.status === 'active' 
-                                              ? 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                              : execution.status === 'waiting_entry'
-                                              ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                              : 'border-blue-500 text-blue-400 bg-blue-950/30'
-                                          }`}>
-                                            {execution.status === 'waiting_entry' ? 'waiting entry' : execution.status}
-                                          </Badge>
-                                          {execution.confidence && (
-                                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
-                                              {execution.confidence}% confidence
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        
-                                        <div className="flex items-center justify-between min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-sm text-gray-300 font-mono truncate">
-                                              {execution.tradingPair}
-                                            </span>
-                                            {execution.direction && (
-                                              <Badge variant="outline" className={`text-xs ${
-                                                execution.direction === 'long' 
-                                                  ? 'border-green-500 text-green-400'
-                                                  : 'border-red-500 text-red-400'
-                                              }`}>
-                                                {execution.direction?.toUpperCase()}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                          <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
-                                            <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
-                                            <div className="flex items-center gap-1">
-                                              <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
-                                              </span>
-                                              <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
-                                              </span>
+                                        {/* Position & Exit Info for Manual Bots */}
+                                        {execution.status === 'active' && execution.positionData && (
+                                          <div className="bg-gray-900/30 rounded-lg p-3 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-sm text-muted-foreground">Position</span>
+                                              <div className="flex items-center gap-2">
+                                                <Badge variant={execution.positionData.holdSide === 'long' ? 'default' : 'destructive'} className="text-xs">
+                                                  {execution.positionData.holdSide === 'long' ? '↗️ LONG' : '↘️ SHORT'}
+                                                </Badge>
+                                                <span className="text-sm font-medium">{execution.leverage}x</span>
+                                              </div>
                                             </div>
-                                          </div>
-                                        </div>
-
-                                        {/* Stop Loss and Take Profit Info */}
-                                        {execution.status === 'active' && (execution.stopLoss || execution.takeProfit) && (
-                                          <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
-                                            <div className="flex items-center gap-3">
-                                              {execution.stopLoss && (
-                                                <span className="text-red-400">
-                                                  SL: {parseFloat(execution.stopLoss).toFixed(2)}%
-                                                </span>
-                                              )}
-                                              {execution.takeProfit && (
-                                                <span className="text-green-400">
-                                                  TP: {parseFloat(execution.takeProfit).toFixed(2)}%
-                                                </span>
-                                              )}
+                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                              <div>
+                                                <div className="text-muted-foreground">Entry Price</div>
+                                                <div className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</div>
+                                              </div>
+                                              <div>
+                                                <div className="text-muted-foreground">Mark Price</div>
+                                                <div className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</div>
+                                              </div>
                                             </div>
-                                            {execution.entryPrice && (
-                                              <span className="text-gray-400">
-                                                Entry: ${parseFloat(execution.entryPrice).toFixed(6)}
-                                              </span>
-                                            )}
+                                            
+                                            {/* Exit Levels */}
+                                            <div className="border-t border-gray-700 pt-2">
+                                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div>
+                                                  <div className="text-red-400 text-xs">Stop Loss</div>
+                                                  <div className="font-medium text-red-400">
+                                                    {execution.stopLoss ? `${execution.stopLoss}%` : '-2.0%'}
+                                                  </div>
+                                                </div>
+                                                <div>
+                                                  <div className="text-green-400 text-xs">Take Profit</div>
+                                                  <div className="font-medium text-green-400">
+                                                    {execution.takeProfit ? `${execution.takeProfit}%` : '+3.0%'}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
                                           </div>
                                         )}
+
+                                        {/* Bot Stats Display for Manual Bots */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                          <div className="text-center">
+                                            <div className={`text-lg font-bold ${execution.status === 'active' ? 'text-gray-500' : 'text-muted-foreground'}`}>
+                                              {execution.status === 'active' ? 
+                                                (execution.positionData?.unrealizedPL ? 
+                                                  `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}` 
+                                                  : `+$${parseFloat(execution.profit || '0').toFixed(2)}`)
+                                                : `$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">P&L</div>
+                                          </div>
+                                          <div className="text-center">
+                                            <div className="text-lg font-bold text-gray-600">
+                                              {execution.roi || 
+                                                (execution.positionData?.unrealizedPL && execution.capital ? 
+                                                  ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2) 
+                                                  : '0.00')}%
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">ROI</div>
+                                          </div>
+                                          <div className="text-center">
+                                            <div className="text-lg font-bold text-gray-600">
+                                              {execution.trades || '0'}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">Trades</div>
+                                          </div>
+                                          <div className="text-center">
+                                            <div className="text-lg font-bold text-gray-600">
+                                              {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">Capital</div>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
