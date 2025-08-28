@@ -23,11 +23,11 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
-  // Minimum 30-minute interval between evaluations for same pair
+  // Minimum 5-minute interval between evaluations for same pair
   const now = Date.now();
   const lastEval = lastEvaluationTime[tradingPair] || 0;
   const timeDiff = now - lastEval;
-  const minInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
+  const minInterval = 5 * 60 * 1000; // 5 minutes in milliseconds
   
   if (timeDiff < minInterval) {
     const remainingTime = Math.ceil((minInterval - timeDiff) / (60 * 1000));
@@ -40,8 +40,8 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
   try {
     console.log(`🤖 AI Bot: Evaluating multi-indicator analysis for ${tradingPair}`);
     
-    // Get historical price data - Using 1H timeframe to reduce signal frequency
-    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '1H', 200);
+    // Get historical price data - Using 5M timeframe for quick scalping opportunities
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200);
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for AI bot: ${candleData?.length || 0} candles`);
       return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -158,18 +158,42 @@ async function evaluateAIBotEntry(tradingPair: string): Promise<{ hasSignal: boo
       }
     }
     
-    // 6. Support/Resistance Analysis (Weight: 10%)
-    const srAnalysis = calculateSupportResistance(highs, lows, closes);
+    // 6. Enhanced Support/Resistance Analysis (Weight: 15%)
+    const srAnalysis = calculateAdvancedSupportResistance(highs, lows, closes, volumes, currentPrice);
     if (srAnalysis) {
       indicators.supportResistance = srAnalysis;
-      const { nearSupport, nearResistance, supportStrength, resistanceStrength } = srAnalysis;
+      const { 
+        nearSupport, nearResistance, supportStrength, resistanceStrength, 
+        bounceConfirmed, rejectionConfirmed, breakoutBullish, breakdownBearish,
+        volumeConfirmation, multiTouchSupport, multiTouchResistance
+      } = srAnalysis;
       
-      if (nearSupport && supportStrength > 0.7) {
-        bullishScore += 10; // Strong support bounce
-        console.log(`🎯 S/R: STRONG SUPPORT bounce (+10)`);
-      } else if (nearResistance && resistanceStrength > 0.7) {
-        bearishScore += 10; // Strong resistance rejection
-        console.log(`🎯 S/R: STRONG RESISTANCE rejection (+10)`);
+      // Strong bounce from confirmed multi-touch support
+      if (nearSupport && supportStrength > 0.8 && bounceConfirmed && multiTouchSupport) {
+        bullishScore += 18; // Enhanced for multi-touch confirmation
+        console.log(`🎯 S/R: MULTI-TOUCH SUPPORT bounce confirmed (+18)`);
+      } 
+      // Strong rejection at confirmed multi-touch resistance  
+      else if (nearResistance && resistanceStrength > 0.8 && rejectionConfirmed && multiTouchResistance) {
+        bearishScore += 18; // Enhanced for multi-touch confirmation
+        console.log(`🎯 S/R: MULTI-TOUCH RESISTANCE rejection confirmed (+18)`);
+      }
+      // Volume-confirmed breakouts (high probability setups)
+      else if (breakoutBullish && volumeConfirmation && supportStrength > 0.7) {
+        bullishScore += 25; // Strong breakout signal
+        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKOUT (+25)`);
+      }
+      else if (breakdownBearish && volumeConfirmation && resistanceStrength > 0.7) {
+        bearishScore += 25; // Strong breakdown signal
+        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKDOWN (+25)`);
+      }
+      // Regular support/resistance (lower weight without confirmation)
+      else if (nearSupport && supportStrength > 0.6) {
+        bullishScore += 8; // Reduced weight for unconfirmed
+        console.log(`🎯 S/R: SUPPORT area (+8)`);
+      } else if (nearResistance && resistanceStrength > 0.6) {
+        bearishScore += 8; // Reduced weight for unconfirmed
+        console.log(`🎯 S/R: RESISTANCE area (+8)`);
       }
     }
     
@@ -602,6 +626,134 @@ function calculateSupportResistance(highs: number[], lows: number[], closes: num
   }
 }
 
+// Enhanced Support/Resistance calculation with multi-touch and volume confirmation
+function calculateAdvancedSupportResistance(highs: number[], lows: number[], closes: number[], volumes: number[], currentPrice: number) {
+  try {
+    // Find significant levels with multiple touches
+    const supportLevels: any[] = [];
+    const resistanceLevels: any[] = [];
+    const touchThreshold = 0.005; // 0.5% tolerance for level matching
+    
+    // Identify pivot points and count touches
+    for (let i = 2; i < lows.length - 2; i++) {
+      // Support level (local low)
+      if (lows[i] < lows[i-1] && lows[i] < lows[i-2] && lows[i] < lows[i+1] && lows[i] < lows[i+2]) {
+        const level = lows[i];
+        let touches = 1;
+        let volumeSum = volumes[i];
+        
+        // Count how many times price touched this level
+        for (let j = i + 3; j < lows.length; j++) {
+          if (Math.abs(lows[j] - level) / level < touchThreshold) {
+            touches++;
+            volumeSum += volumes[j];
+          }
+        }
+        
+        supportLevels.push({
+          level,
+          touches,
+          strength: Math.min(1.0, touches * 0.2 + volumeSum / volumes.length * 0.3),
+          index: i,
+          avgVolume: volumeSum / touches
+        });
+      }
+      
+      // Resistance level (local high)
+      if (highs[i] > highs[i-1] && highs[i] > highs[i-2] && highs[i] > highs[i+1] && highs[i] > highs[i+2]) {
+        const level = highs[i];
+        let touches = 1;
+        let volumeSum = volumes[i];
+        
+        for (let j = i + 3; j < highs.length; j++) {
+          if (Math.abs(highs[j] - level) / level < touchThreshold) {
+            touches++;
+            volumeSum += volumes[j];
+          }
+        }
+        
+        resistanceLevels.push({
+          level,
+          touches,
+          strength: Math.min(1.0, touches * 0.2 + volumeSum / volumes.length * 0.3),
+          index: i,
+          avgVolume: volumeSum / touches
+        });
+      }
+    }
+    
+    // Find strongest nearest levels
+    const nearestSupport = supportLevels
+      .filter(s => s.level < currentPrice)
+      .sort((a, b) => {
+        const distA = Math.abs(currentPrice - a.level) / currentPrice;
+        const distB = Math.abs(currentPrice - b.level) / currentPrice;
+        return (distA * 0.7 + (1 - a.strength) * 0.3) - (distB * 0.7 + (1 - b.strength) * 0.3);
+      })[0];
+    
+    const nearestResistance = resistanceLevels
+      .filter(r => r.level > currentPrice)
+      .sort((a, b) => {
+        const distA = Math.abs(a.level - currentPrice) / currentPrice;
+        const distB = Math.abs(b.level - currentPrice) / currentPrice;
+        return (distA * 0.7 + (1 - a.strength) * 0.3) - (distB * 0.7 + (1 - b.strength) * 0.3);
+      })[0];
+    
+    const supportDistance = nearestSupport ? Math.abs(currentPrice - nearestSupport.level) / currentPrice : 1;
+    const resistanceDistance = nearestResistance ? Math.abs(nearestResistance.level - currentPrice) / currentPrice : 1;
+    
+    // Check for recent bounces/rejections (last 3 candles)
+    const recentCandles = 3;
+    const recentLows = lows.slice(-recentCandles);
+    const recentHighs = highs.slice(-recentCandles);
+    const recentVolumes = volumes.slice(-recentCandles);
+    const avgVolume = volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
+    
+    // Bounce confirmation: price touched support and moved up with volume
+    const bounceConfirmed = nearestSupport && 
+      recentLows.some(low => Math.abs(low - nearestSupport.level) / nearestSupport.level < 0.01) &&
+      closes[closes.length - 1] > closes[closes.length - 3] &&
+      recentVolumes.some(vol => vol > avgVolume * 1.2);
+    
+    // Rejection confirmation: price touched resistance and moved down with volume  
+    const rejectionConfirmed = nearestResistance &&
+      recentHighs.some(high => Math.abs(high - nearestResistance.level) / nearestResistance.level < 0.01) &&
+      closes[closes.length - 1] < closes[closes.length - 3] &&
+      recentVolumes.some(vol => vol > avgVolume * 1.2);
+    
+    // Breakout detection: price breaks above resistance with high volume
+    const breakoutBullish = nearestResistance &&
+      currentPrice > nearestResistance.level * 1.005 && // 0.5% above resistance
+      volumes[volumes.length - 1] > avgVolume * 1.5;
+    
+    // Breakdown detection: price breaks below support with high volume
+    const breakdownBearish = nearestSupport &&
+      currentPrice < nearestSupport.level * 0.995 && // 0.5% below support
+      volumes[volumes.length - 1] > avgVolume * 1.5;
+    
+    return {
+      nearSupport: supportDistance < 0.015, // Within 1.5%
+      nearResistance: resistanceDistance < 0.015, // Within 1.5%
+      supportStrength: nearestSupport ? nearestSupport.strength : 0,
+      resistanceStrength: nearestResistance ? nearestResistance.strength : 0,
+      supportLevel: nearestSupport?.level,
+      resistanceLevel: nearestResistance?.level,
+      bounceConfirmed,
+      rejectionConfirmed,
+      breakoutBullish,
+      breakdownBearish,
+      volumeConfirmation: volumes[volumes.length - 1] > avgVolume * 1.2,
+      multiTouchSupport: nearestSupport?.touches >= 2,
+      multiTouchResistance: nearestResistance?.touches >= 2,
+      supportTouches: nearestSupport?.touches || 0,
+      resistanceTouches: nearestResistance?.touches || 0
+    };
+  } catch (error) {
+    console.error('Error in calculateAdvancedSupportResistance:', error);
+    return null;
+  }
+}
+
 // Manual Strategy Evaluation Functions
 async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): Promise<boolean> {
   if (!bitgetAPI) {
@@ -664,8 +816,8 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
       return false;
     }
 
-    // Get historical price data for MACD calculation - Using 1H timeframe for less frequent signals
-    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '1H', 200); // Get 200 1-hour candles (200 hours of data)
+    // Get historical price data for MACD calculation - Using 5M timeframe for scalping
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, '5m', 200); // Get 200 5-minute candles (16+ hours of data)
     if (!candleData || candleData.length < 50) {
       console.log(`❌ Insufficient candle data for MACD calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
       return false;
