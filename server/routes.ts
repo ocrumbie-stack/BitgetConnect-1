@@ -3621,37 +3621,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 AUTO SCANNER (${tradingStyle.toUpperCase()}): ${config.description} - ${config.timeframe} timeframe`);
       console.log(`📊 Looking for max ${maxBots} opportunities with min ${minConfidence}% confidence`);
       
-      // Get all available futures pairs
+      // Get ALL available futures pairs directly from Bitget API for comprehensive market coverage
       const allTickers = await bitgetAPI.getAllFuturesTickers();
-      console.log(`📊 Found ${allTickers.length} trading pairs to analyze`);
+      console.log(`📊 Found ${allTickers.length} trading pairs from Bitget API`);
       
-      // Filter pairs with sufficient volume (minimum $50K daily volume for diverse coverage)
-      const volumeThreshold = 50000;
-      const liquidPairs = allTickers.filter(ticker => 
-        parseFloat(ticker.quoteVolume || '0') > volumeThreshold
+      // Include ALL pairs - no volume filtering to ensure complete market coverage
+      // Sort by volume descending to analyze highest volume pairs first for better opportunities
+      const allPairs = allTickers.sort((a, b) => 
+        parseFloat(b.quoteVolume || '0') - parseFloat(a.quoteVolume || '0')
       );
       
-      console.log(`💧 ${liquidPairs.length} pairs meet liquidity requirements (>$${volumeThreshold.toLocaleString()})`);
+      console.log(`🌍 ANALYZING ALL ${allPairs.length} TRADING PAIRS - Complete Market Coverage`);
+      console.log(`📈 Including: Major pairs, altcoins, meme tokens, DeFi tokens, and all available markets`);
+      console.log(`🎯 Processing markets: BTC, ETH, ALT, DeFi, Layer1, Layer2, Meme, Gaming, AI, and more...`);
       
-      // If no liquid pairs found, lower the threshold temporarily
-      if (liquidPairs.length === 0) {
-        console.log(`🔄 No pairs meet volume requirement, lowering threshold to $10K...`);
-        const lowVolumeThreshold = 10000;
-        const fallbackPairs = allTickers.filter(ticker => 
-          parseFloat(ticker.quoteVolume || '0') > lowVolumeThreshold
-        );
-        console.log(`💧 ${fallbackPairs.length} pairs meet lower liquidity requirements (>$${lowVolumeThreshold.toLocaleString()})`);
-        liquidPairs.push(...fallbackPairs);
-      }
-      
-      // Analyze each pair with AI indicators
+      // Analyze each pair with AI indicators - ALL PAIRS, no limits
       const analysisResults = [];
       let analyzedCount = 0;
       let validSignalCount = 0;
       
-      for (const ticker of liquidPairs.slice(0, 50)) { // Analyze top 50 by volume for faster scanning
+      for (const ticker of allPairs) { // Analyze ALL pairs for complete coverage
         try {
-          console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${Math.min(liquidPairs.length, 50)})...`);
+          console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${allPairs.length})...`);
           analyzedCount++;
           
           const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframes, config.dataPoints);
@@ -3687,7 +3678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🔄 No results at ${minConfidence}% confidence, searching with lower threshold...`);
         const lowerThreshold = Math.max(30, minConfidence - 20); // Lower by 20% but not below 30%
         
-        for (const ticker of liquidPairs.slice(0, 20)) { // Quick scan of top 20
+        for (const ticker of allPairs.slice(0, 20)) { // Quick scan of top 20
           try {
             const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframes, config.dataPoints);
             if (aiResult.confidence >= lowerThreshold && aiResult.direction) {
