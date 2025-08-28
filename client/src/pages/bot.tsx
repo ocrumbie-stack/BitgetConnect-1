@@ -10,14 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb, Eye } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
+import { DynamicExitVisualizer } from '@/components/DynamicExitVisualizer';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BotPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('ai');
+  const [showExitVisualizer, setShowExitVisualizer] = useState(false);
+  const [selectedBotForVisualization, setSelectedBotForVisualization] = useState<any>(null);
   const { toast } = useToast();
   
   // Scroll to top when changing tabs (per user preference for instant page access)
@@ -1983,21 +1986,39 @@ export default function BotPage() {
                                             </Badge>
                                           </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                            <Button 
-                                              size="sm" 
-                                              variant="destructive"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
-                                                handleTerminateExecution.mutate(execution.id);
-                                              }}
-                                              disabled={handleTerminateExecution.isPending}
-                                              className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
-                                            >
-                                              <Square className="h-3 w-3 mr-1" />
-                                              Stop
-                                            </Button>
+                                            <div className="flex gap-1">
+                                              {execution.status === 'active' && execution.positionData && (
+                                                <Button 
+                                                  size="sm" 
+                                                  variant="outline"
+                                                  onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setSelectedBotForVisualization(execution);
+                                                    setShowExitVisualizer(true);
+                                                  }}
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
+                                                >
+                                                  <Eye className="h-3 w-3 mr-1" />
+                                                  Exit
+                                                </Button>
+                                              )}
+                                              <Button 
+                                                size="sm" 
+                                                variant="destructive"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
+                                                  handleTerminateExecution.mutate(execution.id);
+                                                }}
+                                                disabled={handleTerminateExecution.isPending}
+                                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                              >
+                                                <Square className="h-3 w-3 mr-1" />
+                                                Stop
+                                              </Button>
+                                            </div>
                                           )}
                                         </div>
                                         
@@ -2097,21 +2118,39 @@ export default function BotPage() {
                                   </Badge>
                                 </div>
                                 {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="destructive"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log('🛑 Terminating bot:', execution.id, execution.botName);
-                                      handleTerminateExecution.mutate(execution.id);
-                                    }}
-                                    disabled={handleTerminateExecution.isPending}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
-                                  >
-                                    <Square className="h-3 w-3 mr-1" />
-                                    Stop
-                                  </Button>
+                                  <div className="flex gap-1">
+                                    {execution.status === 'active' && execution.positionData && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setSelectedBotForVisualization(execution);
+                                          setShowExitVisualizer(true);
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
+                                      >
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Exit
+                                      </Button>
+                                    )}
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('🛑 Terminating bot:', execution.id, execution.botName);
+                                        handleTerminateExecution.mutate(execution.id);
+                                      }}
+                                      disabled={handleTerminateExecution.isPending}
+                                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                    >
+                                      <Square className="h-3 w-3 mr-1" />
+                                      Stop
+                                    </Button>
+                                  </div>
                                 )}
                               </div>
                               
@@ -3532,6 +3571,17 @@ export default function BotPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Dynamic Exit Strategy Visualizer */}
+      {showExitVisualizer && selectedBotForVisualization && (
+        <DynamicExitVisualizer
+          bot={selectedBotForVisualization}
+          onClose={() => {
+            setShowExitVisualizer(false);
+            setSelectedBotForVisualization(null);
+          }}
+        />
+      )}
     </div>
   );
 }
