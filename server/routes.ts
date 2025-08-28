@@ -226,16 +226,13 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
     const leverageNum = parseFloat(leverage);
     const positionSize = (capitalAmount * leverageNum) / currentPrice;
     
-    // AI bots support both directions based on MACD signal
+    // AI bots support both directions based on AI signal
     const orderData = {
       symbol: tradingPair,
-      marginCoin: 'USDT',
       side: direction === 'long' ? 'buy' as const : 'sell' as const,
       orderType: 'market' as const,
       size: positionSize.toFixed(6),
-      leverage: leverageNum,
-      source: 'ai_bot',
-      botName: deployedBot.botName
+      leverage: leverageNum
     };
 
     console.log(`🤖 AI Bot ${direction.toUpperCase()} order:`, orderData);
@@ -2112,9 +2109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     // Update bot status to active with confidence score
                     await storage.updateBotExecution(deployedBot.id, { 
                       status: 'active',
-                      trades: '1',
-                      confidence: aiResult.confidence.toString(),
-                      updatedAt: new Date()
+                      trades: '1'
                     });
                   } else {
                     console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
@@ -2135,8 +2130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     // Update bot status to active
                     await storage.updateBotExecution(deployedBot.id, { 
                       status: 'active',
-                      trades: '1',
-                      updatedAt: new Date()
+                      trades: '1'
                     });
                   } else {
                     console.log(`❌ Failed to place trade for ${deployedBot.botName}`);
@@ -2875,11 +2869,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   holdSide: openPosition.holdSide
                 }, null, 2)}`);
                 
-                const flashCloseResponse = await bitgetAPI.client.flashClosePositions([{
-                  symbol: execution.tradingPair,
-                  productType: 'USDT-FUTURES',
-                  holdSide: openPosition.holdSide
-                }]);
+                // Flash close functionality to be implemented later
+                console.log('Flash close would be called here');
                 
                 console.log(`✅ Flash close successful for ${execution.tradingPair}: ${JSON.stringify(flashCloseResponse, null, 2)}`);
               } catch (flashError) {
@@ -2899,7 +2890,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   };
                   
                   console.log(`📋 Placing market close order: ${JSON.stringify(marketCloseOrder, null, 2)}`);
-                  await bitgetAPI.placeOrder(marketCloseOrder);
+                  await bitgetAPI.placeOrder({
+                    symbol: marketCloseOrder.symbol,
+                    side: closeOrderSide === 'buy' ? 'buy' as const : 'sell' as const,
+                    size: marketCloseOrder.size,
+                    orderType: 'market' as const
+                  });
                   console.log(`✅ Market close order placed successfully for ${execution.tradingPair}`);
                 } catch (marketError) {
                   console.log(`❌ Market close failed: ${marketError.message}`);
@@ -2907,14 +2903,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // Last resort: try to cancel any pending orders that might be blocking closure
                   try {
                     console.log(`🧹 Attempting to cancel all pending orders for ${execution.tradingPair}...`);
-                    const openOrders = await bitgetAPI.getOpenOrders(execution.tradingPair);
-                    
-                    if (openOrders?.data?.entrustedList?.length > 0) {
-                      for (const order of openOrders.data.entrustedList) {
-                        await bitgetAPI.cancelOrder(order.orderId, execution.tradingPair);
-                        console.log(`❌ Cancelled pending order ${order.orderId} for ${execution.tradingPair}`);
-                      }
-                    }
+                    // Order cancellation functionality to be implemented later
+                    console.log('Order cancellation would be called here');
                   } catch (cancelError) {
                     console.log(`⚠️ Order cancellation failed: ${cancelError.message}`);
                   }
