@@ -2291,7 +2291,11 @@ export default function BotPage() {
                                                   <Button 
                                                     size="sm" 
                                                     className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      e.stopPropagation();
+                                                      console.log('Exit button clicked for:', execution.tradingPair);
+                                                      console.log('Execution data:', execution);
                                                       setSelectedBotForVisualization(execution);
                                                       setShowExitVisualizer(true);
                                                     }}
@@ -2469,7 +2473,11 @@ export default function BotPage() {
                                                 <Button 
                                                   size="sm" 
                                                   className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                  onClick={() => {
+                                                  onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    console.log('Exit button clicked for manual bot:', execution.tradingPair);
+                                                    console.log('Manual execution data:', execution);
                                                     setSelectedBotForVisualization(execution);
                                                     setShowExitVisualizer(true);
                                                   }}
@@ -2653,14 +2661,35 @@ export default function BotPage() {
 
         {/* Dynamic Exit Visualizer Dialog */}
         {showExitVisualizer && selectedBotForVisualization && (
-          <Dialog open={showExitVisualizer} onOpenChange={setShowExitVisualizer}>
+          <Dialog open={showExitVisualizer} onOpenChange={(open) => {
+            console.log('Dialog onOpenChange:', open);
+            setShowExitVisualizer(open);
+            if (!open) {
+              setSelectedBotForVisualization(null);
+            }
+          }}>
             <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+              <DialogHeader className="sr-only">
+                <DialogTitle>Exit Strategy Visualization</DialogTitle>
+                <DialogDescription>Real-time exit information and price chart for {selectedBotForVisualization.tradingPair}</DialogDescription>
+              </DialogHeader>
               <DynamicExitVisualizer 
                 bot={selectedBotForVisualization}
-                onClose={() => setShowExitVisualizer(false)}
+                onClose={() => {
+                  console.log('DynamicExitVisualizer onClose called');
+                  setShowExitVisualizer(false);
+                }}
               />
             </DialogContent>
           </Dialog>
+        )}
+        
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
+            showExitVisualizer: {showExitVisualizer.toString()}<br/>
+            selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
+          </div>
         )}
       </div>
     </div>
