@@ -2288,57 +2288,16 @@ export default function BotPage() {
                                             {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                               <div className="flex gap-2">
                                                 {execution.status === 'active' && (
-                                                  <TooltipProvider>
-                                                    <Tooltip>
-                                                      <TooltipTrigger asChild>
-                                                        <Button 
-                                                          size="sm" 
-                                                          className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                        >
-                                                          👁 Exit
-                                                        </Button>
-                                                      </TooltipTrigger>
-                                                      <TooltipContent className="p-3 bg-gray-900 border border-gray-700 max-w-xs">
-                                                        <div className="space-y-2 text-sm">
-                                                          <div className="font-medium text-white">Exit Information</div>
-                                                          <div className="grid grid-cols-2 gap-2 text-xs">
-                                                            <div>
-                                                              <span className="text-gray-400">Stop Loss:</span>
-                                                              <div className="text-red-400 font-medium">
-                                                                {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
-                                                              </div>
-                                                            </div>
-                                                            <div>
-                                                              <span className="text-gray-400">Take Profit:</span>
-                                                              <div className="text-green-400 font-medium">
-                                                                {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
-                                                              </div>
-                                                            </div>
-                                                          </div>
-                                                          {execution.positionData && (
-                                                            <div className="border-t border-gray-700 pt-2 space-y-1">
-                                                              <div className="flex justify-between text-xs">
-                                                                <span className="text-gray-400">Entry:</span>
-                                                                <span className="text-white">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</span>
-                                                              </div>
-                                                              <div className="flex justify-between text-xs">
-                                                                <span className="text-gray-400">Mark:</span>
-                                                                <span className="text-white">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</span>
-                                                              </div>
-                                                              <div className="flex justify-between text-xs">
-                                                                <span className="text-gray-400">P&L:</span>
-                                                                <span className={`font-medium ${
-                                                                  parseFloat(execution.positionData.unrealizedPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                                }`}>
-                                                                  ${parseFloat(execution.positionData.unrealizedPL || 0).toFixed(2)}
-                                                                </span>
-                                                              </div>
-                                                            </div>
-                                                          )}
-                                                        </div>
-                                                      </TooltipContent>
-                                                    </Tooltip>
-                                                  </TooltipProvider>
+                                                  <Button 
+                                                    size="sm" 
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                    onClick={() => {
+                                                      setSelectedBotForVisualization(execution);
+                                                      setShowExitVisualizer(true);
+                                                    }}
+                                                  >
+                                                    👁 Exit
+                                                  </Button>
                                                 )}
                                                 <Button 
                                                   size="sm"
@@ -2507,57 +2466,16 @@ export default function BotPage() {
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                             <div className="flex gap-2">
                                               {execution.status === 'active' && (
-                                                <TooltipProvider>
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Button 
-                                                        size="sm" 
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                      >
-                                                        👁 Exit
-                                                      </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="p-3 bg-gray-900 border border-gray-700 max-w-xs">
-                                                      <div className="space-y-2 text-sm">
-                                                        <div className="font-medium text-white">Exit Information</div>
-                                                        <div className="grid grid-cols-2 gap-2 text-xs">
-                                                          <div>
-                                                            <span className="text-gray-400">Stop Loss:</span>
-                                                            <div className="text-red-400 font-medium">
-                                                              {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
-                                                            </div>
-                                                          </div>
-                                                          <div>
-                                            <span className="text-gray-400">Take Profit:</span>
-                                                            <div className="text-green-400 font-medium">
-                                                              {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
-                                                            </div>
-                                                          </div>
-                                                        </div>
-                                                        {execution.positionData && (
-                                                          <div className="border-t border-gray-700 pt-2 space-y-1">
-                                                            <div className="flex justify-between text-xs">
-                                                              <span className="text-gray-400">Entry:</span>
-                                                              <span className="text-white">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</span>
-                                                            </div>
-                                                            <div className="flex justify-between text-xs">
-                                                              <span className="text-gray-400">Mark:</span>
-                                                              <span className="text-white">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</span>
-                                                            </div>
-                                                            <div className="flex justify-between text-xs">
-                                                              <span className="text-gray-400">P&L:</span>
-                                                              <span className={`font-medium ${
-                                                                parseFloat(execution.positionData.unrealizedPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                              }`}>
-                                                                ${parseFloat(execution.positionData.unrealizedPL || 0).toFixed(2)}
-                                                              </span>
-                                                            </div>
-                                                          </div>
-                                                        )}
-                                                      </div>
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                </TooltipProvider>
+                                                <Button 
+                                                  size="sm" 
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                  onClick={() => {
+                                                    setSelectedBotForVisualization(execution);
+                                                    setShowExitVisualizer(true);
+                                                  }}
+                                                >
+                                                  👁 Exit
+                                                </Button>
                                               )}
                                               <Button 
                                                 size="sm"
@@ -2655,20 +2573,7 @@ export default function BotPage() {
         )}
       </div>
 
-      {/* Only show Exit Strategy Visualizer if the bot has positionData and exit strategy parameters */}
-        {showExitVisualizer && selectedBotForVisualization && selectedBotForVisualization.positionData && (
-          <Dialog open={showExitVisualizer} onOpenChange={(open) => {
-            setShowExitVisualizer(open);
-            if (!open) setSelectedBotForVisualization(null);
-          }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-              <DialogHeader>
-                <DialogTitle>Exit Strategy Visualization - {selectedBotForVisualization.tradingPair}</DialogTitle>
-              </DialogHeader>
-              <ExitStrategyVisualizer bot={selectedBotForVisualization} />
-            </DialogContent>
-          </Dialog>
-        )}
+
 
         {/* Auto AI Bot Creation Modal */}
         {showAutoAICreation && selectedPairForAutoAI && (
@@ -2742,6 +2647,18 @@ export default function BotPage() {
                   </form>
                 </CardContent>
               </Card>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Dynamic Exit Visualizer Dialog */}
+        {showExitVisualizer && selectedBotForVisualization && (
+          <Dialog open={showExitVisualizer} onOpenChange={setShowExitVisualizer}>
+            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+              <DynamicExitVisualizer 
+                bot={selectedBotForVisualization}
+                onClose={() => setShowExitVisualizer(false)}
+              />
             </DialogContent>
           </Dialog>
         )}
