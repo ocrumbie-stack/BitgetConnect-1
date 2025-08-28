@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb, Eye } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb, Eye, X } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
 import { DynamicExitVisualizer } from '@/components/DynamicExitVisualizer';
@@ -1818,18 +1818,47 @@ export default function BotPage() {
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Running Bots</h3>
-              {activeExecutions.length > 0 && (
-                <Button 
-                  size="sm"
-                  variant="outline" 
-                  onClick={() => closeAllPositionsMutation.mutate()}
-                  disabled={closeAllPositionsMutation.isPending}
-                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-                >
-                  <Square className="h-4 w-4 mr-2" />
-                  {closeAllPositionsMutation.isPending ? 'Closing...' : 'Close All Positions'}
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {activeExecutions.filter(ex => ex.status === 'waiting_entry').length > 0 && (
+                  <Button 
+                    size="sm"
+                    variant="outline" 
+                    onClick={async () => {
+                      const waitingBots = activeExecutions.filter(ex => ex.status === 'waiting_entry');
+                      if (window.confirm(`Terminate ${waitingBots.length} waiting bots? This will remove all bots that are waiting for entry signals.`)) {
+                        for (const bot of waitingBots) {
+                          try {
+                            await handleTerminateExecution.mutateAsync(bot.id);
+                          } catch (error) {
+                            console.error(`Failed to terminate ${bot.tradingPair}:`, error);
+                          }
+                        }
+                        toast({
+                          title: "Waiting Bots Terminated",
+                          description: `Successfully terminated ${waitingBots.length} waiting bots.`,
+                        });
+                      }
+                    }}
+                    disabled={handleTerminateExecution.isPending}
+                    className="text-yellow-600 border-yellow-300 hover:bg-yellow-50 hover:text-yellow-700"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Terminate All Waiting
+                  </Button>
+                )}
+                {activeExecutions.filter(ex => ex.positionData).length > 0 && (
+                  <Button 
+                    size="sm"
+                    variant="outline" 
+                    onClick={() => closeAllPositionsMutation.mutate()}
+                    disabled={closeAllPositionsMutation.isPending}
+                    className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <Square className="h-4 w-4 mr-2" />
+                    {closeAllPositionsMutation.isPending ? 'Closing...' : 'Close All Positions'}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {executionsLoading ? (
