@@ -2147,13 +2147,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        if (position && (mapping || exitCriteria)) {
-          // Ensure we have exit criteria before proceeding
-          const finalExitCriteria = exitCriteria || mapping?.exitCriteria;
-          if (!finalExitCriteria) {
-            console.log(`⚠️ No exit criteria found for ${deployedBot.tradingPair}, skipping exit evaluation`);
-            continue;
-          }
+        if (position) {
+          // Get exit criteria from various sources, with defaults for folder bots
+          const finalExitCriteria = exitCriteria || mapping?.exitCriteria || {
+            stopLoss: -5, // Default 5% stop loss
+            takeProfit: 10, // Default 10% take profit  
+            maxRuntime: 240, // Default 4 hours
+            exitStrategy: 'manual_exit'
+          };
           // Bot has an active position
           const runtime = deployedBot.startedAt 
             ? Math.floor((Date.now() - new Date(deployedBot.startedAt).getTime()) / 1000 / 60)
