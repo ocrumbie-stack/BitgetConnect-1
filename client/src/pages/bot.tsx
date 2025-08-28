@@ -68,7 +68,7 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
-  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder'>('individual');
+  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
@@ -497,8 +497,29 @@ export default function BotPage() {
       return;
     }
 
+    // Auto scanner mode doesn't need pair/folder validation - it selects automatically
+
     try {
-      if (selectedFolder) {
+      if (deploymentMode === 'auto_scanner') {
+        // Deploy AI bot using Auto Market Scanner
+        const executionData = {
+          userId: 'default-user',
+          strategyId: strategy.id,
+          tradingPair: 'AUTO_SCANNER_MODE', // Special marker for auto scanner
+          capital,
+          leverage,
+          status: 'waiting_entry',
+          deploymentType: 'auto_scanner',
+          botName: `Auto AI - ${strategy.name}`
+        };
+        
+        await runStrategyMutation.mutateAsync(executionData);
+        setShowRunDialog(false);
+        toast({
+          title: "AI Bot Deployed Successfully! 🤖",
+          description: `Auto scanner will find optimal trading opportunities using ${leverage}x leverage with $${capital} capital`,
+        });
+      } else if (selectedFolder) {
         // Deploy to folder
         const folder = (folders as any[]).find(f => f.id === selectedFolder);
         if (!folder || !folder.tradingPairs || folder.tradingPairs.length === 0) {
@@ -1373,14 +1394,10 @@ export default function BotPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedStrategy({ ...bot, isAI: true });
-                                // Pre-fill with suggested defaults
-                                const defaultPair = bot.recommendedPairs[0] || 'BTCUSDT';
-                                setPairSearch(defaultPair);
-                                setTradingPair(defaultPair);
+                                // For AI bots, use auto-scanner mode with simplified inputs
+                                setDeploymentMode('auto_scanner');
                                 setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
-                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
-                                // Trigger auto-suggest filtering for the pre-filled pair
-                                handlePairSearchChange(defaultPair);
+                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '3');
                                 setShowRunDialog(true);
                               }}
                             >
@@ -3263,13 +3280,17 @@ export default function BotPage() {
             {/* Deployment Mode Selector */}
             <div>
               <label className="text-sm font-medium mb-2 block">Deployment Mode</label>
-              <Select value={deploymentMode} onValueChange={(value: 'individual' | 'folder') => {
+              <Select value={deploymentMode} onValueChange={(value: 'individual' | 'folder' | 'auto_scanner') => {
                 setDeploymentMode(value);
                 if (value === 'individual') {
                   setSelectedFolder('');
-                } else {
+                } else if (value === 'folder') {
                   setTradingPair('');
                   setPairSearch('');
+                } else if (value === 'auto_scanner') {
+                  setTradingPair('');
+                  setPairSearch('');
+                  setSelectedFolder('');
                 }
               }}>
                 <SelectTrigger>
@@ -3288,12 +3309,20 @@ export default function BotPage() {
                       Entire Folder
                     </div>
                   </SelectItem>
+                  <SelectItem value="auto_scanner">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full"></span>
+                      Auto Market Scanner
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 {deploymentMode === 'individual' 
                   ? 'Deploy bot to a single trading pair'
-                  : 'Deploy bots to all pairs in a folder'
+                  : deploymentMode === 'folder'
+                  ? 'Deploy bots to all pairs in a folder'
+                  : 'AI automatically finds and trades optimal market opportunities'
                 }
               </p>
             </div>
@@ -3386,6 +3415,28 @@ export default function BotPage() {
               </div>
             )}
 
+            {/* Auto Scanner Mode Info */}
+            {deploymentMode === 'auto_scanner' && (
+              <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-950/20 dark:to-cyan-950/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-emerald-800 dark:text-emerald-200 mb-1">Auto Market Scanner</h4>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-2">
+                      AI will automatically scan the entire market, find optimal trading opportunities using multi-indicator analysis, and execute trades with smart risk management.
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 px-2 py-1 rounded">✓ Multi-indicator AI analysis</span>
+                      <span className="bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-200 px-2 py-1 rounded">✓ Dynamic confidence thresholds</span>
+                      <span className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 px-2 py-1 rounded">✓ Long & short positions</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="text-sm font-medium">Capital Amount</label>
               <Input
@@ -3462,10 +3513,13 @@ export default function BotPage() {
                   alert('No strategy selected');
                 }
               }}
-              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500"
+              className={`flex-1 ${deploymentMode === 'auto_scanner' 
+                ? 'bg-gradient-to-r from-emerald-500 to-cyan-500' 
+                : 'bg-gradient-to-r from-green-500 to-emerald-500'
+              }`}
             >
               <Play className="h-4 w-4 mr-2" />
-              Deploy Bot
+              {deploymentMode === 'auto_scanner' ? 'Deploy AI Bot' : 'Deploy Bot'}
             </Button>
           </div>
         </DialogContent>
@@ -3647,19 +3701,15 @@ export default function BotPage() {
               onClick={() => {
                 setShowBotInfo(false);
                 setSelectedStrategy({ ...selectedBotInfo, isAI: true });
-                // Pre-fill with suggested defaults
-                const defaultPair = selectedBotInfo?.recommendedPairs?.[0] || 'BTCUSDT';
-                setPairSearch(defaultPair);
-                setTradingPair(defaultPair);
+                // For AI bots, use auto-scanner mode with simplified inputs
+                setDeploymentMode('auto_scanner');
                 setCapital(selectedBotInfo?.suggestedCapital?.split('-')[0] || '1000');
-                setLeverage(selectedBotInfo?.suggestedLeverage?.split('-')[0] || '1');
-                // Trigger auto-suggest filtering for the pre-filled pair
-                handlePairSearchChange(defaultPair);
+                setLeverage(selectedBotInfo?.suggestedLeverage?.split('-')[0] || '3');
                 setShowRunDialog(true);
               }}
               className={`flex-1 bg-gradient-to-r ${selectedBotInfo?.gradient || 'from-blue-500 to-cyan-500'} hover:opacity-90 text-white`}
             >
-              Deploy Bot
+              Deploy AI Bot
             </Button>
           </div>
         </DialogContent>
