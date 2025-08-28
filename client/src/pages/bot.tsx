@@ -2295,9 +2295,9 @@ export default function BotPage() {
                                                       e.preventDefault();
                                                       e.stopPropagation();
                                                       console.log('Exit button clicked for:', execution.tradingPair);
-                                                      console.log('Execution data:', execution);
+                                                      console.log('Setting selectedBotForVisualization and showExitVisualizer to true');
                                                       setSelectedBotForVisualization(execution);
-                                                      setShowExitVisualizer(true);
+                                                      setTimeout(() => setShowExitVisualizer(true), 10);
                                                     }}
                                                   >
                                                     👁 Exit
@@ -2477,9 +2477,9 @@ export default function BotPage() {
                                                     e.preventDefault();
                                                     e.stopPropagation();
                                                     console.log('Exit button clicked for manual bot:', execution.tradingPair);
-                                                    console.log('Manual execution data:', execution);
+                                                    console.log('Setting selectedBotForVisualization and showExitVisualizer to true');
                                                     setSelectedBotForVisualization(execution);
-                                                    setShowExitVisualizer(true);
+                                                    setTimeout(() => setShowExitVisualizer(true), 10);
                                                   }}
                                                 >
                                                   👁 Exit
@@ -2660,29 +2660,30 @@ export default function BotPage() {
         )}
 
         {/* Dynamic Exit Visualizer Dialog */}
-        {showExitVisualizer && selectedBotForVisualization && (
-          <Dialog open={showExitVisualizer} onOpenChange={(open) => {
-            console.log('Dialog onOpenChange:', open);
-            setShowExitVisualizer(open);
-            if (!open) {
-              setSelectedBotForVisualization(null);
-            }
-          }}>
-            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0">
-              <DialogHeader className="sr-only">
-                <DialogTitle>Exit Strategy Visualization</DialogTitle>
-                <DialogDescription>Real-time exit information and price chart for {selectedBotForVisualization.tradingPair}</DialogDescription>
-              </DialogHeader>
+        <Dialog open={showExitVisualizer} onOpenChange={(open) => {
+          console.log('Dialog onOpenChange:', open, 'current showExitVisualizer:', showExitVisualizer);
+          if (!open) {
+            setShowExitVisualizer(false);
+            setSelectedBotForVisualization(null);
+          }
+        }}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto p-0">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Exit Strategy Visualization</DialogTitle>
+              <DialogDescription>Real-time exit information and price chart for {selectedBotForVisualization?.tradingPair}</DialogDescription>
+            </DialogHeader>
+            {selectedBotForVisualization && (
               <DynamicExitVisualizer 
                 bot={selectedBotForVisualization}
                 onClose={() => {
                   console.log('DynamicExitVisualizer onClose called');
                   setShowExitVisualizer(false);
+                  setSelectedBotForVisualization(null);
                 }}
               />
-            </DialogContent>
-          </Dialog>
-        )}
+            )}
+          </DialogContent>
+        </Dialog>
         
         {/* Debug info */}
         {process.env.NODE_ENV === 'development' && (
