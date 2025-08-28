@@ -85,7 +85,6 @@ export default function BotPage() {
   // Auto Market Scanner state
   const [scannerCapital, setScannerCapital] = useState('10000');
   const [scannerMaxBots, setScannerMaxBots] = useState('5');
-  const [scannerMinConfidence, setScannerMinConfidence] = useState('70');
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
@@ -210,6 +209,11 @@ export default function BotPage() {
   // Fetch futures data for AI suggestions
   const { data: futuresData = [], isLoading: futuresLoading } = useQuery({
     queryKey: ['/api/futures']
+  });
+
+  // Fetch user preferences for trading style
+  const { data: userPrefs } = useQuery({
+    queryKey: ['/api/user-preferences', 'default-user'],
   });
 
   // Show ALL running bots (both active and waiting) - not just ones currently in trades
@@ -374,6 +378,15 @@ export default function BotPage() {
       return;
     }
 
+    // Get confidence threshold from trading style preferences
+    let minConfidence = 70; // Default fallback
+    if (userPrefs && typeof userPrefs === 'object' && 'preferences' in userPrefs) {
+      const prefs = (userPrefs as any).preferences;
+      if (prefs && prefs.confidenceThreshold) {
+        minConfidence = prefs.confidenceThreshold;
+      }
+    }
+
     setIsScanning(true);
     setScannerResults(null);
     
@@ -381,7 +394,7 @@ export default function BotPage() {
       userId: 'default-user',
       totalCapital: parseFloat(scannerCapital),
       maxBots: parseInt(scannerMaxBots),
-      minConfidence: parseInt(scannerMinConfidence)
+      minConfidence: minConfidence
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
@@ -1601,23 +1614,7 @@ export default function BotPage() {
                     </p>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Min Confidence</label>
-                    <Select value={scannerMinConfidence} onValueChange={setScannerMinConfidence} disabled={isScanning}>
-                      <SelectTrigger className="bg-white dark:bg-gray-800">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="60">60% - More Opportunities</SelectItem>
-                        <SelectItem value="70">70% - Balanced</SelectItem>
-                        <SelectItem value="80">80% - Conservative</SelectItem>
-                        <SelectItem value="90">90% - Ultra Conservative</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Minimum AI confidence required for deployment
-                    </p>
-                  </div>
+
                 </div>
 
                 <div className="flex items-center gap-4">

@@ -142,10 +142,13 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
 
   // Initialize from user preferences
   useEffect(() => {
-    if (userPrefs && 'tradingStyle' in userPrefs) {
-      setSelectedStyle(userPrefs.tradingStyle);
-      if ('preferences' in userPrefs && userPrefs.preferences) {
-        setCustomSettings(userPrefs.preferences);
+    if (userPrefs && typeof userPrefs === 'object' && 'tradingStyle' in userPrefs) {
+      const style = (userPrefs as any).tradingStyle;
+      if (style && style in tradingStyles) {
+        setSelectedStyle(style);
+        if ('preferences' in userPrefs && (userPrefs as any).preferences) {
+          setCustomSettings((userPrefs as any).preferences);
+        }
       }
     }
   }, [userPrefs]);
