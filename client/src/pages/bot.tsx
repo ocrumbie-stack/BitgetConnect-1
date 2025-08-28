@@ -1871,18 +1871,44 @@ export default function BotPage() {
                   // Group ALL running executions (active, waiting, exit_pending) - exclude only terminated ones
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
-                    if (execution.deploymentType === 'auto_scanner') {
-                      // Auto Market Scanner bots grouped under "Auto Market Scanner"
+                    
+                    // Check if this is an AI strategy bot (regardless of deployment type)
+                    const isAIStrategy = execution.botName && (
+                      execution.botName.includes('Smart ') || 
+                      execution.botName.includes('Grid Trading Pro') || 
+                      execution.botName.includes('AI') && !execution.botName.includes('Auto AI')
+                    );
+                    
+                    // True Auto Market Scanner bots (deployed via Auto Market Scanner)
+                    if (execution.deploymentType === 'auto_scanner' && !isAIStrategy && execution.botName?.includes('Auto AI')) {
                       autoScannerBots.push(execution);
-                    } else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
-                      // Folder-deployed or AI strategy bots grouped by folder/bot name
-                      const folderName = execution.folderName || execution.botName;
+                    } 
+                    // AI Strategy bots - group by strategy name
+                    else if (isAIStrategy || (execution.deploymentType === 'folder_bulk' && execution.botName && (execution.botName.includes('Smart ') || execution.botName.includes('Grid Trading Pro')))) {
+                      // Extract strategy name from bot name
+                      let strategyName = execution.botName;
+                      if (strategyName.includes(' - ')) {
+                        strategyName = strategyName.split(' - ')[0];
+                      }
+                      if (strategyName.startsWith('Auto AI - ')) {
+                        strategyName = strategyName.replace('Auto AI - ', '');
+                      }
+                      
+                      if (!folderGroups[strategyName]) {
+                        folderGroups[strategyName] = [];
+                      }
+                      folderGroups[strategyName].push(execution);
+                    }
+                    // Regular folder deployments
+                    else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && execution.folderName) {
+                      const folderName = execution.folderName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } else if (!execution.folderName || execution.deploymentType === 'manual') {
-                      // Manual individual bots
+                    } 
+                    // Manual individual bots
+                    else if (!execution.folderName || execution.deploymentType === 'manual') {
                       manualExecutions.push(execution);
                     }
                   });
