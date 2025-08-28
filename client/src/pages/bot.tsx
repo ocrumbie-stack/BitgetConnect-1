@@ -1790,7 +1790,7 @@ export default function BotPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Opportunities Found</div>
-                          <div className="font-bold text-lg">{scannerResults.deployedBots}</div>
+                          <div className="font-bold text-lg">{scannerResults.opportunities?.length || 0}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Confidence</div>
@@ -1801,6 +1801,31 @@ export default function BotPage() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Display found trading pairs */}
+                      {scannerResults.opportunities?.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <div className="text-sm font-medium text-muted-foreground">Found Trading Pairs:</div>
+                          <div className="flex flex-wrap gap-2">
+                            {scannerResults.opportunities.map((opp: any, index: number) => (
+                              <div 
+                                key={index}
+                                className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 border rounded-lg text-sm"
+                              >
+                                <span className="font-medium">{opp.symbol}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded ${
+                                  opp.direction === 'long' 
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                  {opp.direction?.toUpperCase()}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
