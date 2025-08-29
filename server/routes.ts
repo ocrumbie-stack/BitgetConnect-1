@@ -2154,6 +2154,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cleanup route to fix existing auto scanner strategies
+  app.post('/api/fix-auto-scanner-strategies', async (req, res) => {
+    try {
+      const userId = 'default-user';
+      const strategies = await storage.getBotStrategies(userId);
+      
+      let updatedCount = 0;
+      for (const strategy of strategies) {
+        // Check if this is an auto-generated strategy (starts with auto-ai- or contains scanner timestamp)
+        if (strategy.id.startsWith('auto-ai-') || strategy.name.includes('Auto Scanner')) {
+          if (strategy.source !== 'auto_scanner') {
+            await storage.updateBotStrategy(strategy.id, { source: 'auto_scanner' });
+            updatedCount++;
+            console.log(`✅ Fixed strategy: ${strategy.name} → source: auto_scanner`);
+          }
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Updated ${updatedCount} auto scanner strategies`,
+        updatedCount 
+      });
+    } catch (error) {
+      console.error('Error fixing auto scanner strategies:', error);
+      res.status(500).json({ error: 'Failed to fix auto scanner strategies' });
+    }
+  });
+
   // Bot execution management routes
   app.get('/api/bot-executions', async (req, res) => {
     try {
