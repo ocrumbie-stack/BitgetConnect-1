@@ -2389,13 +2389,13 @@ export default function BotPage() {
                                                     onClick={(e) => {
                                                       e.preventDefault();
                                                       e.stopPropagation();
-                                                      console.log('Exit button clicked for:', execution.tradingPair);
-                                                      console.log('Setting selectedBotForVisualization and showExitVisualizer to true');
-                                                      setSelectedBotForVisualization(execution);
-                                                      setTimeout(() => setShowExitVisualizer(true), 10);
+                                                      setExpandedPositions(prev => ({
+                                                        ...prev,
+                                                        [execution.id]: !prev[execution.id]
+                                                      }));
                                                     }}
                                                   >
-                                                    👁 Exit
+                                                    {expandedPositions[execution.id] ? '📊 Hide' : '📊 Info'}
                                                   </Button>
                                                 )}
                                                 <Button 
@@ -2462,10 +2462,10 @@ export default function BotPage() {
                                             <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
                                               <div className="flex items-center gap-3">
                                                 <span className="text-red-400">
-                                                  SL: {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
+                                                  SL: {execution.exitCriteria?.stopLoss || '-6%'}
                                                 </span>
                                                 <span className="text-green-400">
-                                                  TP: {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
+                                                  TP: {execution.exitCriteria?.takeProfit || '+18%'}
                                                 </span>
                                               </div>
                                               {execution.positionData && (
@@ -2473,6 +2473,46 @@ export default function BotPage() {
                                                   Entry: ${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}
                                                 </span>
                                               )}
+                                            </div>
+                                          )}
+
+                                          {/* Inline Position Details - Only shown when expanded */}
+                                          {expandedPositions[execution.id] && execution.status === 'active' && execution.positionData && (
+                                            <div className="mt-3 p-3 bg-gray-800/50 rounded-lg border border-gray-600/30">
+                                              <div className="text-sm space-y-2">
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Current Price:</span>
+                                                  <span className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Entry Price:</span>
+                                                  <span className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Position Size:</span>
+                                                  <span className="font-medium">{execution.positionData.total} {execution.tradingPair.replace('USDT', '')}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Side:</span>
+                                                  <span className={`font-medium ${execution.positionData.holdSide === 'long' ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {execution.positionData.holdSide}
+                                                  </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Unrealized P&L:</span>
+                                                  <span className={`font-medium ${parseFloat(execution.positionData.unrealizedPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                    ${parseFloat(execution.positionData.unrealizedPL || 0).toFixed(4)}
+                                                  </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Margin Used:</span>
+                                                  <span className="font-medium">${parseFloat(execution.positionData.marginSize || 0).toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                  <span className="text-gray-400">Liquidation:</span>
+                                                  <span className="font-medium text-red-400">${parseFloat(execution.positionData.liquidationPrice || 0).toFixed(4)}</span>
+                                                </div>
+                                              </div>
                                             </div>
                                           )}
                                         </div>
