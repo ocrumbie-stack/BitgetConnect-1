@@ -3065,6 +3065,344 @@ export default function BotPage() {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Strategy Creation Dialog - RESTORED */}
+        {showCreateForm && (
+          <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create Custom Trading Strategy</DialogTitle>
+                <DialogDescription>Build a personalized trading strategy with technical indicators and risk management</DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Basic Strategy Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="strategy-name">Strategy Name</Label>
+                    <Input
+                      id="strategy-name"
+                      type="text"
+                      value={strategyName}
+                      onChange={(e) => setStrategyName(e.target.value)}
+                      placeholder="e.g., My Momentum Strategy"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Position Direction</Label>
+                    <Select value={positionDirection} onValueChange={(value: 'long' | 'short') => setPositionDirection(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="long">Long (Buy)</SelectItem>
+                        <SelectItem value="short">Short (Sell)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Trading Parameters */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label>Timeframe</Label>
+                    <Select value={timeframe} onValueChange={setTimeframe}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1m">1 Minute</SelectItem>
+                        <SelectItem value="5m">5 Minutes</SelectItem>
+                        <SelectItem value="15m">15 Minutes</SelectItem>
+                        <SelectItem value="1h">1 Hour</SelectItem>
+                        <SelectItem value="4h">4 Hours</SelectItem>
+                        <SelectItem value="1d">1 Day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Risk Level</Label>
+                    <Select value={riskLevel} onValueChange={setRiskLevel}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low Risk</SelectItem>
+                        <SelectItem value="medium">Medium Risk</SelectItem>
+                        <SelectItem value="high">High Risk</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stop-loss">Stop Loss (%)</Label>
+                    <Input
+                      id="stop-loss"
+                      type="number"
+                      step="0.1"
+                      value={stopLoss}
+                      onChange={(e) => setStopLoss(e.target.value)}
+                      placeholder="e.g., 5.0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="take-profit">Take Profit (%)</Label>
+                    <Input
+                      id="take-profit"
+                      type="number"
+                      step="0.1"
+                      value={takeProfit}
+                      onChange={(e) => setTakeProfit(e.target.value)}
+                      placeholder="e.g., 10.0"
+                    />
+                  </div>
+                </div>
+
+                {/* Technical Indicators */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-lg">Technical Indicators</h4>
+                  
+                  {/* RSI Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.rsi.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            rsi: { ...prev.rsi, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">RSI (Relative Strength Index)</Label>
+                      </div>
+                    </div>
+                    {indicators.rsi.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.rsi.period}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              rsi: { ...prev.rsi, period: parseInt(e.target.value) || 14 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.rsi.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              rsi: { ...prev.rsi, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above</SelectItem>
+                              <SelectItem value="below">Below</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Value</Label>
+                          <Input
+                            type="number"
+                            value={indicators.rsi.value}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              rsi: { ...prev.rsi, value: parseInt(e.target.value) || 70 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* MACD Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.macd.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            macd: { ...prev.macd, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">MACD</Label>
+                      </div>
+                    </div>
+                    {indicators.macd.enabled && (
+                      <div className="grid grid-cols-4 gap-3">
+                        <div>
+                          <Label className="text-sm">Fast Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.macd.fastPeriod}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              macd: { ...prev.macd, fastPeriod: parseInt(e.target.value) || 12 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Slow Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.macd.slowPeriod}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              macd: { ...prev.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Signal Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.macd.signalPeriod}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              macd: { ...prev.macd, signalPeriod: parseInt(e.target.value) || 9 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.macd.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              macd: { ...prev.macd, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
+                              <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Moving Average Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.ma1.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            ma1: { ...prev.ma1, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">Moving Average</Label>
+                      </div>
+                    </div>
+                    {indicators.ma1.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Type</Label>
+                          <Select 
+                            value={indicators.ma1.type} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              ma1: { ...prev.ma1, type: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sma">SMA (Simple)</SelectItem>
+                              <SelectItem value="ema">EMA (Exponential)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.ma1.period1}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              ma1: { ...prev.ma1, period1: parseInt(e.target.value) || 20 }
+                            }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.ma1.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              ma1: { ...prev.ma1, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Price Above MA</SelectItem>
+                              <SelectItem value="below">Price Below MA</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => setShowCreateForm(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateStrategy}
+                    disabled={createStrategyMutation.isPending || !strategyName.trim()}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  >
+                    {createStrategyMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Strategy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
         
         {/* Debug info */}
         <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
