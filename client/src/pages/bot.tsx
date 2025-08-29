@@ -1422,8 +1422,8 @@ export default function BotPage() {
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-blue-500 rounded-md">
-                  <Zap className="h-3.5 w-3.5 text-white" />
+                <div className="p-2 bg-blue-500 rounded-md">
+                  <Zap className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
@@ -1445,8 +1445,8 @@ export default function BotPage() {
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-green-500 rounded-md">
-                  <Activity className="h-3.5 w-3.5 text-white" />
+                <div className="p-2 bg-green-500 rounded-md">
+                  <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-green-700 dark:text-green-300">
@@ -1471,8 +1471,8 @@ export default function BotPage() {
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-purple-500 rounded-md">
-                  <Bot className="h-3.5 w-3.5 text-white" />
+                <div className="p-2 bg-purple-500 rounded-md">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
@@ -1494,8 +1494,8 @@ export default function BotPage() {
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-cyan-500 rounded-md">
-                  <Search className="h-3.5 w-3.5 text-white" />
+                <div className="p-2 bg-cyan-500 rounded-md">
+                  <Search className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-cyan-700 dark:text-cyan-300">
@@ -1529,11 +1529,11 @@ export default function BotPage() {
               }`}>
                 <CardContent className="p-2">
                   <div className="flex items-center gap-3">
-                    <div className={`p-1.5 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-md`}>
+                    <div className={`p-2 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-md`}>
                       {isPositive ? (
-                        <TrendingUp className="h-3.5 w-3.5 text-white" />
+                        <TrendingUp className="h-5 w-5 text-white" />
                       ) : (
-                        <TrendingDown className="h-3.5 w-3.5 text-white" />
+                        <TrendingDown className="h-5 w-5 text-white" />
                       )}
                     </div>
                     <div className="flex-1 text-center">
