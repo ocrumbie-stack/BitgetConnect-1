@@ -3090,15 +3090,53 @@ export default function BotPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Position Direction</Label>
-                    <Select value={positionDirection} onValueChange={(value: 'long' | 'short') => setPositionDirection(value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="long">Long (Buy)</SelectItem>
-                        <SelectItem value="short">Short (Sell)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div
+                        onClick={() => setPositionDirection('long')}
+                        className={`cursor-pointer border rounded-lg p-4 text-center transition-all hover:scale-105 ${
+                          positionDirection === 'long'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-500'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <div className={`p-2 rounded-full ${
+                            positionDirection === 'long' 
+                              ? 'bg-green-500 text-white' 
+                              : 'bg-gray-100 dark:bg-gray-800 text-green-500'
+                          }`}>
+                            <TrendingUp className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm">Long</div>
+                            <div className="text-xs text-muted-foreground">Buy Position</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div
+                        onClick={() => setPositionDirection('short')}
+                        className={`cursor-pointer border rounded-lg p-4 text-center transition-all hover:scale-105 ${
+                          positionDirection === 'short'
+                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20 ring-2 ring-red-500'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-600'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <div className={`p-2 rounded-full ${
+                            positionDirection === 'short' 
+                              ? 'bg-red-500 text-white' 
+                              : 'bg-gray-100 dark:bg-gray-800 text-red-500'
+                          }`}>
+                            <TrendingDown className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm">Short</div>
+                            <div className="text-xs text-muted-foreground">Sell Position</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
