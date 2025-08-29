@@ -3134,10 +3134,10 @@ export default function BotPage() {
 
                 {/* Continuous Scanner Settings */}
                 {deploymentMode === 'continuous_scanner' && (
-                  <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+                  <div className="space-y-4 p-4 bg-blue-50 dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-gray-600">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <h4 className="font-medium text-purple-700 dark:text-purple-300">Continuous Scanner Configuration</h4>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <h4 className="font-medium text-blue-700 dark:text-blue-300">Continuous Scanner Configuration</h4>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -3187,14 +3187,14 @@ export default function BotPage() {
                     </div>
 
                     {/* Status Display */}
-                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${isContinuousActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {isContinuousActive ? 'Scanner Active' : 'Scanner Stopped'}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-gray-600 dark:text-gray-300">
                         Scans: {continuousStats.scansCount} | Trades: {continuousStats.tradesPlaced}
                       </div>
                     </div>
