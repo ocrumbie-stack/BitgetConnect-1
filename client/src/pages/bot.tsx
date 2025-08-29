@@ -2365,12 +2365,23 @@ export default function BotPage() {
                                       <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
                                         <div className="space-y-3">
                                           <div className="flex items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                                              <span className={`px-3 py-1.5 rounded text-sm font-medium truncate ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
-                                                {execution.tradingPair}
-                                              </span>
-                                              {execution.positionData?.holdSide && (
+                                            <div className="flex flex-col gap-1 min-w-0 flex-1">
+                                              <div className="flex items-center gap-2">
+                                                <span className={`px-3 py-1.5 rounded text-sm font-medium truncate ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
+                                                  {execution.tradingPair}
+                                                </span>
                                                 <Badge variant="outline" className={`text-xs ${
+                                                  execution.status === 'active' 
+                                                    ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
+                                                    : execution.status === 'waiting_entry'
+                                                    ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                    : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                }`}>
+                                                  {execution.status === 'active' ? 'Active' : execution.status === 'waiting_entry' ? 'Waiting' : 'Stopped'}
+                                                </Badge>
+                                              </div>
+                                              {execution.positionData?.holdSide && (
+                                                <Badge variant="outline" className={`text-xs w-fit ${
                                                   execution.positionData.holdSide === 'long' 
                                                     ? 'border-green-500 text-green-400 bg-green-950/30'
                                                     : 'border-red-500 text-red-400 bg-red-950/30'
@@ -2378,15 +2389,6 @@ export default function BotPage() {
                                                   {execution.positionData.holdSide.toUpperCase()}
                                                 </Badge>
                                               )}
-                                              <Badge variant="outline" className={`text-xs ${
-                                                execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
-                                                  : execution.status === 'waiting_entry'
-                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                              }`}>
-                                                {execution.status === 'active' ? 'Active' : execution.status === 'waiting_entry' ? 'Waiting' : 'Stopped'}
-                                              </Badge>
                                             </div>
                                             {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                               <div className="flex gap-2">
@@ -2547,12 +2549,23 @@ export default function BotPage() {
                                     <div key={execution.id} className="p-3 rounded-lg bg-gradient-to-r from-gray-900/20 to-slate-900/20 border border-gray-500/40">
                                       <div className="space-y-3">
                                         <div className="flex items-center justify-between gap-2">
-                                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <span className="px-3 py-1.5 rounded text-sm font-medium truncate bg-gray-600/80 text-white">
-                                              {execution.tradingPair}
-                                            </span>
-                                            {execution.positionData?.holdSide && (
+                                          <div className="flex flex-col gap-1 min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <span className="px-3 py-1.5 rounded text-sm font-medium truncate bg-gray-600/80 text-white">
+                                                {execution.tradingPair}
+                                              </span>
                                               <Badge variant="outline" className={`text-xs ${
+                                                execution.status === 'active' 
+                                                  ? 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                  : execution.status === 'waiting_entry'
+                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                              }`}>
+                                                {execution.status === 'active' ? 'Active' : execution.status === 'waiting_entry' ? 'Waiting' : 'Stopped'}
+                                              </Badge>
+                                            </div>
+                                            {execution.positionData?.holdSide && (
+                                              <Badge variant="outline" className={`text-xs w-fit ${
                                                 execution.positionData.holdSide === 'long' 
                                                   ? 'border-green-500 text-green-400 bg-green-950/30'
                                                   : 'border-red-500 text-red-400 bg-red-950/30'
@@ -2560,15 +2573,6 @@ export default function BotPage() {
                                                 {execution.positionData.holdSide.toUpperCase()}
                                               </Badge>
                                             )}
-                                            <Badge variant="outline" className={`text-xs ${
-                                              execution.status === 'active' 
-                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                                : execution.status === 'waiting_entry'
-                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                            }`}>
-                                              {execution.status === 'active' ? 'Active' : execution.status === 'waiting_entry' ? 'Waiting' : 'Stopped'}
-                                            </Badge>
                                           </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
                                             <div className="flex gap-2">
