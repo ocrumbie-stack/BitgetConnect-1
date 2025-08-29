@@ -158,86 +158,122 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
     );
   }
 
+  const getSimpleChart = () => {
+    const range = exitConditions.takeProfitPercent - exitConditions.stopLossPercent;
+    const currentPosition = ((exitConditions.currentRoi - exitConditions.stopLossPercent) / range) * 100;
+    
+    return (
+      <div className="h-32 bg-gray-800 rounded-lg p-4 border border-gray-600 relative overflow-hidden">
+        {/* Chart background grid */}
+        <div className="absolute inset-4 opacity-30">
+          <div className="h-full w-full border-l border-b border-gray-600"></div>
+          <div className="absolute top-0 left-1/4 h-full border-l border-gray-700"></div>
+          <div className="absolute top-0 left-2/4 h-full border-l border-gray-700"></div>
+          <div className="absolute top-0 left-3/4 h-full border-l border-gray-700"></div>
+          <div className="absolute top-1/4 left-0 w-full border-t border-gray-700"></div>
+          <div className="absolute top-2/4 left-0 w-full border-t border-gray-700"></div>
+          <div className="absolute top-3/4 left-0 w-full border-t border-gray-700"></div>
+        </div>
+        
+        {/* Chart line and current position */}
+        <div className="relative h-full flex items-center">
+          <div className="w-full h-1 bg-gray-600 rounded-full relative">
+            <div 
+              className={`absolute h-3 w-3 rounded-full transform -translate-y-1 -translate-x-1.5 ${
+                exitConditions.currentRoi >= 0 ? 'bg-green-400' : 'bg-red-400'
+              }`}
+              style={{ left: `${Math.max(0, Math.min(100, currentPosition))}%` }}
+            />
+          </div>
+        </div>
+        
+        {/* Chart labels */}
+        <div className="absolute bottom-1 left-4 text-xs text-red-400">Stop Loss</div>
+        <div className="absolute bottom-1 right-4 text-xs text-green-400">Take Profit</div>
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-xl shadow-2xl max-w-md mx-auto border border-gray-700">
-      {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-t-xl">
+    <div className="bg-gray-900 rounded-lg shadow-xl max-w-lg mx-auto border border-gray-700">
+      {/* Simple Header */}
+      <div className="bg-gray-800 p-4 rounded-t-lg border-b border-gray-700">
         <div className="flex items-center justify-between">
-          <div className="text-white font-bold text-xl">{bot.tradingPair}</div>
+          <div className="text-white font-semibold text-lg">{bot.tradingPair}</div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+            className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
         {timeRemaining && (
-          <div className="text-white/80 text-sm mt-2 flex items-center">
+          <div className="text-gray-400 text-sm mt-1 flex items-center">
             <Clock className="h-3 w-3 mr-1" />
             {timeRemaining}
           </div>
         )}
       </div>
 
-      <div className="p-6 space-y-6">
-        {/* ROI Display - Large and prominent */}
+      <div className="p-5 space-y-5">
+        {/* ROI Display */}
         <div className="text-center">
-          <div className={`text-5xl font-bold mb-2 ${exitConditions.currentRoi >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className={`text-4xl font-bold ${exitConditions.currentRoi >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
           </div>
-          <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getRiskColor(getRiskLevel())} text-white`}>
+          <div className={`text-sm mt-1 px-3 py-1 rounded-full inline-block ${getRiskColor(getRiskLevel())} text-white`}>
             {getRiskLevel()}
           </div>
         </div>
 
-        {/* Progress Bar Section */}
-        <div className="space-y-4 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-          <div className="flex justify-between items-center">
-            <span className="text-red-400 font-semibold flex items-center">
-              <TrendingDown className="h-4 w-4 mr-1" />
-              Stop {exitConditions.stopLossPercent.toFixed(1)}%
-            </span>
-            <span className="text-emerald-400 font-semibold flex items-center">
-              Target {exitConditions.takeProfitPercent.toFixed(1)}%
-              <TrendingUp className="h-4 w-4 ml-1" />
-            </span>
+        {/* Mini Chart */}
+        {getSimpleChart()}
+
+        {/* Progress Info */}
+        <div className="flex justify-between text-sm">
+          <span className="text-red-400">Stop {exitConditions.stopLossPercent.toFixed(1)}%</span>
+          <span className="text-gray-400">Current {exitConditions.currentRoi.toFixed(2)}%</span>
+          <span className="text-green-400">Target {exitConditions.takeProfitPercent.toFixed(1)}%</span>
+        </div>
+
+        {/* Detailed Info Grid */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Entry Price</div>
+            <div className="text-white font-mono text-lg">${exitConditions.entryPrice.toFixed(4)}</div>
           </div>
-          
-          <div className="relative">
-            <Progress value={getProgressValue()} className="h-4 bg-gray-700" />
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Current Price</div>
+            <div className="text-white font-mono text-lg">${exitConditions.currentPrice.toFixed(4)}</div>
           </div>
-          
-          <div className="text-center">
-            <span className="bg-gray-700 text-gray-300 px-4 py-2 rounded-full text-sm font-medium">
-              Current: {exitConditions.currentRoi.toFixed(2)}%
-            </span>
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Position Size</div>
+            <div className="text-white font-mono">{bot.positionData?.total || '0'} {bot.tradingPair.replace('USDT', '')}</div>
+          </div>
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Leverage</div>
+            <div className="text-white font-mono">{bot.leverage || '1'}x</div>
+          </div>
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Capital</div>
+            <div className="text-white font-mono">${parseFloat(bot.capital || '0').toFixed(2)}</div>
+          </div>
+          <div className="bg-gray-800 p-3 rounded border border-gray-700">
+            <div className="text-gray-400 mb-1">Unrealized P&L</div>
+            <div className={`font-mono ${parseFloat(bot.positionData?.unrealizedPL || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              ${parseFloat(bot.positionData?.unrealizedPL || '0').toFixed(4)}
+            </div>
           </div>
         </div>
 
-        {/* Price Info Card */}
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400">Entry Price</span>
-            <span className="text-white font-mono">${exitConditions.entryPrice.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400">Current Price</span>
-            <span className="text-white font-mono">${exitConditions.currentPrice.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400">Capital</span>
-            <span className="text-white font-mono">${parseFloat(bot.capital || '0').toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
+        {/* Action Button */}
+        <div className="pt-2">
           {!showCloseConfirmation ? (
             <Button
               variant="destructive"
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg"
+              className="w-full bg-red-600 hover:bg-red-700 text-white"
               onClick={() => setShowCloseConfirmation(true)}
               disabled={closePositionMutation.isPending}
             >
@@ -245,7 +281,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
             </Button>
           ) : (
             <div className="space-y-3">
-              <div className="text-center text-gray-300 bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+              <div className="text-center text-gray-300 text-sm">
                 Close this position now?
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -253,7 +289,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
                   variant="outline"
                   onClick={() => setShowCloseConfirmation(false)}
                   disabled={closePositionMutation.isPending}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700 rounded-lg"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
                 >
                   Cancel
                 </Button>
@@ -261,7 +297,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
                   variant="destructive"
                   onClick={() => closePositionMutation.mutate(bot.id)}
                   disabled={closePositionMutation.isPending}
-                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                  className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   {closePositionMutation.isPending ? 'Closing...' : 'Confirm'}
                 </Button>
