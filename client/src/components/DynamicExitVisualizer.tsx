@@ -197,98 +197,69 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-sm mx-auto border border-gray-200 dark:border-gray-700">
-      {/* Simple Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white">{bot.tradingPair} Position</h3>
-        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0">
-          <X className="h-4 w-4" />
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-xs mx-auto border border-gray-200 dark:border-gray-700">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="font-medium text-gray-900 dark:text-white text-sm">{bot.tradingPair}</h3>
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-5 w-5 p-0">
+          <X className="h-3 w-3" />
         </Button>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* Current State */}
+      <div className="p-3 space-y-3">
+        {/* Current P&L */}
         <div className="text-center">
-          <div className={`text-3xl font-bold ${exitConditions.currentRoi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-2xl font-bold ${exitConditions.currentRoi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Current P&L</div>
         </div>
 
-        {/* Position Details */}
-        <div className="space-y-2 text-sm">
+        {/* Key Info */}
+        <div className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Entry Price:</span>
-            <span className="font-medium">${exitConditions.entryPrice.toFixed(4)}</span>
+            <span className="text-gray-500">Entry:</span>
+            <span>${exitConditions.entryPrice.toFixed(4)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
-            <span className="font-medium">${exitConditions.currentPrice.toFixed(4)}</span>
+            <span className="text-gray-500">Current:</span>
+            <span>${exitConditions.currentPrice.toFixed(4)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Position Size:</span>
-            <span className="font-medium">${parseFloat(bot.capital || '0').toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Side:</span>
-            <span className="font-medium">{bot.positionData?.holdSide || 'N/A'}</span>
+            <span className="text-gray-500">Size:</span>
+            <span>${parseFloat(bot.capital || '0').toFixed(0)}</span>
           </div>
         </div>
 
         {/* Exit Levels */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-          <div className="text-sm font-medium text-gray-900 dark:text-white mb-2">Exit Levels</div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-red-600">Stop Loss:</span>
-              <span className="font-medium">{exitConditions.stopLossPercent.toFixed(1)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-green-600">Take Profit:</span>
-              <span className="font-medium">{exitConditions.takeProfitPercent.toFixed(1)}%</span>
-            </div>
+        <div className="bg-gray-50 dark:bg-gray-800 rounded p-2">
+          <div className="flex justify-between text-xs mb-1">
+            <span className="text-red-500">SL: {exitConditions.stopLossPercent.toFixed(1)}%</span>
+            <span className="text-green-500">TP: {exitConditions.takeProfitPercent.toFixed(1)}%</span>
           </div>
-          
-          {/* Progress Bar */}
-          <div className="mt-3">
-            <Progress value={getProgressValue()} className="h-2" />
-          </div>
+          <Progress value={getProgressValue()} className="h-1" />
         </div>
-
-        {/* Time & Risk */}
-        {riskMetrics && (
-          <div className="flex justify-between text-sm">
-            <div>
-              <span className="text-gray-600 dark:text-gray-400">Time: </span>
-              <span className="font-medium">{riskMetrics.timeInPosition}m</span>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400">Trend: </span>
-              <span className={`font-medium ${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
-                {riskMetrics.trend}
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Close Button */}
         {!showCloseConfirmation ? (
           <Button
             variant="destructive"
-            className="w-full"
+            size="sm"
+            className="w-full h-7 text-xs"
             onClick={() => setShowCloseConfirmation(true)}
             disabled={closePositionMutation.isPending}
           >
             Close Position
           </Button>
         ) : (
-          <div className="space-y-2">
-            <div className="text-sm text-center text-orange-700 dark:text-orange-300 p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
-              Are you sure you want to close this position?
+          <div className="space-y-1">
+            <div className="text-xs text-center text-orange-700 dark:text-orange-300 p-1 bg-orange-50 dark:bg-orange-900/20 rounded">
+              Close position?
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1">
               <Button
                 variant="outline"
+                size="sm"
+                className="h-6 text-xs"
                 onClick={() => setShowCloseConfirmation(false)}
                 disabled={closePositionMutation.isPending}
               >
@@ -296,6 +267,8 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
               </Button>
               <Button
                 variant="destructive"
+                size="sm"
+                className="h-6 text-xs"
                 onClick={() => closePositionMutation.mutate(bot.id)}
                 disabled={closePositionMutation.isPending}
               >
