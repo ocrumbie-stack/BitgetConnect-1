@@ -197,96 +197,85 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md mx-auto overflow-hidden border border-gray-200 dark:border-gray-700">
-      {/* Compact Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Target className="h-4 w-4 text-blue-400" />
-            <div>
-              <h2 className="text-white font-bold text-lg">{bot.tradingPair}</h2>
-              <p className="text-gray-300 text-xs">{bot.exitCriteria?.strategy || 'Manual'}</p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-6 w-6 p-0 text-white hover:bg-white/20"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-sm mx-auto border border-gray-200 dark:border-gray-700">
+      {/* Simple Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-white">{bot.tradingPair} Position</h3>
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0">
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
-      <div className="p-3 space-y-3">
-        {/* Compact ROI Display */}
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-3 text-center">
-          <div className={`text-2xl font-bold mb-1 ${exitConditions.currentRoi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+      <div className="p-4 space-y-4">
+        {/* Current State */}
+        <div className="text-center">
+          <div className={`text-3xl font-bold ${exitConditions.currentRoi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
           </div>
-          <Badge className={`${getRiskColor(getRiskLevel())} text-white px-2 py-1 text-xs`}>
-            {getRiskLevel()}
-          </Badge>
-          {riskMetrics && (
-            <div className="mt-2 flex justify-around text-xs">
-              <span>{riskMetrics.timeInPosition}m</span>
-              <span className={`${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
+          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Current P&L</div>
+        </div>
+
+        {/* Position Details */}
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Entry Price:</span>
+            <span className="font-medium">${exitConditions.entryPrice.toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Current Price:</span>
+            <span className="font-medium">${exitConditions.currentPrice.toFixed(4)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Position Size:</span>
+            <span className="font-medium">${parseFloat(bot.capital || '0').toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Side:</span>
+            <span className="font-medium">{bot.positionData?.holdSide || 'N/A'}</span>
+          </div>
+        </div>
+
+        {/* Exit Levels */}
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+          <div className="text-sm font-medium text-gray-900 dark:text-white mb-2">Exit Levels</div>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-red-600">Stop Loss:</span>
+              <span className="font-medium">{exitConditions.stopLossPercent.toFixed(1)}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-green-600">Take Profit:</span>
+              <span className="font-medium">{exitConditions.takeProfitPercent.toFixed(1)}%</span>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mt-3">
+            <Progress value={getProgressValue()} className="h-2" />
+          </div>
+        </div>
+
+        {/* Time & Risk */}
+        {riskMetrics && (
+          <div className="flex justify-between text-sm">
+            <div>
+              <span className="text-gray-600 dark:text-gray-400">Time: </span>
+              <span className="font-medium">{riskMetrics.timeInPosition}m</span>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400">Trend: </span>
+              <span className={`font-medium ${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
                 {riskMetrics.trend}
               </span>
             </div>
-          )}
-        </div>
-
-        {/* Compact Chart */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Price</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">${exitConditions.currentPrice.toFixed(4)}</span>
           </div>
-          
-          {priceHistory.length > 1 ? (
-            <div className="h-24">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={priceHistory}>
-                  <YAxis hide domain={['dataMin - 0.001', 'dataMax + 0.001']} />
-                  <Tooltip 
-                    formatter={(value: any) => [`$${value.toFixed(4)}`, 'Price']}
-                    labelFormatter={() => ''}
-                  />
-                  <ReferenceLine y={exitConditions.stopLossPrice} stroke="#ef4444" strokeDasharray="2 2" />
-                  <ReferenceLine y={exitConditions.takeProfitPrice} stroke="#22c55e" strokeDasharray="2 2" />
-                  <Line type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="h-24 flex items-center justify-center text-gray-400 text-xs">
-              Loading...
-            </div>
-          )}
-        </div>
+        )}
 
-        {/* Compact Progress */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
-          <div className="flex items-center justify-between mb-2 text-xs">
-            <span className="text-red-500 font-semibold">Stop {exitConditions.stopLossPercent.toFixed(1)}%</span>
-            <span className="text-green-500 font-semibold">Target {exitConditions.takeProfitPercent.toFixed(1)}%</span>
-          </div>
-          
-          <Progress value={getProgressValue()} className="h-2 bg-gray-200 dark:bg-gray-700 mb-2" />
-          
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>${parseFloat(bot.capital || '0').toFixed(0)}</span>
-            <span>${exitConditions.entryPrice.toFixed(4)}</span>
-          </div>
-        </div>
-
-        {/* Compact Actions */}
+        {/* Close Button */}
         {!showCloseConfirmation ? (
           <Button
             variant="destructive"
-            className="w-full h-8 text-sm"
+            className="w-full"
             onClick={() => setShowCloseConfirmation(true)}
             disabled={closePositionMutation.isPending}
           >
@@ -294,15 +283,14 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
           </Button>
         ) : (
           <div className="space-y-2">
-            <div className="text-xs text-center text-gray-600 dark:text-gray-400 p-1 bg-orange-50 dark:bg-orange-900/20 rounded">
-              Close position?
+            <div className="text-sm text-center text-orange-700 dark:text-orange-300 p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
+              Are you sure you want to close this position?
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowCloseConfirmation(false)}
                 disabled={closePositionMutation.isPending}
-                className="h-7 text-xs"
               >
                 Cancel
               </Button>
@@ -310,7 +298,6 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
                 variant="destructive"
                 onClick={() => closePositionMutation.mutate(bot.id)}
                 disabled={closePositionMutation.isPending}
-                className="h-7 text-xs"
               >
                 {closePositionMutation.isPending ? 'Closing...' : 'Confirm'}
               </Button>
