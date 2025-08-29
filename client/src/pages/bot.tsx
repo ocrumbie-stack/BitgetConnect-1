@@ -2414,15 +2414,6 @@ export default function BotPage() {
                                           {/* Exit Information - Restored original format */}
                                           <div className="flex items-center justify-between min-w-0">
                                             <div className="flex items-center gap-2">
-                                              <Badge variant="outline" className={`text-xs ${
-                                                execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
-                                                  : execution.status === 'waiting_entry'
-                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                              }`}>
-                                                {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
-                                              </Badge>
                                               {execution.confidence && (
                                                 <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
                                                   {execution.confidence}% confidence
@@ -2596,15 +2587,6 @@ export default function BotPage() {
                                         {/* Exit Information - Manual Bots */}
                                         <div className="flex items-center justify-between min-w-0">
                                           <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className={`text-xs ${
-                                              execution.status === 'active' 
-                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                                : execution.status === 'waiting_entry'
-                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                            }`}>
-                                              {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
-                                            </Badge>
                                             {execution.confidence && (
                                               <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
                                                 {execution.confidence}% confidence
