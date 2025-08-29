@@ -240,12 +240,12 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
               {getRiskLevel()}
             </Badge>
             {riskMetrics && (
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div>
+              <div className="mt-2 flex justify-between text-xs">
+                <div className="text-center">
                   <div className="text-gray-500 dark:text-gray-400">Time</div>
                   <div className="font-semibold">{riskMetrics.timeInPosition}m</div>
                 </div>
-                <div>
+                <div className="text-center">
                   <div className="text-gray-500 dark:text-gray-400">Trend</div>
                   <div className={`font-semibold ${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
                     {riskMetrics.trend}
