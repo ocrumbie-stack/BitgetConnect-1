@@ -106,48 +106,55 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }
 
   return (
-    <div className="p-4 space-y-4">
-      {/* ROI and Risk Level Display */}
-      <div className="flex items-center justify-between">
-        <Badge variant={exitConditions.currentRoi >= 0 ? "default" : "destructive"} className="text-lg px-4 py-2">
-          {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
-        </Badge>
-        <Badge className={`text-white ${getRiskColor(getRiskLevel())} px-4 py-2`}>
-          {getRiskLevel()}
-        </Badge>
-      </div>
-
-      {/* Progress Bar Between Stop Loss and Take Profit */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm font-medium">
-          <span className="text-red-500">Stop Loss</span>
-          <span className="text-green-500">Take Profit</span>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md mx-auto">
+      <div className="p-6 space-y-6">
+        {/* ROI and Risk Level Display - Prominent at top */}
+        <div className="flex items-center justify-between">
+          <Badge 
+            variant={exitConditions.currentRoi >= 0 ? "default" : "destructive"} 
+            className="text-xl px-6 py-3 font-bold rounded-full"
+          >
+            {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
+          </Badge>
+          <Badge 
+            className={`text-white text-lg px-6 py-3 font-medium rounded-full ${getRiskColor(getRiskLevel())}`}
+          >
+            {getRiskLevel()}
+          </Badge>
         </div>
-        <Progress value={getProgressValue()} className="h-4" />
-        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>{exitConditions.stopLossPercent.toFixed(1)}%</span>
-          <span className="font-medium">Current: {exitConditions.currentRoi.toFixed(2)}%</span>
-          <span>{exitConditions.takeProfitPercent.toFixed(1)}%</span>
-        </div>
-      </div>
 
-      {/* Entry Price Information */}
-      {exitConditions.entryPrice > 0 && (
-        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-          Entry: ${exitConditions.entryPrice.toFixed(4)} | Current: ${exitConditions.currentPrice.toFixed(4)}
+        {/* Progress Bar Section - Clean and spacious */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-red-500 font-semibold text-lg">Stop Loss</span>
+            <span className="text-green-500 font-semibold text-lg">Take Profit</span>
+          </div>
+          
+          <div className="relative">
+            <Progress value={getProgressValue()} className="h-6 bg-gray-200 dark:bg-gray-700" />
+          </div>
+          
+          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <span>{exitConditions.stopLossPercent.toFixed(1)}%</span>
+            <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+              Current: {exitConditions.currentRoi.toFixed(2)}%
+            </span>
+            <span>{exitConditions.takeProfitPercent.toFixed(1)}%</span>
+          </div>
         </div>
-      )}
 
-      {/* Close Button */}
-      <div className="flex justify-center pt-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onClose}
-          className="w-full"
-        >
-          Close
-        </Button>
+        {/* Trading Pair and Price Info */}
+        <div className="text-center space-y-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+          <div className="font-bold text-lg text-gray-900 dark:text-white">
+            {bot.tradingPair}
+          </div>
+          {exitConditions.entryPrice > 0 && (
+            <div className="text-sm text-gray-600 dark:text-gray-400 space-x-4">
+              <span>Entry: ${exitConditions.entryPrice.toFixed(4)}</span>
+              <span>Current: ${exitConditions.currentPrice.toFixed(4)}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
