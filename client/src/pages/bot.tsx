@@ -126,10 +126,10 @@ export default function BotPage() {
     };
     
     // Only run this once when strategies are first loaded
-    if (allStrategies.length > 0) {
+    if ((allStrategies as any[]).length > 0) {
       fixAutoScannerStrategies();
     }
-  }, [allStrategies.length > 0]);
+  }, [(allStrategies as any[]).length > 0]);
 
   // Filter to only show manually created strategies in "My Strategies" card
   const userStrategies = (allStrategies as any[]).filter((strategy: any) => strategy.source === 'manual' || !strategy.source);
@@ -2369,6 +2369,15 @@ export default function BotPage() {
                                               <span className={`px-3 py-1.5 rounded text-sm font-medium truncate ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
                                                 {execution.tradingPair}
                                               </span>
+                                              {execution.positionData?.holdSide && (
+                                                <Badge variant="outline" className={`text-xs ${
+                                                  execution.positionData.holdSide === 'long' 
+                                                    ? 'border-green-500 text-green-400 bg-green-950/30'
+                                                    : 'border-red-500 text-red-400 bg-red-950/30'
+                                                }`}>
+                                                  {execution.positionData.holdSide.toUpperCase()}
+                                                </Badge>
+                                              )}
                                               <Badge variant="outline" className={`text-xs ${
                                                 execution.status === 'active' 
                                                   ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
@@ -2542,6 +2551,15 @@ export default function BotPage() {
                                             <span className="px-3 py-1.5 rounded text-sm font-medium truncate bg-gray-600/80 text-white">
                                               {execution.tradingPair}
                                             </span>
+                                            {execution.positionData?.holdSide && (
+                                              <Badge variant="outline" className={`text-xs ${
+                                                execution.positionData.holdSide === 'long' 
+                                                  ? 'border-green-500 text-green-400 bg-green-950/30'
+                                                  : 'border-red-500 text-red-400 bg-red-950/30'
+                                              }`}>
+                                                {execution.positionData.holdSide.toUpperCase()}
+                                              </Badge>
+                                            )}
                                             <Badge variant="outline" className={`text-xs ${
                                               execution.status === 'active' 
                                                 ? 'border-gray-500 text-gray-400 bg-gray-950/30'
