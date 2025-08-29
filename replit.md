@@ -1,5 +1,5 @@
 # Overview
-This project is a mobile-optimized crypto trading application for real-time Bitget perpetual futures data. Its purpose is to provide comprehensive trading functionality, including market monitoring, order placement, automated trading bot setup, intelligent folder-based trading pair organization, and revolutionary bulk bot deployment capabilities. The project aims to offer a clean, modern interface, matching professional trading platforms, with a vision to empower users with advanced AI-powered trading opportunities and streamlined strategy deployment for enhanced market potential.
+This project is a mobile-optimized crypto trading application designed to provide comprehensive real-time Bitget perpetual futures trading functionality. Its core purpose is to offer market monitoring, order placement, automated trading bot setup, intelligent folder-based trading pair organization, and revolutionary bulk bot deployment capabilities. The application aims for a clean, modern interface akin to professional trading platforms, with the overarching vision to empower users with advanced AI-powered trading opportunities and streamlined strategy deployment to maximize market potential.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -27,57 +27,50 @@ Dynamic Exit Visualizer Design Standards: ESTABLISHED DESIGN SYSTEM for consiste
 
 # System Architecture
 
-## Frontend
-The client-side is built with React 18, TypeScript, and Vite. It uses Tailwind CSS with shadcn/ui for mobile-first, responsive design. State management uses React Query for server state and caching, and Wouter for client-side routing. Real-time updates are via WebSocket. The application has a component-based structure, organized around a bottom navigation bar with five main sections: Home, Markets, Trade, Bot, and Assets.
-
-## Backend
-The server-side uses Express.js with TypeScript. It integrates with the Bitget API for futures market data and provides a WebSocket server for live updates. Data is currently stored in-memory, designed with an abstract `IStorage` interface for future database integration. Account balance calculation properly aggregates margin used from all individual positions to provide accurate total balance (available + margin used).
-
-## Data Storage
-The system uses in-memory storage with an `IStorage` interface, prepared for future integration with PostgreSQL using Drizzle ORM. The schema defines models for users, Bitget credentials, futures data, positions, and account information.
-
-## Authentication
-A basic structure for user management is in place, including a user schema for username/password authentication, secure storage for Bitget API keys, and preparation for PostgreSQL session storage.
-
-## UI/UX
-The application prioritizes a clean, professional design optimized for mobile devices, matching modern trading interfaces. It features a bottom navigation bar, collapsible folder views for organization, and intuitive interfaces for trading pair management, bot deployment, and AI-powered recommendations. shadcn/ui components ensure consistent visual style. AI-powered features include color-coded risk levels, confidence ratings, and strategy-specific icons.
+## UI/UX Decisions
+The application prioritizes a clean, professional design optimized for mobile devices, mirroring modern trading interfaces. It features a bottom navigation bar, collapsible folder views for organization, and intuitive interfaces for trading pair management, bot deployment, and AI-powered recommendations. shadcn/ui components ensure a consistent visual style. AI-powered features include color-coded risk levels, confidence ratings, and strategy-specific icons. The established design system for dynamic exit visualizers uses consistent modal/popup components with clean layouts, clear data representation (ROI, risk level), minimal trading info, and two-step confirmation for actions.
 
 ## Technical Implementations
-Key technical implementations include real-time data streaming via WebSockets, a comprehensive trading pair organization system with folder management and bulk bot deployment, and an AI-powered trading opportunity recommendation system. The AI analyzes price movements, volume patterns, and risk factors across multiple strategies (Momentum, Breakout, Scalping, Swing, Reversal) to provide smart scoring and confidence ratings. The bot system uses reusable strategy templates with configurable technical indicators and risk management settings.
+The frontend is built with React 18, TypeScript, and Vite, utilizing Tailwind CSS with shadcn/ui for mobile-first responsive design. State management leverages React Query for server state and caching, and Wouter for client-side routing. Real-time updates are handled via WebSocket. The backend uses Express.js with TypeScript, integrating with the Bitget API and providing a WebSocket server for live updates. Data is currently stored in-memory using an `IStorage` interface, designed for future PostgreSQL integration with Drizzle ORM.
 
-**Enhanced Multi-Bucket Analysis System**: Revolutionary volatility-based market categorization using comprehensive technical analysis. Features EMA calculations (100-period 1H, 200-period Daily), RSI extremes detection, MACD crossover analysis, Bollinger Band breach identification, and volume spike detection (2x average). Automatically classifies trading pairs into Aggressive (high-volatility scalping), Balanced (medium-volatility trading), and Conservative (low-volatility position trading) buckets with sophisticated technical criteria and minimum $10M daily volume requirements.
-
-**Dynamic Leverage Safety System**: Automatically calculates leverage-safe limits based on user's entered leverage. Uses the formula: Account Risk % ÷ Leverage = Position Risk % to prevent excessive account loss per trade. Implements frontend risk warnings and automatic limit adjustments for high user leverage.
+Key technical implementations include:
+- **Real-time Data Streaming**: Via WebSockets for live updates.
+- **Comprehensive Trading Pair Organization**: Folder management and bulk bot deployment capabilities.
+- **AI-Powered Trading Opportunity Recommendation System**: Analyzes price movements, volume patterns, and risk factors across multiple strategies (Momentum, Breakout, Scalping, Swing, Reversal) to provide smart scoring and confidence ratings.
+- **Reusable Strategy Templates**: For the bot system with configurable technical indicators and risk management settings.
+- **Enhanced Multi-Bucket Analysis System**: Revolutionary volatility-based market categorization using comprehensive technical analysis (EMA, RSI, MACD, Bollinger Bands, volume spikes) to classify pairs into Aggressive, Balanced, and Conservative buckets with specific technical criteria and volume requirements.
+- **Dynamic Leverage Safety System**: Automatically calculates leverage-safe limits based on user input, preventing excessive account loss and providing frontend risk warnings and auto-adjustments.
+- **Sophisticated Entry Point Analysis**: Implements advanced entry strategies based on bucket-specific rules, including safety scoring, dynamic stop loss/take profit calculations, and invalidation rules.
 
 ## Feature Specifications
 The application includes:
 - **Multi-page navigation**: Home, Markets, Trade, Bot, Analyzer.
-- **Home Page**: Enhanced market overview with visual dashboard, interactive sentiment analysis, top gainers/losers, and AI-powered trading opportunities with strategy analysis, smart scoring, and risk assessment.
-- **Markets Page**: Comprehensive screener functionality with diverse filtering options and clickable sorting.
+- **Home Page**: Enhanced market overview with visual dashboard, sentiment analysis, top gainers/losers, and AI-powered trading opportunities with strategy analysis, smart scoring, and risk assessment.
+- **Markets Page**: Comprehensive screener with diverse filtering and sorting options.
 - **Trade Page**: Order placement, leverage, and position management.
-- **Bot Page**: Automated trading strategy setup, including creation, deployment, monitoring, and termination. Bots are strategy-based and can be applied to any trading pair.
-- **Trading Pair Management**: Folder-based organization with bulk bot deployment, manual pair addition, and context menus for adding pairs from the Markets page.
-- **Bulk Bot Deployment**: Deploying strategies to all pairs within a folder simultaneously, with individual capital allocation, leverage settings, and investment calculation.
-- **AI-Powered Recommendations**: Comprehensive analysis of 150+ trading pairs with lowered volume threshold (50k+), recommendations based on daily movement patterns, liquidity, and trading patterns, with detailed display of movement percentage and AI scores.
-- **Unified AI Analysis Hub**: Complete trading analysis platform with integrated tools for price prediction, risk analysis, and trend statistics. Features real-time Bitget API integration, smart autocomplete, multi-timeframe analysis, confidence scoring, comprehensive technical indicators, market sentiment assessment, support/resistance detection, volatility statistics, volume analysis, performance history tracking, technical signals analysis, and position sizing recommendations.
+- **Bot Page**: Automated trading strategy setup, deployment, monitoring, and termination. Bots are strategy-based and applicable to any trading pair.
+- **Trading Pair Management**: Folder-based organization with bulk bot deployment, manual pair addition, and context menus.
+- **Bulk Bot Deployment**: Simultaneous strategy deployment to all pairs within a folder, with individual capital allocation and leverage settings.
+- **AI-Powered Recommendations**: Analysis of 150+ trading pairs, recommendations based on daily movement, liquidity, and trading patterns, with detailed display of movement percentage and AI scores.
+- **Unified AI Analysis Hub**: Complete trading analysis platform with integrated tools for price prediction, risk analysis, trend statistics, real-time Bitget API integration, multi-timeframe analysis, confidence scoring, technical indicators, market sentiment, support/resistance, volatility, volume analysis, performance history, technical signals, and position sizing.
 - **Analyzer Page**: Advanced technical analysis tool with trend detection, support/resistance levels, entry/exit recommendations, multi-timeframe analysis, and direct trading execution.
-- **Comprehensive Alert System**: Complete notification system with 8+ alert categories, intelligent auto-suggest functionality, distinction between alert settings and actual notifications, real-time monitoring, and proper light/dark mode support.
+- **Comprehensive Alert System**: Notification system with 8+ alert categories, intelligent auto-suggest, distinction between settings and notifications, real-time monitoring, and light/dark mode support.
 
 # External Dependencies
 
 ## Core Dependencies
-- **@neondatabase/serverless**: PostgreSQL database connectivity via Neon.
-- **drizzle-orm & drizzle-kit**: Type-safe ORM for database interactions.
-- **express**: Web server framework.
-- **axios**: HTTP client for API requests.
-- **ws**: WebSocket server implementation for real-time communication.
+- **@neondatabase/serverless**: For PostgreSQL database connectivity via Neon.
+- **drizzle-orm & drizzle-kit**: For type-safe ORM interactions.
+- **express**: For the web server framework.
+- **axios**: For HTTP client requests.
+- **ws**: For WebSocket server implementation and real-time communication.
 
 ## Frontend Dependencies
-- **@tanstack/react-query**: Server state management and caching.
-- **@radix-ui/***: Headless UI components.
-- **tailwindcss**: Utility-first CSS framework.
-- **wouter**: Lightweight routing library.
-- **react-hook-form**: Form handling and validation.
+- **@tanstack/react-query**: For server state management and caching.
+- **@radix-ui/***: For headless UI components.
+- **tailwindcss**: For the utility-first CSS framework.
+- **wouter**: For lightweight client-side routing.
+- **react-hook-form**: For form handling and validation.
 
 ## API Integrations
-- **Bitget API**: Complete integration for fetching futures market data (tickers, prices, volumes), account information, position monitoring, and real-time data synchronization.
+- **Bitget API**: For fetching futures market data (tickers, prices, volumes), account information, position monitoring, and real-time data synchronization.

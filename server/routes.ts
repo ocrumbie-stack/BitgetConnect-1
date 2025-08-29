@@ -3132,6 +3132,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single bot execution by ID
+  app.get('/api/bot-executions/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = 'default-user';
+      
+      const executions = await storage.getBotExecutions(userId);
+      const execution = executions.find(e => e.id === id);
+      
+      if (!execution) {
+        return res.status(404).json({ error: 'Bot execution not found' });
+      }
+      
+      res.json(execution);
+    } catch (error) {
+      console.error('Error getting bot execution:', error);
+      res.status(400).json({ error: 'Failed to get bot execution' });
+    }
+  });
+
   app.put('/api/bot-executions/:id', async (req, res) => {
     try {
       const { id } = req.params;
