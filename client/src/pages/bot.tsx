@@ -1537,13 +1537,13 @@ export default function BotPage() {
                 ? 'from-green-600 to-green-700 dark:from-green-700 dark:to-green-800' 
                 : 'from-red-600 to-red-700 dark:from-red-700 dark:to-red-800'
               }`}>
-                <CardContent className="p-2">
+                <CardContent className="px-3 py-1">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 ${isPositive ? 'bg-green-800/40' : 'bg-red-800/40'} rounded-md backdrop-blur-sm`}>
+                    <div className={`p-1.5 ${isPositive ? 'bg-green-800/40' : 'bg-red-800/40'} rounded backdrop-blur-sm`}>
                       {isPositive ? (
-                        <TrendingUp className="h-5 w-5 text-white" />
+                        <TrendingUp className="h-4 w-4 text-white" />
                       ) : (
-                        <TrendingDown className="h-5 w-5 text-white" />
+                        <TrendingDown className="h-4 w-4 text-white" />
                       )}
                     </div>
                     <div className="flex-1 text-center">
@@ -1559,10 +1559,10 @@ export default function BotPage() {
           })()}
 
           <Card className="bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 shadow-lg border-0">
-            <CardContent className="p-2">
+            <CardContent className="px-3 py-1">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-800/40 rounded-md backdrop-blur-sm">
-                  <Wallet className="h-5 w-5 text-white" />
+                <div className="p-1.5 bg-blue-800/40 rounded backdrop-blur-sm">
+                  <Wallet className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-white">
