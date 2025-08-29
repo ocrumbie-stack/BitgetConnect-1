@@ -71,7 +71,7 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
-  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner'>('individual');
+  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner' | 'continuous_scanner'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
@@ -95,6 +95,14 @@ export default function BotPage() {
   const [scannerName, setScannerName] = useState(''); // Custom scanner name for folder organization
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
+
+  // Continuous Scanner state
+  const [continuousCapital, setContinuousCapital] = useState('5000');
+  const [continuousMaxPositions, setContinuousMaxPositions] = useState('3');
+  const [continuousLeverage, setContinuousLeverage] = useState('3');
+  const [continuousScanInterval, setContinuousScanInterval] = useState('60'); // seconds
+  const [isContinuousActive, setIsContinuousActive] = useState(false);
+  const [continuousStats, setContinuousStats] = useState({ scansCount: 0, tradesPlaced: 0, lastScan: null });
 
 
 
@@ -579,6 +587,38 @@ export default function BotPage() {
     await autoDeployMutation.mutateAsync(deployData);
   };
 
+  // Continuous Scanner Mutation
+  const continuousScannerMutation = useMutation({
+    mutationFn: async (continuousData: any) => {
+      const response = await fetch('/api/continuous-scanner/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(continuousData)
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to start continuous scanner: ${error}`);
+      }
+      return response.json();
+    },
+    onSuccess: (results) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      setContinuousStats({ 
+        scansCount: 0, 
+        tradesPlaced: 0, 
+        lastScan: new Date().toISOString() 
+      });
+    },
+    onError: (error: any) => {
+      setIsContinuousActive(false);
+      toast({
+        title: "Continuous Scanner Failed",
+        description: error.message || "Failed to start continuous scanner",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Terminate all bots in a folder
   const handleTerminateFolder = useMutation({
     mutationFn: async (folderName: string) => {
@@ -795,6 +835,26 @@ export default function BotPage() {
       return;
     }
 
+    // Validate continuous scanner settings
+    if (deploymentMode === 'continuous_scanner') {
+      if (!continuousCapital || parseFloat(continuousCapital) <= 0) {
+        alert('Please enter valid capital per position for continuous scanner.');
+        return;
+      }
+      if (!continuousMaxPositions || parseInt(continuousMaxPositions) <= 0) {
+        alert('Please enter valid max positions for continuous scanner.');
+        return;
+      }
+      if (!continuousLeverage || parseFloat(continuousLeverage) <= 0) {
+        alert('Please enter valid leverage for continuous scanner.');
+        return;
+      }
+      if (!continuousScanInterval || parseInt(continuousScanInterval) < 30) {
+        alert('Scan interval must be at least 30 seconds.');
+        return;
+      }
+    }
+
     // Auto scanner mode doesn't need pair/folder validation - it selects automatically
 
     try {
@@ -816,6 +876,30 @@ export default function BotPage() {
         toast({
           title: "AI Bot Deployed Successfully! 🤖",
           description: `Auto scanner will find optimal trading opportunities using ${leverage}x leverage with $${capital} capital`,
+        });
+      } else if (deploymentMode === 'continuous_scanner') {
+        // Start continuous scanner
+        const continuousData = {
+          userId: 'default-user',
+          strategyId: strategy.id,
+          tradingPair: 'CONTINUOUS_SCANNER_MODE', // Special marker for continuous scanner
+          capital: continuousCapital,
+          leverage: continuousLeverage,
+          status: 'active',
+          deploymentType: 'continuous_scanner',
+          botName: `🔄 Continuous Scanner - ${strategy.name}`,
+          settings: {
+            maxPositions: continuousMaxPositions,
+            scanInterval: continuousScanInterval
+          }
+        };
+
+        await runStrategyMutation.mutateAsync(continuousData);
+        setIsContinuousActive(true);
+        setShowRunDialog(false);
+        toast({
+          title: "Continuous Scanner Started! 🔄",
+          description: `Scanning top 20 volatile pairs every ${continuousScanInterval}s, max ${continuousMaxPositions} positions with ${continuousLeverage}x leverage`,
         });
       } else if (selectedFolder) {
         // Deploy to folder
@@ -2963,6 +3047,31 @@ export default function BotPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Continuous Scanner Mode - Available for all strategies */}
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        deploymentMode === 'continuous_scanner' 
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setDeploymentMode('continuous_scanner')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="radio" 
+                          name="deploymentMode" 
+                          value="continuous_scanner"
+                          checked={deploymentMode === 'continuous_scanner'}
+                          onChange={() => setDeploymentMode('continuous_scanner')}
+                          className="text-purple-500"
+                        />
+                        <div>
+                          <div className="font-medium">Continuous Scanner</div>
+                          <div className="text-sm text-muted-foreground">Keeps scanning top 20 volatile pairs and places orders when conditions are met</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -3023,7 +3132,77 @@ export default function BotPage() {
                   </div>
                 )}
 
-                {/* Capital and Leverage */}
+                {/* Continuous Scanner Settings */}
+                {deploymentMode === 'continuous_scanner' && (
+                  <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <h4 className="font-medium text-purple-700 dark:text-purple-300">Continuous Scanner Configuration</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Capital per Position</Label>
+                        <Input
+                          type="number"
+                          placeholder="5000"
+                          value={continuousCapital}
+                          onChange={(e) => setContinuousCapital(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Max Positions</Label>
+                        <Input
+                          type="number"
+                          placeholder="3"
+                          value={continuousMaxPositions}
+                          onChange={(e) => setContinuousMaxPositions(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Leverage</Label>
+                        <Input
+                          type="number"
+                          placeholder="3"
+                          value={continuousLeverage}
+                          onChange={(e) => setContinuousLeverage(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Scan Interval (seconds)</Label>
+                        <Input
+                          type="number"
+                          placeholder="60"
+                          value={continuousScanInterval}
+                          onChange={(e) => setContinuousScanInterval(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Status Display */}
+                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${isContinuousActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                        <span className="text-sm font-medium">
+                          {isContinuousActive ? 'Scanner Active' : 'Scanner Stopped'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Scans: {continuousStats.scansCount} | Trades: {continuousStats.tradesPlaced}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Capital and Leverage - Only show for non-continuous modes */}
+                {deploymentMode !== 'continuous_scanner' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="capital">Capital ($)</Label>
@@ -3053,6 +3232,7 @@ export default function BotPage() {
                     </Select>
                   </div>
                 </div>
+                )}
 
                 {/* Deploy Button */}
                 <div className="flex gap-3 pt-4">
@@ -3076,7 +3256,14 @@ export default function BotPage() {
                     ) : (
                       <>
                         <Play className="h-4 w-4 mr-2" />
-                        Deploy Strategy
+                        {deploymentMode === 'continuous_scanner' 
+                          ? (isContinuousActive ? 'Stop Continuous Scanner' : 'Start Continuous Scanner')
+                          : deploymentMode === 'auto_scanner' 
+                          ? 'Deploy AI Scanner'
+                          : deploymentMode === 'folder' 
+                          ? 'Deploy to Folder'
+                          : 'Deploy Strategy'
+                        }
                       </>
                     )}
                   </Button>

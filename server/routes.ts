@@ -4896,4 +4896,42 @@ export function addUserPreferencesRoutes(app: any, storage: any) {
       res.status(500).json({ message: 'Failed to save user preferences' });
     }
   });
+
+  // Continuous Scanner Endpoint
+  app.post('/api/continuous-scanner/start', async (req, res) => {
+    try {
+      const { userId, strategyId, capital, leverage, maxPositions, scanInterval } = req.body;
+      
+      console.log(`🔄 Starting continuous scanner for strategy ${strategyId} with ${maxPositions} max positions`);
+      
+      // Create a continuous scanner bot execution
+      const continuousBotData = {
+        userId,
+        strategyId,
+        tradingPair: 'CONTINUOUS_SCANNER_MODE',
+        capital,
+        leverage,
+        status: 'active',
+        deploymentType: 'continuous_scanner',
+        botName: `🔄 Continuous Scanner`,
+        settings: {
+          maxPositions: parseInt(maxPositions),
+          scanInterval: parseInt(scanInterval)
+        }
+      };
+
+      const execution = await storage.createBotExecution(continuousBotData);
+      
+      console.log(`✅ Continuous scanner started with ID: ${execution.id}`);
+      
+      res.json({ 
+        success: true, 
+        execution,
+        message: `Continuous scanner started - will scan top 20 volatile pairs every ${scanInterval}s`
+      });
+    } catch (error: any) {
+      console.error('❌ Error starting continuous scanner:', error);
+      res.status(500).json({ message: 'Failed to start continuous scanner' });
+    }
+  });
 }
