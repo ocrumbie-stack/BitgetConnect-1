@@ -1496,21 +1496,21 @@ export default function BotPage() {
           <Card 
             className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
               activeTab === 'scanner' 
-                ? 'bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-800/40 dark:to-orange-900/40 border-orange-300 dark:border-orange-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
+                ? 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-800/40 dark:to-cyan-900/40 border-cyan-300 dark:border-cyan-600 shadow-lg scale-105' 
+                : 'bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800'
             }`}
             onClick={() => handleTabChange('scanner')}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500 rounded-lg">
+                <div className="p-2 bg-cyan-500 rounded-lg">
                   <Search className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                  <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
                     Auto
                   </div>
-                  <div className="text-xs text-orange-600 dark:text-orange-400">Market Scanner</div>
+                  <div className="text-xs text-cyan-600 dark:text-cyan-400">Market Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -2305,7 +2305,7 @@ export default function BotPage() {
                         const isAutoScanner = folderName.includes('Auto Scanner') || folderBots[0]?.deploymentType === 'auto_scanner';
                         
                         return (
-                          <Card key={folderName} className={`border-l-4 ${isAutoScanner ? 'border-l-orange-500 bg-gradient-to-br from-orange-900/10 to-red-800/10' : 'border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-cyan-800/10'}`}>
+                          <Card key={folderName} className={`border-l-4 ${isAutoScanner ? 'border-l-cyan-500 bg-gradient-to-br from-cyan-900/10 to-teal-800/10' : 'border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-cyan-800/10'}`}>
                             <CardContent className="p-4">
                               <div 
                                 className="cursor-pointer"
@@ -2338,16 +2338,16 @@ export default function BotPage() {
                                 
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge variant="secondary" className={`${isAutoScanner ? 'bg-orange-100 text-orange-700 border-orange-300' : 'bg-blue-100 text-blue-700 border-blue-300'} text-xs`}>
-                                      <span className={`w-2 h-2 ${isAutoScanner ? 'bg-orange-500' : 'bg-blue-500'} rounded-full mr-1`}></span>
+                                    <Badge variant="secondary" className={`${isAutoScanner ? 'bg-cyan-100 text-cyan-700 border-cyan-300' : 'bg-blue-100 text-blue-700 border-blue-300'} text-xs`}>
+                                      <span className={`w-2 h-2 ${isAutoScanner ? 'bg-cyan-500' : 'bg-blue-500'} rounded-full mr-1`}></span>
                                       {folderBots.length} pairs
                                     </Badge>
-                                    <Badge variant="outline" className={`${isAutoScanner ? 'text-orange-600 border-orange-300' : 'text-blue-600 border-blue-300'} text-xs`}>
+                                    <Badge variant="outline" className={`${isAutoScanner ? 'text-cyan-600 border-cyan-300' : 'text-blue-600 border-blue-300'} text-xs`}>
                                       {isAutoScanner ? 'Auto Deployed' : 'Manual Deployed'}
                                     </Badge>
                                   </div>
                                   <div className="text-right">
-                                    <div className={`text-sm font-medium ${isAutoScanner ? 'text-orange-500' : 'text-blue-500'}`}>
+                                    <div className={`text-sm font-medium ${isAutoScanner ? 'text-cyan-500' : 'text-blue-500'}`}>
                                       +${folderBots.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
@@ -2362,18 +2362,18 @@ export default function BotPage() {
                                 <div className="mt-4 pt-4 border-t border-border">
                                   <div className="space-y-2">
                                     {folderBots.map((execution: any) => (
-                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border border-orange-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
+                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-cyan-900/20 to-teal-900/20 border border-cyan-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
                                         <div className="grid grid-cols-[1fr_auto] gap-3 items-start">
                                           {/* Left Column - Bot Info */}
                                           <div className="min-w-0">
                                             {/* Row 1: Pair, Status, Direction */}
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                                              <span className={`px-2 py-1 rounded text-sm font-medium ${isAutoScanner ? 'bg-orange-600/80' : 'bg-blue-600/80'} text-white`}>
+                                              <span className={`px-2 py-1 rounded text-sm font-medium ${isAutoScanner ? 'bg-cyan-600/80' : 'bg-blue-600/80'} text-white`}>
                                                 {execution.tradingPair}
                                               </span>
                                               <Badge variant="outline" className={`text-xs ${
                                                 execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-orange-500 text-orange-400 bg-orange-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
+                                                  ? (isAutoScanner ? 'border-cyan-500 text-cyan-400 bg-cyan-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
                                                   : execution.status === 'waiting_entry'
                                                   ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                   : 'border-gray-500 text-gray-400 bg-gray-950/30'
@@ -2455,7 +2455,7 @@ export default function BotPage() {
                                               {execution.status === 'active' && (
                                                 <Button 
                                                   size="sm" 
-                                                  className={`${isAutoScanner ? 'bg-orange-600 hover:bg-orange-700' : 'bg-blue-600 hover:bg-blue-700'} text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0`}
+                                                  className={`${isAutoScanner ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-blue-600 hover:bg-blue-700'} text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0`}
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
