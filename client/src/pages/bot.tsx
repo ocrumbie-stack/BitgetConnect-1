@@ -2376,7 +2376,7 @@ export default function BotPage() {
                                                   ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                   : 'border-gray-500 text-gray-400 bg-gray-950/30'
                                               }`}>
-                                                {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
+                                                {execution.status === 'active' ? '▶️ Active' : execution.status === 'waiting_entry' ? '⏸️ Waiting' : '⏹️ Stopped'}
                                               </Badge>
                                             </div>
                                             {(execution.status === 'active' || execution.status === 'waiting_entry') && (
@@ -2394,7 +2394,7 @@ export default function BotPage() {
                                                       setTimeout(() => setShowExitVisualizer(true), 10);
                                                     }}
                                                   >
-                                                    👁 Exit
+                                                    📊 Exit
                                                   </Button>
                                                 )}
                                                 <Button 
@@ -2405,7 +2405,7 @@ export default function BotPage() {
                                                     handleTerminateExecution.mutate(execution.id);
                                                   }}
                                                 >
-                                                  ⏹ Stop
+                                                  🛑 Stop
                                                 </Button>
                                               </div>
                                             )}
@@ -2549,7 +2549,7 @@ export default function BotPage() {
                                                 ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                 : 'border-gray-500 text-gray-400 bg-gray-950/30'
                                             }`}>
-                                              {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
+                                              {execution.status === 'active' ? '▶️ Active' : execution.status === 'waiting_entry' ? '⏸️ Waiting' : '⏹️ Stopped'}
                                             </Badge>
                                           </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
@@ -2567,7 +2567,7 @@ export default function BotPage() {
                                                     setTimeout(() => setShowExitVisualizer(true), 10);
                                                   }}
                                                 >
-                                                  👁 Exit
+                                                  📊 Exit
                                                 </Button>
                                               )}
                                               <Button 
@@ -2578,7 +2578,7 @@ export default function BotPage() {
                                                   handleTerminateExecution.mutate(execution.id);
                                                 }}
                                               >
-                                                ⏹ Stop
+                                                🛑 Stop
                                               </Button>
                                             </div>
                                           )}
