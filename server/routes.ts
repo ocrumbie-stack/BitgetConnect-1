@@ -3658,77 +3658,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // TREND ANALYSIS - Identify sustained uptrends/downtrends for longer-term positions
-      console.log(`📈 TREND ANALYSIS: Identifying sustained trending pairs...`);
-      const trendingPairs = [];
+      // MULTI-BUCKET ANALYSIS - Categorize pairs by volatility and trading style
+      console.log(`📊 MULTI-BUCKET ANALYSIS: Categorizing pairs by volatility and timeframes...`);
+      const bucketResults = {
+        Aggressive: [],
+        Balanced: [],
+        ConservativeBiasOnly: []
+      };
       
-      for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for trends
+      for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for bucket classification
         try {
           const change24h = parseFloat(ticker.change24h || '0');
           const volume24h = parseFloat(ticker.quoteVolume || '0');
+          const currentPrice = parseFloat(ticker.lastPr || '0');
           
-          // Get longer timeframe data for trend analysis
-          const [h4Data, dailyData] = await Promise.all([
-            bitgetAPI.getKlineData(ticker.symbol, '4H', 50), // 4H candles for 8+ day trend
-            bitgetAPI.getKlineData(ticker.symbol, '1D', 14)   // Daily candles for 2 week trend
+          // Skip low volume pairs (require min $10M daily volume)
+          if (volume24h < 10000000) continue;
+          
+          // Get multi-timeframe data for comprehensive analysis
+          const [m1Data, m5Data, m15Data, h1Data, h4Data, dailyData] = await Promise.all([
+            bitgetAPI.getKlineData(ticker.symbol, '1m', 100),
+            bitgetAPI.getKlineData(ticker.symbol, '5m', 100), 
+            bitgetAPI.getKlineData(ticker.symbol, '15m', 100),
+            bitgetAPI.getKlineData(ticker.symbol, '1H', 100),
+            bitgetAPI.getKlineData(ticker.symbol, '4H', 100),
+            bitgetAPI.getKlineData(ticker.symbol, '1D', 200)
           ]);
           
-          if (h4Data && dailyData && h4Data.length >= 20 && dailyData.length >= 7) {
-            const h4Closes = h4Data.map(c => parseFloat(c.close));
-            const dailyCloses = dailyData.map(c => parseFloat(c.close));
+          if (!h1Data || !dailyData || h1Data.length < 50 || dailyData.length < 100) continue;
+          
+          // Calculate daily range percentage (volatility measure)
+          const dailyOHLC = dailyData[dailyData.length - 1];
+          const dailyHigh = parseFloat(dailyOHLC.high);
+          const dailyLow = parseFloat(dailyOHLC.low);
+          const dailyRangePct = ((dailyHigh - dailyLow) / currentPrice) * 100;
+          
+          // Technical indicators for classification
+          const h1Closes = h1Data.map(c => parseFloat(c.close));
+          const dailyCloses = dailyData.map(c => parseFloat(c.close));
+          const h1Volumes = h1Data.map(c => parseFloat(c.volume));
+          
+          // EMA calculations
+          const ema100_1h = calculateEMA(h1Closes, 100);
+          const ema200_1d = calculateEMA(dailyCloses, 200);
+          const ema100Diff = ((currentPrice - ema100_1h) / ema100_1h) * 100;
+          const ema200Diff = ((currentPrice - ema200_1d) / ema200_1d) * 100;
+          
+          // RSI and MACD
+          const rsi = calculateRSI(h1Closes, 14);
+          const macd = await calculateMACD(h1Closes);
+          
+          // Volume spike detection
+          const avgVolume = h1Volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
+          const currentVolume = h1Volumes[h1Volumes.length - 1];
+          const volumeSpikeMultiple = currentVolume / avgVolume;
+          
+          // Bollinger Bands position
+          const bb = calculateBollingerBands(h1Closes, 20, 2);
+          let bbPosition = 'middle';
+          if (currentPrice <= bb.lower) bbPosition = 'below_lower';
+          else if (currentPrice >= bb.upper) bbPosition = 'above_upper';
+          else if (currentPrice <= bb.lower * 1.05) bbPosition = 'near_lower';
+          else if (currentPrice >= bb.upper * 0.95) bbPosition = 'near_upper';
+          
+          // BUCKET CLASSIFICATION LOGIC
+          let bucket = 'ConservativeBiasOnly';
+          let evalTimeframe = '1D';
+          
+          // Aggressive bucket conditions
+          const rsiExtreme = rsi?.value <= 20 || rsi?.value >= 80;
+          const bbBreak = bbPosition === 'below_lower' || bbPosition === 'above_upper';
+          const macdFlip = macd && Math.abs(macd.histogram) < 0.1 && macd.histogram !== 0;
+          const highVol = dailyRangePct >= 8.0;
+          const volumeSpike = volumeSpikeMultiple >= 2.0;
+          
+          if ((rsiExtreme || bbBreak || macdFlip) && highVol && volumeSpike) {
+            bucket = 'Aggressive';
+            evalTimeframe = m1Data && m5Data ? '1m/5m' : '5m';
+          }
+          // Balanced bucket conditions  
+          else if (dailyRangePct >= 3.0 && dailyRangePct <= 8.0) {
+            const ema100Bias = Math.abs(ema100Diff) <= 1.0; // Within ±1%
+            const macdUp = macd && macd.macd > macd.signal;
+            const rsiNearBand = rsi && (rsi.value <= 35 || rsi.value >= 65);
             
-            // Calculate trend strength
-            const currentPrice = h4Closes[h4Closes.length - 1];
-            const weekAgoPrice = h4Closes[h4Closes.length - 42] || h4Closes[0]; // ~1 week ago (42 x 4H)
-            const twoWeeksAgoPrice = dailyCloses[0];
-            
-            const weeklyChange = ((currentPrice - weekAgoPrice) / weekAgoPrice) * 100;
-            const twoWeekChange = ((currentPrice - twoWeeksAgoPrice) / twoWeeksAgoPrice) * 100;
-            
-            // Identify strong trends (consistent direction over multiple timeframes)
-            const isStrongUptrend = weeklyChange > 3 && twoWeekChange > 5 && change24h > 0;
-            const isStrongDowntrend = weeklyChange < -3 && twoWeekChange < -5 && change24h < 0;
-            
-            if ((isStrongUptrend || isStrongDowntrend) && volume24h > 1000000) { // Min $1M volume
-              trendingPairs.push({
-                symbol: ticker.symbol,
-                trendDirection: isStrongUptrend ? 'UPTREND' : 'DOWNTREND',
-                weeklyChange: weeklyChange.toFixed(2),
-                twoWeekChange: twoWeekChange.toFixed(2),
-                dailyChange: change24h.toFixed(2),
-                volume24h,
-                trendStrength: Math.abs(weeklyChange) + Math.abs(twoWeekChange),
-                price: parseFloat(ticker.lastPr || '0')
-              });
-              
-              console.log(`📊 TREND: ${ticker.symbol} - ${isStrongUptrend ? 'STRONG UPTREND' : 'STRONG DOWNTREND'} (Weekly: ${weeklyChange.toFixed(1)}%, 2W: ${twoWeekChange.toFixed(1)}%)`);
+            if (ema100Bias && (macdUp || rsiNearBand)) {
+              bucket = 'Balanced';
+              evalTimeframe = '15m/1h';
             }
           }
+          
+          // Direction bias from EMA200 on daily
+          let bias = 'neutral';
+          if (ema200Diff > 1) bias = 'bullish';
+          else if (ema200Diff < -1) bias = 'bearish';
+          
+          const bucketEntry = {
+            symbol: ticker.symbol,
+            bucket,
+            evalTimeframe,
+            dailyRangePct: dailyRangePct.toFixed(2),
+            ema100DiffPct1h: ema100Diff.toFixed(2),
+            ema200DiffPct1d: ema200Diff.toFixed(2),
+            rsi: rsi?.value.toFixed(1) || 'N/A',
+            macdLine: macd?.macd.toFixed(4) || 'N/A',
+            macdSignal: macd?.signal.toFixed(4) || 'N/A',
+            macdHist: macd?.histogram.toFixed(4) || 'N/A',
+            bbPosition,
+            volumeSpikeMultiple: volumeSpikeMultiple.toFixed(1),
+            bias,
+            price: currentPrice,
+            volume24h,
+            change24h
+          };
+          
+          bucketResults[bucket].push(bucketEntry);
+          console.log(`📋 BUCKET: ${ticker.symbol} -> ${bucket} (Vol: ${dailyRangePct.toFixed(1)}%, RSI: ${rsi?.value.toFixed(1) || 'N/A'}, Bias: ${bias})`);
+          
         } catch (error) {
-          // Skip trend analysis errors to not slow down main scan
+          // Skip bucket analysis errors to not slow down main scan
         }
       }
       
-      // Sort trending pairs by trend strength
-      trendingPairs.sort((a, b) => b.trendStrength - a.trendStrength);
+      // Sort each bucket by priority metrics
+      bucketResults.Aggressive.sort((a, b) => parseFloat(b.volumeSpikeMultiple) - parseFloat(a.volumeSpikeMultiple));
+      bucketResults.Balanced.sort((a, b) => parseFloat(b.dailyRangePct) - parseFloat(a.dailyRangePct));
+      bucketResults.ConservativeBiasOnly.sort((a, b) => Math.abs(parseFloat(b.ema200DiffPct1d)) - Math.abs(parseFloat(a.ema200DiffPct1d)));
+      
+      const totalBucketPairs = bucketResults.Aggressive.length + bucketResults.Balanced.length + bucketResults.ConservativeBiasOnly.length;
       
       // Sort by confidence score and select top opportunities
       analysisResults.sort((a, b) => b.confidence - a.confidence);
       const topOpportunities = analysisResults.slice(0, maxBots);
       
-      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities and ${trendingPairs.length} trending pairs`);
+      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities and ${totalBucketPairs} bucket-classified pairs`);
       
       // SCAN ONLY - Just return the opportunities found
       res.json({
         success: true,
-        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities and ${trendingPairs.length} trending pairs`,
+        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities and ${totalBucketPairs} bucket-classified pairs`,
         opportunities: topOpportunities,
-        trendingPairs: trendingPairs.slice(0, 10), // Top 10 trending pairs
+        bucketResults: {
+          Aggressive: bucketResults.Aggressive.slice(0, 10),
+          Balanced: bucketResults.Balanced.slice(0, 10), 
+          ConservativeBiasOnly: bucketResults.ConservativeBiasOnly.slice(0, 10)
+        },
         scanResults: {
           totalPairsAnalyzed: analyzedCount,
           validSignalsFound: validSignalCount,
           highConfidenceOpportunities: topOpportunities.length,
-          trendingPairsFound: trendingPairs.length,
+          bucketClassified: {
+            Aggressive: bucketResults.Aggressive.length,
+            Balanced: bucketResults.Balanced.length,
+            ConservativeBiasOnly: bucketResults.ConservativeBiasOnly.length,
+            total: totalBucketPairs
+          },
           minConfidenceUsed: minConfidence,
           maxBotsRequested: maxBots
         }
@@ -4262,6 +4346,8 @@ function calculateVolatility(candles: any[]): number {
     return 1.0;
   }
 }
+
+
 
 // User preferences endpoints
 export function addUserPreferencesRoutes(app: any, storage: any) {
