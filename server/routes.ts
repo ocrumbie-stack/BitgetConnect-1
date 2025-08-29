@@ -27,7 +27,7 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
   const now = Date.now();
   const lastEval = lastEvaluationTime[tradingPair] || 0;
   const timeDiff = now - lastEval;
-  const minInterval = 30 * 1000; // Reduce to 30 seconds for auto scanner
+  const minInterval = 5 * 1000; // Reduce to 5 seconds for focused top-50 scanning
   
   if (timeDiff < minInterval) {
     const remainingTime = Math.ceil((minInterval - timeDiff) / 1000);
@@ -193,18 +193,18 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
     
-    // MUCH HIGHER confidence thresholds to prevent account blowup
-    let confidenceThreshold = 85; // Very high base threshold
-    let minSignalDifference = 30; // Require strong signal separation
+    // BALANCED confidence thresholds for top-volume pairs
+    let confidenceThreshold = 70; // Balanced base threshold for focused scanning
+    let minSignalDifference = 25; // Reasonable signal separation requirement
     
-    // Only slightly reduce thresholds for extremely volatile pairs
+    // Adjust thresholds based on volatility for high-volume pairs
     if (volatility > 4.0) {
-      confidenceThreshold = 80; // Still very high for volatile pairs
-      minSignalDifference = 25;
-      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - High threshold: ${confidenceThreshold}%`);
+      confidenceThreshold = 65; // Lower for extremely volatile high-volume pairs
+      minSignalDifference = 20;
+      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Focused threshold: ${confidenceThreshold}%`);
     } else if (volatility > 3.0) {
-      confidenceThreshold = 82; 
-      minSignalDifference = 28;
+      confidenceThreshold = 67; 
+      minSignalDifference = 22;
       console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     }
     
@@ -230,11 +230,11 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // ULTRA STRICT requirements - Only trade the absolute best setups
-    if (signalDifference >= 40 && totalScore >= 80) {
-      console.log(`🎯 PREMIUM SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+    // FOCUSED TOP-50 requirements - More reasonable for high-volume pairs
+    if (signalDifference >= 25 && totalScore >= 50) {
+      console.log(`🎯 HIGH-VOLUME SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
     } else {
-      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need 40+ diff, 80+ total for safety)`);
+      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need 25+ diff, 50+ total for top volume pairs)`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
@@ -3579,28 +3579,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 AUTO SCANNER (${tradingStyle.toUpperCase()}): ${config.description} - ${config.timeframe} timeframe`);
       console.log(`📊 Looking for max ${maxBots} opportunities with min ${minConfidence}% confidence`);
       
-      // Get ALL available futures pairs directly from Bitget API for comprehensive market coverage
+      // Get top 50 highest volume USDT pairs for focused analysis
       const allTickers = await bitgetAPI.getAllFuturesTickers();
-      console.log(`📊 Found ${allTickers.length} trading pairs from Bitget API`);
+      console.log(`📊 Found ${allTickers.length} total trading pairs from Bitget API`);
       
-      // Include ALL pairs - no volume filtering to ensure complete market coverage
-      // Sort by volume descending to analyze highest volume pairs first for better opportunities
-      const allPairs = allTickers.sort((a, b) => 
-        parseFloat(b.quoteVolume || '0') - parseFloat(a.quoteVolume || '0')
-      );
+      // Filter for USDT pairs only and sort by volume descending
+      const usdtPairs = allTickers
+        .filter(ticker => ticker.symbol.endsWith('USDT'))
+        .sort((a, b) => parseFloat(b.quoteVolume || '0') - parseFloat(a.quoteVolume || '0'))
+        .slice(0, 50); // TOP 50 highest volume only
       
-      console.log(`🌍 ANALYZING ALL ${allPairs.length} TRADING PAIRS - Complete Market Coverage`);
-      console.log(`📈 Including: Major pairs, altcoins, meme tokens, DeFi tokens, and all available markets`);
-      console.log(`🎯 Processing markets: BTC, ETH, ALT, DeFi, Layer1, Layer2, Meme, Gaming, AI, and more...`);
+      console.log(`🎯 ANALYZING TOP 50 HIGHEST VOLUME USDT PAIRS - Focused High-Quality Analysis`);
+      console.log(`📈 Focus pairs: ${usdtPairs.map(t => t.symbol).slice(0, 10).join(', ')}...`);
+      console.log(`💰 Volume range: $${parseInt(usdtPairs[0]?.quoteVolume || '0').toLocaleString()} to $${parseInt(usdtPairs[49]?.quoteVolume || '0').toLocaleString()}`);
       
-      // Analyze each pair with AI indicators - ALL PAIRS, no limits
+      // Analyze top 50 pairs with AI indicators for faster, higher quality results
       const analysisResults = [];
       let analyzedCount = 0;
       let validSignalCount = 0;
       
-      for (const ticker of allPairs) { // Analyze ALL pairs for complete coverage
+      for (const ticker of usdtPairs) { // Analyze top 50 USDT pairs only
         try {
-          console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${allPairs.length})...`);
+          console.log(`🔬 Analyzing ${ticker.symbol} (${analyzedCount + 1}/${usdtPairs.length})...`);
           analyzedCount++;
           
           const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframes, config.dataPoints);
@@ -3633,10 +3633,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If no high-confidence results, lower confidence threshold temporarily
       if (analysisResults.length === 0 && validSignalCount > 0) {
-        console.log(`🔄 No results at ${minConfidence}% confidence, searching with lower threshold...`);
-        const lowerThreshold = Math.max(30, minConfidence - 20); // Lower by 20% but not below 30%
+        console.log(`🔄 No results at ${minConfidence}% confidence, scanning with lower threshold on top volume pairs...`);
+        const lowerThreshold = Math.max(60, minConfidence - 25); // Still keep reasonably high threshold
         
-        for (const ticker of allPairs.slice(0, 20)) { // Quick scan of top 20
+        for (const ticker of usdtPairs.slice(0, 20)) { // Quick scan of top 20 volume USDT pairs
           try {
             const aiResult = await evaluateAIBotEntry(ticker.symbol, config.timeframes, config.dataPoints);
             if (aiResult.confidence >= lowerThreshold && aiResult.direction) {
