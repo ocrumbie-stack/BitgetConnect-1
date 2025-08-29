@@ -197,7 +197,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl mx-auto overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl mx-auto overflow-hidden border border-gray-200 dark:border-gray-700">
       {/* Professional Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
@@ -227,203 +227,119 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
-        {/* Main Performance Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - ROI & Risk */}
-          <div className="space-y-4">
-            {/* Large ROI Display */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 text-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Current P&L</div>
-              <div className={`text-5xl font-bold mb-2 ${exitConditions.currentRoi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
-              </div>
-              <Badge className={`${getRiskColor(getRiskLevel())} text-white px-4 py-1 text-sm`}>
-                {getRiskLevel()}
-              </Badge>
+      <div className="p-4 space-y-4">
+        {/* ROI and Chart Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ROI Display */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-4 text-center">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Current P&L</div>
+            <div className={`text-3xl font-bold mb-2 ${exitConditions.currentRoi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
             </div>
-
-            {/* Risk Metrics */}
+            <Badge className={`${getRiskColor(getRiskLevel())} text-white px-3 py-1 text-xs`}>
+              {getRiskLevel()}
+            </Badge>
             {riskMetrics && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-3">
-                <div className="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Risk Metrics
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400">Time</div>
+                  <div className="font-semibold">{riskMetrics.timeInPosition}m</div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <div className="text-gray-500 dark:text-gray-400">Volatility</div>
-                    <div className="font-semibold">{riskMetrics.volatility}%</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500 dark:text-gray-400">Time</div>
-                    <div className="font-semibold">{riskMetrics.timeInPosition}m</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500 dark:text-gray-400">Max Gain</div>
-                    <div className="font-semibold text-green-600">+{riskMetrics.maxGain?.toFixed(2)}%</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500 dark:text-gray-400">Max Loss</div>
-                    <div className="font-semibold text-red-600">{riskMetrics.maxDrawdown?.toFixed(2)}%</div>
-                  </div>
-                </div>
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Trend</span>
-                    <span className={`text-xs font-semibold ${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
-                      {riskMetrics.trend}
-                    </span>
+                <div>
+                  <div className="text-gray-500 dark:text-gray-400">Trend</div>
+                  <div className={`font-semibold ${riskMetrics.trend === 'Bullish' ? 'text-green-600' : riskMetrics.trend === 'Bearish' ? 'text-red-600' : 'text-gray-600'}`}>
+                    {riskMetrics.trend}
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Middle Column - Price Chart */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Live Price & Exit Levels
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Entry: ${exitConditions.entryPrice.toFixed(4)} | Current: ${exitConditions.currentPrice.toFixed(4)}
-                </div>
+          {/* Price Chart */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <BarChart3 className="h-3 w-3 mr-1" />
+                Live Price
               </div>
-              
-              {priceHistory.length > 1 ? (
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={priceHistory}>
-                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis 
-                        dataKey="time" 
-                        tick={{ fontSize: 10 }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis 
-                        domain={['dataMin - 0.001', 'dataMax + 0.001']}
-                        tick={{ fontSize: 10 }}
-                        tickFormatter={(value) => `$${value.toFixed(4)}`}
-                      />
-                      <Tooltip 
-                        formatter={(value: any, name: string) => [
-                          name === 'price' ? `$${value.toFixed(4)}` : `${value.toFixed(2)}%`,
-                          name === 'price' ? 'Price' : 'ROI'
-                        ]}
-                      />
-                      <ReferenceLine 
-                        y={exitConditions.stopLossPrice} 
-                        stroke="#ef4444" 
-                        strokeDasharray="5 5"
-                        label={{ value: "Stop Loss", position: "insideTopRight", fontSize: 10 }}
-                      />
-                      <ReferenceLine 
-                        y={exitConditions.takeProfitPrice} 
-                        stroke="#22c55e" 
-                        strokeDasharray="5 5"
-                        label={{ value: "Take Profit", position: "insideTopRight", fontSize: 10 }}
-                      />
-                      <ReferenceLine 
-                        y={exitConditions.entryPrice} 
-                        stroke="#6b7280" 
-                        strokeDasharray="2 2"
-                        label={{ value: "Entry", position: "insideTopLeft", fontSize: 10 }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="price" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
-                  <div className="text-center">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    Building price history...
-                  </div>
-                </div>
-              )}
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                ${exitConditions.currentPrice.toFixed(4)}
+              </div>
             </div>
+            
+            {priceHistory.length > 1 ? (
+              <div className="h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={priceHistory}>
+                    <YAxis hide domain={['dataMin - 0.001', 'dataMax + 0.001']} />
+                    <Tooltip 
+                      formatter={(value: any) => [`$${value.toFixed(4)}`, 'Price']}
+                      labelFormatter={() => ''}
+                    />
+                    <ReferenceLine y={exitConditions.stopLossPrice} stroke="#ef4444" strokeDasharray="3 3" />
+                    <ReferenceLine y={exitConditions.takeProfitPrice} stroke="#22c55e" strokeDasharray="3 3" />
+                    <ReferenceLine y={exitConditions.entryPrice} stroke="#6b7280" strokeDasharray="1 1" />
+                    <Line type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">
+                <BarChart3 className="h-4 w-4 opacity-50" />
+              </div>
+            )}
           </div>
         </div>
 
         {/* Exit Strategy Progress */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <TrendingDown className="h-4 w-4 text-red-500" />
-              <span className="text-red-500 font-semibold">Stop Loss {exitConditions.stopLossPercent.toFixed(1)}%</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-green-500 font-semibold">Take Profit {exitConditions.takeProfitPercent.toFixed(1)}%</span>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </div>
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-red-500 font-semibold text-sm">Stop {exitConditions.stopLossPercent.toFixed(1)}%</span>
+            <span className="text-green-500 font-semibold text-sm">Target {exitConditions.takeProfitPercent.toFixed(1)}%</span>
           </div>
           
-          <div className="relative mb-4">
-            <Progress value={getProgressValue()} className="h-4 bg-gray-200 dark:bg-gray-700" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 px-3 py-1 rounded-full border text-xs font-semibold">
+          <div className="relative mb-3">
+            <Progress value={getProgressValue()} className="h-3 bg-gray-200 dark:bg-gray-700" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 px-2 py-0.5 rounded text-xs font-semibold">
               {exitConditions.currentRoi.toFixed(2)}%
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="text-center">
-              <div className="text-gray-500 dark:text-gray-400">Distance to Stop</div>
-              <div className="font-semibold">{exitConditions.distanceToStopLoss?.toFixed(2)}%</div>
-            </div>
-            <div className="text-center">
-              <div className="text-gray-500 dark:text-gray-400">Position Size</div>
+              <div className="text-gray-500 dark:text-gray-400">Capital</div>
               <div className="font-semibold">${parseFloat(bot.capital || '0').toFixed(2)}</div>
             </div>
             <div className="text-center">
-              <div className="text-gray-500 dark:text-gray-400">Distance to Target</div>
-              <div className="font-semibold">{exitConditions.distanceToTakeProfit?.toFixed(2)}%</div>
+              <div className="text-gray-500 dark:text-gray-400">Entry Price</div>
+              <div className="font-semibold">${exitConditions.entryPrice.toFixed(4)}</div>
             </div>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+        <div className="space-y-3">
           {!showCloseConfirmation ? (
-            <div className="space-y-3">
-              <Button
-                variant="destructive"
-                className="w-full h-12 text-lg font-semibold"
-                onClick={() => setShowCloseConfirmation(true)}
-                disabled={closePositionMutation.isPending}
-              >
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Close Position Manually
-              </Button>
-              <div className="text-xs text-center text-gray-500 dark:text-gray-400">
-                Position will be closed at market price
-              </div>
-            </div>
+            <Button
+              variant="destructive"
+              className="w-full h-10"
+              onClick={() => setShowCloseConfirmation(true)}
+              disabled={closePositionMutation.isPending}
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Close Position Manually
+            </Button>
           ) : (
-            <div className="space-y-4">
-              <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <AlertTriangle className="h-6 w-6 text-orange-500 mx-auto mb-2" />
-                <div className="text-sm font-semibold text-orange-800 dark:text-orange-200">
-                  Confirm Position Closure
-                </div>
-                <div className="text-xs text-orange-600 dark:text-orange-300 mt-1">
-                  This will close your {bot.tradingPair} position immediately
-                </div>
+            <div className="space-y-2">
+              <div className="text-xs text-center text-gray-600 dark:text-gray-400 p-2 bg-orange-50 dark:bg-orange-900/20 rounded">
+                Close {bot.tradingPair} position now?
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowCloseConfirmation(false)}
                   disabled={closePositionMutation.isPending}
-                  className="h-10"
+                  className="h-9"
                 >
                   Cancel
                 </Button>
@@ -431,19 +347,9 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
                   variant="destructive"
                   onClick={() => closePositionMutation.mutate(bot.id)}
                   disabled={closePositionMutation.isPending}
-                  className="h-10"
+                  className="h-9"
                 >
-                  {closePositionMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Closing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirm Close
-                    </>
-                  )}
+                  {closePositionMutation.isPending ? 'Closing...' : 'Confirm'}
                 </Button>
               </div>
             </div>
