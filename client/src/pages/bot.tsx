@@ -1516,33 +1516,48 @@ export default function BotPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <TrendingUp className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-                    {(() => {
-                      const runningBots = (activeExecutions as any[]).filter(ex => ex.status !== 'terminated');
-                      if (runningBots.length === 0) return '$0.00';
-                      
-                      // Calculate total P&L for all deployed bots
-                      const totalPL = runningBots.reduce((sum, bot) => {
-                        const profit = parseFloat(bot.profit || '0');
-                        return sum + profit;
-                      }, 0);
-                      
-                      const sign = totalPL >= 0 ? '+' : '';
-                      return `${sign}$${totalPL.toFixed(2)}`;
-                    })()}
+          {(() => {
+            const runningBots = (activeExecutions as any[]).filter(ex => ex.status !== 'terminated');
+            const totalPL = runningBots.reduce((sum, bot) => {
+              const profit = parseFloat(bot.profit || '0');
+              return sum + profit;
+            }, 0);
+            
+            const isPositive = totalPL >= 0;
+            const cardColor = isPositive ? 'green' : 'red';
+            const sign = totalPL >= 0 ? '+' : '';
+            
+            return (
+              <Card className={`bg-gradient-to-br ${isPositive 
+                ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800' 
+                : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
+              }`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-lg`}>
+                      {isPositive ? (
+                        <TrendingUp className="h-4 w-4 text-white" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <div className={`text-2xl font-bold ${isPositive 
+                        ? 'text-green-700 dark:text-green-300' 
+                        : 'text-red-700 dark:text-red-300'
+                      }`}>
+                        {runningBots.length === 0 ? '$0.00' : `${sign}$${totalPL.toFixed(2)}`}
+                      </div>
+                      <div className={`text-xs ${isPositive 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                      }`}>Total P&L</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-orange-600 dark:text-orange-400">Total P&L</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
       </div>
 
