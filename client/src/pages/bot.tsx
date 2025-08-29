@@ -81,6 +81,7 @@ export default function BotPage() {
   const [autoAIBotLeverage, setAutoAIBotLeverage] = useState('3');
   const [selectedBotInfo, setSelectedBotInfo] = useState<any>(null);
   const [expandedBots, setExpandedBots] = useState<{[key: string]: boolean}>({});
+  const [expandedPositions, setExpandedPositions] = useState<{[key: string]: boolean}>({});
   const [suggestedSettings, setSuggestedSettings] = useState<any>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
