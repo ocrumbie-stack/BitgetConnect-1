@@ -311,20 +311,20 @@ function calculateOptimalTradeSetup(leverage: number, botType: string = 'default
   
   // Calculate required position percentages with MUCH WIDER STOPS
   let stopLossPercent = Math.max(5.0, maxAccountLoss / leverage * 3); // Minimum 5% stop loss
-  let takeProfitPercent = Math.max(15.0, targetAccountGain / leverage * 3); // Minimum 15% take profit
+  let takeProfitPercent = Math.max(10.0, targetAccountGain / leverage * 3); // Minimum 10% take profit
   
   // CRYPTO-SPECIFIC adjustments - these markets are volatile
   if (leverage >= 10) {
     stopLossPercent = Math.max(8.0, stopLossPercent); // 8% minimum for high leverage
-    takeProfitPercent = Math.max(20.0, takeProfitPercent); // 20% minimum target
+    takeProfitPercent = Math.max(15.0, takeProfitPercent); // 15% minimum target
     console.log(`🔥 HIGH LEVERAGE (${leverage}x) - Wider stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   } else if (leverage >= 5) {
     stopLossPercent = Math.max(6.0, stopLossPercent); // 6% minimum for medium leverage  
-    takeProfitPercent = Math.max(18.0, takeProfitPercent); // 18% minimum target
+    takeProfitPercent = Math.max(12.0, takeProfitPercent); // 12% minimum target
     console.log(`⚡ MEDIUM LEVERAGE (${leverage}x) - Conservative stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   } else {
     stopLossPercent = Math.max(4.0, stopLossPercent); // 4% minimum for low leverage
-    takeProfitPercent = Math.max(12.0, takeProfitPercent); // 12% minimum target
+    takeProfitPercent = Math.max(10.0, takeProfitPercent); // 10% minimum target
     console.log(`🛡️ LOW LEVERAGE (${leverage}x) - Standard stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   }
   
@@ -342,7 +342,7 @@ function calculateOptimalTradeSetup(leverage: number, botType: string = 'default
   if (botType.includes('auto_scanner') || botType === 'auto_scanner') {
     // Auto scanner needs even wider stops due to algorithmic entry
     stopLossPercent = Math.max(stopLossPercent * 1.2, 6.0);
-    takeProfitPercent = Math.max(takeProfitPercent * 1.2, 18.0);
+    takeProfitPercent = Math.max(takeProfitPercent * 1.0, 10.0); // Reduced multiplier for quicker exits
     tradeProfile = 'algorithmic_wide';
     console.log(`🤖 AUTO SCANNER - Extra wide stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   }
