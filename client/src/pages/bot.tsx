@@ -2389,13 +2389,11 @@ export default function BotPage() {
                                                     onClick={(e) => {
                                                       e.preventDefault();
                                                       e.stopPropagation();
-                                                      setExpandedPositions(prev => ({
-                                                        ...prev,
-                                                        [execution.id]: !prev[execution.id]
-                                                      }));
+                                                      setSelectedBotForVisualization(execution);
+                                                      setShowExitVisualizer(true);
                                                     }}
                                                   >
-                                                    {expandedPositions[execution.id] ? '📊 Hide' : '📊 Info'}
+                                                    👁 Exit
                                                   </Button>
                                                 )}
                                                 <Button 
