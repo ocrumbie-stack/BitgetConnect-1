@@ -2455,7 +2455,7 @@ export default function BotPage() {
                                               {execution.status === 'active' && (
                                                 <Button 
                                                   size="sm" 
-                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs rounded-md"
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -2465,7 +2465,7 @@ export default function BotPage() {
                                                     setTimeout(() => setShowExitVisualizer(true), 10);
                                                   }}
                                                 >
-                                                  Exit
+                                                  i
                                                 </Button>
                                               )}
                                               <Button 
@@ -2643,7 +2643,7 @@ export default function BotPage() {
                                             {execution.status === 'active' && (
                                               <Button 
                                                 size="sm" 
-                                                className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs rounded-md"
+                                                className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center"
                                                 onClick={(e) => {
                                                   e.preventDefault();
                                                   e.stopPropagation();
@@ -2653,7 +2653,7 @@ export default function BotPage() {
                                                   setTimeout(() => setShowExitVisualizer(true), 10);
                                                 }}
                                               >
-                                                Exit
+                                                i
                                               </Button>
                                             )}
                                             <Button 
