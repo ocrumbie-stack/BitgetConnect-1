@@ -2305,7 +2305,7 @@ export default function BotPage() {
                         const isAutoScanner = folderName.includes('Auto Scanner') || folderBots[0]?.deploymentType === 'auto_scanner';
                         
                         return (
-                          <Card key={folderName} className={`border-l-4 ${isAutoScanner ? 'border-l-green-500 bg-gradient-to-br from-green-900/10 to-emerald-800/10' : 'border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-cyan-800/10'}`}>
+                          <Card key={folderName} className={`border-l-4 ${isAutoScanner ? 'border-l-cyan-500 bg-gradient-to-br from-cyan-900/10 to-teal-800/10' : 'border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-cyan-800/10'}`}>
                             <CardContent className="p-4">
                               <div 
                                 className="cursor-pointer"
@@ -2338,16 +2338,16 @@ export default function BotPage() {
                                 
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge variant="secondary" className={`${isAutoScanner ? 'bg-green-100 text-green-700 border-green-300' : 'bg-blue-100 text-blue-700 border-blue-300'} text-xs`}>
-                                      <span className={`w-2 h-2 ${isAutoScanner ? 'bg-green-500' : 'bg-blue-500'} rounded-full mr-1`}></span>
+                                    <Badge variant="secondary" className={`${isAutoScanner ? 'bg-cyan-100 text-cyan-700 border-cyan-300' : 'bg-blue-100 text-blue-700 border-blue-300'} text-xs`}>
+                                      <span className={`w-2 h-2 ${isAutoScanner ? 'bg-cyan-500' : 'bg-blue-500'} rounded-full mr-1`}></span>
                                       {folderBots.length} pairs
                                     </Badge>
-                                    <Badge variant="outline" className={`${isAutoScanner ? 'text-green-600 border-green-300' : 'text-blue-600 border-blue-300'} text-xs`}>
+                                    <Badge variant="outline" className={`${isAutoScanner ? 'text-cyan-600 border-cyan-300' : 'text-blue-600 border-blue-300'} text-xs`}>
                                       {isAutoScanner ? 'Auto Deployed' : 'Manual Deployed'}
                                     </Badge>
                                   </div>
                                   <div className="text-right">
-                                    <div className={`text-sm font-medium ${isAutoScanner ? 'text-green-500' : 'text-blue-500'}`}>
+                                    <div className={`text-sm font-medium ${isAutoScanner ? 'text-cyan-500' : 'text-blue-500'}`}>
                                       +${folderBots.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
@@ -2362,18 +2362,18 @@ export default function BotPage() {
                                 <div className="mt-4 pt-4 border-t border-border">
                                   <div className="space-y-2">
                                     {folderBots.map((execution: any) => (
-                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
+                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-cyan-900/20 to-teal-900/20 border border-cyan-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
                                         <div className="grid grid-cols-[1fr_auto] gap-3 items-start">
                                           {/* Left Column - Bot Info */}
                                           <div className="min-w-0">
                                             {/* Row 1: Pair, Status, Direction */}
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                                              <span className={`px-2 py-1 rounded text-sm font-medium ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
+                                              <span className={`px-2 py-1 rounded text-sm font-medium ${isAutoScanner ? 'bg-cyan-600/80' : 'bg-blue-600/80'} text-white`}>
                                                 {execution.tradingPair}
                                               </span>
                                               <Badge variant="outline" className={`text-xs ${
                                                 execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
+                                                  ? (isAutoScanner ? 'border-cyan-500 text-cyan-400 bg-cyan-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
                                                   : execution.status === 'waiting_entry'
                                                   ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                   : 'border-gray-500 text-gray-400 bg-gray-950/30'
