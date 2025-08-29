@@ -2362,7 +2362,7 @@ export default function BotPage() {
                                 <div className="mt-4 pt-4 border-t border-border">
                                   <div className="space-y-2">
                                     {folderBots.map((execution: any) => (
-                                      <div key={execution.id} className="p-3 rounded-lg border border-border">
+                                      <div key={execution.id} className="p-3 rounded-lg border border-white/20 dark:border-white/10">
                                         <div className="grid grid-cols-[1fr_auto] gap-3 items-start">
                                           {/* Left Column - Bot Info */}
                                           <div className="min-w-0">
