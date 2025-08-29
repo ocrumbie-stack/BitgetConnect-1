@@ -2362,7 +2362,7 @@ export default function BotPage() {
                                 <div className="mt-4 pt-4 border-t border-border">
                                   <div className="space-y-2">
                                     {folderBots.map((execution: any) => (
-                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-cyan-900/20 to-teal-900/20 border border-cyan-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
+                                      <div key={execution.id} className="p-3 rounded-lg border border-border">
                                         <div className="grid grid-cols-[1fr_auto] gap-3 items-start">
                                           {/* Left Column - Bot Info */}
                                           <div className="min-w-0">
@@ -2455,7 +2455,7 @@ export default function BotPage() {
                                               {execution.status === 'active' && (
                                                 <Button 
                                                   size="sm" 
-                                                  className={`${isAutoScanner ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-blue-600 hover:bg-blue-700'} text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0`}
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
