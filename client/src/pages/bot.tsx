@@ -2465,7 +2465,7 @@ export default function BotPage() {
                                                     setTimeout(() => setShowExitVisualizer(true), 10);
                                                   }}
                                                 >
-                                                  i
+                                                  <Info size={14} />
                                                 </Button>
                                               )}
                                               <Button 
@@ -2653,7 +2653,7 @@ export default function BotPage() {
                                                   setTimeout(() => setShowExitVisualizer(true), 10);
                                                 }}
                                               >
-                                                i
+                                                <Info size={14} />
                                               </Button>
                                             )}
                                             <Button 
