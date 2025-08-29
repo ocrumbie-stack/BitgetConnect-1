@@ -3667,7 +3667,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       let bucketAnalyzedCount = 0;
-      let bucketSkippedVolume = 0;
       let bucketSkippedData = 0;
       
       for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for bucket classification
@@ -3676,11 +3675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const volume24h = parseFloat(ticker.quoteVolume || '0');
           const currentPrice = parseFloat(ticker.lastPr || '0');
           
-          // Skip low volume pairs (require min $1M daily volume)
-          if (volume24h < 1000000) {
-            bucketSkippedVolume++;
-            continue;
-          }
+          // No volume filtering needed - already scanning top 50 volume pairs
           
           // Get minimal data for basic bucket analysis
           let h1Data, dailyData;
@@ -3697,22 +3692,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             continue;
           }
           
-          // Calculate daily range percentage (volatility measure)
+          // Calculate daily range percentage (volatility measure) with null safety
           const dailyOHLC = dailyData[dailyData.length - 1];
-          const dailyHigh = parseFloat(dailyOHLC.high);
-          const dailyLow = parseFloat(dailyOHLC.low);
-          const dailyRangePct = ((dailyHigh - dailyLow) / currentPrice) * 100;
+          const dailyHigh = parseFloat(dailyOHLC?.high || '0');
+          const dailyLow = parseFloat(dailyOHLC?.low || '0');
+          const dailyRangePct = currentPrice > 0 ? ((dailyHigh - dailyLow) / currentPrice) * 100 : 0;
           
           // Technical indicators for classification
           const h1Closes = h1Data.map(c => parseFloat(c.close));
           const dailyCloses = dailyData.map(c => parseFloat(c.close));
           const h1Volumes = h1Data.map(c => parseFloat(c.volume));
           
-          // Simplified EMA calculations for performance
-          const ema100_1h = h1Closes.length >= 50 ? calculateEMA(h1Closes, 50) : h1Closes[h1Closes.length - 1];
-          const ema200_1d = dailyCloses.length >= 20 ? calculateEMA(dailyCloses, 20) : dailyCloses[dailyCloses.length - 1];
-          const ema100Diff = ((currentPrice - ema100_1h) / ema100_1h) * 100;
-          const ema200Diff = ((currentPrice - ema200_1d) / ema200_1d) * 100;
+          // Simplified EMA calculations with null safety
+          const ema100_1h = h1Closes.length >= 20 ? calculateEMA(h1Closes, 20) : currentPrice;
+          const ema200_1d = dailyCloses.length >= 10 ? calculateEMA(dailyCloses, 10) : currentPrice;
+          const ema100Diff = ema100_1h ? ((currentPrice - ema100_1h) / ema100_1h) * 100 : 0;
+          const ema200Diff = ema200_1d ? ((currentPrice - ema200_1d) / ema200_1d) * 100 : 0;
           
           // Basic RSI only (skip complex MACD)
           const rsi = h1Closes.length >= 14 ? calculateRSI(h1Closes, 14) : null;
@@ -3772,15 +3767,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             symbol: ticker.symbol,
             bucket,
             evalTimeframe,
-            dailyRangePct: dailyRangePct.toFixed(2),
-            ema100DiffPct1h: ema100Diff.toFixed(2),
-            ema200DiffPct1d: ema200Diff.toFixed(2),
-            rsi: rsi?.value.toFixed(1) || 'N/A',
-            macdLine: macd?.macd.toFixed(4) || 'N/A',
-            macdSignal: macd?.signal.toFixed(4) || 'N/A',
-            macdHist: macd?.histogram.toFixed(4) || 'N/A',
+            dailyRangePct: (dailyRangePct || 0).toFixed(2),
+            ema100DiffPct1h: (ema100Diff || 0).toFixed(2),
+            ema200DiffPct1d: (ema200Diff || 0).toFixed(2),
+            rsi: rsi?.value?.toFixed(1) || 'N/A',
+            macdLine: 'N/A',
+            macdSignal: 'N/A', 
+            macdHist: 'N/A',
             bbPosition,
-            volumeSpikeMultiple: volumeSpikeMultiple.toFixed(1),
+            volumeSpikeMultiple: (volumeSpikeMultiple || 0).toFixed(1),
             bias,
             price: currentPrice,
             volume24h,
@@ -3789,14 +3784,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           bucketResults[bucket].push(bucketEntry);
           bucketAnalyzedCount++;
-          console.log(`📋 BUCKET: ${ticker.symbol} -> ${bucket} (Vol: ${dailyRangePct.toFixed(1)}%, RSI: ${rsi?.value.toFixed(1) || 'N/A'}, Bias: ${bias})`);
+          console.log(`📋 BUCKET: ${ticker.symbol} -> ${bucket} (Vol: ${(dailyRangePct || 0).toFixed(1)}%, RSI: ${rsi?.value?.toFixed(1) || 'N/A'}, Bias: ${bias})`);
           
         } catch (error) {
           console.log(`⚠️ Bucket analysis error for ${ticker.symbol}:`, error.message);
         }
       }
       
-      console.log(`📊 Bucket Analysis Summary: Processed ${bucketAnalyzedCount} pairs, Skipped ${bucketSkippedVolume} (volume), ${bucketSkippedData} (data), Found ${bucketResults.Aggressive.length} Aggressive, ${bucketResults.Balanced.length} Balanced, ${bucketResults.ConservativeBiasOnly.length} Conservative`);
+      console.log(`📊 Bucket Analysis Summary: Processed ${bucketAnalyzedCount} pairs, Skipped ${bucketSkippedData} (data), Found ${bucketResults.Aggressive.length} Aggressive, ${bucketResults.Balanced.length} Balanced, ${bucketResults.ConservativeBiasOnly.length} Conservative`);
       
       // Sort each bucket by priority metrics
       bucketResults.Aggressive.sort((a, b) => parseFloat(b.volumeSpikeMultiple) - parseFloat(a.volumeSpikeMultiple));
