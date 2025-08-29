@@ -1301,6 +1301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               description: `AI Bot: ${orderData.botName}`,
               strategy: 'ai',
               riskLevel: 'medium',
+              source: 'ai_bot', // Mark as AI-generated strategy
               config: {
                 positionDirection: 'long',
                 timeframe: '1h',
@@ -2154,7 +2155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cleanup route to fix existing auto scanner strategies
+  // Cleanup route to fix existing auto scanner and AI bot strategies
   app.post('/api/fix-auto-scanner-strategies', async (req, res) => {
     try {
       const userId = 'default-user';
@@ -2162,24 +2163,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let updatedCount = 0;
       for (const strategy of strategies) {
-        // Check if this is an auto-generated strategy (starts with auto-ai- or contains scanner timestamp)
+        // Check if this is an auto-generated strategy
         if (strategy.id.startsWith('auto-ai-') || strategy.name.includes('Auto Scanner')) {
+          // Auto scanner strategies
           if (strategy.source !== 'auto_scanner') {
             await storage.updateBotStrategy(strategy.id, { source: 'auto_scanner' });
             updatedCount++;
             console.log(`✅ Fixed strategy: ${strategy.name} → source: auto_scanner`);
+          }
+        } else if (strategy.strategy === 'ai' || strategy.name.includes('AI Bot:')) {
+          // AI bot strategies created dynamically
+          if (strategy.source !== 'ai_bot') {
+            await storage.updateBotStrategy(strategy.id, { source: 'ai_bot' });
+            updatedCount++;
+            console.log(`✅ Fixed AI bot strategy: ${strategy.name} → source: ai_bot`);
           }
         }
       }
       
       res.json({ 
         success: true, 
-        message: `Updated ${updatedCount} auto scanner strategies`,
+        message: `Updated ${updatedCount} auto-generated strategies`,
         updatedCount 
       });
     } catch (error) {
-      console.error('Error fixing auto scanner strategies:', error);
-      res.status(500).json({ error: 'Failed to fix auto scanner strategies' });
+      console.error('Error fixing auto-generated strategies:', error);
+      res.status(500).json({ error: 'Failed to fix auto-generated strategies' });
     }
   });
 

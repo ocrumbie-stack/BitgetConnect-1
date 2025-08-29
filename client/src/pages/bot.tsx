@@ -651,6 +651,7 @@ export default function BotPage() {
       name: strategyName,
       strategy: 'manual',
       riskLevel,
+      source: 'manual', // Mark as manually created strategy
       description: `${positionDirection === 'long' ? 'Long' : 'Short'} strategy with ${timeframe} timeframe`,
       config: {
         positionDirection,
@@ -747,7 +748,7 @@ export default function BotPage() {
             capital,
             leverage,
             status: 'active',
-            deploymentType: 'folder',
+            deploymentType: strategy.isAI ? 'ai_bot' : 'folder',
             folderId: selectedFolder,
             botName: `${folder.name} - ${strategy.name}`, // Use folder name as bot name
             folderName: folder.name // Also store folder name for compatibility
@@ -781,7 +782,7 @@ export default function BotPage() {
           capital,
           leverage,
           status: 'active',
-          deploymentType: 'manual',
+          deploymentType: strategy.isAI ? 'ai_bot' : 'manual',
           botName: strategy.name // Always use the strategy name for bot naming
         };
         
