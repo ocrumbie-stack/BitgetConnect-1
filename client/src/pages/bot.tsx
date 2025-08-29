@@ -3187,7 +3187,7 @@ export default function BotPage() {
                     </div>
 
                     {/* Status Display */}
-                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
+                    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full ${isContinuousActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
