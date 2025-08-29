@@ -8,15 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Label } from '@/components/ui/label';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb, Eye, X } from 'lucide-react';
+import { Bot, Plus, Play, Edit2, Trash2, TrendingUp, TrendingDown, Settings, Square, Bell, ChevronDown, ChevronRight, Activity, BarChart3, Target, Zap, Users, DollarSign, TrendingUp as Trend, Info, Search, Lightbulb, Eye } from 'lucide-react';
 import { AlertCenter } from '@/components/AlertCenter';
 import { BackButton } from '@/components/BackButton';
 import { DynamicExitVisualizer } from '@/components/DynamicExitVisualizer';
-import { TradingStyleSelector } from '@/components/TradingStyleSelector';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BotPage() {
@@ -71,17 +68,12 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
-  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner'>('individual');
+  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
-  const [showAutoAICreation, setShowAutoAICreation] = useState(false);
-  const [selectedPairForAutoAI, setSelectedPairForAutoAI] = useState<string | null>(null);
-  const [autoAIBotCapital, setAutoAIBotCapital] = useState('100');
-  const [autoAIBotLeverage, setAutoAIBotLeverage] = useState('3');
   const [selectedBotInfo, setSelectedBotInfo] = useState<any>(null);
   const [expandedBots, setExpandedBots] = useState<{[key: string]: boolean}>({});
-  const [expandedPositions, setExpandedPositions] = useState<{[key: string]: boolean}>({});
   const [suggestedSettings, setSuggestedSettings] = useState<any>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
@@ -92,48 +84,20 @@ export default function BotPage() {
   // Auto Market Scanner state
   const [scannerCapital, setScannerCapital] = useState('10000');
   const [scannerMaxBots, setScannerMaxBots] = useState('5');
-  const [scannerLeverage, setScannerLeverage] = useState('3'); // Default 3x leverage
-  const [scannerName, setScannerName] = useState(''); // Custom scanner name for folder organization
+  const [scannerMinConfidence, setScannerMinConfidence] = useState('70');
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
 
 
-  // Fetch user strategies (filter to only show manually created ones)
-  const { data: allStrategies = [], isLoading: strategiesLoading } = useQuery({
+  // Fetch user strategies
+  const { data: userStrategies = [], isLoading: strategiesLoading } = useQuery({
     queryKey: ['/api/bot-strategies'],
     staleTime: 0,
     gcTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
-
-  // Auto-fix existing auto scanner strategies on first load
-  useEffect(() => {
-    const fixAutoScannerStrategies = async () => {
-      try {
-        const response = await fetch('/api/fix-auto-scanner-strategies', { method: 'POST' });
-        if (response.ok) {
-          const result = await response.json();
-          if (result.updatedCount > 0) {
-            console.log(`✅ Fixed ${result.updatedCount} auto scanner strategies`);
-            // Refresh the strategies list
-            queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
-          }
-        }
-      } catch (error) {
-        console.log('Auto-fix already completed or not needed');
-      }
-    };
-    
-    // Only run this once when strategies are first loaded
-    if (allStrategies.length > 0) {
-      fixAutoScannerStrategies();
-    }
-  }, [allStrategies.length > 0]);
-
-  // Filter to only show manually created strategies in "My Strategies" card
-  const userStrategies = (allStrategies as any[]).filter((strategy: any) => strategy.source === 'manual' || !strategy.source);
 
   // Define AI bots at component level so they can be accessed everywhere
   const aiBots = [
@@ -247,17 +211,10 @@ export default function BotPage() {
     queryKey: ['/api/futures']
   });
 
-  // Fetch user preferences for trading style
-  const { data: userPrefs } = useQuery({
-    queryKey: ['/api/user-preferences', 'default-user'],
-  });
-
   // Show ALL running bots (both active and waiting) - not just ones currently in trades
   const activeExecutions = (allExecutions as any[]).filter((execution: any) => 
     execution.status === 'active' || execution.status === 'waiting_entry' || execution.status === 'exit_pending'
   );
-
-
 
   // Fetch folders for dropdown
   const { data: folders = [] } = useQuery({
@@ -340,40 +297,6 @@ export default function BotPage() {
     }
   });
 
-  // Close single position mutation
-  const closePositionMutation = useMutation({
-    mutationFn: async ({ symbol, side }: { symbol: string, side: string }) => {
-      const response = await fetch('/api/close-position', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: 'default-user',
-          symbol,
-          side 
-        })
-      });
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to close position: ${error}`);
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
-      toast({
-        title: "Position Closed",
-        description: "Position has been closed successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Close Position",
-        description: error.message || "Failed to close position.",
-        variant: "destructive",
-      });
-    }
-  });
-
   // Close all positions mutation
   const closeAllPositionsMutation = useMutation({
     mutationFn: async () => {
@@ -404,26 +327,27 @@ export default function BotPage() {
     }
   });
 
-  // Auto Market Scanner - SCAN ONLY
+  // Auto Market Scanner mutation
   const autoScannerMutation = useMutation({
     mutationFn: async (scannerData: any) => {
-      const response = await fetch('/api/auto-scanner/scan', {
+      const response = await fetch('/api/auto-scanner/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scannerData)
       });
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to scan market: ${error}`);
+        throw new Error(`Failed to deploy auto scanner: ${error}`);
       }
       return response.json();
     },
     onSuccess: (results) => {
       setScannerResults(results);
       setIsScanning(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
       toast({
-        title: "Market Scan Complete! 🔍",
-        description: `Found ${results.opportunities.length} trading opportunities`,
+        title: "Auto Market Scanner Complete! 🎯",
+        description: `Deployed ${results.deployedBots} AI bots to top market opportunities`,
       });
     },
     onError: (error: any) => {
@@ -436,100 +360,28 @@ export default function BotPage() {
     }
   });
 
-  // Auto Market Scanner - DEPLOY BOTS
-  const autoDeployMutation = useMutation({
-    mutationFn: async (deployData: any) => {
-      const response = await fetch('/api/auto-scanner/deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(deployData)
-      });
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to deploy bots: ${error}`);
-      }
-      return response.json();
-    },
-    onSuccess: (results) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+  // Handle auto scanner deployment
+  const handleAutoScannerDeploy = async () => {
+    if (!scannerCapital || parseFloat(scannerCapital) <= 0) {
       toast({
-        title: "Bots Deployed Successfully! 🤖",
-        description: `Deployed ${results.deployedBots} AI bots with $${results.capitalPerBot} each`,
-      });
-      // Clear scan results after successful deployment
-      setScannerResults(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Deployment Failed",
-        description: error.message || "Failed to deploy bots",
+        title: "Invalid Capital",
+        description: "Please enter a valid capital amount for auto scanner deployment",
         variant: "destructive",
       });
+      return;
     }
-  });
-
-  // Handle auto scanner - SCAN ONLY
-  const handleAutoScannerScan = async () => {
-    // Use selected trading style from the TradingStyleSelector
-    // Default to balanced if no style is selected
-    let tradingStyle = 'balanced';
-    let minConfidence = 60; // Default balanced confidence
-    
-    // Try to get current trading style from user preferences
-    if (userPrefs && typeof userPrefs === 'object' && 'tradingStyle' in userPrefs) {
-      tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
-    }
-
-    // Set confidence based on trading style presets - REALISTIC thresholds
-    const styleConfidenceMap: { [key: string]: number } = {
-      'conservative': 35,
-      'balanced': 25,
-      'aggressive': 20
-    };
-    minConfidence = styleConfidenceMap[tradingStyle] || 25;
 
     setIsScanning(true);
     setScannerResults(null);
     
     const scannerData = {
       userId: 'default-user',
+      totalCapital: parseFloat(scannerCapital),
       maxBots: parseInt(scannerMaxBots),
-      minConfidence: minConfidence,
-      tradingStyle: tradingStyle
+      minConfidence: parseInt(scannerMinConfidence)
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
-  };
-
-  // Handle bot deployment from scan results
-  const handleDeployBots = async () => {
-    if (!scannerResults?.opportunities || scannerResults.opportunities.length === 0) {
-      toast({
-        title: "No Opportunities",
-        description: "No trading opportunities available to deploy",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!scannerCapital || parseFloat(scannerCapital) <= 0) {
-      toast({
-        title: "Invalid Capital",
-        description: "Please enter a valid capital amount for bot deployment",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const deployData = {
-      userId: 'default-user',
-      opportunities: scannerResults.opportunities,
-      totalCapital: parseFloat(scannerCapital),
-      leverage: parseInt(scannerLeverage),
-      scannerName: scannerName.trim() || `Auto Scanner - ${new Date().toLocaleDateString()}`
-    };
-
-    await autoDeployMutation.mutateAsync(deployData);
   };
 
   // Terminate all bots in a folder
@@ -562,62 +414,6 @@ export default function BotPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
     }
   });
-
-  // Create Auto AI Bot mutation
-  const createAutoAIBotMutation = useMutation({
-    mutationFn: async (botData: any) => {
-      const response = await fetch('/api/bot-executions/ai-bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(botData)
-      });
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to create AI bot: ${error}`);
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
-      setShowAutoAICreation(false);
-      setSelectedPairForAutoAI(null);
-      toast({
-        title: "Auto AI Bot Created",
-        description: `AI bot deployed successfully for ${selectedPairForAutoAI}`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to Create Bot",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Handle Auto AI Bot creation form submission
-  const handleCreateAutoAIBot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedPairForAutoAI || !autoAIBotCapital || !autoAIBotLeverage) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const botData = {
-      userId: 'default-user',
-      tradingPair: selectedPairForAutoAI,
-      capital: parseFloat(autoAIBotCapital),
-      leverage: parseInt(autoAIBotLeverage),
-      deploymentType: 'auto_ai'
-    };
-
-    await createAutoAIBotMutation.mutateAsync(botData);
-  };
 
   const resetForm = () => {
     setStrategyName('');
@@ -652,7 +448,6 @@ export default function BotPage() {
       name: strategyName,
       strategy: 'manual',
       riskLevel,
-      source: 'manual', // Mark as manually created strategy
       description: `${positionDirection === 'long' ? 'Long' : 'Short'} strategy with ${timeframe} timeframe`,
       config: {
         positionDirection,
@@ -700,29 +495,8 @@ export default function BotPage() {
       return;
     }
 
-    // Auto scanner mode doesn't need pair/folder validation - it selects automatically
-
     try {
-      if (deploymentMode === 'auto_scanner') {
-        // Deploy AI bot using Auto Market Scanner
-        const executionData = {
-          userId: 'default-user',
-          strategyId: strategy.id,
-          tradingPair: 'AUTO_SCANNER_MODE', // Special marker for auto scanner
-          capital,
-          leverage,
-          status: 'waiting_entry',
-          deploymentType: 'auto_scanner',
-          botName: `Auto AI - ${strategy.name}`
-        };
-        
-        await runStrategyMutation.mutateAsync(executionData);
-        setShowRunDialog(false);
-        toast({
-          title: "AI Bot Deployed Successfully! 🤖",
-          description: `Auto scanner will find optimal trading opportunities using ${leverage}x leverage with $${capital} capital`,
-        });
-      } else if (selectedFolder) {
+      if (selectedFolder) {
         // Deploy to folder
         const folder = (folders as any[]).find(f => f.id === selectedFolder);
         if (!folder || !folder.tradingPairs || folder.tradingPairs.length === 0) {
@@ -749,7 +523,7 @@ export default function BotPage() {
             capital,
             leverage,
             status: 'active',
-            deploymentType: strategy.isAI ? 'ai_bot' : 'folder',
+            deploymentType: 'folder',
             folderId: selectedFolder,
             botName: `${folder.name} - ${strategy.name}`, // Use folder name as bot name
             folderName: folder.name // Also store folder name for compatibility
@@ -783,7 +557,7 @@ export default function BotPage() {
           capital,
           leverage,
           status: 'active',
-          deploymentType: strategy.isAI ? 'ai_bot' : 'manual',
+          deploymentType: 'manual',
           botName: strategy.name // Always use the strategy name for bot naming
         };
         
@@ -1451,17 +1225,7 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                    {(() => {
-                      // Count unique bot instances (by strategyId + botName combination) that have at least one active execution
-                      const uniqueBots = new Set();
-                      (activeExecutions as any[]).forEach(ex => {
-                        if (ex.status === 'active') {
-                          const botKey = `${ex.strategyId}-${ex.botName || 'default'}`;
-                          uniqueBots.add(botKey);
-                        }
-                      });
-                      return uniqueBots.size;
-                    })()}
+                    {(activeExecutions as any[]).length}
                   </div>
                   <div className="text-xs text-green-600 dark:text-green-400">Active Bots</div>
                 </div>
@@ -1491,8 +1255,6 @@ export default function BotPage() {
               </div>
             </CardContent>
           </Card>
-
-
 
           <Card 
             className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
@@ -1553,8 +1315,6 @@ export default function BotPage() {
       <div className="p-4">
         <div className="w-full">
 
-
-
           {/* AI Bots Section */}
           {activeTab === 'ai' && (
           <div className="space-y-4 mt-4">
@@ -1564,23 +1324,6 @@ export default function BotPage() {
                 6 Professional Bots Available
               </Badge>
             </div>
-
-            {/* Trading Style Selector for AI Bots */}
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-orange-500 rounded-lg">
-                    <Target className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Trading Style Preferences</h4>
-                    <p className="text-sm text-muted-foreground">Customize AI bot behavior to match your risk tolerance</p>
-                  </div>
-                </div>
-                
-                <TradingStyleSelector />
-              </CardContent>
-            </Card>
 
             {(() => {
               return (
@@ -1618,10 +1361,14 @@ export default function BotPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedStrategy({ ...bot, isAI: true });
-                                // For AI bots, use auto-scanner mode with simplified inputs
-                                setDeploymentMode('auto_scanner');
+                                // Pre-fill with suggested defaults
+                                const defaultPair = bot.recommendedPairs[0] || 'BTCUSDT';
+                                setPairSearch(defaultPair);
+                                setTradingPair(defaultPair);
                                 setCapital(bot.suggestedCapital?.split('-')[0] || '1000');
-                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '3');
+                                setLeverage(bot.suggestedLeverage?.split('-')[0] || '1');
+                                // Trigger auto-suggest filtering for the pre-filled pair
+                                handlePairSearchChange(defaultPair);
                                 setShowRunDialog(true);
                               }}
                             >
@@ -1737,62 +1484,79 @@ export default function BotPage() {
               </Badge>
             </div>
 
-            {/* Scanner Configuration Card */}
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-orange-500 rounded-lg">
-                    <Target className="h-4 w-4 text-white" />
+            <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-cyan-200 dark:border-cyan-800">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="p-3 bg-cyan-500 rounded-lg">
+                    <Search className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Scanner Configuration</h4>
-                    <p className="text-sm text-muted-foreground">Configure trading style, max bots, and start scanning</p>
+                    <h4 className="font-semibold text-lg mb-2">Fully Autonomous Trading</h4>
+                    <p className="text-muted-foreground">
+                      AI scans the entire market, evaluates all trading pairs using multi-indicator analysis, 
+                      and automatically deploys bots to the highest-confidence opportunities. You only need to set your capital.
+                    </p>
                   </div>
                 </div>
-                
-                {/* Trading Style Selector */}
-                <div className="mb-6">
-                  <TradingStyleSelector />
-                </div>
 
-                {/* Scanner Settings */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Maximum Bots to Deploy</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Total Capital ($)</label>
                     <Input
                       type="number"
-                      value={scannerMaxBots}
-                      onChange={(e) => setScannerMaxBots(e.target.value)}
-                      placeholder="e.g., 5"
-                      min="1"
-                      max="10"
-                      data-testid="input-max-bots"
+                      value={scannerCapital}
+                      onChange={(e) => setScannerCapital(e.target.value)}
+                      placeholder="10000"
+                      className="bg-white dark:bg-gray-800"
+                      disabled={isScanning}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Maximum number of AI bots to deploy automatically (1-10)
+                      Will be split equally across selected opportunities
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Scanner Name</label>
-                    <Input
-                      type="text"
-                      value={scannerName}
-                      onChange={(e) => setScannerName(e.target.value)}
-                      placeholder="e.g., Morning Scalp Session"
-                      data-testid="input-scanner-name"
-                    />
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Max Bots</label>
+                    <Select value={scannerMaxBots} onValueChange={setScannerMaxBots} disabled={isScanning}>
+                      <SelectTrigger className="bg-white dark:bg-gray-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 Bots</SelectItem>
+                        <SelectItem value="5">5 Bots</SelectItem>
+                        <SelectItem value="8">8 Bots</SelectItem>
+                        <SelectItem value="10">10 Bots</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <p className="text-xs text-muted-foreground">
-                      Custom name for organizing deployed bots in a dedicated folder
+                      Maximum number of trading pairs to deploy
                     </p>
                   </div>
 
-                  {/* Start Scanner Button */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Min Confidence</label>
+                    <Select value={scannerMinConfidence} onValueChange={setScannerMinConfidence} disabled={isScanning}>
+                      <SelectTrigger className="bg-white dark:bg-gray-800">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="60">60% - More Opportunities</SelectItem>
+                        <SelectItem value="70">70% - Balanced</SelectItem>
+                        <SelectItem value="80">80% - Conservative</SelectItem>
+                        <SelectItem value="90">90% - Ultra Conservative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Minimum AI confidence required for deployment
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
                   <Button
-                    onClick={handleAutoScannerScan}
-                    disabled={isScanning || autoScannerMutation.isPending}
-                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
-                    data-testid="button-start-scanner"
+                    onClick={handleAutoScannerDeploy}
+                    disabled={isScanning || !scannerCapital}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                   >
                     {isScanning ? (
                       <>
@@ -1806,116 +1570,21 @@ export default function BotPage() {
                       </>
                     )}
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Scanner Results Card */}
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="p-3 bg-green-500 rounded-lg">
-                    <Target className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-lg mb-2">Scanner Results & Deployment</h4>
-                    <p className="text-muted-foreground">
-                      Set capital allocation and leverage for selected opportunities, then deploy your bots.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Deployment Configuration */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Total Capital ($)</label>
-                    <Input
-                      type="number"
-                      value={scannerCapital}
-                      onChange={(e) => setScannerCapital(e.target.value)}
-                      placeholder="10000"
-                      className="bg-white dark:bg-gray-800"
-                      disabled={isScanning}
-                      data-testid="input-scanner-capital"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Will be split equally across selected opportunities
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Leverage</label>
-                    <Select value={scannerLeverage} onValueChange={setScannerLeverage} disabled={isScanning}>
-                      <SelectTrigger className="bg-white dark:bg-gray-800" data-testid="select-scanner-leverage">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2">2x</SelectItem>
-                        <SelectItem value="3">3x</SelectItem>
-                        <SelectItem value="5">5x</SelectItem>
-                        <SelectItem value="10">10x</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Leverage for all deployed bots
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium">Deploy Status</label>
-                    <div className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border">
-                      {scannerResults ? (
-                        <Badge variant="default" className="bg-green-500">
-                          Ready to Deploy
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          Run Scanner First
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {scannerResults ? 'Results available for deployment' : 'Start scanner to find opportunities'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Deploy Button */}
-                <div className="flex items-center gap-4">
-                  <Button
-                    onClick={handleDeployBots}
-                    disabled={!scannerResults?.opportunities || autoDeployMutation.isPending || isScanning}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
-                    data-testid="button-deploy-bots"
-                  >
-                    {autoDeployMutation.isPending ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 mr-2 border-b-2 border-white"></div>
-                        Deploying...
-                      </>
-                    ) : (
-                      <>
-                        <Target className="h-4 w-4 mr-2" />
-                        Deploy Selected Bots
-                      </>
-                    )}
-                  </Button>
                   
-                  {scannerResults?.opportunities && scannerCapital && (
+                  {scannerCapital && parseInt(scannerMaxBots) > 0 && (
                     <div className="text-sm text-muted-foreground">
-                      {scannerResults.opportunities.length} opportunities • Capital per bot: ${(parseFloat(scannerCapital) / scannerResults.opportunities.length).toFixed(2)}
+                      Capital per bot: ${(parseFloat(scannerCapital) / parseInt(scannerMaxBots)).toFixed(2)}
                     </div>
                   )}
                 </div>
 
-                {/* Display scanning progress and results in the results card */}
                 {isScanning && (
                   <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
                       <div>
-                        <div className="font-medium">Results will appear below when scanning completes...</div>
-                        <div className="text-sm">Use the results card to deploy selected opportunities</div>
+                        <div className="font-medium">Analyzing Market...</div>
+                        <div className="text-sm">Evaluating 100+ trading pairs with AI indicators</div>
                       </div>
                     </div>
                   </div>
@@ -1926,12 +1595,20 @@ export default function BotPage() {
                     <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-3">
                         <Target className="h-5 w-5" />
-                        <span className="font-medium">Scanner Complete! Use Results Card Below</span>
+                        <span className="font-medium">Deployment Complete!</span>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <div className="text-muted-foreground">Opportunities Found</div>
-                          <div className="font-bold text-lg">{scannerResults.opportunities?.length || 0}</div>
+                          <div className="text-muted-foreground">Bots Deployed</div>
+                          <div className="font-bold text-lg">{scannerResults.deployedBots}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Total Capital</div>
+                          <div className="font-bold text-lg">${scannerResults.totalCapital}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Capital/Bot</div>
+                          <div className="font-bold text-lg">${scannerResults.capitalPerBot}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Confidence</div>
@@ -1942,98 +1619,30 @@ export default function BotPage() {
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Display Multi-Bucket Analysis Results */}
-                      {(scannerResults.opportunities?.length > 0 || scannerResults.bucketClassified?.total > 0) && (
-                        <div className="mt-4 space-y-4">
-                          
-                          {/* High-Confidence Trading Opportunities */}
-                          {scannerResults.opportunities?.length > 0 && (
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium text-muted-foreground">High-Confidence Opportunities:</div>
-                              <div className="flex flex-wrap gap-2">
-                                {scannerResults.opportunities.map((opp: any, index: number) => (
-                                  <div 
-                                    key={index}
-                                    className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 border rounded-lg text-sm"
-                                  >
-                                    <span className="font-medium">{opp.symbol}</span>
-                                    <span className={`text-xs px-2 py-0.5 rounded ${
-                                      opp.direction === 'long' 
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                    }`}>
-                                      {opp.direction?.toUpperCase()}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Volatility-Based Bucket Classification */}
-                          {scannerResults.bucketClassified?.total > 0 && (
-                            <div className="space-y-3">
-                              <div className="text-sm font-medium text-muted-foreground">Volatility Classification:</div>
-                              
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {/* Aggressive Bucket */}
-                                <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                    <span className="text-sm font-medium text-red-900 dark:text-red-100">Aggressive</span>
-                                    <Badge variant="secondary" className="ml-auto">
-                                      {scannerResults.bucketClassified.Aggressive || 0}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-red-700 dark:text-red-300 space-y-1">
-                                    <div>• 1m/5m timeframes</div>
-                                    <div>• &gt;8% daily volatility</div>
-                                    <div>• RSI extremes, BB breaks</div>
-                                    <div>• Volume spikes &gt;2x</div>
-                                  </div>
-                                </div>
-                                
-                                {/* Balanced Bucket */}
-                                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                    <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Balanced</span>
-                                    <Badge variant="secondary" className="ml-auto">
-                                      {scannerResults.bucketClassified.Balanced || 0}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                                    <div>• 15m/1h timeframes</div>
-                                    <div>• 3-8% daily volatility</div>
-                                    <div>• EMA trend alignment</div>
-                                    <div>• MACD/RSI confirmation</div>
-                                  </div>
-                                </div>
-                                
-                                {/* Conservative Bucket */}
-                                <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Trend className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                    <span className="text-sm font-medium text-green-900 dark:text-green-100">Conservative</span>
-                                    <Badge variant="secondary" className="ml-auto">
-                                      {scannerResults.bucketClassified.ConservativeBiasOnly || 0}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                                    <div>• 4h/1d timeframes</div>
-                                    <div>• &lt;3% daily volatility</div>
-                                    <div>• EMA200 bias filter</div>
-                                    <div>• Position trading</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
+
+                    {scannerResults.deployedDetails && scannerResults.deployedDetails.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium">Deployed Trading Pairs</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {scannerResults.deployedDetails.map((bot: any, index: number) => (
+                            <div key={index} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-medium">{bot.symbol}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {bot.direction?.toUpperCase()} • ${bot.capital}
+                                  </div>
+                                </div>
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  {bot.confidence}%
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -2232,469 +1841,228 @@ export default function BotPage() {
                   // Group ALL running executions (active, waiting, exit_pending) - exclude only terminated ones
                   (activeExecutions as any[]).forEach((execution: any) => {
                     // Show all running bots regardless of status (active, waiting_entry, exit_pending)
-                    
-                    // Check if this is an AI strategy bot (regardless of deployment type)
-                    const isAIStrategy = execution.botName && (
-                      execution.botName.includes('Smart ') || 
-                      execution.botName.includes('Grid Trading Pro') || 
-                      execution.botName.includes('AI') && !execution.botName.includes('Auto AI')
-                    );
-                    
-                    // True Auto Market Scanner bots (deployed via Auto Market Scanner)
-                    if (execution.deploymentType === 'auto_scanner' && !isAIStrategy) {
-                      // Group by scanner name extracted from bot name or use folder name
-                      let scannerGroupName = execution.folderName || '🤖 Auto Scanner';
-                      
-                      // Extract scanner name from bot name if it contains a custom scanner name
-                      if (execution.botName?.includes(' - ') && execution.botName.startsWith('🤖')) {
-                        const parts = execution.botName.split(' - ');
-                        if (parts.length >= 3) {
-                          // Format: "🤖 Scanner Name - Date - SYMBOL" -> use "🤖 Scanner Name - Date"
-                          scannerGroupName = `${parts[0]} - ${parts[1]}`;
-                        } else if (parts.length >= 2) {
-                          // Format: "🤖 Scanner Name - SYMBOL" -> use "🤖 Scanner Name"
-                          scannerGroupName = parts[0];
-                        }
-                      }
-                      
-                      if (!folderGroups[scannerGroupName]) {
-                        folderGroups[scannerGroupName] = [];
-                      }
-                      folderGroups[scannerGroupName].push(execution);
-                    } 
-                    // AI Strategy bots - group by strategy name with proper naming
-                    else if (isAIStrategy || (execution.deploymentType === 'folder_bulk' && execution.botName && (execution.botName.includes('Smart ') || execution.botName.includes('Grid Trading Pro')))) {
-                      // Extract and format strategy name from bot name
-                      let strategyName = execution.botName;
-                      
-                      // Handle "Auto AI - Strategy Name" format
-                      if (strategyName.startsWith('Auto AI - ')) {
-                        strategyName = strategyName.replace('Auto AI - ', '');
-                      }
-                      // Handle "Strategy - Pair" format  
-                      else if (strategyName.includes(' - ') && !strategyName.startsWith('Auto AI')) {
-                        strategyName = strategyName.split(' - ')[0];
-                      }
-                      
-                      // Create descriptive folder name for AI strategies
-                      const folderDisplayName = `🤖 ${strategyName}`;
-                      
-                      if (!folderGroups[folderDisplayName]) {
-                        folderGroups[folderDisplayName] = [];
-                      }
-                      folderGroups[folderDisplayName].push(execution);
-                    }
-                    // Regular folder deployments
-                    else if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && execution.folderName) {
-                      const folderName = execution.folderName;
+                    if ((execution.deploymentType === 'folder_bulk' || execution.deploymentType === 'folder') && (execution.folderName || execution.botName)) {
+                      const folderName = execution.folderName || execution.botName;
                       if (!folderGroups[folderName]) {
                         folderGroups[folderName] = [];
                       }
                       folderGroups[folderName].push(execution);
-                    } 
-                    // Manual individual bots
-                    else if (!execution.folderName || execution.deploymentType === 'manual') {
+                    } else if (!execution.folderName || execution.deploymentType === 'manual') {
                       manualExecutions.push(execution);
                     }
                   });
 
                   return (
                     <>
-                      {/* Folder Groups - All organized bots */}
-                      {Object.keys(folderGroups).map((folderName) => {
-                        const folderBots = folderGroups[folderName];
-                        const isAutoScanner = folderName.includes('Auto Scanner') || folderBots[0]?.deploymentType === 'auto_scanner';
-                        
-                        return (
-                          <Card key={folderName} className={`border-l-4 ${isAutoScanner ? 'border-l-green-500 bg-gradient-to-br from-green-900/10 to-emerald-800/10' : 'border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-cyan-800/10'}`}>
-                            <CardContent className="p-4">
-                              <div 
-                                className="cursor-pointer"
-                                onClick={() => setExpandedFolders(prev => ({ ...prev, [folderName]: !prev[folderName] }))}
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                                    {expandedFolders[folderName] ? (
-                                      <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    )}
-                                    <h4 className="font-medium truncate">{folderName}</h4>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="destructive"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (window.confirm(`Stop all ${folderBots.length} bots in ${folderName}? This will close all positions.`)) {
-                                        folderBots.forEach(bot => handleTerminateExecution.mutate(bot.id));
-                                      }
-                                    }}
-                                    className="flex-shrink-0 h-7 px-2 text-xs"
-                                  >
-                                    <Square className="h-3 w-3 mr-1" />
-                                    Stop All
-                                  </Button>
-                                </div>
-                                
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <Badge variant="secondary" className={`${isAutoScanner ? 'bg-green-100 text-green-700 border-green-300' : 'bg-blue-100 text-blue-700 border-blue-300'} text-xs`}>
-                                      <span className={`w-2 h-2 ${isAutoScanner ? 'bg-green-500' : 'bg-blue-500'} rounded-full mr-1`}></span>
-                                      {folderBots.length} pairs
-                                    </Badge>
-                                    <Badge variant="outline" className={`${isAutoScanner ? 'text-green-600 border-green-300' : 'text-blue-600 border-blue-300'} text-xs`}>
-                                      {isAutoScanner ? 'Auto Deployed' : 'Manual Deployed'}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className={`text-sm font-medium ${isAutoScanner ? 'text-green-500' : 'text-blue-500'}`}>
-                                      +${folderBots.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {folderBots.filter(ex => ex.status === 'active').length}/{folderBots.length} active
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Expanded Folder Details */}
-                              {expandedFolders[folderName] && (
-                                <div className="mt-4 pt-4 border-t border-border">
-                                  <div className="space-y-2">
-                                    {folderBots.map((execution: any) => (
-                                      <div key={execution.id} className={`p-3 rounded-lg ${isAutoScanner ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/40' : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'}`}>
-                                        <div className="space-y-3">
-                                          <div className="flex items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                                              <span className={`px-3 py-1.5 rounded text-sm font-medium truncate ${isAutoScanner ? 'bg-green-600/80' : 'bg-blue-600/80'} text-white`}>
-                                                {execution.tradingPair}
-                                              </span>
-                                              <Badge variant="outline" className={`text-xs ${
-                                                execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
-                                                  : execution.status === 'waiting_entry'
-                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                              }`}>
-                                                {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
-                                              </Badge>
-                                            </div>
-                                            {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                              <div className="flex gap-2">
-                                                {execution.status === 'active' && (
-                                                  <Button 
-                                                    size="sm" 
-                                                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                    onClick={(e) => {
-                                                      e.preventDefault();
-                                                      e.stopPropagation();
-                                                      setSelectedBotForVisualization(execution);
-                                                      setShowExitVisualizer(true);
-                                                    }}
-                                                  >
-                                                    👁 Exit
-                                                  </Button>
-                                                )}
-                                                <Button 
-                                                  size="sm"
-                                                  className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
-                                                  onClick={(e) => {
-                                                    e.preventDefault();
-                                                    handleTerminateExecution.mutate(execution.id);
-                                                  }}
-                                                >
-                                                  ⏹ Stop
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
-                                          
-                                          {/* Exit Information - Restored original format */}
-                                          <div className="flex items-center justify-between min-w-0">
-                                            <div className="flex items-center gap-2">
-                                              <Badge variant="outline" className={`text-xs ${
-                                                execution.status === 'active' 
-                                                  ? (isAutoScanner ? 'border-green-500 text-green-400 bg-green-950/30' : 'border-blue-500 text-blue-400 bg-blue-950/30')
-                                                  : execution.status === 'waiting_entry'
-                                                  ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                  : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                              }`}>
-                                                {execution.status === 'waiting_entry' ? 'waiting entry' : execution.status}
-                                              </Badge>
-                                              {execution.confidence && (
-                                                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
-                                                  {execution.confidence}% confidence
-                                                </Badge>
-                                              )}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
-                                              <div className="text-gray-400 text-xs">
-                                                {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'} • {execution.leverage}x
-                                              </div>
-                                              <div className="flex items-center gap-1">
-                                                <span className={`font-medium ${
-                                                  execution.positionData?.unrealizedPL ? 
-                                                    parseFloat(execution.positionData.unrealizedPL) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                    : parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-                                                }`}>
-                                                  {execution.positionData?.unrealizedPL ? 
-                                                    `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}`
-                                                    : `${parseFloat(execution.profit || '0') >= 0 ? '+' : ''}$${parseFloat(execution.profit || '0').toFixed(2)}`}
-                                                </span>
-                                                <span className={`text-xs ${
-                                                  execution.positionData?.unrealizedPL && execution.capital ? 
-                                                    ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                    : parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-                                                }`}>
-                                                  ({execution.positionData?.unrealizedPL && execution.capital ? 
-                                                    `${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? '+' : ''}${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2)}%`
-                                                    : `${parseFloat(execution.roi || '0') >= 0 ? '+' : ''}${parseFloat(execution.roi || '0').toFixed(2)}%`})
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Exit Levels Information */}
-                                          {execution.status === 'active' && (
-                                            <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
-                                              <div className="flex items-center gap-3">
-                                                <span className="text-red-400">
-                                                  SL: {execution.exitCriteria?.stopLoss || '-6%'}
-                                                </span>
-                                                <span className="text-green-400">
-                                                  TP: {execution.exitCriteria?.takeProfit || '+18%'}
-                                                </span>
-                                              </div>
-                                              {execution.positionData && (
-                                                <span className="text-gray-400">
-                                                  Entry: ${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}
-                                                </span>
-                                              )}
-                                            </div>
-                                          )}
-
-                                          {/* Inline Position Details - Only shown when expanded */}
-                                          {expandedPositions[execution.id] && execution.status === 'active' && execution.positionData && (
-                                            <div className="mt-3 p-3 bg-gray-800/50 rounded-lg border border-gray-600/30">
-                                              <div className="text-sm space-y-2">
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Current Price:</span>
-                                                  <span className="font-medium">${parseFloat(execution.positionData.markPrice || 0).toFixed(4)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Entry Price:</span>
-                                                  <span className="font-medium">${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Position Size:</span>
-                                                  <span className="font-medium">{execution.positionData.total} {execution.tradingPair.replace('USDT', '')}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Side:</span>
-                                                  <span className={`font-medium ${execution.positionData.holdSide === 'long' ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {execution.positionData.holdSide}
-                                                  </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Unrealized P&L:</span>
-                                                  <span className={`font-medium ${parseFloat(execution.positionData.unrealizedPL || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                    ${parseFloat(execution.positionData.unrealizedPL || 0).toFixed(4)}
-                                                  </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Margin Used:</span>
-                                                  <span className="font-medium">${parseFloat(execution.positionData.marginSize || 0).toFixed(2)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-400">Liquidation:</span>
-                                                  <span className="font-medium text-red-400">${parseFloat(execution.positionData.liquidationPrice || 0).toFixed(4)}</span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-
-                      {/* Manual Individual Bots */}
-                      {manualExecutions.length > 0 && (
-                        <Card className="border-l-4 border-l-gray-500 bg-gradient-to-br from-gray-900/10 to-slate-800/10">
+                      {/* Folder-deployed bots grouped by folder */}
+                      {Object.entries(folderGroups).map(([folderName, executions]) => (
+                        <Card key={folderName} className={`${
+                          executions.some((ex: any) => {
+                            // Check if any execution in this folder is an AI bot
+                            const strategy = (userStrategies as any[]).find((s: any) => s.id === ex.strategyId) || aiBots.find(b => b.id === ex.strategyId);
+                            return strategy && (strategy.isAI || ex.botName?.includes('Smart') || ex.botName?.includes('AI'));
+                          }) 
+                            ? 'border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-900/10 to-purple-800/10' 
+                            : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
+                        }`}>
                           <CardContent className="p-4">
+                            {/* Folder Header - Always Visible */}
                             <div 
                               className="cursor-pointer"
-                              onClick={() => setExpandedFolders(prev => ({ ...prev, 'manual': !prev['manual'] }))}
+                              onClick={() => setExpandedFolders(prev => ({ ...prev, [folderName]: !prev[folderName] }))}
                             >
+                              {/* First row: Folder name and expand/collapse */}
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  {expandedFolders['manual'] ? (
+                                  {expandedFolders[folderName] ? (
                                     <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   ) : (
                                     <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   )}
-                                  <h4 className="font-medium truncate">Manual Deployments</h4>
+                                  <h4 className="font-medium truncate">{folderName}</h4>
                                 </div>
                                 <Button 
                                   size="sm" 
                                   variant="destructive"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (window.confirm(`Stop all ${manualExecutions.length} manual bots? This will close all positions.`)) {
-                                      manualExecutions.forEach(bot => handleTerminateExecution.mutate(bot.id));
+                                    if (window.confirm(`Stop all ${executions.length} bots in ${folderName} folder? This will remove the entire folder from active bots.`)) {
+                                      handleTerminateFolder.mutate(folderName);
                                     }
                                   }}
+                                  disabled={handleTerminateFolder.isPending}
                                   className="flex-shrink-0 h-7 px-2 text-xs"
                                 >
                                   <Square className="h-3 w-3 mr-1" />
-                                  Stop All
+                                  Stop
                                 </Button>
                               </div>
                               
+                              {/* Second row: Badges and stats */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-300 text-xs">
-                                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-1"></span>
-                                    {manualExecutions.length} pairs
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
+                                    {executions.length} bots
                                   </Badge>
-                                  <Badge variant="outline" className="text-gray-600 border-gray-300 text-xs">
-                                    Manual Deployed
+                                  <Badge variant="outline" className="text-purple-600 border-purple-300 text-xs">
+                                    Bulk Deployed
                                   </Badge>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-sm font-medium text-gray-500">
-                                    +${manualExecutions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                  <div className="text-sm font-medium text-green-500">
+                                    +${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    {manualExecutions.filter(ex => ex.status === 'active').length}/{manualExecutions.length} active
+                                    {executions.filter(ex => ex.status === 'active').length}/{executions.length} active
                                   </div>
                                 </div>
                               </div>
                             </div>
 
-                            {/* Expanded Manual Details */}
-                            {expandedFolders['manual'] && (
+                            {/* Expanded Details */}
+                            {expandedFolders[folderName] && (
                               <div className="mt-4 pt-4 border-t border-border">
+                                <div className="mb-3">
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Total Capital: ${executions.reduce((sum, ex) => sum + parseFloat(ex.capital || '0'), 0).toLocaleString()} • 
+                                    Total Trades: {executions.reduce((sum, ex) => sum + parseInt(ex.trades || '0'), 0)} •
+                                    Total Cycles: {executions.reduce((sum, ex) => sum + parseInt(ex.cycles || '0'), 0)}
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="bg-gradient-to-r from-green-900/20 to-green-800/20 border border-green-500/30 rounded p-2">
+                                      <div className="text-green-400 font-medium">Portfolio P&L</div>
+                                      <div className={`text-sm font-bold ${
+                                        executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0) >= 0 ? 'text-green-400' : 'text-red-400'
+                                      }`}>
+                                        {executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0) >= 0 ? '+' : ''}${executions.reduce((sum, ex) => sum + parseFloat(ex.profit || '0'), 0).toFixed(2)}
+                                      </div>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-500/30 rounded p-2">
+                                      <div className="text-blue-400 font-medium">Active Pairs</div>
+                                      <div className="text-sm font-bold text-blue-400">{executions.length} pairs</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Individual Bot Details */}
                                 <div className="space-y-2">
-                                  {manualExecutions.map((execution: any) => (
-                                    <div key={execution.id} className="p-3 rounded-lg bg-gradient-to-r from-gray-900/20 to-slate-900/20 border border-gray-500/40">
-                                      <div className="space-y-3">
-                                        <div className="flex items-center justify-between gap-2">
-                                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <span className="px-3 py-1.5 rounded text-sm font-medium truncate bg-gray-600/80 text-white">
-                                              {execution.tradingPair}
+                                  {executions.map((execution: any) => (
+                                    <div key={execution.id} className={`p-3 rounded-lg ${
+                                      (() => {
+                                        const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                        return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                      })()
+                                        ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/40'
+                                        : 'bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/40'
+                                    }`}>
+                                      <div className="grid grid-rows-2 gap-3">
+                                        {/* Top row: Bot name, cycles, status */}
+                                        <div className="flex items-center justify-between min-w-0">
+                                          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                                            <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
+                                              (() => {
+                                                const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                                return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                              })()
+                                                ? 'bg-purple-600/80 text-white' 
+                                                : 'bg-blue-600/80 text-white'
+                                            }`}>
+                                              {execution.botName || 'Manual Bot'}
                                             </span>
-                                            <Badge variant="outline" className={`text-xs ${
+                                            <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
+                                              {execution.cycles || 0} cycles
+                                            </span>
+                                            <Badge variant="outline" className={`text-sm ${
                                               execution.status === 'active' 
-                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                ? 'border-green-500 text-green-400 bg-green-950/30'
                                                 : execution.status === 'waiting_entry'
                                                 ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
+                                                : execution.status === 'exit_pending'
+                                                ? 'border-orange-500 text-orange-400 bg-orange-950/30'
+                                                : 'border-blue-500 text-blue-400 bg-blue-950/30'
                                             }`}>
-                                              {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
+                                              {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
                                             </Badge>
                                           </div>
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                            <div className="flex gap-2">
-                                              {execution.status === 'active' && (
+                                            <div className="flex gap-1">
+                                              {execution.status === 'active' && execution.positionData && (
                                                 <Button 
                                                   size="sm" 
-                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                  variant="outline"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
-                                                    console.log('Exit button clicked for manual bot:', execution.tradingPair);
-                                                    console.log('Setting selectedBotForVisualization and showExitVisualizer to true');
                                                     setSelectedBotForVisualization(execution);
-                                                    setTimeout(() => setShowExitVisualizer(true), 10);
+                                                    setShowExitVisualizer(true);
                                                   }}
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
                                                 >
-                                                  👁 Exit
+                                                  <Eye className="h-3 w-3 mr-1" />
+                                                  Exit
                                                 </Button>
                                               )}
                                               <Button 
-                                                size="sm"
-                                                className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 text-sm font-medium rounded-lg"
+                                                size="sm" 
+                                                variant="destructive"
                                                 onClick={(e) => {
                                                   e.preventDefault();
+                                                  e.stopPropagation();
+                                                  console.log('🛑 Terminating folder bot:', execution.id, execution.botName);
                                                   handleTerminateExecution.mutate(execution.id);
                                                 }}
+                                                disabled={handleTerminateExecution.isPending}
+                                                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
                                               >
-                                                ⏹ Stop
+                                                <Square className="h-3 w-3 mr-1" />
+                                                Stop
                                               </Button>
                                             </div>
                                           )}
                                         </div>
-
-                                        {/* Exit Information - Manual Bots */}
+                                        
+                                        {/* Bottom row: Trading pair, capital, P&L */}
                                         <div className="flex items-center justify-between min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className={`text-xs ${
-                                              execution.status === 'active' 
-                                                ? 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                                : execution.status === 'waiting_entry'
-                                                ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
-                                                : 'border-gray-500 text-gray-400 bg-gray-950/30'
-                                            }`}>
-                                              {execution.status === 'waiting_entry' ? 'waiting entry' : execution.status}
-                                            </Badge>
-                                            {execution.confidence && (
-                                              <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
-                                                {execution.confidence}% confidence
-                                              </Badge>
-                                            )}
-                                          </div>
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                                (() => {
+                                                  const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                                  return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                                })()
+                                                  ? 'hover:text-purple-500' 
+                                                  : 'hover:text-blue-500'
+                                              }`}>
+                                                <div className="flex items-center gap-1">
+                                                  <span className="text-sm text-gray-300 font-mono truncate max-w-20">{execution.tradingPair}</span>
+                                                  <ChevronDown className="h-4 w-4" />
+                                                </div>
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="start" className="w-64">
+                                              <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
+                                                <div className="flex flex-col space-y-1">
+                                                  <div className="font-medium">Bot: {execution.botName || 'Manual Bot'}</div>
+                                                  <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
+                                                  <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                                  <div className="text-sm text-muted-foreground">Strategy: {execution.strategyName || 'Folder'}</div>
+                                                </div>
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
                                           <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
-                                            <div className="text-gray-400 text-xs">
-                                              {execution.capital ? `$${parseFloat(execution.capital).toFixed(0)}` : '$0'} • {execution.leverage}x
-                                            </div>
+                                            <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
                                             <div className="flex items-center gap-1">
-                                              <span className={`font-medium ${
-                                                execution.positionData?.unrealizedPL ? 
-                                                  parseFloat(execution.positionData.unrealizedPL) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                  : parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-                                              }`}>
-                                                {execution.positionData?.unrealizedPL ? 
-                                                  `${parseFloat(execution.positionData.unrealizedPL) >= 0 ? '+' : ''}$${parseFloat(execution.positionData.unrealizedPL).toFixed(2)}`
-                                                  : `${parseFloat(execution.profit || '0') >= 0 ? '+' : ''}$${parseFloat(execution.profit || '0').toFixed(2)}`}
+                                              <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
                                               </span>
-                                              <span className={`text-xs ${
-                                                execution.positionData?.unrealizedPL && execution.capital ? 
-                                                  ((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? 'text-green-400' : 'text-red-400'
-                                                  : parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-                                              }`}>
-                                                ({execution.positionData?.unrealizedPL && execution.capital ? 
-                                                  `${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100) >= 0 ? '+' : ''}${((parseFloat(execution.positionData.unrealizedPL) / parseFloat(execution.capital)) * 100).toFixed(2)}%`
-                                                  : `${parseFloat(execution.roi || '0') >= 0 ? '+' : ''}${parseFloat(execution.roi || '0').toFixed(2)}%`})
+                                              <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
                                               </span>
                                             </div>
                                           </div>
                                         </div>
-
-                                        {/* Exit Levels Information for Manual Bots */}
-                                        {execution.status === 'active' && (
-                                          <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-gray-600/30">
-                                            <div className="flex items-center gap-3">
-                                              <span className="text-red-400">
-                                                SL: {execution.stopLoss ? `${parseFloat(execution.stopLoss).toFixed(1)}%` : '-2.0%'}
-                                              </span>
-                                              <span className="text-green-400">
-                                                TP: {execution.takeProfit ? `${parseFloat(execution.takeProfit).toFixed(1)}%` : '+3.0%'}
-                                              </span>
-                                            </div>
-                                            {execution.positionData && (
-                                              <span className="text-gray-400">
-                                                Entry: ${parseFloat(execution.positionData.openPriceAvg || 0).toFixed(4)}
-                                              </span>
-                                            )}
-                                          </div>
-                                        )}
                                       </div>
                                     </div>
                                   ))}
@@ -2703,123 +2071,1517 @@ export default function BotPage() {
                             )}
                           </CardContent>
                         </Card>
-                      )}
+                      ))}
 
+                      {/* Individual manually deployed bots */}
+                      {manualExecutions.map((execution: any) => (
+                        <Card key={execution.id} className={`${
+                          (() => {
+                            const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                            return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                          })()
+                            ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
+                            : 'border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-900/10 to-blue-800/10'
+                        }`}>
+                          <CardContent className="p-3">
+                            <div className="grid grid-rows-2 gap-3">
+                              {/* Top row: Bot name, cycles, status */}
+                              <div className="flex items-center justify-between min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                                  <span className={`px-2.5 py-1.5 rounded text-sm font-medium ${
+                                    (() => {
+                                      const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                      return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                    })()
+                                      ? 'bg-purple-600/80 text-white' 
+                                      : 'bg-blue-600/80 text-white'
+                                  }`}>
+                                    {(() => {
+                                      if (execution.botName) return execution.botName;
+                                      const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                      return strategy ? strategy.name : 'Manual Bot';
+                                    })()}
+                                  </span>
+                                  <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-sm font-medium">
+                                    {execution.cycles || 0} cycles
+                                  </span>
+                                  <Badge variant="outline" className={`text-sm ${
+                                    execution.status === 'active' 
+                                      ? 'border-green-500 text-green-400 bg-green-950/30'
+                                      : execution.status === 'waiting_entry'
+                                      ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
+                                      : execution.status === 'exit_pending'
+                                      ? 'border-orange-500 text-orange-400 bg-orange-950/30'
+                                      : 'border-blue-500 text-blue-400 bg-blue-950/30'
+                                  }`}>
+                                    {execution.status === 'waiting_entry' ? 'waiting for entry' : execution.status}
+                                  </Badge>
+                                </div>
+                                {(execution.status === 'active' || execution.status === 'waiting_entry') && (
+                                  <div className="flex gap-1">
+                                    {execution.status === 'active' && execution.positionData && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setSelectedBotForVisualization(execution);
+                                          setShowExitVisualizer(true);
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 px-2 py-1 text-sm h-7 flex-shrink-0"
+                                      >
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Exit
+                                      </Button>
+                                    )}
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('🛑 Terminating bot:', execution.id, execution.botName);
+                                        handleTerminateExecution.mutate(execution.id);
+                                      }}
+                                      disabled={handleTerminateExecution.isPending}
+                                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-sm h-7 flex-shrink-0"
+                                    >
+                                      <Square className="h-3 w-3 mr-1" />
+                                      Stop
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Bottom row: Trading pair, capital, P&L */}
+                              <div className="flex items-center justify-between min-w-0">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className={`p-0 h-auto font-medium transition-colors text-left justify-start ${
+                                      (() => {
+                                        const strategy = (userStrategies as any[]).find((s: any) => s.id === execution.strategyId) || aiBots.find(b => b.id === execution.strategyId);
+                                        return strategy && (strategy.isAI || execution.botName?.includes('Smart') || execution.botName?.includes('AI'));
+                                      })()
+                                        ? 'hover:text-purple-500' 
+                                        : 'hover:text-blue-500'
+                                    }`}>
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-sm text-gray-300 font-mono truncate max-w-20">
+                                          {execution.tradingPair}
+                                        </span>
+                                        <ChevronDown className="h-4 w-4" />
+                                      </div>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start" className="w-64">
+                                    <DropdownMenuItem onClick={() => setLocation(`/charts?pair=${execution.tradingPair}`)}>
+                                      <div className="flex flex-col space-y-1">
+                                        <div className="font-medium">Bot: {(() => {
+                                          if (execution.botName) return execution.botName;
+                                          const strategy = aiBots.find(b => b.id === execution.strategyId);
+                                          return strategy ? strategy.name : 'Manual Bot';
+                                        })()}</div>
+                                        <div className="text-sm text-muted-foreground">Capital: ${parseFloat(execution.capital || '0').toFixed(2)}</div>
+                                        <div className="text-sm text-muted-foreground">Leverage: {execution.leverage}x</div>
+                                        <div className="text-sm text-muted-foreground">Strategy: {(() => {
+                                          const strategy = aiBots.find(b => b.id === execution.strategyId) || (userStrategies as any[]).find((s: any) => s.id === execution.strategyId);
+                                          return strategy ? strategy.name : 'Manual';
+                                        })()}</div>
+                                      </div>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                                <div className="flex flex-col items-end gap-1 text-sm text-right min-w-0">
+                                  <div className="text-gray-400 text-xs">${parseFloat(execution.capital || '0').toFixed(2)} • {execution.leverage}x</div>
+                                  <div className="flex items-center gap-1">
+                                    <span className={`font-medium ${parseFloat(execution.profit || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      {parseFloat(execution.profit || '0') >= 0 ? '+' : ''}${parseFloat(execution.profit || '0').toFixed(2)}
+                                    </span>
+                                    <span className={`text-xs ${parseFloat(execution.roi || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                      ({parseFloat(execution.roi || '0') >= 0 ? '+' : ''}{parseFloat(execution.roi || '0').toFixed(2)}%)
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </>
                   );
                 })()}
               </div>
             )}
           </div>
-        )}
-      </div>
-
-
-
-        {/* Auto AI Bot Creation Modal */}
-        {showAutoAICreation && selectedPairForAutoAI && (
-          <Dialog open={showAutoAICreation} onOpenChange={(open) => {
-            setShowAutoAICreation(open);
-            if (!open) setSelectedPairForAutoAI(null);
-          }}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Auto AI Bot Creation - {selectedPairForAutoAI}</DialogTitle>
-              </DialogHeader>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center mb-6">
-                    <Bot className="mx-auto h-12 w-12 text-blue-500 mb-3" />
-                    <h3 className="text-lg font-semibold">Setting up Auto AI Bot</h3>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      AI will analyze market conditions and execute trades automatically using advanced indicators
-                    </p>
-                  </div>
-                  
-                  <form onSubmit={handleCreateAutoAIBot} className="space-y-4">
-                    <div>
-                      <Label htmlFor="autoai-capital">Investment Amount ($)</Label>
-                      <Input
-                        id="autoai-capital"
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        max="1000"
-                        value={autoAIBotCapital}
-                        onChange={(e) => setAutoAIBotCapital(e.target.value)}
-                        placeholder="Enter investment amount"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="autoai-leverage">Leverage</Label>
-                      <Select value={autoAIBotLeverage} onValueChange={setAutoAIBotLeverage}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select leverage" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1x (Conservative)</SelectItem>
-                          <SelectItem value="2">2x (Moderate)</SelectItem>
-                          <SelectItem value="3">3x (Aggressive)</SelectItem>
-                          <SelectItem value="5">5x (High Risk)</SelectItem>
-                          <SelectItem value="10">10x (Maximum)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="pt-4">
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={createAutoAIBotMutation.isPending}
-                      >
-                        {createAutoAIBotMutation.isPending ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Creating Auto AI Bot...
-                          </>
-                        ) : (
-                          <>
-                            <Bot className="h-4 w-4 mr-2" />
-                            Create Auto AI Bot
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Exit Visualizer Dialog */}
-        {showExitVisualizer && selectedBotForVisualization && (
-          <Dialog open={true} onOpenChange={() => {
-            setShowExitVisualizer(false);
-            setSelectedBotForVisualization(null);
-          }}>
-            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Exit Information - {selectedBotForVisualization.tradingPair}</DialogTitle>
-                <DialogDescription>Real-time exit conditions and position details</DialogDescription>
-              </DialogHeader>
-              <DynamicExitVisualizer 
-                bot={selectedBotForVisualization}
-                onClose={() => {
-                  setShowExitVisualizer(false);
-                  setSelectedBotForVisualization(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-        
-        {/* Debug info */}
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
-          showExitVisualizer: {showExitVisualizer.toString()}<br/>
-          selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
+          )}
         </div>
       </div>
+
+      {/* Alert Center Dialog */}
+      {showAlertCenter && (
+        <AlertCenter />
+      )}
+
+      {/* Create Strategy Dialog */}
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Create Trading Strategy</DialogTitle>
+            <DialogDescription>
+              Create a reusable strategy that can be applied to any trading pair
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Strategy Name</label>
+              <Input 
+                placeholder="My Trading Strategy" 
+                value={strategyName}
+                onChange={(e) => setStrategyName(e.target.value)}
+              />
+            </div>
+
+            {/* AI Settings Suggestions */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 p-4 rounded-lg border border-blue-300 dark:border-blue-600">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">AI Settings Suggestions</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Get optimized settings for specific trading pairs</p>
+                </div>
+                <div className="p-2 bg-blue-200 dark:bg-blue-800 rounded-full">
+                  <Bot className="h-4 w-4 text-blue-700 dark:text-blue-200" />
+                </div>
+              </div>
+              
+              <div className="relative flex gap-2">
+                <div className="flex-1 relative">
+                  <Input 
+                    placeholder="Enter pair (e.g., BTCUSDT, ENA, SOL)" 
+                    value={pairSearch}
+                    onChange={(e) => handlePairSearchChange(e.target.value.toUpperCase())}
+                    className="pr-10"
+                    onFocus={() => {
+                      if (filteredPairs.length > 0) setShowAutoSuggest(true);
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow clicking on suggestions
+                      setTimeout(() => setShowAutoSuggest(false), 200);
+                    }}
+                  />
+                  
+                  {/* Auto-suggest dropdown */}
+                  {showAutoSuggest && filteredPairs.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                      {filteredPairs.map((pair: any, index: number) => (
+                        <div
+                          key={pair.symbol}
+                          onClick={() => selectPair(pair)}
+                          className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium text-white">
+                              {pair.symbol}
+                            </div>
+                            <div className={`text-xs font-medium ${
+                              parseFloat(pair.change24h) >= 0 
+                                ? 'text-green-400' 
+                                : 'text-red-400'
+                            }`}>
+                              {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Button 
+                  type="button"
+                  onClick={() => generateBotSuggestions(pairSearch)}
+                  disabled={!pairSearch.trim()}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Get AI Suggestions
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Timeframe</label>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1m">1 Minute</SelectItem>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Risk Level</label>
+                <Select value={riskLevel} onValueChange={setRiskLevel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low Risk</SelectItem>
+                    <SelectItem value="medium">Medium Risk</SelectItem>
+                    <SelectItem value="high">High Risk</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Position Direction */}
+            <div>
+              <label className="text-sm font-medium mb-3 block">Position Direction</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div 
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    positionDirection === 'long' 
+                      ? 'border-green-500 bg-green-500/10' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-green-400'
+                  }`}
+                  onClick={() => setPositionDirection('long')}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-green-600 dark:text-green-400">Long</div>
+                    <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Profit when price goes up
+                  </div>
+                </div>
+                <div 
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    positionDirection === 'short' 
+                      ? 'border-red-500 bg-red-500/10' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-red-400'
+                  }`}
+                  onClick={() => setPositionDirection('short')}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-red-600 dark:text-red-400">Short</div>
+                    <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Profit when price goes down
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Risk Management Section with Mutually Exclusive Stop Loss/Trailing Stop */}
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+              <h4 className="font-medium text-sm mb-3">Risk Management</h4>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Take Profit (%)</label>
+                <Input 
+                  type="number"
+                  placeholder="5"
+                  value={takeProfit}
+                  onChange={(e) => setTakeProfit(e.target.value)}
+                />
+              </div>
+
+              {/* Mutually Exclusive Stop Loss and Trailing Stop */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Stop Loss (%)</label>
+                  <Input 
+                    type="number"
+                    placeholder="2"
+                    value={stopLoss}
+                    disabled={!!trailingStop}
+                    onChange={(e) => {
+                      setStopLoss(e.target.value);
+                      if (e.target.value) {
+                        setTrailingStop(''); // Clear trailing stop when setting stop loss
+                      }
+                    }}
+                  />
+                  {!!trailingStop && (
+                    <p className="text-xs text-muted-foreground">
+                      Disabled - using Trailing Stop instead
+                    </p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block">Trailing Stop (%)</label>
+                  <Input 
+                    type="number"
+                    placeholder="3"
+                    value={trailingStop}
+                    disabled={!!stopLoss}
+                    onChange={(e) => {
+                      setTrailingStop(e.target.value);
+                      if (e.target.value) {
+                        setStopLoss(''); // Clear stop loss when setting trailing stop
+                      }
+                    }}
+                  />
+                  {!!stopLoss && (
+                    <p className="text-xs text-muted-foreground">
+                      Disabled - using Stop Loss instead
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                  <h4 className="font-medium text-sm">Entry Conditions</h4>
+                  
+                  {/* RSI */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="rsi"
+                        checked={indicators.rsi.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          rsi: { ...indicators.rsi, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="rsi" className="text-sm font-medium">RSI (Relative Strength Index)</label>
+                    </div>
+                    {indicators.rsi.enabled && (
+                      <div className="grid grid-cols-3 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Period</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.rsi.period}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, period: e.target.value === '' ? '' : (parseInt(e.target.value) || 14) }
+                            })}
+                            placeholder="14"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.rsi.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above</SelectItem>
+                              <SelectItem value="below">Below</SelectItem>
+                              <SelectItem value="between">Between</SelectItem>
+                              <SelectItem value="oversold">Oversold (&lt;30)</SelectItem>
+                              <SelectItem value="overbought">Overbought (&gt;70)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-xs">Value</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.rsi.value}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              rsi: { ...indicators.rsi, value: e.target.value === '' ? '' : (parseInt(e.target.value) || 70) }
+                            })}
+                            placeholder="70"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* MACD */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="macd"
+                        checked={indicators.macd.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          macd: { ...indicators.macd, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="macd" className="text-sm font-medium">MACD</label>
+                    </div>
+                    {indicators.macd.enabled && (
+                      <div className="space-y-2 ml-6">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs">Fast Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.fastPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, fastPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 12) }
+                              })}
+                              placeholder="12"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Slow Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.slowPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, slowPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 26) }
+                              })}
+                              placeholder="26"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs">Signal Period</label>
+                            <Input 
+                              type="number" 
+                              value={indicators.macd.signalPeriod}
+                              onChange={(e) => setIndicators({
+                                ...indicators,
+                                macd: { ...indicators.macd, signalPeriod: e.target.value === '' ? '' : (parseInt(e.target.value) || 9) }
+                              })}
+                              placeholder="9"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.macd.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              macd: { ...indicators.macd, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
+                              <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                              <SelectItem value="above_signal">Above Signal</SelectItem>
+                              <SelectItem value="below_signal">Below Signal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Moving Averages */}
+                  {['ma1', 'ma2', 'ma3'].map((maKey) => (
+                    <div key={maKey} className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={maKey}
+                          checked={(indicators[maKey as keyof typeof indicators] as any).enabled}
+                          onChange={(e) => setIndicators({
+                            ...indicators,
+                            [maKey]: { ...indicators[maKey as keyof typeof indicators], enabled: e.target.checked }
+                          })}
+                        />
+                        <label htmlFor={maKey} className="text-sm font-medium">
+                          {maKey === 'ma1' ? 'Moving Average 1' : maKey === 'ma2' ? 'Moving Average 2' : 'Moving Average 3'}
+                        </label>
+                      </div>
+                      {(indicators[maKey as keyof typeof indicators] as any).enabled && (
+                        <div className="ml-2">
+                          <div className="p-4 rounded-lg border border-gray-300 dark:border-gray-600">
+                            {/* First Row Headers */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="text-center">
+                                <label className="text-xs">MA Type</label>
+                              </div>
+                              <div className="text-center">
+                                <label className="text-xs">Period</label>
+                              </div>
+                              <div className="text-center">
+                                <label className="text-xs">Condition</label>
+                              </div>
+                            </div>
+                            
+                            {/* First Row Values */}
+                            <div className="grid grid-cols-3 gap-4 mb-6">
+                              <div>
+                                <Select 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).type} 
+                                  onValueChange={(value) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], type: value }
+                                  })}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="sma">SMA</SelectItem>
+                                    <SelectItem value="ema">EMA</SelectItem>
+                                    <SelectItem value="wma">WMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Input 
+                                  type="number" 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).period1}
+                                  onChange={(e) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], period1: e.target.value === '' ? '' : (parseInt(e.target.value) || 20) }
+                                  })}
+                                  placeholder="20"
+                                  className="text-center"
+                                />
+                              </div>
+                              <div>
+                                <Select 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).condition} 
+                                  onValueChange={(value) => setIndicators({
+                                    ...indicators,
+                                    [maKey]: { ...indicators[maKey as keyof typeof indicators], condition: value }
+                                  })}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="above">Above</SelectItem>
+                                    <SelectItem value="below">Below</SelectItem>
+                                    <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                    <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {/* Second Row Headers */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="text-center">
+                                <label className="text-xs">Comparison</label>
+                              </div>
+                              <div className="text-center">
+                                <label className="text-xs">Comparison MA Type</label>
+                              </div>
+                              <div className="text-center">
+                                <label className="text-xs">Comparison Period</label>
+                              </div>
+                            </div>
+                            
+                            {/* Second Row Values */}
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <Select 
+                                  value={(indicators[maKey as keyof typeof indicators] as any).comparisonType || "price"}
+                                  onValueChange={(value) => {
+                                    setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], comparisonType: value }
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="price">Another MA</SelectItem>
+                                    <SelectItem value="ma">Price</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              {/* Comparison MA Type - only show when comparing to another MA */}
+                              <div>
+                                {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'price' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
+                                  <Select 
+                                    value={(indicators[maKey as keyof typeof indicators] as any).comparisonMAType || 'sma'}
+                                    onValueChange={(value) => setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], comparisonMAType: value }
+                                    })}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="sma">SMA</SelectItem>
+                                      <SelectItem value="ema">EMA</SelectItem>
+                                      <SelectItem value="wma">WMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                ) : (
+                                  <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded border flex items-center justify-center text-sm text-gray-500">
+                                    N/A
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Comparison Period */}
+                              <div>
+                                {((indicators[maKey as keyof typeof indicators] as any).comparisonType === 'price' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_up' || 
+                                  (indicators[maKey as keyof typeof indicators] as any).condition === 'crossing_down') ? (
+                                  <Input 
+                                    type="number" 
+                                    value={(indicators[maKey as keyof typeof indicators] as any).period2}
+                                    onChange={(e) => setIndicators({
+                                      ...indicators,
+                                      [maKey]: { ...indicators[maKey as keyof typeof indicators], period2: e.target.value === '' ? '' : (parseInt(e.target.value) || 50) }
+                                    })}
+                                    placeholder="50"
+                                    className="text-center"
+                                  />
+                                ) : (
+                                  <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded border flex items-center justify-center text-sm text-gray-500">
+                                    N/A
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Bollinger Bands */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="bollinger"
+                        checked={indicators.bollinger.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          bollinger: { ...indicators.bollinger, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="bollinger" className="text-sm font-medium">Bollinger Bands</label>
+                    </div>
+                    {indicators.bollinger.enabled && (
+                      <div className="grid grid-cols-3 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Period</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.bollinger.period}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, period: e.target.value === '' ? '' : (parseInt(e.target.value) || 20) }
+                            })}
+                            placeholder="20"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Std Dev</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.bollinger.stdDev}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, stdDev: parseFloat(e.target.value) || 2 }
+                            })}
+                            placeholder="2"
+                            step="0.1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.bollinger.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              bollinger: { ...indicators.bollinger, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_upper">Above Upper</SelectItem>
+                              <SelectItem value="below_lower">Below Lower</SelectItem>
+                              <SelectItem value="between_bands">Between Bands</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Volume */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="volume"
+                        checked={indicators.volume.enabled}
+                        onChange={(e) => setIndicators({
+                          ...indicators,
+                          volume: { ...indicators.volume, enabled: e.target.checked }
+                        })}
+                      />
+                      <label htmlFor="volume" className="text-sm font-medium">Volume Analysis</label>
+                    </div>
+                    {indicators.volume.enabled && (
+                      <div className="grid grid-cols-2 gap-2 ml-6">
+                        <div>
+                          <label className="text-xs">Condition</label>
+                          <Select 
+                            value={indicators.volume.condition} 
+                            onValueChange={(value) => setIndicators({
+                              ...indicators,
+                              volume: { ...indicators.volume, condition: value }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_average">Above Average</SelectItem>
+                              <SelectItem value="spike">Volume Spike</SelectItem>
+                              <SelectItem value="increasing">Increasing</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-xs">Multiplier</label>
+                          <Input 
+                            type="number" 
+                            value={indicators.volume.multiplier}
+                            onChange={(e) => setIndicators({
+                              ...indicators,
+                              volume: { ...indicators.volume, multiplier: parseFloat(e.target.value) || 1.5 }
+                            })}
+                            placeholder="1.5"
+                            step="0.1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setShowCreateForm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button"
+                onClick={handleCreateStrategy}
+                className="flex-1"
+                disabled={!strategyName.trim()}
+              >
+                Create Strategy
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Suggestions Dialog */}
+      <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              AI Bot Settings Suggestions
+            </DialogTitle>
+            <DialogDescription>
+              Optimized settings for {suggestedSettings?.pair} based on market analysis
+            </DialogDescription>
+          </DialogHeader>
+
+          {suggestedSettings && (
+            <div className="space-y-6 overflow-y-auto max-h-96">
+              {/* Market Analysis */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3">Market Analysis</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">24h Change</p>
+                    <p className={`font-bold text-lg ${suggestedSettings.analysis.change24h >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {suggestedSettings.analysis.change24h >= 0 ? '+' : ''}{suggestedSettings.analysis.change24h.toFixed(2)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Volatility</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.analysis.volatility}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Trend</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.analysis.trend}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Confidence</p>
+                    <p className="font-bold text-lg text-blue-600 dark:text-blue-400">{suggestedSettings.confidence}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SCALPING RECOMMENDATION - MOST PROMINENT */}
+              {suggestedSettings.scalping && (
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30 p-6 rounded-lg border-2 border-yellow-300 dark:border-yellow-600">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xl text-yellow-800 dark:text-yellow-200">SCALPING RECOMMENDATION</h4>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">Quick trade setup for fast profits</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-4">
+                    <p className="text-lg font-bold text-center mb-2">
+                      <span className={`${suggestedSettings.scalping.direction === 'long' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        GO {suggestedSettings.scalping.direction.toUpperCase()}
+                      </span> on {suggestedSettings.pair}
+                    </p>
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {suggestedSettings.scalping.entryCondition}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/30 rounded">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">TIMEFRAME</p>
+                        <p className="font-bold text-blue-800 dark:text-blue-200">{suggestedSettings.scalping.timeframe}</p>
+                      </div>
+                      <div className="text-center p-2 bg-purple-50 dark:bg-purple-950/30 rounded">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">LEVERAGE</p>
+                        <p className="font-bold text-purple-800 dark:text-purple-200">{suggestedSettings.scalping.leverage}x</p>
+                      </div>
+                      <div className="text-center p-2 bg-red-50 dark:bg-red-950/30 rounded">
+                        <p className="text-xs text-red-600 dark:text-red-400 font-semibold">STOP LOSS</p>
+                        <p className="font-bold text-red-800 dark:text-red-200">{suggestedSettings.scalping.stopLoss}%</p>
+                      </div>
+                      <div className="text-center p-2 bg-green-50 dark:bg-green-950/30 rounded">
+                        <p className="text-xs text-green-600 dark:text-green-400 font-semibold">TAKE PROFIT</p>
+                        <p className="font-bold text-green-800 dark:text-green-200">{suggestedSettings.scalping.takeProfit}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Recommended Settings */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">Alternative Settings</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Direction</p>
+                    <p className={`font-bold text-lg capitalize ${suggestedSettings.recommended.direction === 'long' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {suggestedSettings.recommended.direction}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Timeframe</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200">{suggestedSettings.recommended.timeframe}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Stop Loss</p>
+                    <p className="font-bold text-lg text-red-600 dark:text-red-400">{suggestedSettings.recommended.stopLoss}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Take Profit</p>
+                    <p className="font-bold text-lg text-green-600 dark:text-green-400">{suggestedSettings.recommended.takeProfit}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Risk Level</p>
+                    <p className="font-bold text-lg text-gray-800 dark:text-gray-200 capitalize">{suggestedSettings.recommended.riskLevel}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Suggested Leverage</p>
+                    <p className="font-bold text-lg text-blue-600 dark:text-blue-400">{suggestedSettings.recommended.leverage}x</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Suggested Indicators */}
+              {Object.keys(suggestedSettings.indicators || {}).length > 0 && (
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 p-4 rounded-lg border">
+                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-3">Suggested Technical Indicators</h4>
+                  <div className="space-y-2">
+                    {Object.entries(suggestedSettings.indicators).map(([key, config]: [string, any]) => (
+                      <div key={key} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">
+                          {key.toUpperCase()}: {config.condition}
+                          {config.period && ` (${config.period})`}
+                          {config.value && ` = ${config.value}`}
+                        </span>
+                        <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200">Enabled</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Reasoning */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 p-4 rounded-lg border">
+                <h4 className="font-semibold text-amber-700 dark:text-amber-300 mb-3">AI Analysis & Reasoning</h4>
+                <ul className="space-y-3">
+                  {suggestedSettings.reasoning.map((reason: string, index: number) => (
+                    <li key={index} className="flex items-start gap-3 text-sm">
+                      <div className="w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Button 
+                  onClick={applySuggestions}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg"
+                >
+                  Apply All Suggestions
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowSuggestions(false)}
+                  className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Run Dialog */}
+      <Dialog open={showRunDialog} onOpenChange={setShowRunDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              Deploy {selectedStrategy?.name || 'AI Trading Bot'}
+            </DialogTitle>
+            <DialogDescription>
+              Configure trading parameters for your bot deployment
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Deployment Mode Selector */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Deployment Mode</label>
+              <Select value={deploymentMode} onValueChange={(value: 'individual' | 'folder') => {
+                setDeploymentMode(value);
+                if (value === 'individual') {
+                  setSelectedFolder('');
+                } else {
+                  setTradingPair('');
+                  setPairSearch('');
+                }
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose deployment mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Individual Pair
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="folder">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      Entire Folder
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {deploymentMode === 'individual' 
+                  ? 'Deploy bot to a single trading pair'
+                  : 'Deploy bots to all pairs in a folder'
+                }
+              </p>
+            </div>
+
+            {/* Trading Pair Selection (Individual Mode) */}
+            {deploymentMode === 'individual' && (
+              <div className="relative">
+                <label className="text-sm font-medium">Trading Pair</label>
+              <div className="relative">
+                <Input
+                  value={pairSearch}
+                  onChange={(e) => handlePairSearchChange(e.target.value)}
+                  placeholder="Search trading pairs... (e.g., BTCUSDT)"
+                  className="pr-10"
+                  onFocus={() => {
+                    if (filteredPairs.length > 0) setShowAutoSuggest(true);
+                  }}
+                  onBlur={() => {
+                    // Delay hiding to allow clicking on suggestions
+                    setTimeout(() => setShowAutoSuggest(false), 200);
+                  }}
+                />
+                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+              </div>
+              
+              {/* Auto-suggest dropdown */}
+              {showAutoSuggest && filteredPairs.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                  {filteredPairs.map((pair: any, index: number) => (
+                    <div
+                      key={pair.symbol}
+                      onClick={() => {
+                        selectPair(pair);
+                        setTradingPair(pair.symbol);
+                        setShowAutoSuggest(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium text-white">
+                          {pair.symbol}
+                        </div>
+                        <div className={`text-xs font-medium ${
+                          parseFloat(pair.change24h) >= 0 
+                            ? 'text-green-400' 
+                            : 'text-red-400'
+                        }`}>
+                          {parseFloat(pair.change24h) >= 0 ? '+' : ''}{(parseFloat(pair.change24h) * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              </div>
+            )}
+
+            {/* Folder Selection (Folder Mode) */}
+            {deploymentMode === 'folder' && (
+              <div>
+                <label className="text-sm font-medium">Select Folder</label>
+                <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a folder to deploy to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {folders.map((folder: any) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-sm" 
+                            style={{ backgroundColor: folder.color || '#3b82f6' }}
+                          ></div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{folder.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {folder.tradingPairs?.length || 0} pairs
+                            </span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedFolder && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bots will be deployed to all pairs in this folder
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium">Capital Amount</label>
+              <Input
+                type="number"
+                value={capital}
+                onChange={(e) => setCapital(e.target.value)}
+                placeholder={selectedStrategy?.suggestedCapital?.split('-')[0] || "1000"}
+              />
+              {selectedStrategy?.suggestedCapital && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Suggested: {selectedStrategy.suggestedCapital} USDT</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Leverage</label>
+              <Input
+                type="number"
+                value={leverage}
+                onChange={(e) => setLeverage(e.target.value)}
+                placeholder={selectedStrategy?.suggestedLeverage?.split('-')[0] || "1"}
+                min="1"
+                max="100"
+              />
+              {selectedStrategy?.suggestedLeverage && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Suggested: {selectedStrategy.suggestedLeverage}x leverage</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowRunDialog(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedStrategy) {
+                  handleRunStrategy(selectedStrategy);
+                } else {
+                  alert('No strategy selected');
+                }
+              }}
+              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Deploy Bot
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Settings Dialog */}
+      <Dialog open={showBotSettings} onOpenChange={setShowBotSettings}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-gray-600" />
+              Bot Settings - {selectedBot?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Configure advanced settings for your trading bot
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Risk Level</label>
+              <Select defaultValue="medium">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Risk</SelectItem>
+                  <SelectItem value="medium">Medium Risk</SelectItem>
+                  <SelectItem value="high">High Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Stop Loss %</label>
+              <Input
+                type="number"
+                placeholder="2.0"
+                step="0.1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Take Profit %</label>
+              <Input
+                type="number"
+                placeholder="5.0"
+                step="0.1"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="autoReinvest" />
+              <label htmlFor="autoReinvest" className="text-sm">Auto-reinvest profits</label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBotSettings(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                alert('Bot settings updated successfully!');
+                setShowBotSettings(false);
+              }}
+              className="flex-1"
+            >
+              Save Settings
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bot Info Dialog */}
+      <Dialog open={showBotInfo} onOpenChange={setShowBotInfo}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              {selectedBotInfo?.name || 'Bot Information'}
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about this AI trading bot
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBotInfo && (
+            <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+              {/* Bot Description */}
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                <h4 className="font-medium text-sm mb-2">Strategy Overview</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedBotInfo.description}
+                </p>
+              </div>
+
+              {/* Key Statistics */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
+                  <div className="text-lg font-bold text-green-700 dark:text-green-300">{selectedBotInfo.winRate}</div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Avg Return</div>
+                  <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{selectedBotInfo.avgReturn}</div>
+                </div>
+              </div>
+
+              {/* Risk Level */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-amber-700 dark:text-amber-300">Risk Level</span>
+                  <span className={`text-sm font-bold px-2 py-1 rounded ${
+                    selectedBotInfo.risk === 'Low' 
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                      : selectedBotInfo.risk === 'Medium'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
+                      : 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200'
+                  }`}>
+                    {selectedBotInfo.risk}
+                  </span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <h4 className="font-medium text-sm mb-2">Key Features</h4>
+                <div className="flex flex-wrap gap-1">
+                  {selectedBotInfo.features?.map((feature: string, idx: number) => (
+                    <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommended Settings */}
+              <div>
+                <h4 className="font-medium text-sm mb-2">Recommended Settings</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Capital:</span>
+                    <span className="font-medium">${selectedBotInfo.suggestedCapital}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Leverage:</span>
+                    <span className="font-medium">{selectedBotInfo.suggestedLeverage}x</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Best Pairs:</span>
+                    <span className="font-medium text-right">{selectedBotInfo.recommendedPairs?.slice(0, 2).join(', ')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Usage Suggestion */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2">
+                  <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                    {selectedBotInfo.suggestedText}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4 flex-shrink-0">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBotInfo(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowBotInfo(false);
+                setSelectedStrategy({ ...selectedBotInfo, isAI: true });
+                // Pre-fill with suggested defaults
+                const defaultPair = selectedBotInfo?.recommendedPairs?.[0] || 'BTCUSDT';
+                setPairSearch(defaultPair);
+                setTradingPair(defaultPair);
+                setCapital(selectedBotInfo?.suggestedCapital?.split('-')[0] || '1000');
+                setLeverage(selectedBotInfo?.suggestedLeverage?.split('-')[0] || '1');
+                // Trigger auto-suggest filtering for the pre-filled pair
+                handlePairSearchChange(defaultPair);
+                setShowRunDialog(true);
+              }}
+              className={`flex-1 bg-gradient-to-r ${selectedBotInfo?.gradient || 'from-blue-500 to-cyan-500'} hover:opacity-90 text-white`}
+            >
+              Deploy Bot
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Strategy Dialog */}
+      <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Trading Strategy</DialogTitle>
+            <DialogDescription>
+              Update your existing trading strategy
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleUpdateStrategy} className="space-y-4 overflow-y-auto flex-1 pr-2">
+            <div>
+              <label className="text-sm font-medium block mb-2">Strategy Name</label>
+              <Input 
+                value={strategyName}
+                onChange={(e) => setStrategyName(e.target.value)}
+                placeholder="My Trading Strategy"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Position</label>
+                <Select value={positionDirection} onValueChange={(value: 'long' | 'short') => setPositionDirection(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="long">Long</SelectItem>
+                    <SelectItem value="short">Short</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">Timeframe</label>
+                <Select value={timeframe} onValueChange={setTimeframe}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1m">1 Minute</SelectItem>
+                    <SelectItem value="5m">5 Minutes</SelectItem>
+                    <SelectItem value="15m">15 Minutes</SelectItem>
+                    <SelectItem value="1h">1 Hour</SelectItem>
+                    <SelectItem value="4h">4 Hours</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium block mb-2">Risk Level</label>
+              <Select value={riskLevel} onValueChange={setRiskLevel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low Risk</SelectItem>
+                  <SelectItem value="medium">Medium Risk</SelectItem>
+                  <SelectItem value="high">High Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Take Profit (%)</label>
+                <Input 
+                  type="number"
+                  placeholder="5"
+                  value={takeProfit}
+                  onChange={(e) => setTakeProfit(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2">Stop Loss (%)</label>
+                <Input 
+                  type="number"
+                  placeholder="2"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-4 flex-shrink-0">
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setShowEditForm(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={updateStrategyMutation.isPending}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {updateStrategyMutation.isPending ? 'Updating...' : 'Update Strategy'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dynamic Exit Strategy Visualizer */}
+      {showExitVisualizer && selectedBotForVisualization && (
+        <DynamicExitVisualizer
+          bot={selectedBotForVisualization}
+          onClose={() => {
+            setShowExitVisualizer(false);
+            setSelectedBotForVisualization(null);
+          }}
+        />
+      )}
     </div>
   );
-};
+}

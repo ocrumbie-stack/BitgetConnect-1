@@ -875,7 +875,7 @@ export function Trade() {
               Orders({(ordersData as any[])?.length || 0})
             </TabsTrigger>
             <TabsTrigger value="bots" className="text-xs text-muted-foreground data-[state=active]:text-foreground">
-              Bots ({(botsData as any[])?.filter((bot: any) => bot.status === 'active' && bot.positionData).length || 0})
+              Bots ({(botsData as any[])?.filter((bot: any) => bot.status === 'active').length || 0})
             </TabsTrigger>
           </TabsList>
           
@@ -1125,7 +1125,7 @@ export function Trade() {
           <TabsContent value="bots" className="p-4 flex-1">
             {(botsData as any[])?.length > 0 ? (
               <div className="space-y-3">
-                {(botsData as any[]).filter((bot: any) => bot.status === 'active' && bot.positionData).map((bot: any) => (
+                {(botsData as any[]).filter((bot: any) => bot.status === 'active').map((bot: any) => (
                   <div key={bot.id} className="bg-card/50 rounded-lg p-3 border border-border">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 flex-wrap">

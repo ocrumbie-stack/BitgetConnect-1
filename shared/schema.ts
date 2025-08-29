@@ -7,18 +7,6 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  tradingStyle: text("trading_style").default('balanced'), // 'conservative', 'balanced', 'aggressive', 'high_risk'
-  preferences: jsonb("preferences").$type<{
-    confidenceThreshold?: number;
-    maxLeverage?: number;
-    riskTolerance?: 'low' | 'medium' | 'high' | 'extreme';
-    timeframePreference?: '1m' | '5m' | '15m' | '1h' | '4h';
-    tradingStyleSettings?: {
-      aggressive?: boolean;
-      scalping?: boolean;
-      volatilityFocus?: boolean;
-    };
-  }>(),
 });
 
 export const bitgetCredentials = pgTable("bitget_credentials", {
@@ -77,7 +65,6 @@ export const botStrategies = pgTable("bot_strategies", {
   name: text("name").notNull(),
   description: text("description"),
   strategy: text("strategy").notNull(), // 'ai' or 'manual'
-  source: text("source").notNull().default('manual'), // 'manual', 'auto_scanner'
   riskLevel: text("risk_level").notNull().default('medium'), // 'low', 'medium', 'high'
   config: jsonb("config").$type<{
     // Manual Strategy config 
