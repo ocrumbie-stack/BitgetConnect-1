@@ -3906,10 +3906,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deployedBots = [];
       const capitalPerBot = totalCapital / opportunities.length;
       
-      // Create scanner folder with custom name
+      // Create unique scanner folder for EVERY deployment with timestamp
+      const timestamp = new Date();
+      const timeString = timestamp.toLocaleString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+      
       const folderName = scannerName && scannerName.trim() 
-        ? `🤖 ${scannerName}` 
-        : `🤖 Auto Scanner - ${new Date().toLocaleDateString()}`;
+        ? `🤖 ${scannerName} - ${timeString}`
+        : `🤖 Auto Scanner - ${timeString}`;
       let scannerFolder;
       
       try {
@@ -3917,7 +3926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scannerFolder = await storage.createUserScreener({
           userId,
           name: folderName,
-          description: `Auto-deployed trading opportunities: ${opportunities.length} bots with $${capitalPerBot.toFixed(2)} each`,
+          description: `Scanner deployment at ${timestamp.toLocaleString()}: ${opportunities.length} bots, $${capitalPerBot.toFixed(2)} each, ${leverage}x leverage`,
           color: '#10b981',
           tradingPairs: opportunities.map((op: any) => op.symbol),
           isStarred: true,
@@ -3926,7 +3935,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalCapital: totalCapital,
             leverageUsed: leverage,
             scannerName: scannerName || 'Unnamed Scan',
-            deployedAt: new Date().toISOString()
+            deployedAt: timestamp.toISOString(),
+            uniqueId: `scanner-${Date.now()}`
           }
         });
         console.log(`📁 Created scanner folder: ${folderName}`);
