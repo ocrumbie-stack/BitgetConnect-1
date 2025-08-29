@@ -1429,7 +1429,7 @@ export default function BotPage() {
                   <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
+                  <div className="text-base text-blue-600 dark:text-blue-400">Strategies</div>
                 </div>
               </div>
             </CardContent>
@@ -1455,7 +1455,7 @@ export default function BotPage() {
                       return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-green-600 dark:text-green-400">Active</div>
+                  <div className="text-base text-green-600 dark:text-green-400">Active</div>
                 </div>
               </div>
             </CardContent>
@@ -1476,14 +1476,9 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                    {(() => {
-                      const aiBots = (activeExecutions as any[]).filter(ex => 
-                        ex.deploymentType === 'auto_scanner' && ex.status !== 'terminated'
-                      );
-                      return aiBots.length;
-                    })()}
+                    6
                   </div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">AI Bots</div>
+                  <div className="text-base text-purple-600 dark:text-purple-400">AI Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1511,7 +1506,7 @@ export default function BotPage() {
                       return scannerBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Scanner</div>
+                  <div className="text-base text-cyan-600 dark:text-cyan-400">Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -1548,7 +1543,7 @@ export default function BotPage() {
                       }`}>
                         {runningBots.length === 0 ? '$0.00' : `${sign}$${totalPL.toFixed(2)}`}
                       </div>
-                      <div className={`text-sm ${isPositive 
+                      <div className={`text-base ${isPositive 
                         ? 'text-green-600 dark:text-green-400' 
                         : 'text-red-600 dark:text-red-400'
                       }`}>Total P&L</div>
