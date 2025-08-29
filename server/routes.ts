@@ -2107,11 +2107,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertBotStrategySchema.parse(req.body);
       const userId = 'default-user'; // In a real app, get from authentication
       
+      // Check if strategy with same name already exists to prevent duplicates
+      const existingStrategies = await storage.getBotStrategies(userId);
+      const duplicateStrategy = existingStrategies.find(s => s.name === validatedData.name);
+      
+      if (duplicateStrategy) {
+        console.log(`⚠️ Strategy "${validatedData.name}" already exists, returning existing strategy`);
+        return res.json(duplicateStrategy);
+      }
+      
+      // Create new strategy only if it doesn't exist
       const strategy = await storage.createBotStrategy({
         ...validatedData,
         userId
       });
       
+      console.log(`✅ Created new strategy: "${validatedData.name}"`);
       res.json(strategy);
     } catch (error) {
       console.error('Error creating bot strategy:', error);
