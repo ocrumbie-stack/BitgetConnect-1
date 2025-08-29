@@ -10,10 +10,10 @@ Account balance display: Total Balance = Total Equity + Available Balance + P&L 
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
 Bot page layout preference: Improved two-row vertical design for better mobile display and proper element fitting. Financial data now displays in vertical stacks, folder headers use two-row layout to prevent overflow, and all elements properly fit within screen width.
-Multi-timeframe trading style system: Fully automated 3-style preset system with dual-timeframe analysis:
-- Conservative: 4H + 1D timeframes for stable growth (75% confidence, 3x max leverage)
-- Balanced: 15M + 1H timeframes for steady returns (60% confidence, 5x max leverage)  
-- Aggressive: 1M + 5M timeframes for quick scalping profits (45% confidence, 10x max leverage)
+Multi-bucket volatility classification system: Sophisticated 3-bucket analysis system with comprehensive technical criteria:
+- Aggressive: 1M/5M timeframes for high-volatility scalping (>8% daily range, RSI extremes, BB breaks, 2x volume spikes)
+- Balanced: 15M/1H timeframes for medium-volatility trading (3-8% daily range, EMA trend alignment, MACD/RSI confirmation)
+- Conservative: 4H/1D timeframes for low-volatility position trading (<3% daily range, EMA200 bias filtering, sustained trends)
 Auto scanner multi-timeframe integration: Scanner automatically uses dual timeframe analysis based on selected trading style. Primary timeframe provides detailed technical analysis while secondary timeframe offers confirmation. No manual configuration required - settings apply instantly upon style selection.
 Bot termination system: Comprehensive bot termination that closes both Bitget positions AND terminates corresponding bot database records.
 Entry system preference: ULTRA-CONSERVATIVE account protection system implemented after previous system caused consistent losses. NEW SAFETY REQUIREMENTS: 85%+ confidence threshold minimum (was 30-50%), 40+ point signal difference required (was 15), enhanced safety blocks for dangerous overbought/oversold entries. REVISED INDICATOR WEIGHTS: MACD (40% - only strong crossovers), RSI (25% - only extreme levels <25/>75), Bollinger Bands (20% - only extreme breaches), Volume Analysis (20% - requires 2.0+ strength), Moving Averages (15% - confirmed crossovers only). ACCOUNT PROTECTION: 5-8% stop losses minimum (was 2%), 15-20% take profit targets (was 3%), maximum 1.5% account risk per trade, high leverage gets wider stops automatically. System now trades much less frequently but with higher win rates and proper risk management to prevent account destruction.
@@ -41,7 +41,7 @@ The application prioritizes a clean, professional design optimized for mobile de
 ## Technical Implementations
 Key technical implementations include real-time data streaming via WebSockets, a comprehensive trading pair organization system with folder management and bulk bot deployment, and an AI-powered trading opportunity recommendation system. The AI analyzes price movements, volume patterns, and risk factors across multiple strategies (Momentum, Breakout, Scalping, Swing, Reversal) to provide smart scoring and confidence ratings. The bot system uses reusable strategy templates with configurable technical indicators and risk management settings.
 
-**Enhanced Multi-Indicator AI Bot System**: Sophisticated technical analysis engine combining 6 indicators with weighted scoring - MACD, RSI, Bollinger Bands, Volume Analysis, Moving Averages, and Support/Resistance. Each indicator contributes weighted scores with adaptive confidence thresholds (25-50% based on signal strength).
+**Enhanced Multi-Bucket Analysis System**: Revolutionary volatility-based market categorization using comprehensive technical analysis. Features EMA calculations (100-period 1H, 200-period Daily), RSI extremes detection, MACD crossover analysis, Bollinger Band breach identification, and volume spike detection (2x average). Automatically classifies trading pairs into Aggressive (high-volatility scalping), Balanced (medium-volatility trading), and Conservative (low-volatility position trading) buckets with sophisticated technical criteria and minimum $10M daily volume requirements.
 
 **Dynamic Leverage Safety System**: Automatically calculates leverage-safe limits based on user's entered leverage. Uses the formula: Account Risk % ÷ Leverage = Position Risk % to prevent excessive account loss per trade. Implements frontend risk warnings and automatic limit adjustments for high user leverage.
 
