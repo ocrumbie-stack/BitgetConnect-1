@@ -576,4 +576,41 @@ export class BitgetAPI {
       throw error;
     }
   }
+
+  async getCandlestickData(symbol: string, granularity: string = '1m', limit: number = 60): Promise<CandlestickData[]> {
+    try {
+      console.log(`📊 Fetching candlestick data for ${symbol} (${granularity}, ${limit} candles)`);
+      
+      const params = {
+        symbol,
+        productType: 'USDT-FUTURES',
+        granularity,
+        limit: limit.toString()
+      };
+
+      const response = await this.client.get('/api/v2/mix/market/candles', { params });
+      
+      if (!response.data || !response.data.data || !Array.isArray(response.data.data)) {
+        console.warn(`⚠️ No candlestick data returned for ${symbol}`);
+        return [];
+      }
+
+      // Transform Bitget candlestick data format
+      const candleData: CandlestickData[] = response.data.data.map((candle: string[]) => ({
+        timestamp: candle[0],
+        open: candle[1],
+        high: candle[2],
+        low: candle[3],
+        close: candle[4],
+        volume: candle[5],
+        quoteVolume: candle[6] || candle[5] // Use volume if quoteVolume not available
+      }));
+
+      console.log(`✅ Retrieved ${candleData.length} candles for ${symbol}`);
+      return candleData;
+    } catch (error: any) {
+      console.error('Error fetching candlestick data:', error.response?.data || error.message || error);
+      throw new Error(error.response?.data?.msg || error.message || 'Failed to fetch candlestick data');
+    }
+  }
 }
