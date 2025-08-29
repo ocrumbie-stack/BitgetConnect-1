@@ -158,41 +158,111 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
     );
   }
 
-  const getSimpleChart = () => {
-    const range = exitConditions.takeProfitPercent - exitConditions.stopLossPercent;
-    const currentPosition = ((exitConditions.currentRoi - exitConditions.stopLossPercent) / range) * 100;
+  const getPriceChart = () => {
+    if (!exitConditions) return null;
+
+    const { entryPrice, currentPrice, stopLossPrice, takeProfitPrice } = exitConditions;
+    
+    // Calculate chart range with some padding
+    const minPrice = Math.min(entryPrice, currentPrice, stopLossPrice, takeProfitPrice) * 0.98;
+    const maxPrice = Math.max(entryPrice, currentPrice, stopLossPrice, takeProfitPrice) * 1.02;
+    const priceRange = maxPrice - minPrice;
+    
+    // Calculate positions as percentages from bottom
+    const getYPosition = (price: number) => {
+      return ((price - minPrice) / priceRange) * 100;
+    };
+    
+    const entryY = getYPosition(entryPrice);
+    const currentY = getYPosition(currentPrice);
+    const stopLossY = getYPosition(stopLossPrice);
+    const takeProfitY = getYPosition(takeProfitPrice);
     
     return (
-      <div className="h-32 bg-gray-800 rounded-lg p-4 border border-gray-600 relative overflow-hidden">
+      <div className="h-48 bg-gray-900 rounded-lg p-4 border border-gray-600 relative overflow-hidden">
         {/* Chart background grid */}
-        <div className="absolute inset-4 opacity-30">
+        <div className="absolute inset-4 opacity-20">
           <div className="h-full w-full border-l border-b border-gray-600"></div>
-          <div className="absolute top-0 left-1/4 h-full border-l border-gray-700"></div>
-          <div className="absolute top-0 left-2/4 h-full border-l border-gray-700"></div>
-          <div className="absolute top-0 left-3/4 h-full border-l border-gray-700"></div>
-          <div className="absolute top-1/4 left-0 w-full border-t border-gray-700"></div>
-          <div className="absolute top-2/4 left-0 w-full border-t border-gray-700"></div>
-          <div className="absolute top-3/4 left-0 w-full border-t border-gray-700"></div>
+          {[25, 50, 75].map(x => (
+            <div key={x} className={`absolute top-0 h-full border-l border-gray-700`} style={{ left: `${x}%` }}></div>
+          ))}
+          {[25, 50, 75].map(y => (
+            <div key={y} className={`absolute left-0 w-full border-t border-gray-700`} style={{ top: `${y}%` }}></div>
+          ))}
         </div>
-        
-        {/* Chart line and current position */}
-        <div className="relative h-full flex items-center">
-          <div className="w-full h-1 bg-gray-600 rounded-full relative">
-            <div 
-              className={`absolute h-3 w-3 rounded-full transform -translate-y-1 -translate-x-1.5 ${
-                exitConditions.currentRoi >= 0 ? 'bg-green-400' : 'bg-red-400'
-              }`}
-              style={{ left: `${Math.max(0, Math.min(100, currentPosition))}%` }}
-            />
+
+        {/* Price levels */}
+        {/* Take Profit Line */}
+        <div 
+          className="absolute left-4 right-4 border-t-2 border-green-400 z-10"
+          style={{ bottom: `${takeProfitY}%` }}
+        >
+          <div className="absolute right-0 -top-6 text-xs text-green-400 font-medium bg-gray-900 px-2 py-1 rounded">
+            TP: ${takeProfitPrice.toFixed(4)}
           </div>
         </div>
         
-        {/* Chart labels */}
-        <div className="absolute bottom-1 left-4 text-xs text-red-400">Stop Loss</div>
-        <div className="absolute bottom-1 right-4 text-xs text-green-400">Take Profit</div>
-      </div>
-    );
-  };
+        {/* Current Price Line */}
+        <div 
+          className="absolute left-4 right-4 border-t-2 border-yellow-400 z-10"
+          style={{ bottom: `${currentY}%` }}
+        >
+          <div className="absolute right-0 -top-6 text-xs text-yellow-400 font-medium bg-gray-900 px-2 py-1 rounded">
+            Now: ${currentPrice.toFixed(4)}
+          </div>
+          {/* Current price dot */}
+          <div className="absolute right-2 -top-1 w-2 h-2 bg-yellow-400 rounded-full"></div>
+        </div>
+        
+        {/* Entry Price Line */}
+        <div 
+          className="absolute left-4 right-4 border-t-2 border-blue-400 border-dashed z-10"
+          style={{ bottom: `${entryY}%` }}
+        >
+          <div className="absolute right-0 -top-6 text-xs text-blue-400 font-medium bg-gray-900 px-2 py-1 rounded">
+            Entry: ${entryPrice.toFixed(4)}
+          </div>
+        </div>
+        
+        {/* Stop Loss Line */}
+        <div 
+          className="absolute left-4 right-4 border-t-2 border-red-400 z-10"
+          style={{ bottom: `${stopLossY}%` }}
+        >
+          <div className="absolute right-0 -top-6 text-xs text-red-400 font-medium bg-gray-900 px-2 py-1 rounded">
+            SL: ${stopLossPrice.toFixed(4)}
+          </div>
+        </div>
+
+        {/* Y-axis price labels */}
+        <div className="absolute left-0 top-1 text-xs text-gray-400">
+          ${maxPrice.toFixed(4)}
+        </div>
+        <div className="absolute left-0 bottom-1 text-xs text-gray-400">
+          ${minPrice.toFixed(4)}
+        </div>
+        
+        {/* Zone backgrounds */}
+        {/* Profit zone */}
+        <div 
+          className="absolute left-4 right-4 bg-green-500/10 z-0"
+          style={{ 
+            bottom: `${Math.max(entryY, currentY)}%`, 
+            height: `${takeProfitY - Math.max(entryY, currentY)}%` 
+          }}
+        ></div>
+        
+        {/* Loss zone */}
+        <div 
+          className="absolute left-4 right-4 bg-red-500/10 z-0"
+          style={{ 
+            bottom: `${stopLossY}%`, 
+            height: `${Math.min(entryY, currentY) - stopLossY}%` 
+          }}
+        ></div>
+        </div>
+      );
+    };
 
   return (
     <div className="bg-gray-900 rounded-lg shadow-xl max-w-lg mx-auto border border-gray-700">
@@ -228,8 +298,8 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
           </div>
         </div>
 
-        {/* Mini Chart */}
-        {getSimpleChart()}
+        {/* Price Chart */}
+        {getPriceChart()}
 
         {/* Progress Info */}
         <div className="flex justify-between text-sm">
