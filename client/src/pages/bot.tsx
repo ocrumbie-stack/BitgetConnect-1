@@ -2451,11 +2451,11 @@ export default function BotPage() {
                                           
                                           {/* Right Column - Action Buttons */}
                                           {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                            <div className="flex flex-col gap-2 flex-shrink-0">
+                                            <div className="flex flex-col gap-2 flex-shrink-0 items-center">
                                               {execution.status === 'active' && (
                                                 <Button 
                                                   size="sm" 
-                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center"
+                                                  className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0"
                                                   onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -2639,11 +2639,11 @@ export default function BotPage() {
                                         
                                         {/* Right Column - Action Buttons */}
                                         {(execution.status === 'active' || execution.status === 'waiting_entry') && (
-                                          <div className="flex flex-col gap-2 flex-shrink-0">
+                                          <div className="flex flex-col gap-2 flex-shrink-0 items-center">
                                             {execution.status === 'active' && (
                                               <Button 
                                                 size="sm" 
-                                                className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center"
+                                                className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 text-xs rounded-md flex items-center justify-center p-0"
                                                 onClick={(e) => {
                                                   e.preventDefault();
                                                   e.stopPropagation();
