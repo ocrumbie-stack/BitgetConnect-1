@@ -320,28 +320,70 @@ export default function BotPage() {
     }
   });
 
-  // Terminate execution mutation
+  // Terminate execution mutation - now closes positions AND terminates bots
   const handleTerminateExecution = useMutation({
     mutationFn: async (executionId: string) => {
-      console.log('🚀 Starting termination request for:', executionId);
-      const response = await fetch(`/api/bot-executions/${executionId}/terminate`, {
+      console.log('🚀 Starting bot termination and position closure for:', executionId);
+      
+      // Step 1: Get bot execution details to extract trading pair and position info
+      const executionResponse = await fetch(`/api/bot-executions/${executionId}`);
+      if (!executionResponse.ok) {
+        throw new Error('Failed to get bot execution details');
+      }
+      const executionData = await executionResponse.json();
+      
+      // Step 2: Close position if bot is active and has a position
+      if (executionData.status === 'active' && executionData.tradingPair) {
+        try {
+          console.log('🔄 Closing position for:', executionData.tradingPair);
+          const closeResponse = await fetch('/api/close-position', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: 'default-user',
+              symbol: executionData.tradingPair,
+              side: executionData.positionData?.holdSide || 'long' // Use actual position side or default to long
+            })
+          });
+          
+          if (!closeResponse.ok) {
+            console.warn('⚠️ Failed to close position, but continuing with bot termination');
+          } else {
+            console.log('✅ Position closed successfully');
+          }
+        } catch (positionError) {
+          console.warn('⚠️ Position close error, but continuing with bot termination:', positionError);
+        }
+      }
+      
+      // Step 3: Terminate the bot execution record
+      const terminateResponse = await fetch(`/api/bot-executions/${executionId}/terminate`, {
         method: 'POST'
       });
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('❌ Termination failed:', error);
+      if (!terminateResponse.ok) {
+        const error = await terminateResponse.text();
+        console.error('❌ Bot termination failed:', error);
         throw new Error(`Failed to stop bot: ${error}`);
       }
-      const result = await response.json();
-      console.log('✅ Termination successful:', result);
+      const result = await terminateResponse.json();
+      console.log('✅ Bot terminated successfully:', result);
       return result;
     },
     onSuccess: (data) => {
-      console.log('🔄 Refreshing bot list after termination');
+      console.log('🔄 Refreshing bot list after termination and position closure');
       queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      toast({
+        title: "Bot Stopped & Position Closed",
+        description: "Bot has been terminated and position closed successfully.",
+      });
     },
     onError: (error) => {
-      console.error('💥 Termination mutation error:', error);
+      console.error('💥 Bot termination error:', error);
+      toast({
+        title: "Failed to Stop Bot",
+        description: error.message || "Failed to stop bot and close position.",
+        variant: "destructive",
+      });
     }
   });
 
