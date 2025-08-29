@@ -1533,13 +1533,13 @@ export default function BotPage() {
             const sign = totalPL >= 0 ? '+' : '';
             
             return (
-              <Card className={`bg-gradient-to-br ${isPositive 
-                ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800' 
-                : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
+              <Card className={`bg-gradient-to-br shadow-lg border-0 ${isPositive 
+                ? 'from-green-600 to-green-700 dark:from-green-700 dark:to-green-800' 
+                : 'from-red-600 to-red-700 dark:from-red-700 dark:to-red-800'
               }`}>
                 <CardContent className="p-2">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-md`}>
+                    <div className={`p-2 ${isPositive ? 'bg-green-800/40' : 'bg-red-800/40'} rounded-md backdrop-blur-sm`}>
                       {isPositive ? (
                         <TrendingUp className="h-5 w-5 text-white" />
                       ) : (
@@ -1558,10 +1558,10 @@ export default function BotPage() {
             );
           })()}
 
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+          <Card className="bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 shadow-lg border-0">
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500 rounded-md">
+                <div className="p-2 bg-blue-800/40 rounded-md backdrop-blur-sm">
                   <Wallet className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
