@@ -1541,9 +1541,9 @@ export default function BotPage() {
                   <div className="flex items-center gap-2">
                     <div className={`p-1 ${isPositive ? 'bg-green-800/40' : 'bg-red-800/40'} rounded backdrop-blur-sm`}>
                       {isPositive ? (
-                        <TrendingUp className="h-3.5 w-3.5 text-white" />
+                        <TrendingUp className="h-5 w-5 text-white" />
                       ) : (
-                        <TrendingDown className="h-3.5 w-3.5 text-white" />
+                        <TrendingDown className="h-5 w-5 text-white" />
                       )}
                     </div>
                     <div className="flex-1 text-center">
@@ -1562,7 +1562,7 @@ export default function BotPage() {
             <CardContent className="px-2 py-0.5">
               <div className="flex items-center gap-2">
                 <div className="p-1 bg-blue-800/40 rounded backdrop-blur-sm">
-                  <Wallet className="h-3.5 w-3.5 text-white" />
+                  <Wallet className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-lg font-bold text-white">
