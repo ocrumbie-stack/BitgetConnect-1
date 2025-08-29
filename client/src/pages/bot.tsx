@@ -1914,28 +1914,94 @@ export default function BotPage() {
                         </div>
                       </div>
                       
-                      {/* Display found trading pairs */}
-                      {scannerResults.opportunities?.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          <div className="text-sm font-medium text-muted-foreground">Found Trading Pairs:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {scannerResults.opportunities.map((opp: any, index: number) => (
-                              <div 
-                                key={index}
-                                className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 border rounded-lg text-sm"
-                              >
-                                <span className="font-medium">{opp.symbol}</span>
-                                <span className={`text-xs px-2 py-0.5 rounded ${
-                                  opp.direction === 'long' 
-                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                }`}>
-                                  {opp.direction?.toUpperCase()}
-                                </span>
-                                <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
+                      {/* Display Multi-Bucket Analysis Results */}
+                      {(scannerResults.opportunities?.length > 0 || scannerResults.bucketClassified?.total > 0) && (
+                        <div className="mt-4 space-y-4">
+                          
+                          {/* High-Confidence Trading Opportunities */}
+                          {scannerResults.opportunities?.length > 0 && (
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium text-muted-foreground">High-Confidence Opportunities:</div>
+                              <div className="flex flex-wrap gap-2">
+                                {scannerResults.opportunities.map((opp: any, index: number) => (
+                                  <div 
+                                    key={index}
+                                    className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 border rounded-lg text-sm"
+                                  >
+                                    <span className="font-medium">{opp.symbol}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded ${
+                                      opp.direction === 'long' 
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    }`}>
+                                      {opp.direction?.toUpperCase()}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          )}
+                          
+                          {/* Volatility-Based Bucket Classification */}
+                          {scannerResults.bucketClassified?.total > 0 && (
+                            <div className="space-y-3">
+                              <div className="text-sm font-medium text-muted-foreground">Volatility Classification:</div>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {/* Aggressive Bucket */}
+                                <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Zap className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                    <span className="text-sm font-medium text-red-900 dark:text-red-100">Aggressive</span>
+                                    <Badge variant="secondary" className="ml-auto">
+                                      {scannerResults.bucketClassified.Aggressive || 0}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-xs text-red-700 dark:text-red-300 space-y-1">
+                                    <div>• 1m/5m timeframes</div>
+                                    <div>• &gt;8% daily volatility</div>
+                                    <div>• RSI extremes, BB breaks</div>
+                                    <div>• Volume spikes &gt;2x</div>
+                                  </div>
+                                </div>
+                                
+                                {/* Balanced Bucket */}
+                                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                    <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Balanced</span>
+                                    <Badge variant="secondary" className="ml-auto">
+                                      {scannerResults.bucketClassified.Balanced || 0}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                    <div>• 15m/1h timeframes</div>
+                                    <div>• 3-8% daily volatility</div>
+                                    <div>• EMA trend alignment</div>
+                                    <div>• MACD/RSI confirmation</div>
+                                  </div>
+                                </div>
+                                
+                                {/* Conservative Bucket */}
+                                <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Trend className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                    <span className="text-sm font-medium text-green-900 dark:text-green-100">Conservative</span>
+                                    <Badge variant="secondary" className="ml-auto">
+                                      {scannerResults.bucketClassified.ConservativeBiasOnly || 0}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
+                                    <div>• 4h/1d timeframes</div>
+                                    <div>• &lt;3% daily volatility</div>
+                                    <div>• EMA200 bias filter</div>
+                                    <div>• Position trading</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "universe": {
+    "source": "exchange_top_volume",
+    "limit": 50,
+    "quote": "USD"
+  },
+  "trading_horizon": {
+    "hold_max_days": 2,
+    "rescan_interval_days": 1
+  },
+  "evaluation_order": [
+    "liquidity",
+    "trend_filter_optional",
+    "bucket_rules",
+    "volatility_check",
+    "momentum_confirmation"
+  ],
+  "thresholds": {
+    "liquidity": {
+      "min_daily_notional_usd": 10000000,
+      "max_spread_bps": 10
+    },
+    "volatility": {
+      "low_daily_range_pct": 0.03,
+      "mid_daily_range_pct": 0.08,
+      "high_daily_range_pct": 0.10
+    },
+    "ema": {
+      "balanced_anchor_len": 100,
+      "conservative_anchor_len": 200
+    },
+    "rsi": {
+      "oversold": 30,
+      "overbought": 70,
+      "extreme_oversold": 20,
+      "extreme_overbought": 80,
+      "length": 14
+    },
+    "macd": {
+      "fast": 12,
+      "slow": 26,
+      "signal": 9
+    },
+    "volume_spike": {
+      "lookback_bars": 20,
+      "spike_multiple": 2.0
+    }
+  },
+  "trend_filter_optional": {
+    "enabled": true,
+    "rule": "use_daily_200ema_bias",
+    "long_condition": "close > EMA(close, 200) on 1D",
+    "short_condition": "close < EMA(close, 200) on 1D"
+  },
+  "buckets": [
+    {
+      "name": "Balanced",
+      "timeframes": ["15m", "1h"],
+      "selection": {
+        "trend": "close >= EMA100 on 1h (bias only; allow within ±1%)",
+        "volatility": "daily_range_pct between 0.03 and 0.08",
+        "momentum_any": [
+          "MACD(12,26,9) line > signal on 1h",
+          "RSI(14) near band on 1h with 15m confirmation (RSI <= 35 for long / >= 65 for short)"
+        ],
+        "sr_alignment": "entry triggers on 15m after 1h S/R bounce or rejection"
+      },
+      "exit_policy_hint": "TP/SL sized for 1–2 day holds"
+    },
+    {
+      "name": "Aggressive",
+      "timeframes": ["1m", "5m"],
+      "selection": {
+        "trend": "not required (reversal scalps allowed)",
+        "volatility": "daily_range_pct >= 0.08 OR ATR% >= 0.08",
+        "momentum_any": [
+          "RSI(14) extremes: <= 20 (long) or >= 80 (short)",
+          "Bollinger band break on 1m/5m (20,2)",
+          "MACD(12,26,9) flip on 1m/5m (histogram crosses 0)"
+        ],
+        "volume": "last 5–15 min volume >= 2.0x 20-bar average"
+      },
+      "exit_policy_hint": "tight stops; scale out quickly; max 1 day"
+    },
+    {
+      "name": "ConservativeBiasOnly",
+      "timeframes": ["4h", "1d"],
+      "selection": {
+        "trend": "use as bias filter only: close vs EMA200 on 1D",
+        "volatility": "prefer daily_range_pct < 0.03",
+        "note": "do not prioritize entries here; informs Balanced/Aggressive direction"
+      }
+    }
+  ],
+  "bucketing_logic": {
+    "rule_order": [
+      "assign Aggressive if tf in [1m,5m] AND (rsi_extreme OR bb_break OR macd_flip) AND high_vol",
+      "else assign Balanced if tf in [15m,1h] AND ema100_bias AND (macd_up OR rsi_near_band) AND mid_vol",
+      "else fallback by volatility: low->ConservativeBiasOnly, mid->Balanced, high->Aggressive"
+    ],
+    "definitions": {
+      "ema100_bias": "close >= EMA(close,100) on 1h for longs; <= for shorts",
+      "macd_up": "MACD line > signal on the evaluation TF",
+      "rsi_near_band": "RSI within 5 points of 30/70 (i.e., <=35 or >=65)",
+      "rsi_extreme": "RSI <= 20 or >= 80",
+      "bb_break": "close outside Bollinger(20,2) on evaluation TF",
+      "macd_flip": "MACD histogram crosses 0 this bar",
+      "mid_vol": "daily_range_pct in [0.03, 0.08]",
+      "high_vol": "daily_range_pct >= 0.10 OR ATR% >= 0.08"
+    }
+  },
+  "outputs": {
+    "fields": [
+      "symbol",
+      "bucket",
+      "eval_tf",
+      "daily_range_pct",
+      "atr_pct",
+      "ema100_diff_pct_1h",
+      "ema200_diff_pct_1d",
+      "rsi",
+      "macd_line",
+      "macd_signal",
+      "macd_hist",
+      "bb_position",
+      "volume_spike_multiple"
+    ],
+    "sorting": [
+      { "by": "bucket", "order": "ConservativeBiasOnly,Balanced,Aggressive" },
+      { "by": "volume_spike_multiple", "order": "desc" },
+      { "by": "daily_range_pct", "order": "desc" }
+    ],
+    "limits": { "per_bucket": 50 }
+  }
+}
