@@ -1423,7 +1423,7 @@ export default function BotPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500 rounded-lg">
-                  <Bot className="h-4 w-4 text-white" />
+                  <Settings className="h-4 w-4 text-white" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
@@ -1479,7 +1479,7 @@ export default function BotPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500 rounded-lg">
-                  <Zap className="h-4 w-4 text-white" />
+                  <Bot className="h-4 w-4 text-white" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
