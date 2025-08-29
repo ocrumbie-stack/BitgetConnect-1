@@ -3658,21 +3658,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // TREND ANALYSIS - Identify sustained uptrends/downtrends for longer-term positions
+      console.log(`📈 TREND ANALYSIS: Identifying sustained trending pairs...`);
+      const trendingPairs = [];
+      
+      for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for trends
+        try {
+          const change24h = parseFloat(ticker.change24h || '0');
+          const volume24h = parseFloat(ticker.quoteVolume || '0');
+          
+          // Get longer timeframe data for trend analysis
+          const [h4Data, dailyData] = await Promise.all([
+            bitgetAPI.getKlineData(ticker.symbol, '4H', 50), // 4H candles for 8+ day trend
+            bitgetAPI.getKlineData(ticker.symbol, '1D', 14)   // Daily candles for 2 week trend
+          ]);
+          
+          if (h4Data && dailyData && h4Data.length >= 20 && dailyData.length >= 7) {
+            const h4Closes = h4Data.map(c => parseFloat(c.close));
+            const dailyCloses = dailyData.map(c => parseFloat(c.close));
+            
+            // Calculate trend strength
+            const currentPrice = h4Closes[h4Closes.length - 1];
+            const weekAgoPrice = h4Closes[h4Closes.length - 42] || h4Closes[0]; // ~1 week ago (42 x 4H)
+            const twoWeeksAgoPrice = dailyCloses[0];
+            
+            const weeklyChange = ((currentPrice - weekAgoPrice) / weekAgoPrice) * 100;
+            const twoWeekChange = ((currentPrice - twoWeeksAgoPrice) / twoWeeksAgoPrice) * 100;
+            
+            // Identify strong trends (consistent direction over multiple timeframes)
+            const isStrongUptrend = weeklyChange > 3 && twoWeekChange > 5 && change24h > 0;
+            const isStrongDowntrend = weeklyChange < -3 && twoWeekChange < -5 && change24h < 0;
+            
+            if ((isStrongUptrend || isStrongDowntrend) && volume24h > 1000000) { // Min $1M volume
+              trendingPairs.push({
+                symbol: ticker.symbol,
+                trendDirection: isStrongUptrend ? 'UPTREND' : 'DOWNTREND',
+                weeklyChange: weeklyChange.toFixed(2),
+                twoWeekChange: twoWeekChange.toFixed(2),
+                dailyChange: change24h.toFixed(2),
+                volume24h,
+                trendStrength: Math.abs(weeklyChange) + Math.abs(twoWeekChange),
+                price: parseFloat(ticker.lastPr || '0')
+              });
+              
+              console.log(`📊 TREND: ${ticker.symbol} - ${isStrongUptrend ? 'STRONG UPTREND' : 'STRONG DOWNTREND'} (Weekly: ${weeklyChange.toFixed(1)}%, 2W: ${twoWeekChange.toFixed(1)}%)`);
+            }
+          }
+        } catch (error) {
+          // Skip trend analysis errors to not slow down main scan
+        }
+      }
+      
+      // Sort trending pairs by trend strength
+      trendingPairs.sort((a, b) => b.trendStrength - a.trendStrength);
+      
       // Sort by confidence score and select top opportunities
       analysisResults.sort((a, b) => b.confidence - a.confidence);
       const topOpportunities = analysisResults.slice(0, maxBots);
       
-      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities`);
+      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities and ${trendingPairs.length} trending pairs`);
       
       // SCAN ONLY - Just return the opportunities found
       res.json({
         success: true,
-        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities`,
+        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities and ${trendingPairs.length} trending pairs`,
         opportunities: topOpportunities,
+        trendingPairs: trendingPairs.slice(0, 10), // Top 10 trending pairs
         scanResults: {
           totalPairsAnalyzed: analyzedCount,
           validSignalsFound: validSignalCount,
           highConfidenceOpportunities: topOpportunities.length,
+          trendingPairsFound: trendingPairs.length,
           minConfidenceUsed: minConfidence,
           maxBotsRequested: maxBots
         }
