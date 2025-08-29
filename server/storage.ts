@@ -116,10 +116,6 @@ export interface IStorage {
   createMarketOpportunity(opportunity: InsertMarketOpportunity): Promise<MarketOpportunity>;
   updateMarketOpportunity(id: string, updates: Partial<InsertMarketOpportunity>): Promise<MarketOpportunity>;
   deleteMarketOpportunity(id: string): Promise<void>;
-  
-  // User preferences
-  getUserPreferences(userId: string): Promise<{ tradingStyle: string; preferences: any } | undefined>;
-  saveUserPreferences(userId: string, data: { tradingStyle: string; preferences: any }): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -138,7 +134,6 @@ export class MemStorage implements IStorage {
   private strategyPerformance: Map<string, StrategyPerformance>;
   private strategyRecommendations: Map<string, StrategyRecommendation>;
   private marketOpportunities: Map<string, MarketOpportunity>;
-  private userPreferences: Map<string, { tradingStyle: string; preferences: any }>;
   
   // Price history for calculating 5-minute changes
   private priceHistory: Map<string, Array<{ price: number; timestamp: number }>>;
@@ -159,7 +154,6 @@ export class MemStorage implements IStorage {
     this.strategyPerformance = new Map();
     this.strategyRecommendations = new Map();
     this.marketOpportunities = new Map();
-    this.userPreferences = new Map();
     this.priceHistory = new Map();
   }
 
@@ -717,15 +711,6 @@ export class MemStorage implements IStorage {
   async deleteMarketOpportunity(id: string): Promise<void> {
     this.marketOpportunities.delete(id);
   }
-
-  // User preferences methods
-  async getUserPreferences(userId: string): Promise<{ tradingStyle: string; preferences: any } | undefined> {
-    return this.userPreferences.get(userId);
-  }
-
-  async saveUserPreferences(userId: string, data: { tradingStyle: string; preferences: any }): Promise<void> {
-    this.userPreferences.set(userId, data);
-  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1036,17 +1021,6 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMarketOpportunity(id: string): Promise<void> {
     await db.delete(marketOpportunities).where(eq(marketOpportunities.id, id));
-  }
-
-  // User preferences methods (in-memory for now, can be moved to database later)
-  private userPreferencesMap = new Map<string, { tradingStyle: string; preferences: any }>();
-
-  async getUserPreferences(userId: string): Promise<{ tradingStyle: string; preferences: any } | undefined> {
-    return this.userPreferencesMap.get(userId);
-  }
-
-  async saveUserPreferences(userId: string, data: { tradingStyle: string; preferences: any }): Promise<void> {
-    this.userPreferencesMap.set(userId, data);
   }
 }
 
