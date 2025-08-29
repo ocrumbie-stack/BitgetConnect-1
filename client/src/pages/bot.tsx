@@ -107,6 +107,30 @@ export default function BotPage() {
     refetchOnMount: true
   });
 
+  // Auto-fix existing auto scanner strategies on first load
+  useEffect(() => {
+    const fixAutoScannerStrategies = async () => {
+      try {
+        const response = await fetch('/api/fix-auto-scanner-strategies', { method: 'POST' });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.updatedCount > 0) {
+            console.log(`✅ Fixed ${result.updatedCount} auto scanner strategies`);
+            // Refresh the strategies list
+            queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
+          }
+        }
+      } catch (error) {
+        console.log('Auto-fix already completed or not needed');
+      }
+    };
+    
+    // Only run this once when strategies are first loaded
+    if (allStrategies.length > 0) {
+      fixAutoScannerStrategies();
+    }
+  }, [allStrategies.length > 0]);
+
   // Filter to only show manually created strategies in "My Strategies" card
   const userStrategies = (allStrategies as any[]).filter((strategy: any) => strategy.source === 'manual' || !strategy.source);
 
