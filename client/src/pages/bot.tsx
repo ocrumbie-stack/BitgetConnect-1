@@ -98,14 +98,17 @@ export default function BotPage() {
 
 
 
-  // Fetch user strategies
-  const { data: userStrategies = [], isLoading: strategiesLoading } = useQuery({
+  // Fetch user strategies (filter to only show manually created ones)
+  const { data: allStrategies = [], isLoading: strategiesLoading } = useQuery({
     queryKey: ['/api/bot-strategies'],
     staleTime: 0,
     gcTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
+
+  // Filter to only show manually created strategies in "My Strategies" card
+  const userStrategies = (allStrategies as any[]).filter((strategy: any) => strategy.source === 'manual' || !strategy.source);
 
   // Define AI bots at component level so they can be accessed everywhere
   const aiBots = [

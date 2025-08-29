@@ -3065,6 +3065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 await storage.createBotStrategy({
                   id: strategyId,
                   userId,
+                  source: 'auto_scanner',
                   ...strategyConfig
                 });
                 console.log(`✅ Created new AI strategy: ${strategyId}`);
