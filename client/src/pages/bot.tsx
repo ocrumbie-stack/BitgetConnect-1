@@ -1421,11 +1421,11 @@ export default function BotPage() {
             onClick={() => handleTabChange('strategies')}
           >
             <CardContent className="p-2">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-blue-500 rounded-md">
                   <Zap className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="text-center">
+                <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
@@ -1444,11 +1444,11 @@ export default function BotPage() {
             onClick={() => handleTabChange('executions')}
           >
             <CardContent className="p-2">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-green-500 rounded-md">
                   <Activity className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="text-center">
+                <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-green-700 dark:text-green-300">
                     {(() => {
                       const activeBots = (activeExecutions as any[]).filter(ex => ex.status === 'active');
@@ -1470,11 +1470,11 @@ export default function BotPage() {
             onClick={() => handleTabChange('ai')}
           >
             <CardContent className="p-2">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-purple-500 rounded-md">
                   <Bot className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="text-center">
+                <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
                     6
                   </div>
@@ -1493,11 +1493,11 @@ export default function BotPage() {
             onClick={() => handleTabChange('scanner')}
           >
             <CardContent className="p-2">
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-cyan-500 rounded-md">
                   <Search className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="text-center">
+                <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-cyan-700 dark:text-cyan-300">
                     {(() => {
                       const scannerBots = (activeExecutions as any[]).filter(ex => 
@@ -1528,7 +1528,7 @@ export default function BotPage() {
                 : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
               }`}>
                 <CardContent className="p-2">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center gap-3">
                     <div className={`p-1.5 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-md`}>
                       {isPositive ? (
                         <TrendingUp className="h-3.5 w-3.5 text-white" />
@@ -1536,7 +1536,7 @@ export default function BotPage() {
                         <TrendingDown className="h-3.5 w-3.5 text-white" />
                       )}
                     </div>
-                    <div className="text-center">
+                    <div className="flex-1 text-center">
                       <div className={`text-xl font-bold ${isPositive 
                         ? 'text-green-700 dark:text-green-300' 
                         : 'text-red-700 dark:text-red-300'
