@@ -1547,16 +1547,10 @@ export default function BotPage() {
                       )}
                     </div>
                     <div className="flex-1 text-center">
-                      <div className={`text-xl font-bold ${isPositive 
-                        ? 'text-green-700 dark:text-green-300' 
-                        : 'text-red-700 dark:text-red-300'
-                      }`}>
+                      <div className="text-xl font-bold text-white">
                         {runningBots.length === 0 ? '$0.00' : `${sign}$${totalPL.toFixed(2)}`}
                       </div>
-                      <div className={`text-sm ${isPositive 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-red-600 dark:text-red-400'
-                      }`}>Total P&L</div>
+                      <div className="text-sm text-white">Total P&L</div>
                     </div>
                   </div>
                 </CardContent>
@@ -1571,10 +1565,10 @@ export default function BotPage() {
                   <Wallet className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
-                  <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
+                  <div className="text-xl font-bold text-white">
                     {(accountData as any)?.account?.totalBalance ? `$${parseFloat((accountData as any).account.totalBalance).toFixed(2)}` : '$0.00'}
                   </div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Total Balance</div>
+                  <div className="text-sm text-white">Total Balance</div>
                 </div>
               </div>
             </CardContent>
