@@ -686,6 +686,54 @@ export default function BotPage() {
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
       volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
     });
+    setShowCreateForm(false);
+    setEditingStrategy(null);
+  };
+
+  const handleUpdateStrategy = async () => {
+    if (!strategyName.trim()) {
+      alert('Please enter a strategy name');
+      return;
+    }
+
+    const strategyData = {
+      id: editingStrategy.id,
+      name: strategyName,
+      description: `${positionDirection === 'long' ? 'Long' : 'Short'} strategy with ${timeframe} timeframe`,
+      strategy: 'manual',
+      riskLevel,
+      config: {
+        positionDirection,
+        timeframe,
+        entryConditions: Object.values(indicators)
+          .filter((indicator: any) => indicator.enabled)
+          .map((indicator: any, index) => ({
+            indicator: Object.keys(indicators)[Object.values(indicators).indexOf(indicator)],
+            ...indicator
+          })),
+        exitConditions: [],
+        indicators,
+        riskManagement: {
+          stopLoss: parseFloat(stopLoss) || 0,
+          takeProfit: parseFloat(takeProfit) || 0,
+          trailingStop: parseFloat(trailingStop) || 0
+        }
+      }
+    };
+
+    try {
+      console.log('Updating strategy with data:', strategyData);
+      await updateStrategyMutation.mutateAsync(strategyData);
+      // Clear form after successful update
+      resetForm();
+      toast({
+        title: "Strategy Updated! ✅",
+        description: "Your strategy has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Strategy update failed:', error);
+      alert('Failed to update strategy: ' + (error as Error).message);
+    }
   };
 
   const handleCreateStrategy = async () => {
@@ -867,6 +915,17 @@ export default function BotPage() {
     setTakeProfit(strategy.config?.riskManagement?.takeProfit?.toString() || '');
     setTrailingStop(strategy.config?.riskManagement?.trailingStop?.toString() || '');
     
+    // Pre-populate indicators if they exist
+    if (strategy.config?.indicators) {
+      setIndicators(prev => ({
+        ...prev,
+        ...strategy.config.indicators
+      }));
+    }
+    
+    // Show the form dialog
+    setShowCreateForm(true);
+    
     // Pre-populate indicators with default structure to avoid undefined errors
     const defaultIndicators = {
       rsi: { enabled: false, period: 14, condition: 'above', value: 70 },
@@ -926,46 +985,7 @@ export default function BotPage() {
     }
   });
 
-  // Handle strategy update
-  const handleUpdateStrategy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!strategyName.trim()) {
-      alert('Please enter a strategy name');
-      return;
-    }
 
-    const strategyData = {
-      id: editingStrategy.id,
-      name: strategyName,
-      description: `${positionDirection === 'long' ? 'Long' : 'Short'} strategy with ${timeframe} timeframe`,
-      strategy: 'manual',
-      riskLevel,
-      config: {
-        timeframe,
-        positionDirection,
-        entryConditions: Object.entries(indicators)
-          .filter(([_, config]: [string, any]) => config.enabled)
-          .map(([name, config]: [string, any]) => ({
-            indicator: name,
-            ...config
-          })),
-        exitConditions: [],
-        indicators: indicators,
-        riskManagement: {
-          stopLoss: parseFloat(stopLoss) || undefined,
-          takeProfit: parseFloat(takeProfit) || undefined,
-          trailingStop: parseFloat(trailingStop) || undefined,
-        }
-      }
-    };
-
-    try {
-      await updateStrategyMutation.mutateAsync(strategyData);
-    } catch (error) {
-      console.error('Strategy update failed:', error);
-    }
-  };
 
   // Generate AI-powered bot settings suggestions for specific trading pairs
   const generateBotSuggestions = (symbol: string) => {
@@ -3071,8 +3091,8 @@ export default function BotPage() {
           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create Custom Trading Strategy</DialogTitle>
-                <DialogDescription>Build a personalized trading strategy with technical indicators and risk management</DialogDescription>
+                <DialogTitle>{editingStrategy ? 'Edit Trading Strategy' : 'Create Custom Trading Strategy'}</DialogTitle>
+                <DialogDescription>{editingStrategy ? 'Update your personalized trading strategy' : 'Build a personalized trading strategy with technical indicators and risk management'}</DialogDescription>
               </DialogHeader>
               
               <div className="space-y-6 py-4">
@@ -3611,26 +3631,26 @@ export default function BotPage() {
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <Button
-                    onClick={() => setShowCreateForm(false)}
+                    onClick={resetForm}
                     variant="outline"
                     className="flex-1"
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={handleCreateStrategy}
-                    disabled={createStrategyMutation.isPending || !strategyName.trim()}
+                    onClick={editingStrategy ? handleUpdateStrategy : handleCreateStrategy}
+                    disabled={(editingStrategy ? updateStrategyMutation.isPending : createStrategyMutation.isPending) || !strategyName.trim()}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                   >
-                    {createStrategyMutation.isPending ? (
+                    {(editingStrategy ? updateStrategyMutation.isPending : createStrategyMutation.isPending) ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creating...
+                        {editingStrategy ? 'Updating...' : 'Creating...'}
                       </>
                     ) : (
                       <>
                         <Plus className="h-4 w-4 mr-2" />
-                        Create Strategy
+                        {editingStrategy ? 'Update Strategy' : 'Create Strategy'}
                       </>
                     )}
                   </Button>
