@@ -3142,7 +3142,7 @@ export default function BotPage() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Capital per Position</Label>
+                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Capital per Position</Label>
                         <Input
                           type="number"
                           placeholder="5000"
@@ -3152,7 +3152,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div>
-                        <Label>Max Positions</Label>
+                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Max Positions</Label>
                         <Input
                           type="number"
                           placeholder="3"
@@ -3165,7 +3165,7 @@ export default function BotPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Leverage</Label>
+                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Leverage</Label>
                         <Input
                           type="number"
                           placeholder="3"
@@ -3175,7 +3175,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div>
-                        <Label>Scan Interval (seconds)</Label>
+                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Scan Interval (seconds)</Label>
                         <Input
                           type="number"
                           placeholder="60"
