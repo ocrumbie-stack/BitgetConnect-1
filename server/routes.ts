@@ -62,106 +62,86 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     let bearishScore = 0;
     const indicators: any = { primaryTimeframe, allTimeframes: timeframes };
     
-    // 1. MACD Analysis (Weight: 25%)
+    // 1. MACD Analysis (Weight: 40% - Most Important)
     const macdAnalysis = await calculateMACD(closes);
     if (macdAnalysis) {
       indicators.macd = macdAnalysis;
+      // Only trade strong crossovers - ignore weak momentum
       if (macdAnalysis.bullishCrossover) {
-        bullishScore += 25;
-        console.log(`🎯 MACD: BULLISH crossover (+25)`);
+        bullishScore += 40;
+        console.log(`🎯 MACD: STRONG BULLISH crossover (+40)`);
       } else if (macdAnalysis.bearishCrossover) {
-        bearishScore += 25;
-        console.log(`🎯 MACD: BEARISH crossover (+25)`);
-      } else if (macdAnalysis.bullishMomentum) {
-        bullishScore += 15;
-        console.log(`🎯 MACD: BULLISH momentum (+15)`);
-      } else if (macdAnalysis.bearishMomentum) {
-        bearishScore += 15;
-        console.log(`🎯 MACD: BEARISH momentum (+15)`);
+        bearishScore += 40;
+        console.log(`🎯 MACD: STRONG BEARISH crossover (+40)`);
       }
+      // Ignore weak momentum signals that cause false entries
     }
     
-    // 2. RSI Analysis (Weight: 20%)
+    // 2. RSI Analysis (Weight: 25% - Second Most Important)  
     const rsiAnalysis = calculateRSI(closes, 14);
     if (rsiAnalysis) {
       indicators.rsi = rsiAnalysis;
-      if (rsiAnalysis.value < 30) {
-        bullishScore += 20; // Oversold -> Buy signal
-        console.log(`🎯 RSI: OVERSOLD ${rsiAnalysis.value.toFixed(1)} (+20)`);
-      } else if (rsiAnalysis.value > 70) {
-        bearishScore += 20; // Overbought -> Sell signal
-        console.log(`🎯 RSI: OVERBOUGHT ${rsiAnalysis.value.toFixed(1)} (+20)`);
-      } else if (rsiAnalysis.value < 50 && rsiAnalysis.trend === 'rising') {
-        bullishScore += 10; // Rising from low
-        console.log(`🎯 RSI: RISING from low (+10)`);
-      } else if (rsiAnalysis.value > 50 && rsiAnalysis.trend === 'falling') {
-        bearishScore += 10; // Falling from high
-        console.log(`🎯 RSI: FALLING from high (+10)`);
+      // ONLY trade extreme RSI levels - avoid the middle zone
+      if (rsiAnalysis.value < 25) {
+        bullishScore += 25; // Very oversold -> Strong buy signal
+        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.value.toFixed(1)} (+25)`);
+      } else if (rsiAnalysis.value > 75) {
+        bearishScore += 25; // Very overbought -> Strong sell signal
+        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.value.toFixed(1)} (+25)`);
       }
+      // Skip weak RSI signals in 30-70 range that cause bad entries
     }
     
-    // 3. Bollinger Bands Analysis (Weight: 20%)
+    // 3. Bollinger Bands Analysis (Weight: 20% - High Quality Signals Only)
     const bbAnalysis = calculateBollingerBands(closes, 20, 2);
     if (bbAnalysis) {
       indicators.bollingerBands = bbAnalysis;
       const { current, upper, lower, squeeze } = bbAnalysis;
       
-      if (currentPrice <= lower) {
-        bullishScore += 20; // Price at lower band -> Buy
-        console.log(`🎯 BB: LOWER BAND touch (+20)`);
-      } else if (currentPrice >= upper) {
-        bearishScore += 20; // Price at upper band -> Sell
-        console.log(`🎯 BB: UPPER BAND touch (+20)`);
-      } else if (squeeze && currentPrice > current) {
-        bullishScore += 10; // Squeeze breakout up
-        console.log(`🎯 BB: SQUEEZE breakout UP (+10)`);
-      } else if (squeeze && currentPrice < current) {
-        bearishScore += 10; // Squeeze breakout down
-        console.log(`🎯 BB: SQUEEZE breakout DOWN (+10)`);
+      // Only trade extreme band touches - avoid weak signals
+      if (currentPrice <= lower * 0.995) { // Must be BELOW lower band, not just touching
+        bullishScore += 20;
+        console.log(`🎯 BB: EXTREME LOWER BAND breach (+20)`);
+      } else if (currentPrice >= upper * 1.005) { // Must be ABOVE upper band
+        bearishScore += 20;
+        console.log(`🎯 BB: EXTREME UPPER BAND breach (+20)`);
       }
+      // Skip weak squeeze breakouts that often fail
     }
     
-    // 4. Volume Analysis (Weight: 15%)
+    // 4. Volume Analysis (Weight: 20% - Critical for Confirmation)
     const volumeAnalysis = calculateVolumeAnalysis(volumes, closes);
     if (volumeAnalysis) {
       indicators.volume = volumeAnalysis;
       const { trend, strength, priceVolumeAlignment } = volumeAnalysis;
       
-      if (priceVolumeAlignment === 'bullish' && strength > 1.5) {
-        bullishScore += 15; // High volume + price up
-        console.log(`🎯 VOLUME: BULLISH alignment (+15)`);
-      } else if (priceVolumeAlignment === 'bearish' && strength > 1.5) {
-        bearishScore += 15; // High volume + price down
-        console.log(`🎯 VOLUME: BEARISH alignment (+15)`);
-      } else if (trend === 'increasing') {
-        bullishScore += 8; // Volume increasing
-        console.log(`🎯 VOLUME: INCREASING (+8)`);
+      // ONLY trade with VERY high volume confirmation
+      if (priceVolumeAlignment === 'bullish' && strength > 2.0) {
+        bullishScore += 20; // Extremely high volume + price up
+        console.log(`🎯 VOLUME: STRONG BULLISH alignment (+20)`);
+      } else if (priceVolumeAlignment === 'bearish' && strength > 2.0) {
+        bearishScore += 20; // Extremely high volume + price down
+        console.log(`🎯 VOLUME: STRONG BEARISH alignment (+20)`);
       }
+      // Skip weak volume signals that don't provide confirmation
     }
     
-    // 5. Enhanced Moving Average & Crossover Analysis (Weight: 15%)
+    // 5. Moving Average Analysis (Weight: 15% - Trend Confirmation Only)
     const maAnalysis = calculateMovingAverageAnalysis(closes);
     if (maAnalysis) {
       indicators.movingAverages = maAnalysis;
       const { ema20, ema50, crossover, trend } = maAnalysis;
       
-      // Strong crossover signals with price confirmation (15 points)
-      if (crossover === 'golden' && currentPrice > ema20) {
-        bullishScore += 15; // Golden cross with bullish confirmation
-        console.log(`🎯 MA: GOLDEN CROSS (+15)`);
-      } else if (crossover === 'death' && currentPrice < ema20) {
-        bearishScore += 15; // Death cross with bearish confirmation
-        console.log(`🎯 MA: DEATH CROSS (+15)`);
+      // ONLY trade confirmed crossovers with strong price action
+      if (crossover === 'golden' && currentPrice > ema20 * 1.01) {
+        bullishScore += 15; // Golden cross with strong bullish confirmation
+        console.log(`🎯 MA: CONFIRMED GOLDEN CROSS (+15)`);
+      } else if (crossover === 'death' && currentPrice < ema20 * 0.99) {
+        bearishScore += 15; // Death cross with strong bearish confirmation
+        console.log(`🎯 MA: CONFIRMED DEATH CROSS (+15)`);
       }
-      
-      // Trend confirmation and price position (8 points)
-      else if (trend === 'bullish' && currentPrice > ema20 && currentPrice > ema50) {
-        bullishScore += 8; // Price above both MAs in uptrend
-        console.log(`🎯 MA: BULLISH trend + price above MAs (+8)`);
-      } else if (trend === 'bearish' && currentPrice < ema20 && currentPrice < ema50) {
-        bearishScore += 8; // Price below both MAs in downtrend
-        console.log(`🎯 MA: BEARISH trend + price below MAs (+8)`);
-      }
+      // Skip weak trend following that doesn't add value
+    }
       
       // Weaker signals for trend only (5 points)
       else if (trend === 'bullish') {
@@ -231,54 +211,52 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     
     console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
     
-    // VOLATILITY-BASED CONFIDENCE ADJUSTMENT - High volatility = easier profit targets
+    // STRICT ENTRY REQUIREMENTS - Only trade high-probability setups
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
-    let confidenceThreshold = 60; // Base threshold for volatile pairs
     
-    // Adjust threshold based on volatility - higher volatility = lower threshold
-    if (volatility > 3.0) {
-      confidenceThreshold = 50; // Very volatile pairs need lower confidence
-      console.log(`🔥 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Lowered threshold to ${confidenceThreshold}%`);
-    } else if (volatility > 2.0) {
-      confidenceThreshold = 55; // Moderate volatility
-      console.log(`📈 MODERATE VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
+    // MUCH HIGHER confidence thresholds to prevent account blowup
+    let confidenceThreshold = 85; // Very high base threshold
+    let minSignalDifference = 30; // Require strong signal separation
+    
+    // Only slightly reduce thresholds for extremely volatile pairs
+    if (volatility > 4.0) {
+      confidenceThreshold = 80; // Still very high for volatile pairs
+      minSignalDifference = 25;
+      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - High threshold: ${confidenceThreshold}%`);
+    } else if (volatility > 3.0) {
+      confidenceThreshold = 82; 
+      minSignalDifference = 28;
+      console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     }
     
-    // AUTO SCANNER: Reduced signal requirements for more opportunities  
-    let minSignalDifference = volatility > 2.5 ? 10 : 15; // Lower requirements for auto scanner
-    
+    // STRICT signal strength requirements
     if (signalDifference < minSignalDifference) {
       console.log(`❌ Signal too weak: ${signalDifference} point difference < ${minSignalDifference} required`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // CRITICAL: Block dangerous overbought/oversold entries
-    const isOverboughtLong = indicators.rsi?.value > 70 && bullishScore > bearishScore;
-    const isOversoldShort = indicators.rsi?.value < 30 && bearishScore > bullishScore;
+    // ENHANCED safety checks - Block all risky entries
+    const isOverboughtLong = indicators.rsi?.value > 65 && bullishScore > bearishScore; // Lower threshold
+    const isOversoldShort = indicators.rsi?.value < 35 && bearishScore > bullishScore; // Higher threshold  
     const isBandRejection = (indicators.bollingerBands?.current >= indicators.bollingerBands?.upper && bullishScore > bearishScore) ||
                            (indicators.bollingerBands?.current <= indicators.bollingerBands?.lower && bearishScore > bullishScore);
     
-    if (isOverboughtLong || isOversoldShort || isBandRejection) {
-      console.log(`❌ BLOCKED dangerous entry: RSI ${indicators.rsi?.value}, BB rejection ${isBandRejection}`);
+    // Additional safety: Block entries without strong volume confirmation
+    const hasVolumeConfirmation = indicators.volume?.strength > 1.3;
+    const hasTrendAlignment = (bullishScore > bearishScore && indicators.movingAverages?.trend === 'bullish') ||
+                             (bearishScore > bullishScore && indicators.movingAverages?.trend === 'bearish');
+    
+    if (isOverboughtLong || isOversoldShort || isBandRejection || !hasVolumeConfirmation || !hasTrendAlignment) {
+      console.log(`❌ BLOCKED risky entry: RSI ${indicators.rsi?.value}, BB rejection ${isBandRejection}, Volume ${hasVolumeConfirmation}, Trend ${hasTrendAlignment}`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // AUTO SCANNER OPTIMIZED - More realistic signal requirements
-    if (signalDifference >= 15 && totalScore >= 25) {
-      // Strong signals with good evidence
-      if (signalDifference >= 25 && totalScore >= 45) {
-        confidenceThreshold = 50; // Strong signal
-        console.log(`🎯 Strong signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
-      } else if (signalDifference >= 20 && totalScore >= 35) {
-        confidenceThreshold = 40; // Good signal
-        console.log(`📊 Good signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
-      } else {
-        confidenceThreshold = 30; // Moderate signal for auto scanner
-        console.log(`📈 Moderate signal: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
-      }
+    // ULTRA STRICT requirements - Only trade the absolute best setups
+    if (signalDifference >= 40 && totalScore >= 80) {
+      console.log(`🎯 PREMIUM SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
     } else {
-      console.log(`⚠️ Insufficient strength: ${signalDifference} diff, ${totalScore} total`);
+      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need 40+ diff, 80+ total for safety)`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
@@ -356,51 +334,53 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
 
 // Conservative Trade Selection: Wider stops, higher win rate
 function calculateOptimalTradeSetup(leverage: number, botType: string = 'default'): { stopLoss: number, takeProfit: number, tradeProfile: string } {
-  // CONSERVATIVE account risk - wider stops to avoid noise
-  const maxAccountLoss = 3.0; // Reduced from 5% to 3% for safety
-  const targetAccountGain = 6.0; // Reduced from 8% to 6% - more realistic
+  // ULTRA CONSERVATIVE account risk - prevent account destruction
+  const maxAccountLoss = 1.5; // Maximum 1.5% account risk per trade
+  const targetAccountGain = 4.5; // 3:1 reward-to-risk ratio
   
-  // Calculate required position percentages with WIDER STOPS
-  let stopLossPercent = maxAccountLoss / leverage;
-  let takeProfitPercent = targetAccountGain / leverage;
+  // Calculate required position percentages with MUCH WIDER STOPS
+  let stopLossPercent = Math.max(5.0, maxAccountLoss / leverage * 3); // Minimum 5% stop loss
+  let takeProfitPercent = Math.max(15.0, targetAccountGain / leverage * 3); // Minimum 15% take profit
   
-  // CRITICAL: Minimum stop loss to avoid market noise
-  if (stopLossPercent < 2.0) {
-    stopLossPercent = 2.0; // Minimum 2% stop loss regardless of leverage
-    console.log(`🛡️ Stop loss widened to 2.0% minimum (was ${(maxAccountLoss / leverage).toFixed(2)}%)`);
-  }
-  
-  if (takeProfitPercent < 3.0) {
-    takeProfitPercent = 3.0; // Minimum 3% take profit
-    console.log(`🎯 Take profit adjusted to 3.0% minimum (was ${(targetAccountGain / leverage).toFixed(2)}%)`);
-  }
-  
-  // Determine trade profile based on required percentages
-  let tradeProfile = 'standard';
-  if (stopLossPercent < 0.5) {
-    tradeProfile = 'precision_scalping'; // Very tight moves, high frequency
-  } else if (stopLossPercent < 1.0) {
-    tradeProfile = 'micro_swing'; // Small swings, medium frequency
-  } else if (stopLossPercent < 2.0) {
-    tradeProfile = 'standard_swing'; // Normal swing moves
+  // CRYPTO-SPECIFIC adjustments - these markets are volatile
+  if (leverage >= 10) {
+    stopLossPercent = Math.max(8.0, stopLossPercent); // 8% minimum for high leverage
+    takeProfitPercent = Math.max(20.0, takeProfitPercent); // 20% minimum target
+    console.log(`🔥 HIGH LEVERAGE (${leverage}x) - Wider stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+  } else if (leverage >= 5) {
+    stopLossPercent = Math.max(6.0, stopLossPercent); // 6% minimum for medium leverage  
+    takeProfitPercent = Math.max(18.0, takeProfitPercent); // 18% minimum target
+    console.log(`⚡ MEDIUM LEVERAGE (${leverage}x) - Conservative stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   } else {
-    tradeProfile = 'wide_swing'; // Larger moves, lower frequency
+    stopLossPercent = Math.max(4.0, stopLossPercent); // 4% minimum for low leverage
+    takeProfitPercent = Math.max(12.0, takeProfitPercent); // 12% minimum target
+    console.log(`🛡️ LOW LEVERAGE (${leverage}x) - Standard stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
   }
   
-  // Adjust for bot type preferences
-  if (botType.includes('Scalping') || botType.includes('scalping')) {
-    tradeProfile = stopLossPercent < 0.3 ? 'ultra_precision' : 'precision_scalping';
-  } else if (botType.includes('Grid') || botType.includes('grid')) {
-    tradeProfile = 'grid_optimized'; // Focus on range-bound moves
-  } else if (botType.includes('Arbitrage')) {
-    tradeProfile = 'arbitrage_tight'; // Exploit spread differences
+  // Determine trade profile based on realistic percentages
+  let tradeProfile = 'safe_swing';
+  if (stopLossPercent >= 8.0) {
+    tradeProfile = 'wide_position_trading'; // Large moves, very low frequency
+  } else if (stopLossPercent >= 6.0) {
+    tradeProfile = 'conservative_swing'; // Medium moves, low frequency
+  } else {
+    tradeProfile = 'safe_swing'; // Smaller moves, medium frequency
   }
   
-  console.log(`🎯 ${leverage}x leverage requires ${stopLossPercent.toFixed(2)}% SL, ${takeProfitPercent.toFixed(2)}% TP - Profile: ${tradeProfile}`);
+  // Override for known risky bot types
+  if (botType.includes('auto_scanner') || botType === 'auto_scanner') {
+    // Auto scanner needs even wider stops due to algorithmic entry
+    stopLossPercent = Math.max(stopLossPercent * 1.2, 6.0);
+    takeProfitPercent = Math.max(takeProfitPercent * 1.2, 18.0);
+    tradeProfile = 'algorithmic_wide';
+    console.log(`🤖 AUTO SCANNER - Extra wide stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+  }
+  
+  console.log(`🎯 ACCOUNT SAFE - ${leverage}x leverage: ${stopLossPercent.toFixed(1)}% SL (${(stopLossPercent / leverage * 1.5).toFixed(1)}% account), ${takeProfitPercent.toFixed(1)}% TP (${(takeProfitPercent / leverage * 1.5).toFixed(1)}% account)`);
   
   return {
-    stopLoss: Math.max(stopLossPercent, 2.0), // Minimum 2.0% stop loss to avoid noise
-    takeProfit: Math.max(takeProfitPercent, 3.0), // Minimum 3.0% take profit
+    stopLoss: stopLossPercent,
+    takeProfit: takeProfitPercent,
     tradeProfile
   };
 }
