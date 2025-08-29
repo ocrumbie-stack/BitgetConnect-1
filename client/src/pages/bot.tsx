@@ -2855,6 +2855,216 @@ export default function BotPage() {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Main Deployment Dialog - RESTORED */}
+        {showRunDialog && selectedStrategy && (
+          <Dialog open={showRunDialog} onOpenChange={setShowRunDialog}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Deploy Strategy: {selectedStrategy.name}</DialogTitle>
+                <DialogDescription>Configure deployment settings and select target</DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Deployment Mode Selector - RESTORED */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Deployment Mode</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        deploymentMode === 'individual' 
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setDeploymentMode('individual')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="radio" 
+                          name="deploymentMode" 
+                          value="individual"
+                          checked={deploymentMode === 'individual'}
+                          onChange={() => setDeploymentMode('individual')}
+                          className="text-blue-500"
+                        />
+                        <div>
+                          <div className="font-medium">Single Trading Pair</div>
+                          <div className="text-sm text-muted-foreground">Deploy bot to one specific trading pair</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        deploymentMode === 'folder' 
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setDeploymentMode('folder')}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="radio" 
+                          name="deploymentMode" 
+                          value="folder"
+                          checked={deploymentMode === 'folder'}
+                          onChange={() => setDeploymentMode('folder')}
+                          className="text-purple-500"
+                        />
+                        <div>
+                          <div className="font-medium">Folder Deployment</div>
+                          <div className="text-sm text-muted-foreground">Deploy to all pairs in selected folder</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedStrategy.isAI && (
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          deploymentMode === 'auto_scanner' 
+                            ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => setDeploymentMode('auto_scanner')}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="radio" 
+                            name="deploymentMode" 
+                            value="auto_scanner"
+                            checked={deploymentMode === 'auto_scanner'}
+                            onChange={() => setDeploymentMode('auto_scanner')}
+                            className="text-cyan-500"
+                          />
+                          <div>
+                            <div className="font-medium">Auto Market Scanner</div>
+                            <div className="text-sm text-muted-foreground">AI finds optimal trading opportunities automatically</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Individual Pair Selection */}
+                {deploymentMode === 'individual' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="pair-search">Select Trading Pair</Label>
+                    <div className="relative">
+                      <Input
+                        id="pair-search"
+                        type="text"
+                        value={pairSearch}
+                        onChange={(e) => handlePairSearchChange(e.target.value)}
+                        placeholder="Search for trading pair (e.g., BTCUSDT)"
+                        className="w-full"
+                      />
+                      {showAutoSuggest && filteredPairs.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
+                          {filteredPairs.map((pair: any) => (
+                            <div
+                              key={pair.symbol}
+                              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center"
+                              onClick={() => selectPair(pair)}
+                            >
+                              <div>
+                                <span className="font-medium">{pair.symbol}</span>
+                                <span className={`ml-2 text-sm ${parseFloat(pair.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {parseFloat(pair.change24h) >= 0 ? '+' : ''}{parseFloat(pair.change24h).toFixed(2)}%
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                Vol: ${(parseFloat(pair.volume24h) / 1000000).toFixed(1)}M
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Folder Selection */}
+                {deploymentMode === 'folder' && (
+                  <div className="space-y-2">
+                    <Label>Select Folder</Label>
+                    <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a folder" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(folders as any[]).map((folder: any) => (
+                          <SelectItem key={folder.id} value={folder.id}>
+                            {folder.name} ({folder.tradingPairs?.length || 0} pairs)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Capital and Leverage */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="capital">Capital ($)</Label>
+                    <Input
+                      id="capital"
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      value={capital}
+                      onChange={(e) => setCapital(e.target.value)}
+                      placeholder="Enter capital amount"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="leverage">Leverage</Label>
+                    <Select value={leverage} onValueChange={setLeverage}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1x (Conservative)</SelectItem>
+                        <SelectItem value="2">2x (Moderate)</SelectItem>
+                        <SelectItem value="3">3x (Balanced)</SelectItem>
+                        <SelectItem value="5">5x (Aggressive)</SelectItem>
+                        <SelectItem value="10">10x (Maximum)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Deploy Button */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => setShowRunDialog(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleRunStrategy(selectedStrategy)}
+                    disabled={runStrategyMutation.isPending}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  >
+                    {runStrategyMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deploying...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Deploy Strategy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
         
         {/* Debug info */}
         <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
