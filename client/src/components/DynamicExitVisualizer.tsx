@@ -163,9 +163,45 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
 
     const { entryPrice, currentPrice, stopLossPrice, takeProfitPrice } = exitConditions;
     
-    // Calculate chart range with some padding
-    const minPrice = Math.min(entryPrice, currentPrice, stopLossPrice, takeProfitPrice) * 0.98;
-    const maxPrice = Math.max(entryPrice, currentPrice, stopLossPrice, takeProfitPrice) * 1.02;
+    // Generate simulated price line data points
+    const generatePriceData = () => {
+      const points = [];
+      const timePoints = 20; // Number of data points
+      const currentTime = Date.now();
+      const startTime = currentTime - (30 * 60 * 1000); // 30 minutes ago
+      
+      // Create a realistic price movement from entry to current
+      const priceChange = currentPrice - entryPrice;
+      const volatility = Math.abs(priceChange) * 0.3; // Add some volatility
+      
+      for (let i = 0; i < timePoints; i++) {
+        const progress = i / (timePoints - 1);
+        const time = startTime + (progress * 30 * 60 * 1000);
+        
+        // Create realistic price movement with some noise
+        let price;
+        if (i === 0) {
+          price = entryPrice;
+        } else if (i === timePoints - 1) {
+          price = currentPrice;
+        } else {
+          // Linear interpolation with noise
+          const basePrice = entryPrice + (priceChange * progress);
+          const noise = (Math.random() - 0.5) * volatility * Math.sin(progress * Math.PI);
+          price = basePrice + noise;
+        }
+        
+        points.push({ time, price });
+      }
+      return points;
+    };
+
+    const priceData = generatePriceData();
+    
+    // Calculate chart range with padding
+    const allPrices = [...priceData.map(p => p.price), stopLossPrice, takeProfitPrice];
+    const minPrice = Math.min(...allPrices) * 0.995;
+    const maxPrice = Math.max(...allPrices) * 1.005;
     const priceRange = maxPrice - minPrice;
     
     // Calculate positions as percentages from bottom
@@ -178,88 +214,139 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
     const stopLossY = getYPosition(stopLossPrice);
     const takeProfitY = getYPosition(takeProfitPrice);
     
+    // Create SVG path for price line
+    const createPricePath = () => {
+      if (priceData.length < 2) return '';
+      
+      const chartWidth = 100; // percentage
+      const pathData = priceData.map((point, index) => {
+        const x = (index / (priceData.length - 1)) * chartWidth;
+        const y = 100 - getYPosition(point.price); // Flip Y for SVG
+        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+      }).join(' ');
+      
+      return pathData;
+    };
+    
     return (
-      <div className="h-48 bg-gray-900 rounded-lg p-4 border border-gray-600 relative overflow-hidden">
+      <div className="h-56 bg-gray-900 rounded-lg p-4 border border-gray-600 relative overflow-hidden">
         {/* Chart background grid */}
-        <div className="absolute inset-4 opacity-20">
+        <div className="absolute inset-4 opacity-15">
           <div className="h-full w-full border-l border-b border-gray-600"></div>
-          {[25, 50, 75].map(x => (
-            <div key={x} className={`absolute top-0 h-full border-l border-gray-700`} style={{ left: `${x}%` }}></div>
+          {[20, 40, 60, 80].map(x => (
+            <div key={x} className="absolute top-0 h-full border-l border-gray-700" style={{ left: `${x}%` }}></div>
           ))}
-          {[25, 50, 75].map(y => (
-            <div key={y} className={`absolute left-0 w-full border-t border-gray-700`} style={{ top: `${y}%` }}></div>
+          {[20, 40, 60, 80].map(y => (
+            <div key={y} className="absolute left-0 w-full border-t border-gray-700" style={{ top: `${y}%` }}></div>
           ))}
         </div>
 
-        {/* Price levels */}
-        {/* Take Profit Line */}
-        <div 
-          className="absolute left-4 right-4 border-t-2 border-green-400 z-10"
-          style={{ bottom: `${takeProfitY}%` }}
-        >
-          <div className="absolute right-0 -top-6 text-xs text-green-400 font-medium bg-gray-900 px-2 py-1 rounded">
-            TP: ${takeProfitPrice.toFixed(4)}
+        {/* SVG Price Line */}
+        <svg className="absolute inset-4 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {/* Zone backgrounds */}
+          <defs>
+            <linearGradient id="profitGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgb(34, 197, 94)" stopOpacity="0.1"/>
+              <stop offset="100%" stopColor="rgb(34, 197, 94)" stopOpacity="0.05"/>
+            </linearGradient>
+            <linearGradient id="lossGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity="0.1"/>
+              <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity="0.05"/>
+            </linearGradient>
+          </defs>
+          
+          {/* Profit zone */}
+          <rect 
+            x="0" y={100 - takeProfitY} 
+            width="100" height={takeProfitY - Math.max(entryY, currentY)} 
+            fill="url(#profitGradient)"
+          />
+          
+          {/* Loss zone */}
+          <rect 
+            x="0" y={100 - Math.min(entryY, currentY)} 
+            width="100" height={Math.min(entryY, currentY) - stopLossY} 
+            fill="url(#lossGradient)"
+          />
+          
+          {/* Take Profit Line */}
+          <line x1="0" y1={100 - takeProfitY} x2="100" y2={100 - takeProfitY} 
+                stroke="rgb(34, 197, 94)" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.8"/>
+          
+          {/* Stop Loss Line */}
+          <line x1="0" y1={100 - stopLossY} x2="100" y2={100 - stopLossY} 
+                stroke="rgb(239, 68, 68)" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.8"/>
+          
+          {/* Entry Price Line */}
+          <line x1="0" y1={100 - entryY} x2="100" y2={100 - entryY} 
+                stroke="rgb(59, 130, 246)" strokeWidth="0.6" strokeDasharray="4,4" opacity="0.6"/>
+          
+          {/* Price Line */}
+          <path 
+            d={createPricePath()} 
+            fill="none" 
+            stroke="rgb(251, 191, 36)" 
+            strokeWidth="1.2"
+            className="drop-shadow-sm"
+          />
+          
+          {/* Price dots */}
+          {priceData.map((point, index) => {
+            const x = (index / (priceData.length - 1)) * 100;
+            const y = 100 - getYPosition(point.price);
+            const isLast = index === priceData.length - 1;
+            
+            return (
+              <circle 
+                key={index}
+                cx={x} cy={y} r={isLast ? "1.2" : "0.4"}
+                fill={isLast ? "rgb(251, 191, 36)" : "rgba(251, 191, 36, 0.6)"}
+                className={isLast ? "animate-pulse" : ""}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Price level labels */}
+        <div className="absolute right-1 text-xs font-medium space-y-1">
+          <div 
+            className="text-green-400 bg-gray-900/80 px-2 py-0.5 rounded text-right"
+            style={{ position: 'absolute', bottom: `${takeProfitY}%`, transform: 'translateY(50%)' }}
+          >
+            TP ${takeProfitPrice.toFixed(4)}
           </div>
-        </div>
-        
-        {/* Current Price Line */}
-        <div 
-          className="absolute left-4 right-4 border-t-2 border-yellow-400 z-10"
-          style={{ bottom: `${currentY}%` }}
-        >
-          <div className="absolute right-0 -top-6 text-xs text-yellow-400 font-medium bg-gray-900 px-2 py-1 rounded">
-            Now: ${currentPrice.toFixed(4)}
+          <div 
+            className="text-yellow-400 bg-gray-900/80 px-2 py-0.5 rounded text-right"
+            style={{ position: 'absolute', bottom: `${currentY}%`, transform: 'translateY(50%)' }}
+          >
+            ${currentPrice.toFixed(4)}
           </div>
-          {/* Current price dot */}
-          <div className="absolute right-2 -top-1 w-2 h-2 bg-yellow-400 rounded-full"></div>
-        </div>
-        
-        {/* Entry Price Line */}
-        <div 
-          className="absolute left-4 right-4 border-t-2 border-blue-400 border-dashed z-10"
-          style={{ bottom: `${entryY}%` }}
-        >
-          <div className="absolute right-0 -top-6 text-xs text-blue-400 font-medium bg-gray-900 px-2 py-1 rounded">
-            Entry: ${entryPrice.toFixed(4)}
+          <div 
+            className="text-blue-400 bg-gray-900/80 px-2 py-0.5 rounded text-right opacity-70"
+            style={{ position: 'absolute', bottom: `${entryY}%`, transform: 'translateY(50%)' }}
+          >
+            Entry ${entryPrice.toFixed(4)}
           </div>
-        </div>
-        
-        {/* Stop Loss Line */}
-        <div 
-          className="absolute left-4 right-4 border-t-2 border-red-400 z-10"
-          style={{ bottom: `${stopLossY}%` }}
-        >
-          <div className="absolute right-0 -top-6 text-xs text-red-400 font-medium bg-gray-900 px-2 py-1 rounded">
-            SL: ${stopLossPrice.toFixed(4)}
+          <div 
+            className="text-red-400 bg-gray-900/80 px-2 py-0.5 rounded text-right"
+            style={{ position: 'absolute', bottom: `${stopLossY}%`, transform: 'translateY(50%)' }}
+          >
+            SL ${stopLossPrice.toFixed(4)}
           </div>
         </div>
 
-        {/* Y-axis price labels */}
-        <div className="absolute left-0 top-1 text-xs text-gray-400">
-          ${maxPrice.toFixed(4)}
-        </div>
-        <div className="absolute left-0 bottom-1 text-xs text-gray-400">
-          ${minPrice.toFixed(4)}
+        {/* Y-axis price scale */}
+        <div className="absolute left-0 text-xs text-gray-400 space-y-1">
+          <div className="absolute top-1">${maxPrice.toFixed(4)}</div>
+          <div className="absolute bottom-1">${minPrice.toFixed(4)}</div>
         </div>
         
-        {/* Zone backgrounds */}
-        {/* Profit zone */}
-        <div 
-          className="absolute left-4 right-4 bg-green-500/10 z-0"
-          style={{ 
-            bottom: `${Math.max(entryY, currentY)}%`, 
-            height: `${takeProfitY - Math.max(entryY, currentY)}%` 
-          }}
-        ></div>
-        
-        {/* Loss zone */}
-        <div 
-          className="absolute left-4 right-4 bg-red-500/10 z-0"
-          style={{ 
-            bottom: `${stopLossY}%`, 
-            height: `${Math.min(entryY, currentY) - stopLossY}%` 
-          }}
-        ></div>
+        {/* X-axis time labels */}
+        <div className="absolute bottom-0 left-4 right-4 flex justify-between text-xs text-gray-500">
+          <span>30m ago</span>
+          <span>15m ago</span>
+          <span>Now</span>
+        </div>
         </div>
       );
     };
