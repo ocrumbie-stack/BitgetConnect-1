@@ -3046,14 +3046,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const strategyConfig = aiStrategyConfigs[strategyId as keyof typeof aiStrategyConfigs];
           if (strategyConfig) {
             try {
-              await storage.createBotStrategy({
-                id: strategyId,
-                userId,
-                ...strategyConfig
-              });
-              console.log(`✅ Created AI strategy: ${strategyId}`);
+              // Check if strategy already exists to avoid duplicates
+              const existingStrategies = await storage.getBotStrategies(userId);
+              const strategyExists = existingStrategies.some(s => s.id === strategyId);
+              
+              if (!strategyExists) {
+                await storage.createBotStrategy({
+                  id: strategyId,
+                  userId,
+                  ...strategyConfig
+                });
+                console.log(`✅ Created new AI strategy: ${strategyId}`);
+              } else {
+                console.log(`♻️ Reusing existing AI strategy: ${strategyId}`);
+              }
             } catch (strategyError) {
-              console.error(`❌ Failed to create AI strategy ${strategyId}:`, strategyError);
+              console.error(`❌ Failed to create/check AI strategy ${strategyId}:`, strategyError);
               const errorMessage = strategyError instanceof Error ? strategyError.message : String(strategyError);
               throw new Error(`Failed to create AI strategy: ${errorMessage}`);
             }
