@@ -1483,7 +1483,13 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                    6
+                    {(() => {
+                      // Count AI scanner bots
+                      const aiBots = (activeExecutions as any[]).filter(ex => 
+                        ex.deploymentType === 'auto_scanner' && ex.status !== 'terminated'
+                      );
+                      return aiBots.length;
+                    })()}
                   </div>
                   <div className="text-xs text-purple-600 dark:text-purple-400">AI Bots</div>
                 </div>
@@ -1508,7 +1514,7 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
-                    Auto
+                    ON
                   </div>
                   <div className="text-xs text-cyan-600 dark:text-cyan-400">Market Scanner</div>
                 </div>
