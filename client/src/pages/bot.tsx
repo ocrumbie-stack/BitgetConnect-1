@@ -1429,7 +1429,7 @@ export default function BotPage() {
                   <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-400">My Strategies</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
                 </div>
               </div>
             </CardContent>
@@ -1451,18 +1451,11 @@ export default function BotPage() {
                 <div>
                   <div className="text-2xl font-bold text-green-700 dark:text-green-300">
                     {(() => {
-                      // Count unique bot instances (by strategyId + botName combination) that have at least one active execution
-                      const uniqueBots = new Set();
-                      (activeExecutions as any[]).forEach(ex => {
-                        if (ex.status === 'active') {
-                          const botKey = `${ex.strategyId}-${ex.botName || 'default'}`;
-                          uniqueBots.add(botKey);
-                        }
-                      });
-                      return uniqueBots.size;
+                      const activeBots = (activeExecutions as any[]).filter(ex => ex.status === 'active');
+                      return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-xs text-green-600 dark:text-green-400">Active Bots</div>
+                  <div className="text-sm text-green-600 dark:text-green-400">Active</div>
                 </div>
               </div>
             </CardContent>
@@ -1484,20 +1477,17 @@ export default function BotPage() {
                 <div>
                   <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
                     {(() => {
-                      // Count AI scanner bots
                       const aiBots = (activeExecutions as any[]).filter(ex => 
                         ex.deploymentType === 'auto_scanner' && ex.status !== 'terminated'
                       );
                       return aiBots.length;
                     })()}
                   </div>
-                  <div className="text-xs text-purple-600 dark:text-purple-400">AI Bots</div>
+                  <div className="text-sm text-purple-600 dark:text-purple-400">AI Bots</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-
 
           <Card 
             className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
@@ -1514,9 +1504,14 @@ export default function BotPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
-                    ON
+                    {(() => {
+                      const scannerBots = (activeExecutions as any[]).filter(ex => 
+                        ex.deploymentType === 'auto_scanner' && ex.status === 'active'
+                      );
+                      return scannerBots.length;
+                    })()}
                   </div>
-                  <div className="text-xs text-cyan-600 dark:text-cyan-400">Market Scanner</div>
+                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -1530,7 +1525,6 @@ export default function BotPage() {
             }, 0);
             
             const isPositive = totalPL >= 0;
-            const cardColor = isPositive ? 'green' : 'red';
             const sign = totalPL >= 0 ? '+' : '';
             
             return (
@@ -1554,7 +1548,7 @@ export default function BotPage() {
                       }`}>
                         {runningBots.length === 0 ? '$0.00' : `${sign}$${totalPL.toFixed(2)}`}
                       </div>
-                      <div className={`text-xs ${isPositive 
+                      <div className={`text-sm ${isPositive 
                         ? 'text-green-600 dark:text-green-400' 
                         : 'text-red-600 dark:text-red-400'
                       }`}>Total P&L</div>
