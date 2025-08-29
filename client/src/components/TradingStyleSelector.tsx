@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, Shield, Zap, Target, AlertTriangle, DollarSign } from 'lucide-react';
+import { TrendingUp, Shield, Zap, Target, AlertTriangle, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 
@@ -75,7 +75,7 @@ type TradingStyleSettings = {
   confidenceThreshold: number;
   maxLeverage: number;
   riskTolerance: 'low' | 'medium' | 'high';
-  timeframePreference: '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+  timeframePreference: '1m' | '5m' | '15m' | '1h' | '4h' | '1d' | '1m+5m' | '15m+1H' | '4H+1D';
   tradingStyleSettings: {
     aggressive: boolean;
     scalping: boolean;
@@ -86,6 +86,7 @@ type TradingStyleSettings = {
 export function TradingStyleSelector({ userId = 'default-user', onStyleChange }: TradingStyleSelectorProps) {
   const [selectedStyle, setSelectedStyle] = useState<keyof typeof tradingStyles | ''>('');
   const [customSettings, setCustomSettings] = useState<TradingStyleSettings>(tradingStyles.balanced.settings);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
 
 
@@ -175,66 +176,85 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
         </Select>
       </div>
 
-      {/* Configuration Card - Only shown when style is selected */}
+      {/* Collapsible Configuration - Only shown when style is selected */}
       {selectedStyle && (
-        <Card className="border-2" data-testid="card-trading-config">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              {(() => {
-                const currentStyle = tradingStyles[selectedStyle];
-                const IconComponent = currentStyle.icon;
-                return (
-                  <>
-                    <div className={`p-2 rounded-lg ${currentStyle.color}`}>
-                      <IconComponent className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{currentStyle.name} Trading Style</CardTitle>
-                      <p className="text-sm text-muted-foreground">{currentStyle.description}</p>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            {/* Key Features */}
-            <div>
-              <Label className="text-sm font-medium">Key Features</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tradingStyles[selectedStyle].features.map((feature, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {feature}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Basic Settings */}
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">
-                  Confidence Threshold: {customSettings.confidenceThreshold}%
-                </Label>
-                <div className="mt-2 p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Standardized threshold for optimal {tradingStyles[selectedStyle].name.toLowerCase()} trading performance. 
-                    This setting is automatically optimized and cannot be manually adjusted.
-                  </p>
+        <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <CollapsibleTrigger asChild>
+            <Card className="cursor-pointer hover:bg-muted/50 transition-colors" data-testid="card-trading-summary">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const currentStyle = tradingStyles[selectedStyle];
+                      const IconComponent = currentStyle.icon;
+                      return (
+                        <>
+                          <div className={`p-2 rounded-lg ${currentStyle.color}`}>
+                            <IconComponent className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{currentStyle.name} Style</div>
+                            <div className="text-sm text-muted-foreground">
+                              {customSettings.confidenceThreshold}% confidence • {customSettings.maxLeverage}x leverage
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {tradingStyles[selectedStyle].settings.timeframePreference}
+                    </Badge>
+                    {isDetailsOpen ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <Card className="border-2 mt-2" data-testid="card-trading-details">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">{tradingStyles[selectedStyle].name} Trading Style Details</CardTitle>
+                <p className="text-sm text-muted-foreground">{tradingStyles[selectedStyle].description}</p>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                {/* Key Features */}
+                <div>
+                  <Label className="text-sm font-medium">Key Features</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {tradingStyles[selectedStyle].features.map((feature, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
 
-
-
-
-            </div>
-
-
-
-
-          </CardContent>
-        </Card>
+                {/* Basic Settings */}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">
+                      Confidence Threshold: {customSettings.confidenceThreshold}%
+                    </Label>
+                    <div className="mt-2 p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        Standardized threshold for optimal {tradingStyles[selectedStyle].name.toLowerCase()} trading performance. 
+                        This setting is automatically optimized and cannot be manually adjusted.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );
