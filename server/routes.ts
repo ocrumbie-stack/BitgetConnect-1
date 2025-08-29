@@ -193,18 +193,18 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
     
-    // FOCUSED TOP-50 confidence thresholds - More realistic for high-volume pairs
-    let confidenceThreshold = 60; // Reasonable base threshold for top volume pairs
-    let minSignalDifference = 18; // Achievable signal separation for quality pairs
+    // REALISTIC confidence thresholds for actual market conditions
+    let confidenceThreshold = 30; // More achievable base threshold
+    let minSignalDifference = 8; // Realistic signal separation for quality pairs
     
     // Adjust thresholds based on volatility for high-volume pairs
     if (volatility > 4.0) {
-      confidenceThreshold = 55; // Lower for extremely volatile high-volume pairs
-      minSignalDifference = 15;
+      confidenceThreshold = 25; // Lower for extremely volatile high-volume pairs
+      minSignalDifference = 6;
       console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Focused threshold: ${confidenceThreshold}%`);
     } else if (volatility > 3.0) {
-      confidenceThreshold = 57; 
-      minSignalDifference = 17;
+      confidenceThreshold = 27; 
+      minSignalDifference = 7;
       console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     }
     
@@ -230,11 +230,11 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // FOCUSED TOP-50 requirements - Balanced for high-volume pairs
-    if (signalDifference >= 18 && totalScore >= 30) {
-      console.log(`🎯 HIGH-VOLUME SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
+    // REALISTIC requirements for actual trading signals
+    if (signalDifference >= minSignalDifference && totalScore >= 15) {
+      console.log(`🎯 QUALITY SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
     } else {
-      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need 18+ diff, 30+ total for top volume pairs)`);
+      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need ${minSignalDifference}+ diff, 15+ total for quality signals)`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
