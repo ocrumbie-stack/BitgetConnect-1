@@ -1420,16 +1420,16 @@ export default function BotPage() {
             }`}
             onClick={() => handleTabChange('strategies')}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-2 bg-blue-500 rounded-lg">
-                  <Zap className="h-4 w-4 text-white" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="p-1.5 bg-blue-500 rounded-md">
+                  <Zap className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-base text-blue-600 dark:text-blue-400">Strategies</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
                 </div>
               </div>
             </CardContent>
@@ -1443,19 +1443,19 @@ export default function BotPage() {
             }`}
             onClick={() => handleTabChange('executions')}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-2 bg-green-500 rounded-lg">
-                  <Activity className="h-4 w-4 text-white" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="p-1.5 bg-green-500 rounded-md">
+                  <Activity className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  <div className="text-xl font-bold text-green-700 dark:text-green-300">
                     {(() => {
                       const activeBots = (activeExecutions as any[]).filter(ex => ex.status === 'active');
                       return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-base text-green-600 dark:text-green-400">Active</div>
+                  <div className="text-sm text-green-600 dark:text-green-400">Active</div>
                 </div>
               </div>
             </CardContent>
@@ -1469,16 +1469,16 @@ export default function BotPage() {
             }`}
             onClick={() => handleTabChange('ai')}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <Bot className="h-4 w-4 text-white" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="p-1.5 bg-purple-500 rounded-md">
+                  <Bot className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
                     6
                   </div>
-                  <div className="text-base text-purple-600 dark:text-purple-400">AI Bots</div>
+                  <div className="text-sm text-purple-600 dark:text-purple-400">AI Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1492,13 +1492,13 @@ export default function BotPage() {
             }`}
             onClick={() => handleTabChange('scanner')}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-2 bg-cyan-500 rounded-lg">
-                  <Search className="h-4 w-4 text-white" />
+            <CardContent className="p-2">
+              <div className="flex items-center justify-center gap-2">
+                <div className="p-1.5 bg-cyan-500 rounded-md">
+                  <Search className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-cyan-700 dark:text-cyan-300">
+                  <div className="text-xl font-bold text-cyan-700 dark:text-cyan-300">
                     {(() => {
                       const scannerBots = (activeExecutions as any[]).filter(ex => 
                         ex.deploymentType === 'auto_scanner' && ex.status === 'active'
@@ -1506,7 +1506,7 @@ export default function BotPage() {
                       return scannerBots.length;
                     })()}
                   </div>
-                  <div className="text-base text-cyan-600 dark:text-cyan-400">Market Scanner</div>
+                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Market Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -1527,23 +1527,23 @@ export default function BotPage() {
                 ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800' 
                 : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-800'
               }`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className={`p-2 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-lg`}>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className={`p-1.5 ${isPositive ? 'bg-green-500' : 'bg-red-500'} rounded-md`}>
                       {isPositive ? (
-                        <TrendingUp className="h-4 w-4 text-white" />
+                        <TrendingUp className="h-3.5 w-3.5 text-white" />
                       ) : (
-                        <TrendingDown className="h-4 w-4 text-white" />
+                        <TrendingDown className="h-3.5 w-3.5 text-white" />
                       )}
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${isPositive 
+                      <div className={`text-xl font-bold ${isPositive 
                         ? 'text-green-700 dark:text-green-300' 
                         : 'text-red-700 dark:text-red-300'
                       }`}>
                         {runningBots.length === 0 ? '$0.00' : `${sign}$${totalPL.toFixed(2)}`}
                       </div>
-                      <div className={`text-base ${isPositive 
+                      <div className={`text-sm ${isPositive 
                         ? 'text-green-600 dark:text-green-400' 
                         : 'text-red-600 dark:text-red-400'
                       }`}>Total P&L</div>
