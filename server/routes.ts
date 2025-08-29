@@ -214,19 +214,12 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
-    // ENHANCED safety checks - Block all risky entries
-    const isOverboughtLong = indicators.rsi?.value > 65 && bullishScore > bearishScore; // Lower threshold
-    const isOversoldShort = indicators.rsi?.value < 35 && bearishScore > bullishScore; // Higher threshold  
-    const isBandRejection = (indicators.bollingerBands?.current >= indicators.bollingerBands?.upper && bullishScore > bearishScore) ||
-                           (indicators.bollingerBands?.current <= indicators.bollingerBands?.lower && bearishScore > bullishScore);
+    // BASIC safety checks - Only block extremely dangerous entries
+    const isExtremelyOverbought = indicators.rsi?.value > 85 && bullishScore > bearishScore; 
+    const isExtremelyOversold = indicators.rsi?.value < 15 && bearishScore > bullishScore;
     
-    // Additional safety: Block entries without strong volume confirmation
-    const hasVolumeConfirmation = indicators.volume?.strength > 1.3;
-    const hasTrendAlignment = (bullishScore > bearishScore && indicators.movingAverages?.trend === 'bullish') ||
-                             (bearishScore > bullishScore && indicators.movingAverages?.trend === 'bearish');
-    
-    if (isOverboughtLong || isOversoldShort || isBandRejection || !hasVolumeConfirmation || !hasTrendAlignment) {
-      console.log(`❌ BLOCKED risky entry: RSI ${indicators.rsi?.value}, BB rejection ${isBandRejection}, Volume ${hasVolumeConfirmation}, Trend ${hasTrendAlignment}`);
+    if (isExtremelyOverbought || isExtremelyOversold) {
+      console.log(`❌ BLOCKED extreme RSI entry: RSI ${indicators.rsi?.value}`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
