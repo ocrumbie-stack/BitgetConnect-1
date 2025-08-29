@@ -3134,15 +3134,15 @@ export default function BotPage() {
 
                 {/* Continuous Scanner Settings */}
                 {deploymentMode === 'continuous_scanner' && (
-                  <div className="space-y-4 p-4 bg-blue-50 dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-gray-600">
+                  <div className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <h4 className="font-medium text-blue-700 dark:text-blue-300">Continuous Scanner Configuration</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">Continuous Scanner Configuration</h4>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Capital per Position</Label>
+                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Capital per Position</Label>
                         <Input
                           type="number"
                           placeholder="5000"
@@ -3152,7 +3152,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div>
-                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Max Positions</Label>
+                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Max Positions</Label>
                         <Input
                           type="number"
                           placeholder="3"
@@ -3165,7 +3165,7 @@ export default function BotPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Leverage</Label>
+                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Leverage</Label>
                         <Input
                           type="number"
                           placeholder="3"
@@ -3175,7 +3175,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div>
-                        <Label className="text-gray-800 dark:text-gray-200 font-medium">Scan Interval (seconds)</Label>
+                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Scan Interval (seconds)</Label>
                         <Input
                           type="number"
                           placeholder="60"
