@@ -452,13 +452,13 @@ export default function BotPage() {
       tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
     }
 
-    // Set confidence based on trading style presets
+    // Set confidence based on trading style presets - REALISTIC thresholds
     const styleConfidenceMap: { [key: string]: number } = {
-      'conservative': 75,
-      'balanced': 60,
-      'aggressive': 45
+      'conservative': 35,
+      'balanced': 25,
+      'aggressive': 20
     };
-    minConfidence = styleConfidenceMap[tradingStyle] || 60;
+    minConfidence = styleConfidenceMap[tradingStyle] || 25;
 
     setIsScanning(true);
     setScannerResults(null);
