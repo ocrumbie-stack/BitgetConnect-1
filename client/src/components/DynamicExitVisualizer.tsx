@@ -163,32 +163,57 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
 
     const { entryPrice, currentPrice, stopLossPrice, takeProfitPrice } = exitConditions;
     
-    // Generate simulated price line data points
+    // Generate realistic price line data based on actual bot data
     const generatePriceData = () => {
       const points = [];
-      const timePoints = 20; // Number of data points
+      const timePoints = 25; // Number of data points
       const currentTime = Date.now();
       const startTime = currentTime - (30 * 60 * 1000); // 30 minutes ago
       
-      // Create a realistic price movement from entry to current
+      // Calculate actual price movement and trend
       const priceChange = currentPrice - entryPrice;
-      const volatility = Math.abs(priceChange) * 0.3; // Add some volatility
+      const priceChangePercent = (priceChange / entryPrice) * 100;
+      
+      // Create volatility based on actual price movement
+      const baseVolatility = Math.abs(entryPrice * 0.002); // 0.2% of entry price
+      const trendVolatility = Math.abs(priceChange * 0.15); // 15% of total movement
+      const volatility = Math.max(baseVolatility, trendVolatility);
+      
+      // Determine if we're in profit or loss to shape the curve
+      const isProfit = priceChange > 0;
+      const trendDirection = isProfit ? 1 : -1;
       
       for (let i = 0; i < timePoints; i++) {
         const progress = i / (timePoints - 1);
         const time = startTime + (progress * 30 * 60 * 1000);
         
-        // Create realistic price movement with some noise
         let price;
         if (i === 0) {
+          // Start at entry price
           price = entryPrice;
         } else if (i === timePoints - 1) {
+          // End at current price
           price = currentPrice;
         } else {
-          // Linear interpolation with noise
-          const basePrice = entryPrice + (priceChange * progress);
-          const noise = (Math.random() - 0.5) * volatility * Math.sin(progress * Math.PI);
-          price = basePrice + noise;
+          // Create realistic price progression with market-like behavior
+          const baseProgress = Math.pow(progress, 0.8); // Slightly curved progression
+          const basePrice = entryPrice + (priceChange * baseProgress);
+          
+          // Add realistic market noise
+          const noiseAmplitude = volatility * (0.5 + 0.5 * Math.sin(progress * Math.PI));
+          const marketNoise = (Math.random() - 0.5) * noiseAmplitude * 2;
+          
+          // Add trend momentum (prices tend to continue in direction)
+          const momentum = trendDirection * volatility * 0.3 * Math.sin(progress * Math.PI * 2);
+          
+          price = basePrice + marketNoise + momentum;
+          
+          // Ensure price doesn't go too far from realistic range
+          const maxDeviation = Math.abs(priceChange) * 0.4;
+          const expectedPrice = entryPrice + (priceChange * progress);
+          if (Math.abs(price - expectedPrice) > maxDeviation) {
+            price = expectedPrice + (Math.sign(price - expectedPrice) * maxDeviation);
+          }
         }
         
         points.push({ time, price });
@@ -255,17 +280,17 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
             </linearGradient>
           </defs>
           
-          {/* Profit zone */}
+          {/* Profit zone - above entry price */}
           <rect 
             x="0" y={100 - takeProfitY} 
-            width="100" height={takeProfitY - Math.max(entryY, currentY)} 
+            width="100" height={takeProfitY - entryY} 
             fill="url(#profitGradient)"
           />
           
-          {/* Loss zone */}
+          {/* Loss zone - below entry price */}
           <rect 
-            x="0" y={100 - Math.min(entryY, currentY)} 
-            width="100" height={Math.min(entryY, currentY) - stopLossY} 
+            x="0" y={100 - entryY} 
+            width="100" height={entryY - stopLossY} 
             fill="url(#lossGradient)"
           />
           
