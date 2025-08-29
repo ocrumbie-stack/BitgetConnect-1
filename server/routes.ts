@@ -3620,7 +3620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto Market Scanner - SCAN ONLY (returns opportunities, no deployment)
   app.post('/api/auto-scanner/scan', async (req, res) => {
     try {
-      const { userId = 'default-user', maxBots = 5, minConfidence = 25, tradingStyle = 'balanced' } = req.body;
+      const { userId = 'default-user', maxBots = 10, minConfidence = 25, tradingStyle = 'balanced' } = req.body;
       
       if (!bitgetAPI) {
         return res.status(400).json({ error: 'Bitget API not available' });
