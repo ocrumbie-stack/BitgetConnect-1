@@ -159,87 +159,77 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm mx-auto overflow-hidden">
-      {/* Simple Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md mx-auto">
+      <div className="p-6 space-y-6">
+        {/* ROI and Risk Level Display - Prominent at top */}
         <div className="flex items-center justify-between">
-          <div className="text-white font-semibold text-lg">{bot.tradingPair}</div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0 text-white hover:bg-white/20"
+          <Badge 
+            variant={exitConditions.currentRoi >= 0 ? "default" : "destructive"} 
+            className="text-xl px-6 py-3 font-bold rounded-full"
           >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        {timeRemaining && (
-          <div className="text-white/80 text-sm mt-1 flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            {timeRemaining}
-          </div>
-        )}
-      </div>
-
-      <div className="p-6 space-y-5">
-        {/* ROI Display - Large and Prominent */}
-        <div className="text-center">
-          <div className={`text-4xl font-bold ${exitConditions.currentRoi >= 0 ? 'text-green-500' : 'text-red-500'}`}>
             {exitConditions.currentRoi >= 0 ? "+" : ""}{exitConditions.currentRoi.toFixed(2)}%
-          </div>
-          <div className={`text-sm mt-1 px-3 py-1 rounded-full inline-block ${getRiskColor(getRiskLevel())} text-white`}>
+          </Badge>
+          <Badge 
+            className={`text-white text-lg px-6 py-3 font-medium rounded-full ${getRiskColor(getRiskLevel())}`}
+          >
             {getRiskLevel()}
-          </div>
+          </Badge>
         </div>
 
-        {/* Progress Section - Simplified */}
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm font-medium">
-            <span className="text-red-500">Stop {exitConditions.stopLossPercent.toFixed(1)}%</span>
-            <span className="text-green-500">Target {exitConditions.takeProfitPercent.toFixed(1)}%</span>
+        {/* Progress Bar Section - Clean and spacious */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-red-500 font-semibold text-lg">Stop Loss</span>
+            <span className="text-green-500 font-semibold text-lg">Take Profit</span>
           </div>
           
-          <Progress value={getProgressValue()} className="h-3" />
-        </div>
-
-        {/* Price Info - Clean Layout */}
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Entry Price</span>
-            <span className="font-medium">${exitConditions.entryPrice.toFixed(4)}</span>
+          <div className="relative">
+            <Progress value={getProgressValue()} className="h-6 bg-gray-200 dark:bg-gray-700" />
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Current Price</span>
-            <span className="font-medium">${exitConditions.currentPrice.toFixed(4)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Capital</span>
-            <span className="font-medium">${parseFloat(bot.capital || '0').toFixed(2)}</span>
+          
+          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 font-medium">
+            <span>{exitConditions.stopLossPercent.toFixed(1)}%</span>
+            <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+              Current: {exitConditions.currentRoi.toFixed(2)}%
+            </span>
+            <span>{exitConditions.takeProfitPercent.toFixed(1)}%</span>
           </div>
         </div>
 
-        {/* Action Buttons - Simplified */}
-        <div className="space-y-2">
+        {/* Trading Pair and Price Info */}
+        <div className="text-center space-y-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+          <div className="font-bold text-lg text-gray-900 dark:text-white">
+            {bot.tradingPair}
+          </div>
+          {exitConditions.entryPrice > 0 && (
+            <div className="text-sm text-gray-600 dark:text-gray-400 space-x-4">
+              <span>Entry: ${exitConditions.entryPrice.toFixed(4)}</span>
+              <span>Current: ${exitConditions.currentPrice.toFixed(4)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Close Position Button */}
+        <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-600">
           {!showCloseConfirmation ? (
             <Button
               variant="destructive"
-              className="w-full rounded-lg"
+              className="w-full"
               onClick={() => setShowCloseConfirmation(true)}
               disabled={closePositionMutation.isPending}
             >
-              Close Position
+              Close Position Manually
             </Button>
           ) : (
             <div className="space-y-2">
               <div className="text-sm text-center text-gray-600 dark:text-gray-400">
-                Close this position now?
+                Are you sure you want to close this position?
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowCloseConfirmation(false)}
                   disabled={closePositionMutation.isPending}
-                  className="rounded-lg"
                 >
                   Cancel
                 </Button>
@@ -247,21 +237,12 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
                   variant="destructive"
                   onClick={() => closePositionMutation.mutate(bot.id)}
                   disabled={closePositionMutation.isPending}
-                  className="rounded-lg"
                 >
-                  {closePositionMutation.isPending ? 'Closing...' : 'Yes'}
+                  {closePositionMutation.isPending ? 'Closing...' : 'Confirm'}
                 </Button>
               </div>
             </div>
           )}
-          
-          <Button
-            variant="outline"
-            className="w-full rounded-lg"
-            onClick={onClose}
-          >
-            Keep Watching
-          </Button>
         </div>
       </div>
     </div>
