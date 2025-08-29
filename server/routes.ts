@@ -142,28 +142,6 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       }
       // Skip weak trend following that doesn't add value
     }
-      
-      // Weaker signals for trend only (5 points)
-      else if (trend === 'bullish') {
-        bullishScore += 5;
-        console.log(`🎯 MA: BULLISH trend (+5)`);
-      } else if (trend === 'bearish') {
-        bearishScore += 5;
-        console.log(`🎯 MA: BEARISH trend (+5)`);
-      }
-      
-      // Additional MA separation analysis for momentum (3 points)
-      const maSeparation = Math.abs(ema20 - ema50) / ema50 * 100;
-      if (maSeparation > 0.5) { // Significant MA separation indicates strong momentum
-        if (ema20 > ema50) {
-          bullishScore += 3;
-          console.log(`🎯 MA: STRONG SEPARATION bullish (+3)`);
-        } else {
-          bearishScore += 3;
-          console.log(`🎯 MA: STRONG SEPARATION bearish (+3)`);
-        }
-      }
-    }
     
     // 6. Enhanced Support/Resistance Analysis (Weight: 15%)
     const srAnalysis = calculateAdvancedSupportResistance(highs, lows, closes, volumes, currentPrice);
