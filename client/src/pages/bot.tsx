@@ -3301,7 +3301,7 @@ export default function BotPage() {
                     )}
                   </Card>
 
-                  {/* Moving Average Indicator */}
+                  {/* Moving Average 1 */}
                   <Card className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -3314,58 +3314,256 @@ export default function BotPage() {
                           }))}
                           className="w-4 h-4"
                         />
-                        <Label className="font-medium">Moving Average</Label>
+                        <Label className="font-medium">Moving Average 1</Label>
                       </div>
                     </div>
                     {indicators.ma1.enabled && (
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <Label className="text-sm">Type</Label>
-                          <Select 
-                            value={indicators.ma1.type} 
-                            onValueChange={(value) => setIndicators(prev => ({
-                              ...prev,
-                              ma1: { ...prev.ma1, type: value }
-                            }))}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="sma">SMA (Simple)</SelectItem>
-                              <SelectItem value="ema">EMA (Exponential)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-sm">Type</Label>
+                            <Select 
+                              value={indicators.ma1.type} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma1: { ...prev.ma1, type: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sma">SMA</SelectItem>
+                                <SelectItem value="ema">EMA</SelectItem>
+                                <SelectItem value="wma">WMA</SelectItem>
+                                <SelectItem value="dema">DEMA</SelectItem>
+                                <SelectItem value="tema">TEMA</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Period</Label>
+                            <Input
+                              type="number"
+                              value={indicators.ma1.period1}
+                              onChange={(e) => setIndicators(prev => ({
+                                ...prev,
+                                ma1: { ...prev.ma1, period1: parseInt(e.target.value) || 20 }
+                              }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm">Condition</Label>
+                            <Select 
+                              value={indicators.ma1.condition} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma1: { ...prev.ma1, condition: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="above">Above</SelectItem>
+                                <SelectItem value="below">Below</SelectItem>
+                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div>
-                          <Label className="text-sm">Period</Label>
-                          <Input
-                            type="number"
-                            value={indicators.ma1.period1}
-                            onChange={(e) => setIndicators(prev => ({
-                              ...prev,
-                              ma1: { ...prev.ma1, period1: parseInt(e.target.value) || 20 }
-                            }))}
-                            className="mt-1"
-                          />
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-sm">Comparison</Label>
+                            <Select 
+                              value={indicators.ma1.comparisonType} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma1: { ...prev.ma1, comparisonType: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="price">Price</SelectItem>
+                                <SelectItem value="another_ma">Another MA</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {indicators.ma1.comparisonType === 'another_ma' && (
+                            <>
+                              <div>
+                                <Label className="text-sm">Comparison MA Type</Label>
+                                <Select 
+                                  value={indicators.ma1.comparisonMAType} 
+                                  onValueChange={(value) => setIndicators(prev => ({
+                                    ...prev,
+                                    ma1: { ...prev.ma1, comparisonMAType: value }
+                                  }))}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="sma">SMA</SelectItem>
+                                    <SelectItem value="ema">EMA</SelectItem>
+                                    <SelectItem value="wma">WMA</SelectItem>
+                                    <SelectItem value="dema">DEMA</SelectItem>
+                                    <SelectItem value="tema">TEMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Comparison MA Period</Label>
+                                <Input
+                                  type="number"
+                                  value={indicators.ma1.period2}
+                                  onChange={(e) => setIndicators(prev => ({
+                                    ...prev,
+                                    ma1: { ...prev.ma1, period2: parseInt(e.target.value) || 50 }
+                                  }))}
+                                  className="mt-1"
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
-                        <div>
-                          <Label className="text-sm">Condition</Label>
-                          <Select 
-                            value={indicators.ma1.condition} 
-                            onValueChange={(value) => setIndicators(prev => ({
-                              ...prev,
-                              ma1: { ...prev.ma1, condition: value }
-                            }))}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="above">Price Above MA</SelectItem>
-                              <SelectItem value="below">Price Below MA</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Moving Average 2 */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.ma2.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            ma2: { ...prev.ma2, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">Moving Average 2</Label>
+                      </div>
+                    </div>
+                    {indicators.ma2.enabled && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-sm">Type</Label>
+                            <Select 
+                              value={indicators.ma2.type} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma2: { ...prev.ma2, type: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sma">SMA</SelectItem>
+                                <SelectItem value="ema">EMA</SelectItem>
+                                <SelectItem value="wma">WMA</SelectItem>
+                                <SelectItem value="dema">DEMA</SelectItem>
+                                <SelectItem value="tema">TEMA</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Period</Label>
+                            <Input
+                              type="number"
+                              value={indicators.ma2.period1}
+                              onChange={(e) => setIndicators(prev => ({
+                                ...prev,
+                                ma2: { ...prev.ma2, period1: parseInt(e.target.value) || 50 }
+                              }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm">Condition</Label>
+                            <Select 
+                              value={indicators.ma2.condition} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma2: { ...prev.ma2, condition: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="above">Above</SelectItem>
+                                <SelectItem value="below">Below</SelectItem>
+                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-sm">Comparison</Label>
+                            <Select 
+                              value={indicators.ma2.comparisonType} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                ma2: { ...prev.ma2, comparisonType: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="price">Price</SelectItem>
+                                <SelectItem value="another_ma">Another MA</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {indicators.ma2.comparisonType === 'another_ma' && (
+                            <>
+                              <div>
+                                <Label className="text-sm">Comparison MA Type</Label>
+                                <Select 
+                                  value={indicators.ma2.comparisonMAType} 
+                                  onValueChange={(value) => setIndicators(prev => ({
+                                    ...prev,
+                                    ma2: { ...prev.ma2, comparisonMAType: value }
+                                  }))}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="sma">SMA</SelectItem>
+                                    <SelectItem value="ema">EMA</SelectItem>
+                                    <SelectItem value="wma">WMA</SelectItem>
+                                    <SelectItem value="dema">DEMA</SelectItem>
+                                    <SelectItem value="tema">TEMA</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm">Comparison MA Period</Label>
+                                <Input
+                                  type="number"
+                                  value={indicators.ma2.period2}
+                                  onChange={(e) => setIndicators(prev => ({
+                                    ...prev,
+                                    ma2: { ...prev.ma2, period2: parseInt(e.target.value) || 200 }
+                                  }))}
+                                  className="mt-1"
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
