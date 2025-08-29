@@ -3806,6 +3806,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities and ${totalBucketPairs} bucket-classified pairs`);
       
+      // ENTRY POINT ANALYSIS - Find best entries from bucket results
+      const entryAnalysis = await findBestEntryPoints(bucketResults, tradingStyle);
+      
       // SCAN ONLY - Just return the opportunities found
       res.json({
         success: true,
