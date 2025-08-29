@@ -2421,7 +2421,7 @@ export default function BotPage() {
                                                   ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                   : 'border-gray-500 text-gray-400 bg-gray-950/30'
                                               }`}>
-                                                {execution.status === 'waiting_entry' ? '⏳ Waiting' : execution.status}
+                                                {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
                                               </Badge>
                                               {execution.confidence && (
                                                 <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
@@ -2603,7 +2603,7 @@ export default function BotPage() {
                                                 ? 'border-yellow-500 text-yellow-400 bg-yellow-950/30'
                                                 : 'border-gray-500 text-gray-400 bg-gray-950/30'
                                             }`}>
-                                              {execution.status === 'waiting_entry' ? '⏳ Waiting' : execution.status}
+                                              {execution.status === 'active' ? '🔴 Active' : execution.status === 'waiting_entry' ? '⏳ Waiting' : '⏸️ Stopped'}
                                             </Badge>
                                             {execution.confidence && (
                                               <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
