@@ -3666,26 +3666,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ConservativeBiasOnly: []
       };
       
+      let bucketAnalyzedCount = 0;
+      let bucketSkippedVolume = 0;
+      let bucketSkippedData = 0;
+      
       for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for bucket classification
         try {
           const change24h = parseFloat(ticker.change24h || '0');
           const volume24h = parseFloat(ticker.quoteVolume || '0');
           const currentPrice = parseFloat(ticker.lastPr || '0');
           
-          // Skip low volume pairs (require min $10M daily volume)
-          if (volume24h < 10000000) continue;
+          // Skip low volume pairs (require min $1M daily volume)
+          if (volume24h < 1000000) {
+            bucketSkippedVolume++;
+            continue;
+          }
           
-          // Get multi-timeframe data for comprehensive analysis
-          const [m1Data, m5Data, m15Data, h1Data, h4Data, dailyData] = await Promise.all([
-            bitgetAPI.getKlineData(ticker.symbol, '1m', 100),
-            bitgetAPI.getKlineData(ticker.symbol, '5m', 100), 
-            bitgetAPI.getKlineData(ticker.symbol, '15m', 100),
-            bitgetAPI.getKlineData(ticker.symbol, '1H', 100),
-            bitgetAPI.getKlineData(ticker.symbol, '4H', 100),
-            bitgetAPI.getKlineData(ticker.symbol, '1D', 200)
-          ]);
+          // Get minimal data for basic bucket analysis
+          let h1Data, dailyData;
+          try {
+            h1Data = await bitgetAPI.getCandlestickData(ticker.symbol, '1H', 25);
+            dailyData = await bitgetAPI.getCandlestickData(ticker.symbol, '1D', 10);
+          } catch (error) {
+            bucketSkippedData++;
+            continue;
+          }
           
-          if (!h1Data || !dailyData || h1Data.length < 50 || dailyData.length < 100) continue;
+          if (!h1Data || !dailyData || h1Data.length < 5 || dailyData.length < 2) {
+            bucketSkippedData++;
+            continue;
+          }
           
           // Calculate daily range percentage (volatility measure)
           const dailyOHLC = dailyData[dailyData.length - 1];
@@ -3698,54 +3708,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const dailyCloses = dailyData.map(c => parseFloat(c.close));
           const h1Volumes = h1Data.map(c => parseFloat(c.volume));
           
-          // EMA calculations
-          const ema100_1h = calculateEMA(h1Closes, 100);
-          const ema200_1d = calculateEMA(dailyCloses, 200);
+          // Simplified EMA calculations for performance
+          const ema100_1h = h1Closes.length >= 50 ? calculateEMA(h1Closes, 50) : h1Closes[h1Closes.length - 1];
+          const ema200_1d = dailyCloses.length >= 20 ? calculateEMA(dailyCloses, 20) : dailyCloses[dailyCloses.length - 1];
           const ema100Diff = ((currentPrice - ema100_1h) / ema100_1h) * 100;
           const ema200Diff = ((currentPrice - ema200_1d) / ema200_1d) * 100;
           
-          // RSI and MACD
-          const rsi = calculateRSI(h1Closes, 14);
-          const macd = await calculateMACD(h1Closes);
+          // Basic RSI only (skip complex MACD)
+          const rsi = h1Closes.length >= 14 ? calculateRSI(h1Closes, 14) : null;
+          const macd = null; // Skip for simplified analysis
           
           // Volume spike detection
           const avgVolume = h1Volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
           const currentVolume = h1Volumes[h1Volumes.length - 1];
           const volumeSpikeMultiple = currentVolume / avgVolume;
           
-          // Bollinger Bands position
-          const bb = calculateBollingerBands(h1Closes, 20, 2);
+          // Simplified Bollinger Bands position  
+          const bb = h1Closes.length >= 20 ? calculateBollingerBands(h1Closes, 20, 2) : null;
           let bbPosition = 'middle';
-          if (currentPrice <= bb.lower) bbPosition = 'below_lower';
-          else if (currentPrice >= bb.upper) bbPosition = 'above_upper';
-          else if (currentPrice <= bb.lower * 1.05) bbPosition = 'near_lower';
-          else if (currentPrice >= bb.upper * 0.95) bbPosition = 'near_upper';
+          if (bb) {
+            if (currentPrice <= bb.lower) bbPosition = 'below_lower';
+            else if (currentPrice >= bb.upper) bbPosition = 'above_upper';
+            else if (currentPrice <= bb.lower * 1.05) bbPosition = 'near_lower';
+            else if (currentPrice >= bb.upper * 0.95) bbPosition = 'near_upper';
+          }
           
-          // BUCKET CLASSIFICATION LOGIC
+          // BUCKET CLASSIFICATION LOGIC - Adjusted for practical market conditions
           let bucket = 'ConservativeBiasOnly';
           let evalTimeframe = '1D';
           
-          // Aggressive bucket conditions
-          const rsiExtreme = rsi?.value <= 20 || rsi?.value >= 80;
+          // Aggressive bucket conditions (high volatility scalping)
+          const rsiExtreme = rsi && (rsi.value <= 25 || rsi.value >= 75);
           const bbBreak = bbPosition === 'below_lower' || bbPosition === 'above_upper';
-          const macdFlip = macd && Math.abs(macd.histogram) < 0.1 && macd.histogram !== 0;
-          const highVol = dailyRangePct >= 8.0;
-          const volumeSpike = volumeSpikeMultiple >= 2.0;
+          const highVol = dailyRangePct >= 5.0;
+          const volumeSpike = volumeSpikeMultiple >= 1.5;
           
-          if ((rsiExtreme || bbBreak || macdFlip) && highVol && volumeSpike) {
+          if ((rsiExtreme || bbBreak) && (highVol || volumeSpike)) {
             bucket = 'Aggressive';
-            evalTimeframe = m1Data && m5Data ? '1m/5m' : '5m';
+            evalTimeframe = '1m/5m';
           }
-          // Balanced bucket conditions  
-          else if (dailyRangePct >= 3.0 && dailyRangePct <= 8.0) {
-            const ema100Bias = Math.abs(ema100Diff) <= 1.0; // Within ±1%
-            const macdUp = macd && macd.macd > macd.signal;
-            const rsiNearBand = rsi && (rsi.value <= 35 || rsi.value >= 65);
+          // Balanced bucket conditions (medium volatility trading)
+          else if (dailyRangePct >= 2.0 && dailyRangePct <= 6.0) {
+            const emaInRange = Math.abs(ema100Diff) <= 3.0;
+            const rsiNearBand = rsi && (rsi.value <= 40 || rsi.value >= 60);
             
-            if (ema100Bias && (macdUp || rsiNearBand)) {
+            if (emaInRange || rsiNearBand) {
               bucket = 'Balanced';
               evalTimeframe = '15m/1h';
             }
+          }
+          // Conservative bucket for stable pairs
+          else if (dailyRangePct < 3.0) {
+            bucket = 'ConservativeBiasOnly';
+            evalTimeframe = '4h/1d';
           }
           
           // Direction bias from EMA200 on daily
@@ -3773,12 +3788,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           bucketResults[bucket].push(bucketEntry);
+          bucketAnalyzedCount++;
           console.log(`📋 BUCKET: ${ticker.symbol} -> ${bucket} (Vol: ${dailyRangePct.toFixed(1)}%, RSI: ${rsi?.value.toFixed(1) || 'N/A'}, Bias: ${bias})`);
           
         } catch (error) {
-          // Skip bucket analysis errors to not slow down main scan
+          console.log(`⚠️ Bucket analysis error for ${ticker.symbol}:`, error.message);
         }
       }
+      
+      console.log(`📊 Bucket Analysis Summary: Processed ${bucketAnalyzedCount} pairs, Skipped ${bucketSkippedVolume} (volume), ${bucketSkippedData} (data), Found ${bucketResults.Aggressive.length} Aggressive, ${bucketResults.Balanced.length} Balanced, ${bucketResults.ConservativeBiasOnly.length} Conservative`);
       
       // Sort each bucket by priority metrics
       bucketResults.Aggressive.sort((a, b) => parseFloat(b.volumeSpikeMultiple) - parseFloat(a.volumeSpikeMultiple));
