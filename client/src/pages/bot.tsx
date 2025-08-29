@@ -1506,7 +1506,7 @@ export default function BotPage() {
                       return scannerBots.length;
                     })()}
                   </div>
-                  <div className="text-base text-cyan-600 dark:text-cyan-400">Scanner</div>
+                  <div className="text-base text-cyan-600 dark:text-cyan-400">Market Scanner</div>
                 </div>
               </div>
             </CardContent>
