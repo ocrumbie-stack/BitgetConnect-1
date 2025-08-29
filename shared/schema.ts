@@ -77,6 +77,7 @@ export const botStrategies = pgTable("bot_strategies", {
   name: text("name").notNull(),
   description: text("description"),
   strategy: text("strategy").notNull(), // 'ai' or 'manual'
+  source: text("source").notNull().default('manual'), // 'manual', 'auto_scanner'
   riskLevel: text("risk_level").notNull().default('medium'), // 'low', 'medium', 'high'
   config: jsonb("config").$type<{
     // Manual Strategy config 
