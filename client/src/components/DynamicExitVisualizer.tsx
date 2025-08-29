@@ -15,6 +15,11 @@ interface DynamicExitVisualizerProps {
 export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerProps) {
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [exitConditions, setExitConditions] = useState<any>(null);
+
+  // Debug log to check what data we're receiving
+  useEffect(() => {
+    console.log('DynamicExitVisualizer received bot data:', bot);
+  }, [bot]);
   
   // Fetch real-time price data for the trading pair
   const { data: futures } = useQuery({
@@ -50,28 +55,47 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   }, [futures, bot.tradingPair, bot.roi]);
 
   useEffect(() => {
-    // Calculate dynamic exit conditions based on bot data
-    if (bot.positionData && bot.exitCriteria) {
-      const currentPrice = parseFloat(bot.positionData.markPrice);
-      const entryPrice = parseFloat(bot.positionData.openPriceAvg);
-      const stopLossPrice = entryPrice * (1 + parseFloat(bot.exitCriteria.stopLoss) / 100);
-      const takeProfitPrice = entryPrice * (1 + parseFloat(bot.exitCriteria.takeProfit) / 100);
+    // Get current price from futures data for the bot's trading pair
+    let currentPrice = 0;
+    if (futures && bot.tradingPair && Array.isArray(futures)) {
+      const currentPair = futures.find((f: any) => f.symbol === bot.tradingPair);
+      if (currentPair) {
+        currentPrice = parseFloat(currentPair.price);
+      }
+    }
+
+    // Extract exit conditions from bot execution data
+    let currentRoi = parseFloat(bot.roi || '0');
+    const entryPrice = parseFloat(bot.positionData?.openPriceAvg || bot.entryPrice || '0');
+    
+    // Calculate more accurate ROI if we have position data
+    if (bot.positionData?.unrealizedPL && bot.capital) {
+      currentRoi = (parseFloat(bot.positionData.unrealizedPL) / parseFloat(bot.capital)) * 100;
+    }
+    
+    // Get stop loss and take profit from bot data, with fallbacks
+    const stopLossPercent = parseFloat(bot.stopLoss || '-7.2');
+    const takeProfitPercent = parseFloat(bot.takeProfit || '21.6');
+    
+    if (currentPrice > 0 && entryPrice > 0) {
+      const stopLossPrice = entryPrice * (1 + stopLossPercent / 100);
+      const takeProfitPrice = entryPrice * (1 + takeProfitPercent / 100);
       
       setExitConditions({
         entryPrice,
         currentPrice,
         stopLossPrice,
         takeProfitPrice,
-        stopLossPercent: parseFloat(bot.exitCriteria.stopLoss),
-        takeProfitPercent: parseFloat(bot.exitCriteria.takeProfit),
-        currentRoi: parseFloat(bot.roi),
+        stopLossPercent,
+        takeProfitPercent,
+        currentRoi,
         priceToStopLoss: Math.abs(currentPrice - stopLossPrice),
         priceToTakeProfit: Math.abs(currentPrice - takeProfitPrice),
-        distanceToStopLoss: Math.abs(parseFloat(bot.roi) - parseFloat(bot.exitCriteria.stopLoss)),
-        distanceToTakeProfit: Math.abs(parseFloat(bot.exitCriteria.takeProfit) - parseFloat(bot.roi))
+        distanceToStopLoss: Math.abs(currentRoi - stopLossPercent),
+        distanceToTakeProfit: Math.abs(takeProfitPercent - currentRoi)
       });
     }
-  }, [bot]);
+  }, [bot, futures]);
 
   const getRiskLevel = () => {
     if (!exitConditions) return 'Medium';
