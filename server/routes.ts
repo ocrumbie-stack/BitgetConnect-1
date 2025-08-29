@@ -4108,6 +4108,28 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
     }
   }
   
+  // Process Aggressive bucket with 5M/1M strategy
+  if (bucketResults.Aggressive && bucketResults.Aggressive.length > 0) {
+    console.log(`🔍 ENTRY: Analyzing ${bucketResults.Aggressive.length} Aggressive pairs with 5M/1M strategy`);
+    
+    for (const pair of bucketResults.Aggressive.slice(0, 3)) {
+      try {
+        const entryAnalysis = await evaluateAggressiveEntry(pair);
+        if (entryAnalysis.confidence >= entryRules.aggressive.minConfidence) {
+          entryOpportunities.push({
+            ...entryAnalysis,
+            bucket: 'Aggressive',
+            strategy: '5M/1M Aggressive Scalping',
+            timeframes: entryRules.aggressive.timeframes
+          });
+          console.log(`✅ AGGRESSIVE ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}%`);
+        }
+      } catch (error) {
+        console.log(`❌ AGGRESSIVE ERROR: ${pair.symbol} - ${error.message}`);
+      }
+    }
+  }
+  
   // Process Conservative bucket with similar logic
   if (bucketResults.ConservativeBiasOnly && bucketResults.ConservativeBiasOnly.length > 0) {
     console.log(`🔍 ENTRY: Analyzing ${bucketResults.ConservativeBiasOnly.length} Conservative pairs`);
@@ -4214,6 +4236,106 @@ async function evaluateBalancedEntry(pair: any) {
   };
 }
 
+// Evaluate Aggressive Entry (5M/1M strategy)
+async function evaluateAggressiveEntry(pair: any) {
+  // Get 5M data for signal timeframe
+  const signal5M = await evaluateSignalTimeframe(pair.symbol, '5M');
+  const trigger1M = await evaluateTriggerTimeframe(pair.symbol, '1M');
+  
+  let confidence = 0;
+  let direction = 'NONE';
+  let safetyScore = 100;
+  const signals = [];
+  
+  // HTF Bias Filter (EMA200 on 1D)
+  const htfBias = await checkHTFBias(pair.symbol);
+  
+  // LONG Entry Evaluation - ANY_OF conditions
+  if (htfBias.allowLong) {
+    let longSignals = 0;
+    
+    // RSI(5m,14) <= 20
+    if (signal5M.rsiExtremeLow) {
+      confidence += 40;
+      signals.push('RSI extreme oversold <=20');
+      longSignals++;
+    }
+    
+    // Bollinger Band breakout pattern
+    if (signal5M.bbBreakoutLower) {
+      confidence += 35;
+      signals.push('BB lower breakout + bullish return');
+      longSignals++;
+    }
+    
+    // MACD histogram crosses above 0
+    if (signal5M.macdHistCrossUp) {
+      confidence += 30;
+      signals.push('MACD histogram bullish cross');
+      longSignals++;
+    }
+    
+    // Volume confirmation on 1M (2.0x required for aggressive)
+    if (trigger1M.aggressiveVolumeConfirm && longSignals > 0) {
+      confidence += 15;
+      signals.push('1M aggressive volume 2.0x+');
+      direction = 'LONG';
+    }
+  }
+  
+  // SHORT Entry Evaluation - ANY_OF conditions
+  if (htfBias.allowShort) {
+    let shortSignals = 0;
+    
+    // RSI(5m,14) >= 80
+    if (signal5M.rsiExtremeHigh) {
+      confidence += 40;
+      signals.push('RSI extreme overbought >=80');
+      shortSignals++;
+    }
+    
+    // Bollinger Band breakout pattern
+    if (signal5M.bbBreakoutUpper) {
+      confidence += 35;
+      signals.push('BB upper breakout + bearish return');
+      shortSignals++;
+    }
+    
+    // MACD histogram crosses below 0
+    if (signal5M.macdHistCrossDown) {
+      confidence += 30;
+      signals.push('MACD histogram bearish cross');
+      shortSignals++;
+    }
+    
+    // Volume confirmation on 1M (2.0x required for aggressive)
+    if (trigger1M.aggressiveVolumeConfirm && shortSignals > 0) {
+      confidence += 15;
+      signals.push('1M aggressive volume 2.0x+');
+      direction = 'SHORT';
+    }
+  }
+  
+  // Aggressive strategy safety deductions (tighter stops, faster exits)
+  if (!trigger1M.aggressiveVolumeConfirm) safetyScore -= 40;
+  if (signal5M.highVolatility) safetyScore -= 15;
+  
+  return {
+    symbol: pair.symbol,
+    confidence,
+    direction,
+    safetyScore,
+    signals,
+    entryPrice: pair.price,
+    riskLevel: calculateAggressiveRisk(confidence, safetyScore),
+    stopLoss: calculateAggressiveStopLoss(pair, direction),
+    takeProfit: calculateAggressiveTakeProfit(pair, direction),
+    maxHoldTime: '24 hours', // Hard max for aggressive
+    scaleOut: ['1.0R', '1.5R'], // Scale out levels
+    breakEven: '1.0R' // Move stop to BE
+  };
+}
+
 // Evaluate Conservative Entry  
 async function evaluateConservativeEntry(pair: any) {
   // Simplified conservative evaluation
@@ -4246,7 +4368,7 @@ async function evaluateConservativeEntry(pair: any) {
 // Helper functions for entry analysis
 async function evaluateSignalTimeframe(symbol: string, timeframe: string) {
   // Simplified signal evaluation - in production this would use real candlestick data
-  return {
+  const baseData = {
     ema100Above: Math.random() > 0.6,
     ema100Below: Math.random() > 0.6,
     macdBullish: Math.random() > 0.7,
@@ -4255,14 +4377,39 @@ async function evaluateSignalTimeframe(symbol: string, timeframe: string) {
     rsiOverbought: Math.random() > 0.8,
     highVolatility: Math.random() > 0.7
   };
+  
+  // Add aggressive-specific indicators for 5M timeframe
+  if (timeframe === '5M') {
+    return {
+      ...baseData,
+      rsiExtremeLow: Math.random() > 0.9, // RSI <= 20
+      rsiExtremeHigh: Math.random() > 0.9, // RSI >= 80
+      bbBreakoutLower: Math.random() > 0.85, // Lower BB breakout + return
+      bbBreakoutUpper: Math.random() > 0.85, // Upper BB breakout + return  
+      macdHistCrossUp: Math.random() > 0.8, // MACD hist crosses above 0
+      macdHistCrossDown: Math.random() > 0.8 // MACD hist crosses below 0
+    };
+  }
+  
+  return baseData;
 }
 
 async function evaluateTriggerTimeframe(symbol: string, timeframe: string) {
-  return {
+  const baseData = {
     breakoutResistance: Math.random() > 0.7,
     breakdownSupport: Math.random() > 0.7,
     volumeConfirm: Math.random() > 0.6
   };
+  
+  // Add aggressive volume confirmation for 1M timeframe
+  if (timeframe === '1M') {
+    return {
+      ...baseData,
+      aggressiveVolumeConfirm: Math.random() > 0.8 // 2.0x volume required for aggressive
+    };
+  }
+  
+  return baseData;
 }
 
 async function checkHTFBias(symbol: string) {
@@ -4288,6 +4435,27 @@ function calculateStopLoss(pair: any, direction: string) {
 function calculateTakeProfit(pair: any, direction: string) {
   const volatility = parseFloat(pair.dailyRangePct || '2');
   const baseTP = Math.max(3.0, volatility * 1.2);
+  return `${baseTP.toFixed(1)}%`;
+}
+
+// Aggressive-specific helper functions
+function calculateAggressiveRisk(confidence: number, safetyScore: number) {
+  if (confidence > 85 && safetyScore > 85) return 'LOW';
+  if (confidence > 70 && safetyScore > 70) return 'MEDIUM';
+  return 'HIGH';
+}
+
+function calculateAggressiveStopLoss(pair: any, direction: string) {
+  const volatility = parseFloat(pair.dailyRangePct || '2');
+  // Tighter stops for aggressive - just below signal wick or 1.0 ATR
+  const baseStop = Math.max(1.0, volatility * 0.4);
+  return `${baseStop.toFixed(1)}%`;
+}
+
+function calculateAggressiveTakeProfit(pair: any, direction: string) {
+  const volatility = parseFloat(pair.dailyRangePct || '2');
+  // Scale out levels for aggressive - 1.0R and 1.5R
+  const baseTP = Math.max(1.5, volatility * 0.8);
   return `${baseTP.toFixed(1)}%`;
 }
 
