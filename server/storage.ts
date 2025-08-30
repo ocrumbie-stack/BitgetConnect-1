@@ -53,6 +53,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
   
   getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined>;
   saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials>;
@@ -753,6 +754,13 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {

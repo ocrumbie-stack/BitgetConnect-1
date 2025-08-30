@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Settings as SettingsIcon, Moon, Sun, Monitor, Bell, Shield, Database, Palette, Globe, LogOut, User } from 'lucide-react';
 import { ApiSettings } from '@/components/ApiSettings';
+import { ChangePassword } from '@/components/ChangePassword';
 import { useAuth } from '@/hooks/useAuth';
 
 export function Settings() {
@@ -69,6 +70,9 @@ export function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Change Password */}
+        <ChangePassword />
 
         {/* API Configuration */}
         <Card>
