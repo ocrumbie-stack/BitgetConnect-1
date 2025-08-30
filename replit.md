@@ -9,7 +9,7 @@ Bots page UX preference: Use clickable overview cards for navigation instead of 
 Account balance display: Total Balance = Total Equity + Available Balance + P&L (complete account value including position allocations).
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.
-Bot page layout preference: Improved two-row vertical design for better mobile display and proper element fitting. Financial data now displays in vertical stacks, folder headers use two-row layout to prevent overflow, and all elements properly fit within screen width.
+Bot page layout preference: Improved two-row vertical design for better mobile display and proper element fitting. Financial data displays in vertical stacks, folder headers use two-row layout to prevent overflow, and all elements properly fit within screen width. Layout shift completely eliminated by removing hover scale effects and using transition-colors only with fixed min-height cards. Header made sticky with z-index for better navigation and overflow-x-hidden prevents horizontal scrolling issues.
 Card positioning preference: Balance card positioned beside P&L card in separate row below Market Scanner (not in same grid space). Uses 2-column grid layout for optimal space utilization with proper visual separation.
 Multi-bucket volatility classification system: Sophisticated 3-bucket analysis system with comprehensive technical criteria:
 - Aggressive: 1M/5M timeframes for high-volatility scalping (>8% daily range, RSI extremes, BB breaks, 2x volume spikes)

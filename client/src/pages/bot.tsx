@@ -1587,9 +1587,9 @@ export default function BotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
+      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 sticky top-0 z-40 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BackButton to="/" label="Home" />
@@ -1636,15 +1636,15 @@ export default function BotPage() {
       <div className="p-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'strategies' 
-                ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800'
+                ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600' 
+                : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-600'
             }`}
             onClick={() => handleTabChange('strategies')}
           >
-            <CardContent className="p-2">
-              <div className="flex items-center gap-3">
+            <CardContent className="p-3 h-full flex items-center">
+              <div className="flex items-center gap-3 w-full">
                 <div className="p-2 bg-blue-500 rounded-md">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
@@ -1659,10 +1659,10 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'executions' 
-                ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/40 dark:to-green-900/40 border-green-300 dark:border-green-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800'
+                ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/40 dark:to-green-900/40 border-green-300 dark:border-green-600' 
+                : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-600'
             }`}
             onClick={() => handleTabChange('executions')}
           >
@@ -1685,10 +1685,10 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'ai' 
-                ? 'bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800/40 dark:to-purple-900/40 border-purple-300 dark:border-purple-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800'
+                ? 'bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800/40 dark:to-purple-900/40 border-purple-300 dark:border-purple-600' 
+                : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-600'
             }`}
             onClick={() => handleTabChange('ai')}
           >
@@ -1708,10 +1708,10 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'scanner' 
-                ? 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-800/40 dark:to-cyan-900/40 border-cyan-300 dark:border-cyan-600 shadow-lg scale-105' 
-                : 'bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800'
+                ? 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-800/40 dark:to-cyan-900/40 border-cyan-300 dark:border-cyan-600' 
+                : 'bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800 hover:border-cyan-300 dark:hover:border-cyan-600'
             }`}
             onClick={() => handleTabChange('scanner')}
           >
