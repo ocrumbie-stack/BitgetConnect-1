@@ -1662,28 +1662,21 @@ export default function BotPage() {
           <Card 
             className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'ai' 
-                ? 'bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-800/40 dark:to-orange-900/40 border-orange-300 dark:border-orange-600' 
-                : 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800 hover:border-orange-300 dark:hover:border-orange-600'
+                ? 'bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800/40 dark:to-indigo-900/40 border-indigo-300 dark:border-indigo-600' 
+                : 'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border-indigo-200 dark:border-indigo-800 hover:border-indigo-300 dark:hover:border-indigo-600'
             }`}
             onClick={() => handleTabChange('ai')}
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500 rounded-md">
-                  <TrendingUp className="h-5 w-5 text-white" />
+                <div className="p-2 bg-indigo-500 rounded-md">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
-                  <div className="text-xl font-bold text-orange-700 dark:text-orange-300">
-                    {(() => {
-                      const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
-                      const change = parseFloat(btcData?.change24h || '0');
-                      return change >= 0 ? '+' : '';
-                    })()} {(() => {
-                      const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
-                      return parseFloat(btcData?.change24h || '0').toFixed(1);
-                    })()}%
+                  <div className="text-xl font-bold text-indigo-700 dark:text-indigo-300">
+                    6
                   </div>
-                  <div className="text-sm text-orange-600 dark:text-orange-400">BTC Trend</div>
+                  <div className="text-sm text-indigo-600 dark:text-indigo-400">AI Bots</div>
                 </div>
               </div>
             </CardContent>
