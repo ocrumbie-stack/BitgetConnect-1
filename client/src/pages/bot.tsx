@@ -1596,7 +1596,7 @@ export default function BotPage() {
                         return change >= 0 ? '+' : '';
                       })()} {(() => {
                         const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
-                        return parseFloat(btcData?.change24h || '0').toFixed(1);
+                        return parseFloat(btcData?.change24h || '0').toFixed(2);
                       })()}%
                     </span>
                   </div>
