@@ -3645,7 +3645,7 @@ export default function BotPage() {
                           <div>
                             <Label className="text-sm">Condition</Label>
                             <Select 
-                              value={indicators.ma1.condition} 
+                              value={indicators.ma1?.condition || 'above'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma1: { ...prev.ma1, condition: value }
@@ -3667,7 +3667,7 @@ export default function BotPage() {
                           <div>
                             <Label className="text-sm">Comparison</Label>
                             <Select 
-                              value={indicators.ma1.comparisonType} 
+                              value={indicators.ma1?.comparisonType || 'price'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma1: { ...prev.ma1, comparisonType: value }
@@ -3682,12 +3682,12 @@ export default function BotPage() {
                               </SelectContent>
                             </Select>
                           </div>
-                          {indicators.ma1.comparisonType === 'another_ma' && (
+                          {indicators.ma1?.comparisonType === 'another_ma' && (
                             <>
                               <div>
                                 <Label className="text-sm">Comparison MA Type</Label>
                                 <Select 
-                                  value={indicators.ma1.comparisonMAType} 
+                                  value={indicators.ma1?.comparisonMAType || 'sma'} 
                                   onValueChange={(value) => setIndicators(prev => ({
                                     ...prev,
                                     ma1: { ...prev.ma1, comparisonMAType: value }
@@ -3709,7 +3709,7 @@ export default function BotPage() {
                                 <Label className="text-sm">Comparison MA Period</Label>
                                 <Input
                                   type="number"
-                                  value={indicators.ma1.period2}
+                                  value={indicators.ma1?.period2 || 50}
                                   onChange={(e) => setIndicators(prev => ({
                                     ...prev,
                                     ma1: { ...prev.ma1, period2: parseInt(e.target.value) || 50 }
@@ -3730,7 +3730,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.ma2.enabled}
+                          checked={indicators.ma2?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             ma2: { ...prev.ma2, enabled: e.target.checked }
@@ -3740,13 +3740,13 @@ export default function BotPage() {
                         <Label className="font-medium">Moving Average 2</Label>
                       </div>
                     </div>
-                    {indicators.ma2.enabled && (
+                    {indicators.ma2?.enabled && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-3 gap-3">
                           <div>
                             <Label className="text-sm">Type</Label>
                             <Select 
-                              value={indicators.ma2.type} 
+                              value={indicators.ma2?.type || 'ema'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma2: { ...prev.ma2, type: value }
@@ -3768,7 +3768,7 @@ export default function BotPage() {
                             <Label className="text-sm">Period</Label>
                             <Input
                               type="number"
-                              value={indicators.ma2.period1}
+                              value={indicators.ma2?.period1 || 50}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
                                 ma2: { ...prev.ma2, period1: parseInt(e.target.value) || 50 }
@@ -3779,7 +3779,7 @@ export default function BotPage() {
                           <div>
                             <Label className="text-sm">Condition</Label>
                             <Select 
-                              value={indicators.ma2.condition} 
+                              value={indicators.ma2?.condition || 'above'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma2: { ...prev.ma2, condition: value }
@@ -3801,7 +3801,7 @@ export default function BotPage() {
                           <div>
                             <Label className="text-sm">Comparison</Label>
                             <Select 
-                              value={indicators.ma2.comparisonType} 
+                              value={indicators.ma2?.comparisonType || 'price'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma2: { ...prev.ma2, comparisonType: value }
@@ -3816,12 +3816,12 @@ export default function BotPage() {
                               </SelectContent>
                             </Select>
                           </div>
-                          {indicators.ma2.comparisonType === 'another_ma' && (
+                          {indicators.ma2?.comparisonType === 'another_ma' && (
                             <>
                               <div>
                                 <Label className="text-sm">Comparison MA Type</Label>
                                 <Select 
-                                  value={indicators.ma2.comparisonMAType} 
+                                  value={indicators.ma2?.comparisonMAType || 'sma'} 
                                   onValueChange={(value) => setIndicators(prev => ({
                                     ...prev,
                                     ma2: { ...prev.ma2, comparisonMAType: value }
@@ -3843,7 +3843,7 @@ export default function BotPage() {
                                 <Label className="text-sm">Comparison MA Period</Label>
                                 <Input
                                   type="number"
-                                  value={indicators.ma2.period2}
+                                  value={indicators.ma2?.period2 || 200}
                                   onChange={(e) => setIndicators(prev => ({
                                     ...prev,
                                     ma2: { ...prev.ma2, period2: parseInt(e.target.value) || 200 }
@@ -3864,7 +3864,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.bollinger.enabled}
+                          checked={indicators.bollinger?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             bollinger: { ...prev.bollinger, enabled: e.target.checked }
@@ -3874,13 +3874,13 @@ export default function BotPage() {
                         <Label className="font-medium">Bollinger Bands</Label>
                       </div>
                     </div>
-                    {indicators.bollinger.enabled && (
+                    {indicators.bollinger?.enabled && (
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.bollinger.period}
+                            value={indicators.bollinger?.period || 20}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               bollinger: { ...prev.bollinger, period: parseInt(e.target.value) || 20 }
@@ -3894,7 +3894,7 @@ export default function BotPage() {
                           <Input
                             type="number"
                             step="0.1"
-                            value={indicators.bollinger.stdDev}
+                            value={indicators.bollinger?.stdDev || 2.0}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               bollinger: { ...prev.bollinger, stdDev: parseFloat(e.target.value) || 2.0 }
@@ -3906,7 +3906,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.bollinger.condition} 
+                            value={indicators.bollinger?.condition || 'above_upper'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               bollinger: { ...prev.bollinger, condition: value }
@@ -3933,7 +3933,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.cci.enabled}
+                          checked={indicators.cci?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             cci: { ...prev.cci, enabled: e.target.checked }
@@ -3943,13 +3943,13 @@ export default function BotPage() {
                         <Label className="font-medium">CCI (Commodity Channel Index)</Label>
                       </div>
                     </div>
-                    {indicators.cci.enabled && (
+                    {indicators.cci?.enabled && (
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.cci.period}
+                            value={indicators.cci?.period || 20}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               cci: { ...prev.cci, period: parseInt(e.target.value) || 20 }
@@ -3961,7 +3961,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.cci.condition} 
+                            value={indicators.cci?.condition || 'above'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               cci: { ...prev.cci, condition: value }
@@ -3982,7 +3982,7 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.cci.value}
+                            value={indicators.cci?.value || 100}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               cci: { ...prev.cci, value: parseInt(e.target.value) || 100 }
@@ -4001,7 +4001,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.atr.enabled}
+                          checked={indicators.atr?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             atr: { ...prev.atr, enabled: e.target.checked }
@@ -4011,13 +4011,13 @@ export default function BotPage() {
                         <Label className="font-medium">ATR (Average True Range)</Label>
                       </div>
                     </div>
-                    {indicators.atr.enabled && (
+                    {indicators.atr?.enabled && (
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.atr.period}
+                            value={indicators.atr?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               atr: { ...prev.atr, period: parseInt(e.target.value) || 14 }
@@ -4029,7 +4029,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.atr.condition} 
+                            value={indicators.atr?.condition || 'above'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               atr: { ...prev.atr, condition: value }
@@ -4051,7 +4051,7 @@ export default function BotPage() {
                           <Input
                             type="number"
                             step="0.1"
-                            value={indicators.atr.multiplier}
+                            value={indicators.atr?.multiplier || 2.0}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               atr: { ...prev.atr, multiplier: parseFloat(e.target.value) || 2.0 }
@@ -4070,7 +4070,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.stochastic.enabled}
+                          checked={indicators.stochastic?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             stochastic: { ...prev.stochastic, enabled: e.target.checked }
@@ -4080,13 +4080,13 @@ export default function BotPage() {
                         <Label className="font-medium">Stochastic Oscillator</Label>
                       </div>
                     </div>
-                    {indicators.stochastic.enabled && (
+                    {indicators.stochastic?.enabled && (
                       <div className="grid grid-cols-4 gap-3">
                         <div>
                           <Label className="text-sm">K Period</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic.kPeriod}
+                            value={indicators.stochastic?.kPeriod || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               stochastic: { ...prev.stochastic, kPeriod: parseInt(e.target.value) || 14 }
@@ -4099,7 +4099,7 @@ export default function BotPage() {
                           <Label className="text-sm">D Period</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic.dPeriod}
+                            value={indicators.stochastic?.dPeriod || 3}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               stochastic: { ...prev.stochastic, dPeriod: parseInt(e.target.value) || 3 }
@@ -4112,7 +4112,7 @@ export default function BotPage() {
                           <Label className="text-sm">Smooth K</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic.smoothK}
+                            value={indicators.stochastic?.smoothK || 3}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               stochastic: { ...prev.stochastic, smoothK: parseInt(e.target.value) || 3 }
@@ -4125,7 +4125,7 @@ export default function BotPage() {
                           <Label className="text-sm">Condition & Value</Label>
                           <div className="flex gap-1">
                             <Select 
-                              value={indicators.stochastic.condition} 
+                              value={indicators.stochastic?.condition || 'above'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 stochastic: { ...prev.stochastic, condition: value }
@@ -4143,7 +4143,7 @@ export default function BotPage() {
                             </Select>
                             <Input
                               type="number"
-                              value={indicators.stochastic.value}
+                              value={indicators.stochastic?.value || 80}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
                                 stochastic: { ...prev.stochastic, value: parseInt(e.target.value) || 80 }
@@ -4163,7 +4163,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.williams.enabled}
+                          checked={indicators.williams?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             williams: { ...prev.williams, enabled: e.target.checked }
@@ -4173,13 +4173,13 @@ export default function BotPage() {
                         <Label className="font-medium">Williams %R</Label>
                       </div>
                     </div>
-                    {indicators.williams.enabled && (
+                    {indicators.williams?.enabled && (
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.williams.period}
+                            value={indicators.williams?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               williams: { ...prev.williams, period: parseInt(e.target.value) || 14 }
@@ -4191,7 +4191,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.williams.condition} 
+                            value={indicators.williams?.condition || 'above'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               williams: { ...prev.williams, condition: value }
@@ -4212,7 +4212,7 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.williams.value}
+                            value={indicators.williams?.value || -20}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               williams: { ...prev.williams, value: parseInt(e.target.value) || -20 }
