@@ -331,8 +331,10 @@ export default function Markets() {
   };
 
   // Processing data with screener criteria (memoized for performance)
-  const filteredAndSortedData = useMemo(() => data ? data
-    .filter(item => {
+  const filteredAndSortedData = useMemo(() => {
+    if (!data) return [];
+    
+    return data.filter(item => {
       const searchMatch = !searchQuery || 
         item.symbol?.toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -387,7 +389,8 @@ export default function Markets() {
       }
       
       return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
-    }) : [], [data, searchQuery, selectedScreener, selectedScreenerObj, filter, sortBy, sortDirection]);
+    });
+  }, [data, searchQuery, selectedScreener, selectedScreenerObj, filter, sortBy, sortDirection]);
 
   // Market stats calculation (memoized for performance)
   const marketStats = useMemo(() => data ? {

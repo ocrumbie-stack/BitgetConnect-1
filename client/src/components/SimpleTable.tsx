@@ -1,7 +1,7 @@
 import { FuturesData } from '@shared/schema';
 import { useLocation } from 'wouter';
 import { ChevronUp, ChevronDown, Plus, FolderPlus, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from '@/components/ui/context-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -118,13 +118,14 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
     );
   }
 
+  // Regular functions (not hooks) for formatting
   const formatVolume = (volume: string | null) => {
     if (!volume) return '0';
     const num = parseFloat(volume);
-    if (num >= 1e9) return `${(num / 1e9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
-    if (num >= 1e6) return `${(num / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}M`;
-    if (num >= 1e3) return `${(num / 1e3).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}K`;
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (num >= 1e9) return `${(num / 1e9).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}B`;
+    if (num >= 1e6) return `${(num / 1e6).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
+    if (num >= 1e3) return `${(num / 1e3).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}K`;
+    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
   const formatPrice = (price: string) => {
@@ -139,12 +140,6 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
     if (!change) return '0.00%';
     const num = parseFloat(change) * 100;
     return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
-  };
-
-  const getChangeColor = (change: string | null) => {
-    if (!change) return 'text-muted-foreground';
-    const num = parseFloat(change);
-    return num >= 0 ? 'text-green-400' : 'text-red-400';
   };
 
   const getChangeBackground = (change: string | null) => {
@@ -189,9 +184,10 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
         </div>
       </div>
 
-      {/* Data Rows */}
-      <div className="divide-y divide-border">
-        {data.map((item) => (
+      {/* Data Rows - Limited to 50 visible items for performance */}
+      <ScrollArea className="h-[calc(100vh-280px)]">
+        <div className="divide-y divide-border">
+          {data.slice(0, 50).map((item) => (
           <ContextMenu key={item.symbol}>
             <ContextMenuTrigger asChild>
               <div 
@@ -304,8 +300,9 @@ export function SimpleTable({ data, isLoading, sortBy, sortDirection, onSort, on
               )}
             </ContextMenuContent>
           </ContextMenu>
-        ))}
-      </div>
+          ))}
+        </div>
+      </ScrollArea>
 
       {/* Add to Folder Dialog */}
       <Dialog open={showAddToFolderDialog} onOpenChange={setShowAddToFolderDialog}>
