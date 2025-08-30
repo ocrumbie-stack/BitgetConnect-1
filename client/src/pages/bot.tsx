@@ -1613,21 +1613,21 @@ export default function BotPage() {
           <Card 
             className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'strategies' 
-                ? 'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800/40 dark:to-slate-900/40 border-slate-300 dark:border-slate-600' 
-                : 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
+                ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600' 
+                : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-600'
             }`}
             onClick={() => handleTabChange('strategies')}
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-500 rounded-md">
+                <div className="p-2 bg-blue-500 rounded-md">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
-                  <div className="text-xl font-bold text-slate-700 dark:text-slate-300">
+                  <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Strategies</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
                 </div>
               </div>
             </CardContent>
