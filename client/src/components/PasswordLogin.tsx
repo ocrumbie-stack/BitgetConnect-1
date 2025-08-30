@@ -40,7 +40,7 @@ export function PasswordLogin({ onLogin }: PasswordLoginProps) {
     },
     onSuccess: (data) => {
       setError('');
-      localStorage.setItem('trading-app-user', JSON.stringify(data.user));
+      localStorage.setItem('octrader-user', JSON.stringify(data.user));
       onLogin(data.user);
     },
     onError: (error: Error) => {
@@ -67,7 +67,7 @@ export function PasswordLogin({ onLogin }: PasswordLoginProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              Crypto Trading Platform
+              OcTrader
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
               Enter your credentials to access the trading dashboard

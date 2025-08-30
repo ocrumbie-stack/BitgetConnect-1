@@ -21,14 +21,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for stored user on app start
-    const storedUser = localStorage.getItem('trading-app-user');
+    const storedUser = localStorage.getItem('octrader-user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);
-        localStorage.removeItem('trading-app-user');
+        localStorage.removeItem('octrader-user');
       }
     }
     setIsLoading(false);
@@ -36,12 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (user: User) => {
     setUser(user);
-    localStorage.setItem('trading-app-user', JSON.stringify(user));
+    localStorage.setItem('octrader-user', JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('trading-app-user');
+    localStorage.removeItem('octrader-user');
   };
 
   return (
