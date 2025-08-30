@@ -10,6 +10,95 @@ let updateInterval: NodeJS.Timeout | null = null;
 let tradingPaused = false; // Emergency pause for all trading
 let lastEvaluationTime: { [key: string]: number } = {}; // Track last evaluation time per pair
 
+// Folder Organization Helper Functions
+function createFolderName(deploymentType: string, tradingStyle?: string, scannerName?: string): string {
+  const timestamp = new Date().toLocaleString('en-US', { 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+  
+  switch (deploymentType) {
+    case 'auto_scanner':
+      return `🤖 ${scannerName || 'Auto Scanner'} - ${timestamp}`;
+    case 'continuous_scanner':
+      return `🔄 ${scannerName || 'Continuous Scanner'} - ${timestamp}`;
+    case 'folder':
+      return `📁 ${tradingStyle || 'Folder'} Deployment - ${timestamp}`;
+    case 'manual':
+      return `⚡ ${tradingStyle || 'Manual'} Strategy - ${timestamp}`;
+    default:
+      return `🚀 Trading Deployment - ${timestamp}`;
+  }
+}
+
+function getStrategyFolder(strategy: any, deploymentType: string): { folderName: string; description: string } {
+  const tradingStyle = strategy?.config?.tradingStyle || 'balanced';
+  const scannerName = strategy?.name || 'Scanner';
+  const folderName = createFolderName(deploymentType, tradingStyle, scannerName);
+  
+  let description = '';
+  switch (deploymentType) {
+    case 'auto_scanner':
+      description = `AI-powered market scanner deployment using ${tradingStyle} style. Auto-selected trading opportunities with risk management.`;
+      break;
+    case 'continuous_scanner':
+      description = `Continuous market monitoring with real-time opportunity detection. Leverages ${tradingStyle} trading approach for optimal entries.`;
+      break;
+    case 'folder':
+      description = `Bulk deployment across folder pairs using ${tradingStyle} strategy. Coordinated risk management and capital allocation.`;
+      break;
+    case 'manual':
+      description = `Custom strategy deployment with ${tradingStyle} configuration. Manual entry/exit criteria and personalized risk settings.`;
+      break;
+    default:
+      description = `Strategy deployment with organized tracking and management.`;
+  }
+  
+  return { folderName, description };
+}
+
+async function createOrganizedFolder(userId: string, strategy: any, deploymentType: string, tradingPairs: string[] = []): Promise<{id: string; name: string}> {
+  const { folderName, description } = getStrategyFolder(strategy, deploymentType);
+  
+  try {
+    // Create the folder/screener for organization
+    const folder = await storage.createScreener({
+      userId,
+      name: folderName,
+      description,
+      color: getDeploymentColor(deploymentType),
+      tradingPairs: tradingPairs.slice(0, 20), // Limit to prevent overload
+      criteria: {
+        deploymentType,
+        strategyId: strategy?.id,
+        createdBy: 'auto_organizer',
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    console.log(`📁 Created organized folder: ${folderName} (${tradingPairs.length} pairs)`);
+    return { id: folder.id, name: folderName };
+  } catch (error) {
+    console.error(`❌ Failed to create folder ${folderName}:`, error);
+    // Return a fallback folder name
+    return { id: 'default', name: folderName };
+  }
+}
+
+function getDeploymentColor(deploymentType: string): string {
+  const colors = {
+    'auto_scanner': '#10b981', // green
+    'continuous_scanner': '#3b82f6', // blue  
+    'folder': '#8b5cf6', // purple
+    'manual': '#f59e0b', // amber
+    'default': '#6b7280' // gray
+  };
+  return colors[deploymentType as keyof typeof colors] || colors.default;
+}
+
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
 async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
@@ -1644,6 +1733,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // IMMEDIATE ORDER ENDPOINT - Define this FIRST to prevent catch-all interference
   console.log('🔧 Registering POST /api/orders endpoint...');
   
+  // Strategy Organization & Migration Endpoint
+  app.post('/api/organize-strategies', async (req, res) => {
+    try {
+      const userId = 'default-user';
+      const { force = false } = req.body;
+      
+      console.log(`📁 Starting strategy organization (force=${force})...`);
+      
+      // Get all unorganized bot executions
+      const executions = await storage.getBotExecutions(userId);
+      const unorganizedExecutions = executions.filter(bot => 
+        !bot.folderName && 
+        bot.status !== 'terminated' && 
+        bot.deploymentType && 
+        bot.deploymentType !== 'manual'
+      );
+      
+      console.log(`📊 Found ${unorganizedExecutions.length} unorganized executions out of ${executions.length} total`);
+      
+      let organizedCount = 0;
+      let foldersCreated = 0;
+      const organizationMap = new Map<string, {id: string, name: string}>();
+      
+      for (const execution of unorganizedExecutions) {
+        try {
+          // Get strategy for folder organization
+          const strategies = await storage.getBotStrategies(userId);
+          const strategy = strategies.find(s => s.id === execution.strategyId);
+          
+          if (strategy) {
+            // Create a cache key for similar deployments
+            const cacheKey = `${execution.deploymentType}-${strategy.config?.tradingStyle || 'default'}`;
+            
+            let folderData;
+            if (organizationMap.has(cacheKey)) {
+              // Reuse existing folder
+              folderData = organizationMap.get(cacheKey)!;
+              console.log(`♻️ Reusing folder: ${folderData.name} for ${execution.tradingPair}`);
+            } else {
+              // Create new organized folder
+              folderData = await createOrganizedFolder(userId, strategy, execution.deploymentType, [execution.tradingPair]);
+              organizationMap.set(cacheKey, folderData);
+              foldersCreated++;
+              console.log(`📁 Created new folder: ${folderData.name} for ${execution.deploymentType}`);
+            }
+            
+            // Update execution with folder info
+            await storage.updateBotExecution(execution.id, {
+              folderName: folderData.name,
+              folderId: folderData.id
+            });
+            
+            organizedCount++;
+            console.log(`✅ Organized ${execution.tradingPair} into ${folderData.name}`);
+          }
+        } catch (orgError) {
+          console.error(`❌ Failed to organize ${execution.tradingPair}:`, orgError);
+        }
+      }
+      
+      const summary = {
+        success: true,
+        totalExecutions: executions.length,
+        unorganizedFound: unorganizedExecutions.length,
+        organized: organizedCount,
+        foldersCreated,
+        folderTypes: Array.from(organizationMap.keys()),
+        message: `Successfully organized ${organizedCount} strategies into ${foldersCreated} folders`
+      };
+      
+      console.log(`🎯 Organization complete: ${JSON.stringify(summary, null, 2)}`);
+      res.json(summary);
+      
+    } catch (error) {
+      console.error('❌ Error organizing strategies:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to organize strategies',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Auto-fix unorganized scanner strategies (called from frontend)
+  app.post('/api/fix-auto-scanner-strategies', async (req, res) => {
+    try {
+      const userId = 'default-user';
+      
+      // Get all scanner strategies that need folders
+      const executions = await storage.getBotExecutions(userId);
+      const scannerExecutions = executions.filter(bot => 
+        (bot.deploymentType === 'auto_scanner' || bot.deploymentType === 'continuous_scanner') &&
+        !bot.folderName &&
+        bot.status !== 'terminated'
+      );
+      
+      let fixed = 0;
+      for (const execution of scannerExecutions) {
+        try {
+          const strategies = await storage.getBotStrategies(userId);
+          const strategy = strategies.find(s => s.id === execution.strategyId);
+          
+          if (strategy) {
+            const folder = await createOrganizedFolder(userId, strategy, execution.deploymentType, [execution.tradingPair].filter(Boolean));
+            
+            await storage.updateBotExecution(execution.id, {
+              folderName: folder.name,
+              folderId: folder.id
+            });
+            
+            fixed++;
+            console.log(`📁 Auto-fixed scanner strategy: ${execution.tradingPair} → ${folder.name}`);
+          }
+        } catch (fixError) {
+          console.log(`⚠️ Failed to fix scanner strategy ${execution.tradingPair}:`, fixError);
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        fixed,
+        message: `Fixed ${fixed} scanner strategies`
+      });
+      
+    } catch (error) {
+      console.error('❌ Error fixing scanner strategies:', error);
+      res.json({ success: false, error: 'Failed to fix strategies' });
+    }
+  });
+  
   // User preferences routes
   addUserPreferencesRoutes(app, storage);
   
@@ -3031,6 +3250,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (orderSuccess) {
                     console.log(`✅ Continuous Scanner placed order for ${pair}`);
                     
+                    // Create organized folder for continuous scanner deployments
+                    let folderData = { folderName: null, folderId: null };
+                    try {
+                      const strategies = await storage.getBotStrategies('default-user');
+                      const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+                      const folder = await createOrganizedFolder(deployedBot.userId, strategy, 'continuous_scanner', [pair]);
+                      folderData = { folderName: folder.name, folderId: folder.id };
+                      console.log(`📁 Auto-organized continuous scanner child into: ${folder.name}`);
+                    } catch (folderError) {
+                      console.log(`⚠️ Failed to organize continuous scanner child, continuing: ${folderError}`);
+                    }
+                    
                     // Create a bot execution record for tracking
                     await storage.createBotExecution({
                       userId: deployedBot.userId,
@@ -3041,6 +3272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       status: 'active',
                       deploymentType: 'continuous_scanner_child',
                       botName: tempBotData.botName,
+                      ...folderData
                     });
                   }
                 }
@@ -3864,12 +4096,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Auto-organize into folders for better management
+      let folderName = validatedData.folderName;
+      let folderId = validatedData.folderId;
+      
+      if (!folderName && validatedData.deploymentType && validatedData.deploymentType !== 'manual') {
+        try {
+          // Get strategy for folder organization
+          const strategies = await storage.getBotStrategies(userId);
+          const strategy = strategies.find(s => s.id === validatedData.strategyId);
+          
+          // Create organized folder
+          const folder = await createOrganizedFolder(userId, strategy, validatedData.deploymentType, [validatedData.tradingPair].filter(Boolean));
+          folderName = folder.name;
+          folderId = folder.id;
+          
+          console.log(`📁 Auto-organized deployment into folder: ${folderName}`);
+        } catch (folderError) {
+          console.log(`⚠️ Failed to create organized folder, continuing without: ${folderError}`);
+        }
+      }
+
       const execution = await storage.createBotExecution({
         ...validatedData,
-        userId
+        userId,
+        folderName,
+        folderId
       });
       
-      console.log('🚀 Created bot execution:', JSON.stringify(execution, null, 2));
+      console.log('🚀 Created bot execution:', JSON.stringify({
+        ...execution,
+        folderOrganized: !!folderName
+      }, null, 2));
       res.json(execution);
     } catch (error) {
       console.error('Error creating bot execution:', error);
