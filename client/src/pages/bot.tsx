@@ -1593,13 +1593,13 @@ export default function BotPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BackButton to="/" label="Home" />
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
                 <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-muted-foreground text-sm">
-                Create and deploy automated trading strategies
+              <p className="text-muted-foreground text-sm truncate">
+                Automated trading strategies with AI-powered analysis
               </p>
             </div>
           </div>
