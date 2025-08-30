@@ -768,6 +768,17 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           console.log(`✅ MACD condition met: ${condition.condition}`);
           return true;
         }
+      } else if (condition.indicator === 'ma' || condition.indicator === 'sma' || condition.indicator === 'ema') {
+        const maCondition = {
+          ...condition,
+          type: condition.indicator === 'ema' ? 'EMA' : 'SMA',
+          period: condition.period || condition.period1 || 20
+        };
+        const maSignal = await evaluateMACondition(maCondition, tradingPair, strategy.config.timeframe || '1h');
+        if (maSignal) {
+          console.log(`✅ MA condition met: ${condition.condition}`);
+          return true;
+        }
       }
       // Add more indicators here (Bollinger, etc.) as needed
     }
@@ -865,6 +876,91 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
     return false;
   } catch (error) {
     console.error(`❌ Error evaluating MACD condition:`, error);
+    return false;
+  }
+}
+
+async function evaluateMACondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for MA calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.period || 20) + 10) {
+      console.log(`❌ Insufficient candle data for MA calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const currentPrice = closes[closes.length - 1];
+    const period = condition.period || 20;
+
+    let ma: number;
+    if (condition.type === 'EMA' || condition.type === 'ema') {
+      const emaValues = calculateEMA(closes, period);
+      if (emaValues.length === 0) {
+        console.log(`❌ Could not calculate EMA for ${tradingPair}`);
+        return false;
+      }
+      ma = emaValues[emaValues.length - 1];
+    } else {
+      if (closes.length < period) {
+        console.log(`❌ Insufficient data for SMA calculation: ${closes.length} < ${period}`);
+        return false;
+      }
+      const recentCloses = closes.slice(-period);
+      ma = recentCloses.reduce((sum, price) => sum + price, 0) / period;
+    }
+
+    console.log(`📈 ${tradingPair} ${condition.type || 'SMA'}(${period}): ${ma.toFixed(6)}, Price: $${currentPrice}`);
+
+    if (condition.condition === 'above') {
+      const aboveMA = currentPrice > ma;
+      console.log(`🔍 Price above ${condition.type || 'SMA'}(${period}) check: ${aboveMA}`);
+      return aboveMA;
+    } else if (condition.condition === 'below') {
+      const belowMA = currentPrice < ma;
+      console.log(`🔍 Price below ${condition.type || 'SMA'}(${period}) check: ${belowMA}`);
+      return belowMA;
+    } else if (condition.condition === 'crossover_above') {
+      if (closes.length < 2) return false;
+      const prevPrice = closes[closes.length - 2];
+      
+      let prevMA: number;
+      if (condition.type === 'EMA' || condition.type === 'ema') {
+        const emaValues = calculateEMA(closes.slice(0, -1), period);
+        prevMA = emaValues[emaValues.length - 1];
+      } else {
+        const prevCloses = closes.slice(-period - 1, -1);
+        prevMA = prevCloses.reduce((sum, price) => sum + price, 0) / period;
+      }
+      
+      const crossover = prevPrice <= prevMA && currentPrice > ma;
+      console.log(`🔍 Price crossover above ${condition.type || 'SMA'}(${period}) check: ${crossover}`);
+      return crossover;
+    } else if (condition.condition === 'crossover_below') {
+      if (closes.length < 2) return false;
+      const prevPrice = closes[closes.length - 2];
+      
+      let prevMA: number;
+      if (condition.type === 'EMA' || condition.type === 'ema') {
+        const emaValues = calculateEMA(closes.slice(0, -1), period);
+        prevMA = emaValues[emaValues.length - 1];
+      } else {
+        const prevCloses = closes.slice(-period - 1, -1);
+        prevMA = prevCloses.reduce((sum, price) => sum + price, 0) / period;
+      }
+      
+      const crossover = prevPrice >= prevMA && currentPrice < ma;
+      console.log(`🔍 Price crossover below ${condition.type || 'SMA'}(${period}) check: ${crossover}`);
+      return crossover;
+    }
+
+    return false;
+  } catch (error) {
+    console.error(`❌ Error evaluating MA condition:`, error);
     return false;
   }
 }
