@@ -145,12 +145,32 @@ export class BitgetAPI {
     }
   }
 
+  private convertTimeframe(timeframe: string): string {
+    // Convert standard timeframes to Bitget API format
+    const timeframeMap: Record<string, string> = {
+      '1m': '1m',
+      '3m': '3m', 
+      '5m': '5m',
+      '15m': '15m',
+      '30m': '30m',
+      '1h': '1H',
+      '4h': '4H',
+      '6h': '6H',
+      '12h': '12H',
+      '1d': '1D',
+      '1w': '1W',
+      '1M': '1M'
+    };
+    return timeframeMap[timeframe] || timeframe;
+  }
+
   async getCandlestickData(symbol: string, granularity: string = '5m', limit: number = 100): Promise<CandlestickData[]> {
     try {
+      const convertedGranularity = this.convertTimeframe(granularity);
       const response = await this.client.get('/api/v2/mix/market/candles', {
         params: {
           symbol,
-          granularity,
+          granularity: convertedGranularity,
           productType: 'USDT-FUTURES',
           limit
         }

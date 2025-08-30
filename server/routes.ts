@@ -419,51 +419,7 @@ async function calculateMACD(closes: number[]) {
   }
 }
 
-function calculateRSI(closes: number[], period: number = 14) {
-  if (closes.length < period + 1) return null;
-  
-  try {
-    let gains = 0;
-    let losses = 0;
-    
-    // Initial average
-    for (let i = 1; i <= period; i++) {
-      const change = closes[i] - closes[i - 1];
-      if (change > 0) gains += change;
-      else losses += Math.abs(change);
-    }
-    
-    let avgGain = gains / period;
-    let avgLoss = losses / period;
-    
-    // Calculate RSI for latest periods
-    for (let i = period + 1; i < closes.length; i++) {
-      const change = closes[i] - closes[i - 1];
-      const gain = change > 0 ? change : 0;
-      const loss = change < 0 ? Math.abs(change) : 0;
-      
-      avgGain = (avgGain * (period - 1) + gain) / period;
-      avgLoss = (avgLoss * (period - 1) + loss) / period;
-    }
-    
-    const rs = avgGain / avgLoss;
-    const rsi = 100 - (100 / (1 + rs));
-    
-    // Determine trend
-    const prevRsi = closes.length > period + 5 ? 
-      calculateRSI(closes.slice(0, -5), period)?.value || rsi : rsi;
-    
-    return {
-      value: rsi,
-      trend: rsi > prevRsi ? 'rising' : rsi < prevRsi ? 'falling' : 'neutral',
-      oversold: rsi < 30,
-      overbought: rsi > 70
-    };
-  } catch (error) {
-    console.error('RSI calculation error:', error);
-    return null;
-  }
-}
+
 
 function calculateBollingerBands(closes: number[], period: number = 20, stdDev: number = 2) {
   if (closes.length < period) return null;
@@ -784,9 +740,9 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
 
     // Evaluate each entry condition
     for (const condition of entryConditions) {
-      if (!condition.enabled) continue;
+      if (condition.enabled === false) continue; // Only skip if explicitly disabled
 
-      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.condition}`);
+      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.operator} ${condition.value}`);
 
       if (condition.indicator === 'macd') {
         const macdSignal = await evaluateMACDCondition(condition, tradingPair, currentPrice);
@@ -794,8 +750,14 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           console.log(`✅ MACD condition met: ${condition.condition}`);
           return true;
         }
+      } else if (condition.indicator === 'rsi') {
+        const rsiSignal = await evaluateRSICondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (rsiSignal) {
+          console.log(`✅ RSI condition met: ${condition.operator} ${condition.value}`);
+          return true;
+        }
       }
-      // Add more indicators here (RSI, Bollinger, etc.) as needed
+      // Add more indicators here (Bollinger, etc.) as needed
     }
 
     console.log(`⏸️ Entry conditions not yet met for ${strategy.name} on ${tradingPair}`);
@@ -883,6 +845,64 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
   }
 }
 
+async function evaluateRSICondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for RSI calculation');
+      return false;
+    }
+
+    // Get historical price data for RSI calculation
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 100);
+    if (!candleData || candleData.length < 15) {
+      console.log(`❌ Insufficient candle data for RSI calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    // Extract closing prices
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    
+    // Calculate RSI
+    const rsiPeriod = condition.period || 14;
+    const rsi = calculateRSI(closes, rsiPeriod);
+    
+    if (rsi === null || typeof rsi !== 'number' || isNaN(rsi)) {
+      console.log(`❌ Could not calculate RSI for ${tradingPair}: received ${typeof rsi} = ${rsi}`);
+      return false;
+    }
+
+    console.log(`📊 ${tradingPair} RSI(${rsiPeriod}): ${rsi.toFixed(2)} (${timeframe})`);
+
+    // Evaluate the condition
+    const { operator, value } = condition;
+    let conditionMet = false;
+
+    switch (operator) {
+      case 'greater_than':
+      case 'above':
+        conditionMet = rsi > value;
+        break;
+      case 'less_than':
+      case 'below':
+        conditionMet = rsi < value;
+        break;
+      case 'equals':
+        conditionMet = Math.abs(rsi - value) < 1; // Within 1 point
+        break;
+      default:
+        console.log(`❌ Unknown RSI operator: ${operator}`);
+        return false;
+    }
+
+    console.log(`🔍 RSI condition: ${rsi.toFixed(2)} ${operator} ${value} = ${conditionMet}`);
+    return conditionMet;
+
+  } catch (error) {
+    console.error(`❌ Error evaluating RSI condition:`, error);
+    return false;
+  }
+}
+
 // Helper function to calculate Exponential Moving Average
 function calculateEMA(data: number[], period: number): number[] {
   if (data.length < period) {
@@ -908,6 +928,50 @@ function calculateEMA(data: number[], period: number): number[] {
   
   console.log(`✅ EMA calculated: period ${period}, input ${data.length} points, output ${ema.length} points`);
   return ema;
+}
+
+// Helper function to calculate RSI (Relative Strength Index)
+function calculateRSI(data: number[], period: number = 14): number | null {
+  if (data.length < period + 1) {
+    console.log(`❌ RSI: Not enough data. Need ${period + 1}, have ${data.length}`);
+    return null;
+  }
+
+  // Calculate price changes
+  const changes: number[] = [];
+  for (let i = 1; i < data.length; i++) {
+    changes.push(data[i] - data[i - 1]);
+  }
+
+  if (changes.length < period) {
+    console.log(`❌ RSI: Not enough price changes. Need ${period}, have ${changes.length}`);
+    return null;
+  }
+
+  // Separate gains and losses
+  const gains = changes.map(change => change > 0 ? change : 0);
+  const losses = changes.map(change => change < 0 ? Math.abs(change) : 0);
+
+  // Calculate initial average gain and loss (SMA for first period)
+  let avgGain = gains.slice(0, period).reduce((sum, gain) => sum + gain, 0) / period;
+  let avgLoss = losses.slice(0, period).reduce((sum, loss) => sum + loss, 0) / period;
+
+  // Calculate smoothed averages for remaining periods
+  for (let i = period; i < changes.length; i++) {
+    avgGain = ((avgGain * (period - 1)) + gains[i]) / period;
+    avgLoss = ((avgLoss * (period - 1)) + losses[i]) / period;
+  }
+
+  // Calculate RSI
+  if (avgLoss === 0) {
+    return 100; // If no losses, RSI = 100
+  }
+
+  const rs = avgGain / avgLoss;
+  const rsi = 100 - (100 / (1 + rs));
+
+  console.log(`✅ RSI calculated: period ${period}, avgGain ${avgGain.toFixed(6)}, avgLoss ${avgLoss.toFixed(6)}, RSI ${rsi.toFixed(2)}`);
+  return rsi;
 }
 
 async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promise<boolean> {
@@ -1523,26 +1587,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Helper functions for technical indicators
-  function calculateRSI(prices: number[], period: number): number {
-    if (prices.length < period + 1) return 50;
-    
-    let gains = 0;
-    let losses = 0;
-    
-    for (let i = 1; i <= period; i++) {
-      const change = prices[i] - prices[i - 1];
-      if (change > 0) gains += change;
-      else losses += Math.abs(change);
-    }
-    
-    const avgGain = gains / period;
-    const avgLoss = losses / period;
-    
-    if (avgLoss === 0) return 100;
-    
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
-  }
 
   function calculateEMA(prices: number[], period: number): number {
     if (prices.length < period) return prices[prices.length - 1];
