@@ -421,12 +421,18 @@ export function CreateScreener() {
                 </div>
 
                 <Tabs defaultValue="basic" className="w-full mt-8">
-                  <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 h-12">
-                    <TabsTrigger value="basic" className="flex items-center gap-2 h-10 text-sm font-medium">
+                  <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800 p-1 h-14 border border-border">
+                    <TabsTrigger 
+                      value="basic" 
+                      className="flex items-center gap-2 h-12 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
                       <Activity className="w-4 h-4" />
                       Basic Market Filters
                     </TabsTrigger>
-                    <TabsTrigger value="technical" className="flex items-center gap-2 h-10 text-sm font-medium">
+                    <TabsTrigger 
+                      value="technical" 
+                      className="flex items-center gap-2 h-12 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-900 dark:data-[state=active]:text-white text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
                       <TrendingUp className="w-4 h-4" />
                       Technical Indicators
                     </TabsTrigger>
