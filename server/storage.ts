@@ -49,6 +49,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
+  cache?: Map<string, any>; // Add cache property for performance
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -123,6 +124,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  cache = new Map<string, any>(); // Initialize cache for performance
   private users: Map<string, User>;
   private bitgetCredentials: Map<string, BitgetCredentials>;
   private futuresData: Map<string, FuturesData>;
