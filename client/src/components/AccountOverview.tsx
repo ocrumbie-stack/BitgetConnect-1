@@ -39,8 +39,8 @@ export default function AccountOverview() {
   if (isLoading) {
     return (
       <div className="bg-surface border-t border-border-color p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, i) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="space-y-3">
               <Skeleton className="h-5 w-32" />
               <div className="space-y-2">
@@ -56,49 +56,11 @@ export default function AccountOverview() {
   }
 
   const account = accountData?.account;
-  const positions = accountData?.positions || [];
   const riskInfo = getRiskLevel(account?.marginRatio);
 
   return (
     <div className="bg-surface border-t border-border-color p-6" data-testid="account-overview">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Current Positions */}
-        <div>
-          <h3 className="text-sm font-medium text-text-secondary mb-3" data-testid="positions-title">
-            Current Positions
-          </h3>
-          <div className="space-y-2">
-            {positions.length === 0 ? (
-              <div className="py-4 text-center text-text-secondary text-sm">
-                No open positions
-              </div>
-            ) : (
-              positions.map((position, index) => (
-                <div 
-                  key={`${position.symbol}-${index}`} 
-                  className="flex items-center justify-between py-2 px-3 bg-background rounded-md"
-                  data-testid={`position-${position.symbol}`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div>
-                      <div className="text-sm font-medium">{position.symbol}</div>
-                      <div className="text-xs text-text-secondary capitalize">{position.side}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-mono">{position.size} {position.symbol.replace('USDT', '')}</div>
-                    <div className={`text-xs font-mono ${
-                      position.pnl && parseFloat(position.pnl) >= 0 ? 'text-success' : 'text-error'
-                    }`}>
-                      {formatCurrency(position.pnl)}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Account Summary */}
         <div>
           <h3 className="text-sm font-medium text-text-secondary mb-3" data-testid="account-summary-title">
