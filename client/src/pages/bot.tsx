@@ -1044,6 +1044,8 @@ export default function BotPage() {
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
+      cci: { enabled: false, period: 20, condition: 'above', value: 100 },
+      atr: { enabled: false, period: 14, condition: 'above', multiplier: 2.0 },
       volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
     };
     
@@ -3448,7 +3450,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.rsi.enabled}
+                          checked={indicators.rsi?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             rsi: { ...prev.rsi, enabled: e.target.checked }
@@ -3458,13 +3460,13 @@ export default function BotPage() {
                         <Label className="font-medium">RSI (Relative Strength Index)</Label>
                       </div>
                     </div>
-                    {indicators.rsi.enabled && (
+                    {indicators.rsi?.enabled && (
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.rsi.period}
+                            value={indicators.rsi?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               rsi: { ...prev.rsi, period: e.target.value === '' ? '' : parseInt(e.target.value) || 14 }
@@ -3476,7 +3478,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.rsi.condition} 
+                            value={indicators.rsi?.condition || 'above'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               rsi: { ...prev.rsi, condition: value }
@@ -3495,7 +3497,7 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.rsi.value}
+                            value={indicators.rsi?.value || 70}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               rsi: { ...prev.rsi, value: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }
@@ -3514,7 +3516,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.macd.enabled}
+                          checked={indicators.macd?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             macd: { ...prev.macd, enabled: e.target.checked }
@@ -3524,13 +3526,13 @@ export default function BotPage() {
                         <Label className="font-medium">MACD</Label>
                       </div>
                     </div>
-                    {indicators.macd.enabled && (
+                    {indicators.macd?.enabled && (
                       <div className="grid grid-cols-4 gap-3">
                         <div>
                           <Label className="text-sm">Fast Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd.fastPeriod}
+                            value={indicators.macd?.fastPeriod || 12}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               macd: { ...prev.macd, fastPeriod: parseInt(e.target.value) || 12 }
@@ -3542,7 +3544,7 @@ export default function BotPage() {
                           <Label className="text-sm">Slow Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd.slowPeriod}
+                            value={indicators.macd?.slowPeriod || 26}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               macd: { ...prev.macd, slowPeriod: parseInt(e.target.value) || 26 }
@@ -3554,7 +3556,7 @@ export default function BotPage() {
                           <Label className="text-sm">Signal Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd.signalPeriod}
+                            value={indicators.macd?.signalPeriod || 9}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
                               macd: { ...prev.macd, signalPeriod: parseInt(e.target.value) || 9 }
@@ -3565,7 +3567,7 @@ export default function BotPage() {
                         <div>
                           <Label className="text-sm">Condition</Label>
                           <Select 
-                            value={indicators.macd.condition} 
+                            value={indicators.macd?.condition || 'bullish_crossover'} 
                             onValueChange={(value) => setIndicators(prev => ({
                               ...prev,
                               macd: { ...prev.macd, condition: value }
@@ -3594,7 +3596,7 @@ export default function BotPage() {
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={indicators.ma1.enabled}
+                          checked={indicators.ma1?.enabled || false}
                           onChange={(e) => setIndicators(prev => ({
                             ...prev,
                             ma1: { ...prev.ma1, enabled: e.target.checked }
@@ -3604,13 +3606,13 @@ export default function BotPage() {
                         <Label className="font-medium">Moving Average 1</Label>
                       </div>
                     </div>
-                    {indicators.ma1.enabled && (
+                    {indicators.ma1?.enabled && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-3 gap-3">
                           <div>
                             <Label className="text-sm">Type</Label>
                             <Select 
-                              value={indicators.ma1.type} 
+                              value={indicators.ma1?.type || 'sma'} 
                               onValueChange={(value) => setIndicators(prev => ({
                                 ...prev,
                                 ma1: { ...prev.ma1, type: value }
@@ -3632,7 +3634,7 @@ export default function BotPage() {
                             <Label className="text-sm">Period</Label>
                             <Input
                               type="number"
-                              value={indicators.ma1.period1}
+                              value={indicators.ma1?.period1 || 20}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
                                 ma1: { ...prev.ma1, period1: parseInt(e.target.value) || 20 }
