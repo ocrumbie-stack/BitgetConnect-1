@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { AlertCenter } from "@/components/AlertCenter";
 
 interface AppHeaderProps {
   isConnected: boolean;
@@ -82,6 +83,10 @@ export default function AppHeader({ isConnected }: AppHeaderProps) {
               {formatCurrency(unrealizedPnl)}
             </span>
           </div>
+          
+          {/* Alert Center */}
+          <AlertCenter userId="default-user" />
+          
           <Button 
             className="bg-primary hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
             data-testid="settings-button"
