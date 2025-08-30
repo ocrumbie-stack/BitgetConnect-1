@@ -3239,7 +3239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Bot execution management routes
+  // Bot execution management routes - OPTIMIZED
   app.get('/api/bot-executions', async (req, res) => {
     try {
       const userId = 'default-user';
@@ -3249,9 +3249,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
 
-      const positions = await bitgetAPI.getPositions();
-      console.log(`🤖 Bot executions - Found ${positions.length} positions`);
-      console.log('📊 Position details:', positions.slice(0, 2)); // Log first 2 positions for debugging
+      // PERFORMANCE: Cache positions for 5 seconds to reduce API calls
+      const cacheKey = 'positions_cache';
+      const cached = storage.cache?.get?.(cacheKey);
+      let positions;
+      
+      if (cached && Date.now() - cached.timestamp < 5000) {
+        positions = cached.data;
+        console.log(`⚡ Using cached positions (${positions.length})`);
+      } else {
+        positions = await bitgetAPI.getPositions();
+        if (!storage.cache) storage.cache = new Map();
+        storage.cache.set(cacheKey, { data: positions, timestamp: Date.now() });
+        console.log(`🤖 Fresh positions fetched: ${positions.length}`);
+      }
       
       // Get deployed bots from database
       const deployedBots = await storage.getBotExecutions(userId);
