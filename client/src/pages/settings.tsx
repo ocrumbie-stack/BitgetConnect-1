@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Settings as SettingsIcon, Moon, Sun, Monitor, Bell, Shield, Database, Palette, Globe } from 'lucide-react';
+import { X, Settings as SettingsIcon, Moon, Sun, Monitor, Bell, Shield, Database, Palette, Globe, LogOut, User } from 'lucide-react';
 import { ApiSettings } from '@/components/ApiSettings';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Settings() {
   const [, setLocation] = useLocation();
+  const { user, logout } = useAuth();
   const [theme, setTheme] = useState('system');
   const [notifications, setNotifications] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -37,6 +39,37 @@ export function Settings() {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Account Settings */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4" />
+              Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-4">
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-sm font-medium">Signed in as</div>
+                <div className="text-xs text-muted-foreground">{user?.username}</div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  logout();
+                  setLocation('/');
+                }}
+                className="flex items-center gap-2"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* API Configuration */}
         <Card>
           <CardHeader className="pb-3">
