@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info, Bell } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { toast } from '@/hooks/use-toast';
+import { AlertCenter } from '@/components/AlertCenter';
 
 // Type extension for 5-minute change data
 type ExtendedFuturesData = {
@@ -44,6 +45,9 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
+  
+  // Alert state
+  const [showAlerts, setShowAlerts] = useState(false);
 
   // AI Opportunity Analysis - Enhanced from Home page
   const generateOpportunities = (strategy: string) => {
@@ -457,6 +461,16 @@ export default function Markets() {
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-xl font-semibold">Markets</h1>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAlerts(true)}
+                className="flex items-center gap-2 text-sm"
+                data-testid="button-alerts"
+              >
+                <Bell className="h-4 w-4" />
+                Alerts
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -972,6 +986,13 @@ export default function Markets() {
           }}
         />
       )}
+      
+      {/* Alert Center */}
+      <AlertCenter 
+        userId="default-user"
+        isOpen={showAlerts}
+        onClose={() => setShowAlerts(false)}
+      />
     </div>
   );
 }
