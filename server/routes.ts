@@ -3202,6 +3202,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database cleanup endpoint
+  app.delete('/api/cleanup/terminated-bots', async (req, res) => {
+    try {
+      const userId = 'default-user';
+      const allBots = await storage.getBotExecutions(userId);
+      const terminatedBots = allBots.filter(bot => bot.status === 'terminated');
+      
+      // Keep only recent terminated bots (last 24 hours)
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const oldTerminatedBots = terminatedBots.filter(bot => 
+        new Date(bot.updatedAt) < oneDayAgo
+      );
+      
+      let deletedCount = 0;
+      for (const bot of oldTerminatedBots) {
+        await storage.deleteBotExecution(bot.id);
+        deletedCount++;
+      }
+      
+      res.json({
+        success: true,
+        message: `Cleaned up ${deletedCount} old terminated bots`,
+        deletedCount,
+        remainingTerminated: terminatedBots.length - deletedCount
+      });
+    } catch (error) {
+      console.error('Error cleaning up terminated bots:', error);
+      res.status(500).json({ error: 'Failed to cleanup terminated bots' });
+    }
+  });
+
   // Cleanup route to fix existing auto scanner and AI bot strategies
   app.post('/api/fix-auto-scanner-strategies', async (req, res) => {
     try {
@@ -3264,134 +3295,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`🤖 Fresh positions fetched: ${positions.length}`);
       }
       
-      // Get deployed bots from database
-      const deployedBots = await storage.getBotExecutions(userId);
-      console.log(`📋 Deployed bots from storage: ${deployedBots.length}`);
+      // Get deployed bots from database - filter active only for performance
+      const allDeployedBots = await storage.getBotExecutions(userId);
+      const deployedBots = allDeployedBots.filter(bot => bot.status === 'active' || bot.status === 'waiting_entry');
+      console.log(`📋 Active deployed bots: ${deployedBots.length} (filtered from ${allDeployedBots.length} total)`);
       
-      // Initialize with demo waiting bots if none exist
-      if (deployedBots.length === 0) {
-        const demoBots = [
-          { tradingPair: 'ETHUSDT', botName: 'Smart Momentum', leverage: '3' },
-          { tradingPair: 'SOLUSDT', botName: 'Smart Scalping Bot', leverage: '5' },
-        ];
-        
-        for (const demoBot of demoBots) {
-          try {
-            await storage.createBotExecution({
-              userId,
-              strategyId: `strategy-${demoBot.tradingPair}`,
-              tradingPair: demoBot.tradingPair,
-              status: 'active',
-              capital: '10',
-              leverage: demoBot.leverage,
-              profit: '0',
-              trades: '0',
-              winRate: '0',
-              roi: '0',
-              runtime: '0',
-              deploymentType: 'manual',
-              botName: demoBot.botName,
-              startedAt: new Date(),
-            });
-            console.log(`🔧 Created demo waiting bot: ${demoBot.botName}`);
-          } catch (error) {
-            console.log(`⚠️ Demo bot already exists: ${demoBot.tradingPair}`);
-          }
-        }
-        
-        // Refresh deployed bots after adding demos
-        const updatedDeployedBots = await storage.getBotExecutions(userId);
-        console.log(`📋 Updated deployed bots: ${updatedDeployedBots.length}`);
-        deployedBots.splice(0, deployedBots.length, ...updatedDeployedBots);
-      }
+      // CLEANUP: Remove demo bot creation - let users create their own bots
       
-      // Define AI bot mappings with exit criteria
-      const botMappings = [
-        { 
-          symbol: 'BTCUSDT', 
-          botName: 'Grid Trading Pro', 
-          leverage: '2', 
-          riskLevel: 'Medium',
-          exitCriteria: {
-            stopLoss: -5.0, // -5% loss
-            takeProfit: 8.0, // +8% profit
-            maxRuntime: 240, // 4 hours max
-            exitStrategy: 'grid_rebalancing'
-          }
-        },
-        { 
-          symbol: 'ETHUSDT', 
-          botName: 'Smart Momentum', 
-          leverage: '3', 
-          riskLevel: 'Medium', // Reduced risk level
-          exitCriteria: {
-            stopLoss: -2.5, // Reduced from -4% to -2.5% (-7.5% account loss at 3x)
-            takeProfit: 8.0, // Reduced from 12% to 8% for safer exits
-            maxRuntime: 180, // 3 hours max
-            exitStrategy: 'momentum_reversal'
-          }
-        },
-        { 
-          symbol: 'SOLUSDT', 
-          botName: 'Smart Scalping Bot', 
-          leverage: '3', // Reduced from 5x to 3x for safety
-          riskLevel: 'Medium', // Reduced risk level
-          exitCriteria: {
-            stopLoss: -1.5, // Tighter stop loss for leverage safety (-1.5% = 4.5% account loss at 3x)
-            takeProfit: 2.5, // Reduced take profit for quicker exits
-            maxRuntime: 60, // 1 hour max
-            exitStrategy: 'scalp_quick_exit'
-          }
-        },
-        { 
-          symbol: 'BNBUSDT', 
-          botName: 'Smart Arbitrage', 
-          leverage: '2', 
-          riskLevel: 'Low',
-          exitCriteria: {
-            stopLoss: -3.0, // -3% loss
-            takeProfit: 5.0, // +5% profit
-            maxRuntime: 360, // 6 hours max
-            exitStrategy: 'arbitrage_spread_close'
-          }
-        },
-        { 
-          symbol: 'ADAUSDT', 
-          botName: 'AI Dollar Cost Average', 
-          leverage: '1', 
-          riskLevel: 'Low',
-          exitCriteria: {
-            stopLoss: -8.0, // -8% loss (wider tolerance)
-            takeProfit: 15.0, // +15% profit (longer hold)
-            maxRuntime: 720, // 12 hours max
-            exitStrategy: 'dca_accumulation'
-          }
-        },
-        { 
-          symbol: 'AVAXUSDT', 
-          botName: 'Smart Swing Trader', 
-          leverage: '2', // Reduced from 3x to 2x for swing trading safety
-          riskLevel: 'Medium',
-          exitCriteria: {
-            stopLoss: -3.0, // Reduced from -6% to -3% (-6% account loss at 2x)
-            takeProfit: 8.0, // Reduced from 10% to 8%
-            maxRuntime: 480, // 8 hours max
-            exitStrategy: 'swing_trend_reversal'
-          }
-        },
-        { 
-          symbol: 'LTCUSDT', 
-          botName: 'Test AI Bot', 
-          leverage: '2', 
-          riskLevel: 'Medium',
-          exitCriteria: {
-            stopLoss: -5.0, // -5% loss
-            takeProfit: 7.0, // +7% profit
-            maxRuntime: 120, // 2 hours max for testing
-            exitStrategy: 'test_exit'
-          }
-        }
-      ];
+      // CLEANUP: Removed static bot mappings - using dynamic position data instead
+      
+      // Build response from actual positions and deployed bots
 
       // Create a comprehensive list of all bots (deployed + active)
       const allBots = [];

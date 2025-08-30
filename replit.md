@@ -1,6 +1,14 @@
 # Overview
 This project is a mobile-optimized crypto trading application designed for real-time Bitget perpetual futures trading. Its primary purpose is to provide users with tools for market monitoring, order placement, automated trading bot setup, and streamlined strategy deployment. The application aims to empower users with advanced AI-powered trading opportunities, efficient organization through folder-based trading pair management, and bulk bot deployment capabilities. The business vision is to provide a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
 
+## Recent Changes (August 30, 2025)
+- PERFORMANCE OPTIMIZATION: Resolved critical app freezing issues by terminating resource-intensive continuous scanner processes
+- CODE CLEANUP: Removed unnecessary demo bot creation, static bot mappings, and legacy continuous scanner features
+- API OPTIMIZATION: Implemented 5-second caching for Bitget API calls to reduce request frequency
+- DATABASE CLEANUP: Added automated cleanup endpoint for old terminated bot records (keeps only last 24 hours)
+- ARCHITECTURE SIMPLIFICATION: Streamlined bot execution logic to use only dynamic position data instead of static mappings
+- FOLDER SYSTEM: Confirmed working correctly with strategy names and trading pair dropdowns as intended
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 Table design preference: Compact rows with minimal padding (py-2) for space efficiency while maintaining readability.
