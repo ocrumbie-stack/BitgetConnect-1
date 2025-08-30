@@ -1611,7 +1611,7 @@ export default function BotPage() {
       <div className="px-4 -mt-8 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <Card 
-            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'strategies' 
                 ? 'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800/40 dark:to-slate-900/40 border-slate-300 dark:border-slate-600' 
                 : 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
