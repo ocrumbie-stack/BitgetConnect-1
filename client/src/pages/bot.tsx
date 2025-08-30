@@ -268,13 +268,7 @@ export default function BotPage() {
     execution.status === 'active' || execution.status === 'waiting_entry' || execution.status === 'exit_pending'
   );
 
-  // Debug logging to help troubleshoot active bots display
-  console.log(`🔍 Debug Active Bots:`, {
-    totalExecutions: allExecutions.length,
-    activeExecutions: activeExecutions.length,
-    statuses: allExecutions.map((ex: any) => ({ id: ex.id, status: ex.status, pair: ex.tradingPair, deploymentType: ex.deploymentType })),
-    currentTab: activeTab
-  });
+  // Filter active executions for display
 
 
 
