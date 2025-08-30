@@ -6,6 +6,8 @@ export function useScrollToTop() {
   
   useEffect(() => {
     // Instantly jump to top when location changes
-    window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
   }, [location]);
 }

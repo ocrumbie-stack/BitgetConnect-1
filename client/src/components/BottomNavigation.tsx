@@ -13,8 +13,8 @@ export function BottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 overflow-x-hidden">
-      <div className="flex justify-around items-center py-2 max-w-full">
+    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50">
+      <div className="flex justify-around items-center py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path;
@@ -23,7 +23,7 @@ export function BottomNavigation() {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center p-2 rounded-lg transition-colors duration-150 ${
                 isActive 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-foreground'
