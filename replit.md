@@ -1,5 +1,5 @@
 # Overview
-This project is a mobile-optimized crypto trading application designed for real-time Bitget perpetual futures trading. Its primary purpose is to provide users with tools for market monitoring, order placement, automated trading bot setup, and streamlined strategy deployment. The application aims to empower users with advanced AI-powered trading opportunities, efficient organization through folder-based trading pair management, and bulk bot deployment capabilities.
+This project is a mobile-optimized crypto trading application designed for real-time Bitget perpetual futures trading. Its primary purpose is to provide users with tools for market monitoring, order placement, automated trading bot setup, and streamlined strategy deployment. The application aims to empower users with advanced AI-powered trading opportunities, efficient organization through folder-based trading pair management, and bulk bot deployment capabilities. The business vision is to provide a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -37,18 +37,7 @@ The application prioritizes a clean, professional mobile-optimized design, mirro
 The frontend is built with React 18, TypeScript, and Vite, using Tailwind CSS with shadcn/ui for mobile-first responsive design. State management uses React Query for server state and Wouter for client-side routing. Real-time updates are via WebSocket. The backend uses Express.js with TypeScript, integrates with the Bitget API, and provides a WebSocket server. Data is stored in-memory with an `IStorage` interface, designed for future PostgreSQL integration with Drizzle ORM. Key technical implementations include real-time data streaming via WebSockets, comprehensive trading pair organization, an AI-powered trading opportunity recommendation system, reusable strategy templates for the bot system, an enhanced multi-bucket analysis system for volatility classification, a dynamic leverage safety system, and sophisticated entry point analysis.
 
 ## Feature Specifications
-The application includes:
-- Multi-page navigation: Home, Markets, Trade, Bot, Analyzer.
-- Home Page: Enhanced market overview with dashboard, sentiment analysis, top gainers/losers, and AI-powered trading opportunities.
-- Markets Page: Comprehensive screener with filtering and sorting.
-- Trade Page: Order placement, leverage, and position management.
-- Bot Page: Automated trading strategy setup, deployment, monitoring, and termination. Bots are strategy-based and applicable to any trading pair.
-- Trading Pair Management: Folder-based organization with bulk bot deployment, manual pair addition, and context menus.
-- Bulk Bot Deployment: Simultaneous strategy deployment to all pairs in a folder, with individual capital allocation and leverage.
-- AI-Powered Recommendations: Analysis of 150+ trading pairs, recommendations based on movement, liquidity, and patterns, with detailed display of movement percentage and AI scores.
-- Unified AI Analysis Hub: Complete trading analysis platform with integrated tools for price prediction, risk analysis, trend statistics, real-time Bitget API integration, multi-timeframe analysis, confidence scoring, technical indicators, market sentiment, support/resistance, volatility, volume analysis, performance history, technical signals, and position sizing.
-- Analyzer Page: Advanced technical analysis tool with trend detection, support/resistance levels, entry/exit recommendations, multi-timeframe analysis, and direct trading execution.
-- Comprehensive Alert System: Notification system with 8+ alert categories, intelligent auto-suggest, real-time monitoring, and light/dark mode support.
+The application includes: multi-page navigation (Home, Markets, Trade, Bot, Analyzer); an enhanced Home Page with market overview and AI-powered trading opportunities; a Markets Page for comprehensive screener; a Trade Page for order placement and position management; a Bot Page for automated strategy setup, deployment, and monitoring with strategy-based bots applicable to any trading pair; comprehensive folder-based trading pair management with bulk bot deployment; AI-powered recommendations based on market movement and liquidity; a Unified AI Analysis Hub for integrated price prediction, risk analysis, and real-time Bitget API integration; an Analyzer Page for advanced technical analysis and direct trading; and a comprehensive alert system with various categories and real-time monitoring.
 
 # External Dependencies
 
