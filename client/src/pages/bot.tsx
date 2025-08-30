@@ -1599,7 +1599,7 @@ export default function BotPage() {
                 Trading Bots
               </h1>
               <p className="text-muted-foreground text-sm">
-                Create reusable trading strategies and run them on any trading pair
+                Create and deploy automated trading strategies
               </p>
             </div>
           </div>
