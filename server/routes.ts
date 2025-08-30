@@ -2343,15 +2343,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeBots = deployedBots.filter(bot => 
         bot.status !== 'terminated' && 
         bot.tradingPair && 
-        !bot.tradingPair.includes('_MODE') &&
-        bot.tradingPair !== 'AUTO_SCANNER_MODE' &&
-        bot.tradingPair !== 'CONTINUOUS_SCANNER_MODE'
+        bot.tradingPair !== 'AUTO_SCANNER_MODE' // Only filter the problematic AUTO_SCANNER_MODE
       );
       console.log(`📋 Processing ${activeBots.length} active bots (filtered out ${deployedBots.length - activeBots.length} terminated/invalid)`);
       
       for (const deployedBot of activeBots) {
         console.log(`🔍 Processing bot ${deployedBot.tradingPair}: status="${deployedBot.status}", deploymentType="${deployedBot.deploymentType}"`);
-      
+        
+        // Handle continuous scanner differently
+        if (deployedBot.deploymentType === 'continuous_scanner') {
+          allBots.push({
+            id: deployedBot.id,
+            userId: userId,
+            strategyId: deployedBot.strategyId,
+            tradingPair: deployedBot.tradingPair,
+            status: 'active',
+            capital: deployedBot.capital,
+            leverage: deployedBot.leverage,
+            profit: '0',
+            trades: '0',
+            cycles: 0,
+            cycleTime: '0m',
+            winRate: '0',
+            roi: '0.00',
+            runtime: '0m',
+            deploymentType: 'continuous_scanner',
+            botName: deployedBot.botName || '🔄 Continuous Scanner',
+            riskLevel: 'Medium',
+            startedAt: deployedBot.startedAt || deployedBot.createdAt,
+            createdAt: deployedBot.createdAt,
+            updatedAt: new Date(),
+            exitCriteria: null,
+            exitTriggered: false,
+            exitReason: null,
+            positionData: null
+          });
+          continue;
+        }
 
         // Check if this is a strategy bot (manual/folder/auto_scanner) that needs entry evaluation
         if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner')) {
@@ -2864,10 +2892,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`🧹 Found ${invalidBots.length} invalid bots to cleanup`);
       
-      // Delete invalid bots
+      // Delete invalid bots (but keep continuous scanners)
       for (const bot of invalidBots) {
-        await storage.deleteBotExecution(bot.id, userId);
-        console.log(`🗑️ Deleted invalid bot: ${bot.botName} (${bot.tradingPair})`);
+        if (bot.deploymentType !== 'continuous_scanner') {
+          await storage.deleteBotExecution(bot.id, userId);
+          console.log(`🗑️ Deleted invalid bot: ${bot.botName} (${bot.tradingPair})`);
+        }
       }
       
       res.json({
@@ -4947,11 +4977,11 @@ export function addUserPreferencesRoutes(app: any, storage: any) {
       
       console.log(`🔄 Starting continuous scanner for strategy ${strategyId} with ${maxPositions} max positions`);
       
-      // Create a continuous scanner bot execution
+      // Create a continuous scanner bot execution  
       const continuousBotData = {
         userId,
         strategyId,
-        tradingPair: 'CONTINUOUS_SCANNER_MODE',
+        tradingPair: 'CONTINUOUS_SCANNER_MODE', // Keep for consistency with existing bots
         capital,
         leverage,
         status: 'active',
