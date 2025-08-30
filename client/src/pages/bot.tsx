@@ -987,10 +987,32 @@ export default function BotPage() {
     }
   };
 
+  // Store scroll position for restoration
+  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
+
+  // Function to restore scroll position and unlock body
+  const restoreScrollPosition = () => {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.width = '';
+    window.scrollTo(scrollPosition.x, scrollPosition.y);
+  };
+
   // Handle editing strategy
   const handleEditStrategy = (strategy: any) => {
-    // Prevent page jumping by ensuring scroll position is maintained
+    // Store current scroll position
     const currentScrollY = window.scrollY;
+    const currentScrollX = window.scrollX;
+    setScrollPosition({ x: currentScrollX, y: currentScrollY });
+    
+    // Lock body scroll to prevent any movement
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${currentScrollY}px`;
+    document.body.style.left = `-${currentScrollX}px`;
+    document.body.style.width = '100%';
     
     setEditingStrategy(strategy);
     // Pre-populate form with existing strategy data
@@ -1038,11 +1060,6 @@ export default function BotPage() {
     
     // Show the create form (which serves as both create and edit form)
     setShowCreateForm(true);
-    
-    // Restore scroll position after state update
-    setTimeout(() => {
-      window.scrollTo(0, currentScrollY);
-    }, 0);
   };
 
   // Update strategy mutation
@@ -3285,7 +3302,14 @@ export default function BotPage() {
 
         {/* Strategy Creation Dialog - RESTORED */}
         {showCreateForm && (
-          <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+          <Dialog open={showCreateForm} onOpenChange={(open) => {
+            if (!open) {
+              // Dialog is closing, restore scroll position
+              restoreScrollPosition();
+              setEditingStrategy(null);
+            }
+            setShowCreateForm(open);
+          }}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingStrategy ? 'Edit Trading Strategy' : 'Create Custom Trading Strategy'}</DialogTitle>
