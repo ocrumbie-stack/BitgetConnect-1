@@ -1582,67 +1582,95 @@ export default function BotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
-      {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20 overflow-x-hidden">
+      {/* Hero Section with Animated Background */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-900 dark:via-purple-900 dark:to-indigo-900">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+        
+        <div className="relative px-4 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
               <BackButton to="/" label="Home" />
-              <h1 className="text-xl font-semibold flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                Trading Bots
-              </h1>
+              <div className="text-white">
+                <h1 className="text-3xl font-bold mb-2 flex items-center gap-3" data-testid="page-title">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <Bot className="h-6 w-6" />
+                  </div>
+                  AI Trading Bots
+                </h1>
+                <p className="text-blue-100 text-lg font-medium">
+                  Deploy intelligent trading strategies powered by machine learning
+                </p>
+                <div className="flex items-center space-x-6 mt-3 text-sm">
+                  <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="font-medium">{activeExecutions.length} Active Bots</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
+                    <DollarSign className="w-4 h-4 text-green-300" />
+                    <span className="font-medium">${accountData?.account?.availableBalance || '0'} Available</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => organizationMutation.mutate()}
-              disabled={organizationMutation.isPending}
-              className="flex items-center gap-2"
-              data-testid="button-organize-strategies"
-            >
-              {organizationMutation.isPending ? (
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-              ) : (
-                <Settings className="h-4 w-4" />
-              )}
-              {organizationMutation.isPending ? 'Organizing...' : 'Organize'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAlertCenter(true)}
-              className="flex items-center gap-2"
-            >
-              <Bell className="h-4 w-4" />
-              Alerts
-            </Button>
+            
+            {/* Enhanced Action Buttons */}
+            <div className="flex items-center space-x-3">
+              <Button
+                onClick={() => organizationMutation.mutate()}
+                disabled={organizationMutation.isPending}
+                variant="secondary"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                data-testid="button-organize-strategies"
+              >
+                {organizationMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
+                ) : (
+                  <Settings className="h-4 w-4 mr-2" />
+                )}
+                {organizationMutation.isPending ? 'Organizing...' : 'Organize'}
+              </Button>
+              
+              <Button 
+                onClick={() => setShowAlertCenter(true)}
+                variant="secondary" 
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                data-testid="button-alerts"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Alerts
+              </Button>
+            </div>
           </div>
-          </div>
-          
-          <p className="text-sm text-muted-foreground px-4">
-            Automated trading strategies with AI-powered analysis
-          </p>
         </div>
       </div>
 
-      {/* Bot Statistics Overview */}
-      <div className="p-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      {/* Enhanced Navigation Cards */}
+      <div className="px-4 -mt-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <Card 
-            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
+            className={`cursor-pointer transition-all duration-300 hover:scale-102 overflow-hidden group ${
               activeTab === 'strategies' 
-                ? 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800/40 dark:to-blue-900/40 border-blue-300 dark:border-blue-600' 
-                : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-600'
+                ? 'ring-2 ring-blue-500 ring-offset-2 shadow-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0' 
+                : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl border border-white/50 dark:border-gray-700/50'
             }`}
             onClick={() => handleTabChange('strategies')}
           >
-            <CardContent className="p-3 h-full flex items-center">
+            <CardContent className="p-5 h-full flex items-center">
               <div className="flex items-center gap-3 w-full">
-                <div className="p-2 bg-blue-500 rounded-md">
-                  <Zap className="h-5 w-5 text-white" />
+                <div className={`p-3 rounded-xl transition-colors ${
+                  activeTab === 'strategies' 
+                    ? 'bg-white/20' 
+                    : 'bg-gradient-to-br from-blue-500 to-blue-600 group-hover:from-blue-600 group-hover:to-blue-700'
+                }`}>
+                  <Zap className={`h-6 w-6 ${
+                    activeTab === 'strategies' ? 'text-white' : 'text-white'
+                  }`} />
                 </div>
                 <div className="flex-1 text-center">
                   <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
