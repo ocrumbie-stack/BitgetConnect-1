@@ -324,179 +324,213 @@ export function CreateScreener() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 pb-20">
       {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
-        <div className="p-4">
-          <div className="flex items-center gap-3">
+      <div className="sticky top-0 bg-background/90 backdrop-blur-md border-b border-border z-10 shadow-sm">
+        <div className="p-6">
+          <div className="flex items-center gap-4 max-w-6xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation('/markets')}
-              className="p-2"
+              className="p-2 hover:bg-accent/60 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-xl font-semibold">Create Screener</h1>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Create Custom Screener</h1>
+                <p className="text-sm text-muted-foreground">Design advanced market filtering criteria with technical indicators</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <div className="p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>New Screener</CardTitle>
-            <CardDescription>
-              Set up criteria to filter trading pairs based on your preferences and technical indicators
-            </CardDescription>
+      <div className="p-6 max-w-6xl mx-auto">
+        <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="space-y-4 pb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-md">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">New Market Screener</CardTitle>
+                <CardDescription className="text-sm mt-1">
+                  Configure sophisticated filtering criteria to identify trading opportunities based on price action, volume patterns, and technical indicators
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Screener Name */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Screener Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., High Volume RSI Breakout"
-                          {...field}
-                          data-testid="input-screener-name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Screener Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="RSI Breakout"
+                            className="h-10 text-sm"
+                            {...field}
+                            data-testid="input-screener-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Timeframe */}
-                <FormField
-                  control={form.control}
-                  name="timeframe"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Timeframe</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger data-testid="select-timeframe">
-                            <SelectValue placeholder="Select timeframe" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1m">1 Minute</SelectItem>
-                            <SelectItem value="5m">5 Minutes</SelectItem>
-                            <SelectItem value="15m">15 Minutes</SelectItem>
-                            <SelectItem value="30m">30 Minutes</SelectItem>
-                            <SelectItem value="1h">1 Hour</SelectItem>
-                            <SelectItem value="4h">4 Hours</SelectItem>
-                            <SelectItem value="1d">1 Day</SelectItem>
-                            <SelectItem value="1w">1 Week</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  {/* Timeframe */}
+                  <FormField
+                    control={form.control}
+                    name="timeframe"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">Analysis Timeframe</FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger data-testid="select-timeframe" className="h-10 text-sm">
+                              <SelectValue placeholder="Select timeframe" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1m">1 Minute</SelectItem>
+                              <SelectItem value="5m">5 Minutes</SelectItem>
+                              <SelectItem value="15m">15 Minutes</SelectItem>
+                              <SelectItem value="30m">30 Minutes</SelectItem>
+                              <SelectItem value="1h">1 Hour</SelectItem>
+                              <SelectItem value="4h">4 Hours</SelectItem>
+                              <SelectItem value="1d">1 Day</SelectItem>
+                              <SelectItem value="1w">1 Week</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="basic" className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Basic Filters
+                <Tabs defaultValue="basic" className="w-full mt-8">
+                  <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 h-12">
+                    <TabsTrigger value="basic" className="flex items-center gap-2 h-10 text-sm font-medium">
+                      <Activity className="w-4 h-4" />
+                      Basic Market Filters
                     </TabsTrigger>
-                    <TabsTrigger value="technical" className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" />
+                    <TabsTrigger value="technical" className="flex items-center gap-2 h-10 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
                       Technical Indicators
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="basic" className="space-y-4 mt-4">
+                  <TabsContent value="basic" className="space-y-6 mt-6 bg-muted/20 p-6 rounded-lg">
                     {/* Price Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="minPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Min Price ($)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                {...field}
-                                data-testid="input-min-price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="maxPrice"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Max Price ($)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="100000.00"
-                                {...field}
-                                data-testid="input-max-price"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold text-foreground">Price Range Filters</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="minPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">Min Price ($)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="0.01"
+                                  className="h-9 text-sm"
+                                  {...field}
+                                  data-testid="input-min-price"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="maxPrice"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">Max Price ($)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="1000"
+                                  className="h-9 text-sm"
+                                  {...field}
+                                  data-testid="input-max-price"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
 
                     {/* Volume Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="minVolume"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Min Volume</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="1000"
-                                {...field}
-                                data-testid="input-min-volume"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="maxVolume"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Max Volume</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="1000000"
-                                {...field}
-                                data-testid="input-max-volume"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold text-foreground">Volume Filters</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="minVolume"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">Min Volume</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="1M"
+                                  className="h-9 text-sm"
+                                  {...field}
+                                  data-testid="input-min-volume"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="maxVolume"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs text-muted-foreground">Max Volume</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="100M"
+                                  className="h-9 text-sm"
+                                  {...field}
+                                  data-testid="input-max-volume"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
 
                     {/* Volume USD Range */}
@@ -626,29 +660,36 @@ export function CreateScreener() {
                     </div>
 
                     {/* Symbols */}
-                    <FormField
-                      control={form.control}
-                      name="symbols"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Specific Symbols (optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="BTC, ETH, SOL (comma-separated)"
-                              {...field}
-                              data-testid="input-symbols"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-semibold text-foreground">Symbol Selection</h3>
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="symbols"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs text-muted-foreground">Specific Symbols (optional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="BTC, ETH, SOL"
+                                className="h-9 text-sm"
+                                {...field}
+                                data-testid="input-symbols"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
 
 
                   </TabsContent>
 
-                  <TabsContent value="technical" className="space-y-6 mt-4">
+                  <TabsContent value="technical" className="space-y-6 mt-6 bg-muted/20 p-6 rounded-lg">
                     {/* RSI Indicator */}
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
@@ -675,7 +716,7 @@ export function CreateScreener() {
                       </div>
 
                       {form.watch('rsiEnabled') && (
-                        <div className="ml-6 space-y-4 p-4 border rounded-lg bg-muted/50">
+                        <div className="ml-6 space-y-4 p-4 border rounded-lg bg-background/50">
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
@@ -687,6 +728,7 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder="14"
+                                className="h-9 text-sm"
                                       {...field}
                                       data-testid="input-rsi-period"
                                     />
