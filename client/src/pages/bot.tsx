@@ -1589,7 +1589,7 @@ export default function BotPage() {
   return (
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 sticky top-0 z-40 border-b">
+      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BackButton to="/" label="Home" />
