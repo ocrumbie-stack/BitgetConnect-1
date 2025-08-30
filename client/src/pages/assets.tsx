@@ -44,9 +44,9 @@ export function Assets() {
   const dailyPnL = (accountData as any)?.dailyPnL || null;
 
   // Use comprehensive daily P&L that includes both realized and unrealized profits
-  const todaysPnL = dailyPnL?.total || 0;
-  const achievedProfits = dailyPnL?.achieved || 0;
-  const unrealizedProfits = dailyPnL?.unrealized || 0;
+  const todaysPnL = isNaN(parseFloat(dailyPnL?.total)) ? 0 : parseFloat(dailyPnL?.total || '0');
+  const achievedProfits = isNaN(parseFloat(dailyPnL?.achieved)) ? 0 : parseFloat(dailyPnL?.achieved || '0');
+  const unrealizedProfits = isNaN(parseFloat(dailyPnL?.unrealized)) ? 0 : parseFloat(dailyPnL?.unrealized || '0');
   
   const activePositions = positions.filter((pos: any) => parseFloat(pos.size) > 0);
 
