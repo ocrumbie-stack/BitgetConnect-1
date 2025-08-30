@@ -829,9 +829,12 @@ export function CreateScreener() {
                                   <FormControl>
                                     <Input
                                       type="number"
-                                      placeholder="20"
+                                      placeholder=""
                                       value={field.value ?? ''}
-                                      onChange={(e) => field.onChange(e.target.value || undefined)}
+                                      onChange={(e) => {
+                                        console.log('MA1 Period change:', e.target.value);
+                                        field.onChange(e.target.value || undefined);
+                                      }}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -922,7 +925,7 @@ export function CreateScreener() {
                                       <FormControl>
                                         <Input
                                           type="number"
-                                          placeholder="50"
+                                          placeholder=""
                                           value={field.value ?? ''}
                                           onChange={(e) => field.onChange(e.target.value || undefined)}
                                           data-testid="input-ma1-comparison-period"
@@ -1002,7 +1005,7 @@ export function CreateScreener() {
                                   <FormControl>
                                     <Input
                                       type="number"
-                                      placeholder="50"
+                                      placeholder=""
                                       value={field.value ?? ''}
                                       onChange={(e) => field.onChange(e.target.value || undefined)}
                                       data-testid="input-ma2-period"
@@ -1095,7 +1098,7 @@ export function CreateScreener() {
                                       <FormControl>
                                         <Input
                                           type="number"
-                                          placeholder="200"
+                                          placeholder=""
                                           value={field.value ?? ''}
                                           onChange={(e) => field.onChange(e.target.value || undefined)}
                                           data-testid="input-ma2-comparison-period"
