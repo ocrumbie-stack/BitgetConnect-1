@@ -13,8 +13,8 @@ export function BottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50">
-      <div className="flex justify-around items-center py-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 overflow-x-hidden">
+      <div className="flex justify-around items-center py-2 max-w-full">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path;
