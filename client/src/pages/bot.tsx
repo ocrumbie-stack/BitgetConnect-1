@@ -1591,13 +1591,18 @@ export default function BotPage() {
       {/* Header */}
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
               <BackButton to="/" label="Home" />
-              <h1 className="text-xl font-semibold flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                Trading Bots
-              </h1>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-semibold flex items-center gap-2 mb-1">
+                  <Bot className="h-5 w-5" />
+                  Trading Bots
+                </h1>
+                <p className="text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+                  Automated trading strategies with AI-powered analysis
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
             <Button
