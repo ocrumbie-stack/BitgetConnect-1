@@ -3490,8 +3490,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           continue;
         }
 
-        // Check if this is a strategy bot (manual/folder/auto_scanner/continuous_scanner) that needs entry evaluation
-        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner' || deployedBot.deploymentType === 'continuous_scanner')) {
+        // Check if this is a strategy bot that needs entry evaluation 
+        // CRITICAL: Exclude continuous_scanner_child bots from re-evaluation to prevent duplicates
+        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner' || deployedBot.deploymentType === 'continuous_scanner') && deployedBot.deploymentType !== 'continuous_scanner_child') {
           try {
             // Get the strategy configuration
             const strategies = await storage.getBotStrategies('default-user');
@@ -3759,15 +3760,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // CLEANUP: Terminate orphaned continuous_scanner_child bots that no longer have positions
+      // CRITICAL FIX: Terminate ALL continuous_scanner_child bots without positions (both active AND waiting_entry)
+      // This prevents waiting_entry bots from being re-evaluated and creating duplicates
       const orphanedChildBots = deployedBots.filter(bot => 
         bot.deploymentType === 'continuous_scanner_child' && 
-        bot.status === 'active' &&
+        (bot.status === 'active' || bot.status === 'waiting_entry') &&
         !positions.find((pos: any) => pos.symbol === bot.tradingPair)
       );
       
       if (orphanedChildBots.length > 0) {
-        console.log(`🧹 Found ${orphanedChildBots.length} orphaned continuous_scanner_child bots without positions, terminating to prevent duplicates`);
+        console.log(`🧹 Found ${orphanedChildBots.length} orphaned continuous_scanner_child bots (active/waiting) without positions, terminating to prevent duplicates`);
         for (const orphanBot of orphanedChildBots) {
           await storage.updateBotExecution(orphanBot.id, { 
             status: 'terminated',
