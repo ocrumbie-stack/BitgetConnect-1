@@ -1036,8 +1036,8 @@ export default function BotPage() {
       setIndicators(defaultIndicators);
     }
     
-    // Show only the edit form, prevent page jumping
-    setShowEditForm(true);
+    // Show the create form (which serves as both create and edit form)
+    setShowCreateForm(true);
     
     // Restore scroll position after state update
     setTimeout(() => {
