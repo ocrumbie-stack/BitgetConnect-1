@@ -1589,16 +1589,16 @@ export default function BotPage() {
   return (
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
+      <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-start gap-3">
             <BackButton to="/" label="Home" />
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
+            <div>
+              <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-sm text-muted-foreground mt-2">
                 Automated trading strategies with AI-powered analysis
               </p>
             </div>
