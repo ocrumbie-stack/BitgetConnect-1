@@ -111,29 +111,7 @@ export default function BotPage() {
     refetchOnMount: true
   });
 
-  // Organization mutation
-  const organizationMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/organize-strategies', {});
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Organization Complete",
-        description: data.message || "All strategies have been organized into folders",
-        variant: "default"
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/screeners'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Organization Failed",
-        description: error?.message || "Failed to organize strategies",
-        variant: "destructive"
-      });
-    }
-  });
+  // Removed manual organization mutation - folders are now assigned automatically
 
   // Auto-fix existing auto scanner strategies on first load
   useEffect(() => {
@@ -1621,21 +1599,6 @@ export default function BotPage() {
             
             {/* Enhanced Action Buttons */}
             <div className="flex items-center space-x-3">
-              <Button
-                onClick={() => organizationMutation.mutate()}
-                disabled={organizationMutation.isPending}
-                variant="secondary"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                data-testid="button-organize-strategies"
-              >
-                {organizationMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2"></div>
-                ) : (
-                  <Settings className="h-4 w-4 mr-2" />
-                )}
-                {organizationMutation.isPending ? 'Organizing...' : 'Organize'}
-              </Button>
-              
               <Button 
                 onClick={() => setShowAlertCenter(true)}
                 variant="secondary" 
