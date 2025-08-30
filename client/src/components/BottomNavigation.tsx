@@ -23,7 +23,7 @@ export function BottomNavigation() {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors duration-150 ${
+              className={`flex flex-col items-center p-2 rounded-lg transition-none ${
                 isActive 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-foreground'
