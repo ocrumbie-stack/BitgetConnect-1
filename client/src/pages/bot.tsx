@@ -2751,7 +2751,7 @@ export default function BotPage() {
                                   ) : (
                                     <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   )}
-                                  <h4 className="font-medium truncate">Manual Deployments</h4>
+                                  <h4 className="font-medium truncate">{folderName}</h4>
                                 </div>
                                 <Button 
                                   size="sm" 

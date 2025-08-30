@@ -3399,7 +3399,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Handle continuous scanner differently - scan multiple pairs
         if (deployedBot.deploymentType === 'continuous_scanner') {
-          // Add the scanner to the display list
+          // Get strategy for proper naming and folder organization
+          const strategies = await storage.getBotStrategies('default-user');
+          const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+          
+          // Ensure continuous scanner has proper folder organization
+          let folderName = deployedBot.folderName;
+          if (!folderName && strategy) {
+            folderName = `🔄 ${strategy.name}`;
+            // Update the bot with folder info
+            try {
+              await storage.updateBotExecution(deployedBot.id, { 
+                folderName: folderName 
+              });
+            } catch (updateError) {
+              console.log(`⚠️ Failed to update continuous scanner folder: ${updateError}`);
+            }
+          }
+          
+          // Add the scanner to the display list - this acts as the folder header
           allBots.push({
             id: deployedBot.id,
             userId: userId,
@@ -3416,7 +3434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             roi: '0.00',
             runtime: '0m',
             deploymentType: 'continuous_scanner',
-            botName: deployedBot.botName || '🔄 Continuous Scanner',
+            botName: strategy?.name || deployedBot.botName || 'Continuous Scanner',
             riskLevel: 'Medium',
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
@@ -3424,7 +3442,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             exitCriteria: null,
             exitTriggered: false,
             exitReason: null,
-            positionData: null
+            positionData: null,
+            folderName: folderName
           });
           
           // Now perform actual scanning logic for top pairs
@@ -3481,7 +3500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     leverage: deployedBot.leverage,
                     status: 'active',
                     deploymentType: 'continuous_scanner_child',
-                    botName: `🔄 Scanner → ${pair}`,
+                    botName: `${pair}`,
                   };
                   
                   // Place order for this pair using existing order placement logic
@@ -3490,37 +3509,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (orderSuccess) {
                     console.log(`✅ Continuous Scanner placed order for ${pair}`);
                     
-                    // Create organized folder for continuous scanner deployments with strategy name
+                    // Find or create a folder for this strategy scanner
                     let folderData = { folderName: null, folderId: null };
                     try {
                       const strategies = await storage.getBotStrategies('default-user');
                       const currentStrategy = strategies.find(s => s.id === deployedBot.strategyId);
                       
                       if (currentStrategy) {
-                        // Use strategy name in folder
-                        const now = new Date();
-                        const timeStr = now.toLocaleString('en-US', { 
-                          month: '2-digit', 
-                          day: '2-digit', 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        });
-                        const folderName = `🔄 ${currentStrategy.name} - ${timeStr}`;
+                        // Use clean strategy name as folder name (no timestamps for scanners)
+                        const folderName = `🔄 ${currentStrategy.name}`;
                         
-                        const folder = await storage.createFolder({
-                          userId: deployedBot.userId,
-                          name: folderName,
-                          pairs: [pair],
-                          description: `Continuous scanner deployment for ${currentStrategy.name}`,
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        });
+                        // Check if folder already exists for this strategy
+                        const folders = await storage.getFolders('default-user');
+                        let existingFolder = folders.find(f => f.name === folderName);
                         
-                        folderData = { folderName: folder.name, folderId: folder.id };
-                        console.log(`📁 Auto-organized continuous scanner child into: ${folder.name}`);
+                        if (existingFolder) {
+                          // Add pair to existing folder if not already there
+                          if (!existingFolder.pairs.includes(pair)) {
+                            existingFolder.pairs.push(pair);
+                            await storage.updateFolder(existingFolder.id, { pairs: existingFolder.pairs });
+                          }
+                          folderData = { folderName: existingFolder.name, folderId: existingFolder.id };
+                          console.log(`📁 Added ${pair} to existing scanner folder: ${existingFolder.name}`);
+                        } else {
+                          // Create new folder for this strategy scanner
+                          const folder = await storage.createFolder({
+                            userId: deployedBot.userId,
+                            name: folderName,
+                            pairs: [pair],
+                            description: `${currentStrategy.name} scanner - Active trading pairs`,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                          });
+                          
+                          folderData = { folderName: folder.name, folderId: folder.id };
+                          console.log(`📁 Created new scanner folder: ${folder.name}`);
+                        }
                       }
                     } catch (folderError) {
-                      console.log(`⚠️ Failed to organize continuous scanner child, continuing: ${folderError}`);
+                      console.log(`⚠️ Failed to organize scanner folder: ${folderError}`);
                     }
                     
                     // Create a bot execution record for tracking
@@ -3532,7 +3559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       leverage: tempBotData.leverage,
                       status: 'active',
                       deploymentType: 'continuous_scanner_child',
-                      botName: tempBotData.botName,
+                      botName: `${pair}`,
                       ...folderData
                     });
                   }
