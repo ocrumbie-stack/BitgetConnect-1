@@ -1588,6 +1588,19 @@ export default function BotPage() {
                 </p>
                 <div className="flex items-center space-x-6 mt-3 text-sm">
                   <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
+                    <TrendingUp className="w-4 h-4 text-orange-300" />
+                    <span className="font-medium">
+                      BTC {(() => {
+                        const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
+                        const change = parseFloat(btcData?.change24h || '0');
+                        return change >= 0 ? '+' : '';
+                      })()} {(() => {
+                        const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
+                        return parseFloat(btcData?.change24h || '0').toFixed(1);
+                      })()}%
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
                     <DollarSign className="w-4 h-4 text-green-300" />
                     <span className="font-medium">${parseFloat(accountData?.account?.availableBalance || '0').toFixed(2)} Available</span>
                   </div>
