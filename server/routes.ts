@@ -1223,6 +1223,20 @@ async function evaluateRSICondition(condition: any, tradingPair: string, timefra
 }
 
 // Helper function to calculate Exponential Moving Average
+function calculateSMA(data: number[], period: number): number[] {
+  if (data.length < period) return [];
+  
+  const smaValues = [];
+  for (let i = period - 1; i < data.length; i++) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j++) {
+      sum += data[j];
+    }
+    smaValues.push(sum / period);
+  }
+  return smaValues;
+}
+
 function calculateEMA(data: number[], period: number): number[] {
   if (data.length < period) {
     console.log(`❌ EMA: Not enough data. Need ${period}, have ${data.length}`);
@@ -1740,10 +1754,28 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
       return false;
     }
 
-    // Calculate position size
-    const capitalAmount = parseFloat(capital);
+    // Get available balance to ensure order doesn't exceed account capacity
+    const accountInfo = await bitgetAPI.getAccountInfo();
+    const availableBalance = parseFloat(accountInfo.available || '0');
+    
+    console.log(`💰 Available balance: $${availableBalance}`);
+    
+    // Use smaller amount if capital exceeds available balance (safety check)
+    let capitalAmount = parseFloat(capital);
+    if (capitalAmount > availableBalance * 0.8) { // Use max 80% of available balance for safety
+      capitalAmount = availableBalance * 0.8;
+      console.log(`⚠️ Adjusted capital to $${capitalAmount.toFixed(2)} (80% of available balance)`);
+    }
+    
     const leverageNum = parseFloat(leverage);
     const positionSize = (capitalAmount * leverageNum) / currentPrice;
+    
+    console.log(`📊 Position calculation: $${capitalAmount} * ${leverageNum}x / $${currentPrice} = ${positionSize.toFixed(6)} ${tradingPair.replace('USDT', '')}`);
+    
+    if (capitalAmount < 1) {
+      console.log(`❌ Insufficient funds: Available $${availableBalance}, needed minimum $1`);
+      return false;
+    }
     
     // Prepare order data - fix side parameter for Bitget API
     const orderData = {
