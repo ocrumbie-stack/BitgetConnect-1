@@ -1613,7 +1613,7 @@ export default function BotPage() {
                   </div>
                   <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
                     <DollarSign className="w-4 h-4 text-green-300" />
-                    <span className="font-medium">${accountData?.account?.availableBalance || '0'} Available</span>
+                    <span className="font-medium">${parseFloat(accountData?.account?.availableBalance || '0').toFixed(2)} Available</span>
                   </div>
                 </div>
               </div>
