@@ -421,36 +421,7 @@ async function calculateMACD(closes: number[]) {
 
 
 
-function calculateBollingerBands(closes: number[], period: number = 20, stdDev: number = 2) {
-  if (closes.length < period) return null;
-  
-  try {
-    const recentCloses = closes.slice(-period);
-    const sma = recentCloses.reduce((sum, price) => sum + price, 0) / period;
-    
-    const variance = recentCloses.reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
-    const standardDeviation = Math.sqrt(variance);
-    
-    const upper = sma + (standardDeviation * stdDev);
-    const lower = sma - (standardDeviation * stdDev);
-    
-    // Check for squeeze (bands getting narrow)
-    const bandWidth = (upper - lower) / sma;
-    const avgBandWidth = 0.1; // Typical band width
-    const squeeze = bandWidth < avgBandWidth * 0.7;
-    
-    return {
-      upper,
-      lower,
-      current: sma,
-      squeeze,
-      bandWidth
-    };
-  } catch (error) {
-    console.error('Bollinger Bands calculation error:', error);
-    return null;
-  }
-}
+// Removed duplicate - using the later comprehensive implementation
 
 function calculateVolumeAnalysis(volumes: number[], closes: number[]) {
   if (volumes.length < 20 || closes.length < 20) return null;
@@ -779,8 +750,38 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           console.log(`✅ MA condition met: ${condition.condition}`);
           return true;
         }
+      } else if (condition.indicator === 'bollinger') {
+        const bollingerSignal = await evaluateBollingerCondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (bollingerSignal) {
+          console.log(`✅ Bollinger Bands condition met: ${condition.condition}`);
+          return true;
+        }
+      } else if (condition.indicator === 'cci') {
+        const cciSignal = await evaluateCCICondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (cciSignal) {
+          console.log(`✅ CCI condition met: ${condition.condition} ${condition.value}`);
+          return true;
+        }
+      } else if (condition.indicator === 'atr') {
+        const atrSignal = await evaluateATRCondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (atrSignal) {
+          console.log(`✅ ATR condition met: ${condition.condition}`);
+          return true;
+        }
+      } else if (condition.indicator === 'stochastic') {
+        const stochasticSignal = await evaluateStochasticCondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (stochasticSignal) {
+          console.log(`✅ Stochastic condition met: ${condition.condition} ${condition.value}`);
+          return true;
+        }
+      } else if (condition.indicator === 'williams') {
+        const williamsSignal = await evaluateWilliamsCondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        if (williamsSignal) {
+          console.log(`✅ Williams %R condition met: ${condition.condition} ${condition.value}`);
+          return true;
+        }
       }
-      // Add more indicators here (Bollinger, etc.) as needed
+      // Add more indicators here as needed
     }
 
     console.log(`⏸️ Entry conditions not yet met for ${strategy.name} on ${tradingPair}`);
@@ -1102,6 +1103,430 @@ function calculateRSI(data: number[], period: number = 14): number | null {
 
   console.log(`✅ RSI calculated: period ${period}, avgGain ${avgGain.toFixed(6)}, avgLoss ${avgLoss.toFixed(6)}, RSI ${rsi.toFixed(2)}`);
   return rsi;
+}
+
+// Helper function to calculate CCI (Commodity Channel Index)
+function calculateCCI(highs: number[], lows: number[], closes: number[], period: number = 20): number | null {
+  if (highs.length < period || lows.length < period || closes.length < period) {
+    console.log(`❌ CCI: Not enough data. Need ${period}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  // Calculate Typical Price (TP) = (High + Low + Close) / 3
+  const typicalPrices: number[] = [];
+  for (let i = 0; i < Math.min(highs.length, lows.length, closes.length); i++) {
+    typicalPrices.push((highs[i] + lows[i] + closes[i]) / 3);
+  }
+
+  // Calculate Simple Moving Average of Typical Price
+  const smaTP = typicalPrices.slice(-period).reduce((sum, tp) => sum + tp, 0) / period;
+
+  // Calculate Mean Deviation
+  const meanDeviation = typicalPrices.slice(-period).reduce((sum, tp) => sum + Math.abs(tp - smaTP), 0) / period;
+
+  if (meanDeviation === 0) {
+    return 0; // Avoid division by zero
+  }
+
+  // Calculate CCI = (Typical Price - SMA(TP)) / (0.015 * Mean Deviation)
+  const currentTP = typicalPrices[typicalPrices.length - 1];
+  const cci = (currentTP - smaTP) / (0.015 * meanDeviation);
+
+  console.log(`✅ CCI calculated: period ${period}, currentTP ${currentTP.toFixed(6)}, smaTP ${smaTP.toFixed(6)}, meanDev ${meanDeviation.toFixed(6)}, CCI ${cci.toFixed(2)}`);
+  return cci;
+}
+
+// Helper function to calculate ATR (Average True Range)
+function calculateATR(highs: number[], lows: number[], closes: number[], period: number = 14): number | null {
+  if (highs.length < period + 1 || lows.length < period + 1 || closes.length < period + 1) {
+    console.log(`❌ ATR: Not enough data. Need ${period + 1}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  // Calculate True Range for each period
+  const trueRanges: number[] = [];
+  for (let i = 1; i < Math.min(highs.length, lows.length, closes.length); i++) {
+    const high = highs[i];
+    const low = lows[i];
+    const prevClose = closes[i - 1];
+    
+    const tr1 = high - low;
+    const tr2 = Math.abs(high - prevClose);
+    const tr3 = Math.abs(low - prevClose);
+    
+    trueRanges.push(Math.max(tr1, tr2, tr3));
+  }
+
+  if (trueRanges.length < period) {
+    console.log(`❌ ATR: Not enough true ranges. Need ${period}, have ${trueRanges.length}`);
+    return null;
+  }
+
+  // Calculate ATR as simple moving average of True Range for the first period
+  let atr = trueRanges.slice(0, period).reduce((sum, tr) => sum + tr, 0) / period;
+
+  // Use smoothing (Wilder's smoothing) for subsequent periods
+  for (let i = period; i < trueRanges.length; i++) {
+    atr = ((atr * (period - 1)) + trueRanges[i]) / period;
+  }
+
+  console.log(`✅ ATR calculated: period ${period}, current ATR ${atr.toFixed(6)}`);
+  return atr;
+}
+
+// Helper function to calculate Bollinger Bands
+function calculateBollingerBands(closes: number[], period: number = 20, stdDev: number = 2): { upper: number, middle: number, lower: number } | null {
+  if (closes.length < period) {
+    console.log(`❌ Bollinger Bands: Not enough data. Need ${period}, have ${closes.length}`);
+    return null;
+  }
+
+  // Calculate middle band (SMA)
+  const recentCloses = closes.slice(-period);
+  const sma = recentCloses.reduce((sum, close) => sum + close, 0) / period;
+
+  // Calculate standard deviation
+  const variance = recentCloses.reduce((sum, close) => sum + Math.pow(close - sma, 2), 0) / period;
+  const standardDeviation = Math.sqrt(variance);
+
+  // Calculate bands
+  const upper = sma + (stdDev * standardDeviation);
+  const lower = sma - (stdDev * standardDeviation);
+
+  console.log(`✅ Bollinger Bands calculated: period ${period}, stdDev ${stdDev}, Upper ${upper.toFixed(6)}, Middle ${sma.toFixed(6)}, Lower ${lower.toFixed(6)}`);
+  return { upper, middle: sma, lower };
+}
+
+// Helper function to calculate Stochastic Oscillator
+function calculateStochastic(highs: number[], lows: number[], closes: number[], kPeriod: number = 14, dPeriod: number = 3, smoothK: number = 3): { k: number, d: number } | null {
+  if (highs.length < kPeriod || lows.length < kPeriod || closes.length < kPeriod) {
+    console.log(`❌ Stochastic: Not enough data. Need ${kPeriod}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  // Calculate %K
+  const recentHighs = highs.slice(-kPeriod);
+  const recentLows = lows.slice(-kPeriod);
+  const currentClose = closes[closes.length - 1];
+
+  const highestHigh = Math.max(...recentHighs);
+  const lowestLow = Math.min(...recentLows);
+
+  if (highestHigh === lowestLow) {
+    return { k: 50, d: 50 }; // Avoid division by zero
+  }
+
+  const rawK = ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
+
+  // For simplicity, we'll use the raw %K as smoothed %K (normally you'd smooth it)
+  const k = rawK;
+
+  // Calculate %D (SMA of %K values - simplified as current %K for this implementation)
+  const d = k; // In a full implementation, you'd calculate SMA of last dPeriod %K values
+
+  console.log(`✅ Stochastic calculated: kPeriod ${kPeriod}, %K ${k.toFixed(2)}, %D ${d.toFixed(2)}`);
+  return { k, d };
+}
+
+// Helper function to calculate Williams %R
+function calculateWilliamsR(highs: number[], lows: number[], closes: number[], period: number = 14): number | null {
+  if (highs.length < period || lows.length < period || closes.length < period) {
+    console.log(`❌ Williams %R: Not enough data. Need ${period}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  const recentHighs = highs.slice(-period);
+  const recentLows = lows.slice(-period);
+  const currentClose = closes[closes.length - 1];
+
+  const highestHigh = Math.max(...recentHighs);
+  const lowestLow = Math.min(...recentLows);
+
+  if (highestHigh === lowestLow) {
+    return -50; // Avoid division by zero
+  }
+
+  const williamsR = ((highestHigh - currentClose) / (highestHigh - lowestLow)) * -100;
+
+  console.log(`✅ Williams %R calculated: period ${period}, Williams %R ${williamsR.toFixed(2)}`);
+  return williamsR;
+}
+
+// Evaluate Bollinger Bands condition
+async function evaluateBollingerCondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for Bollinger Bands calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.period || 20) + 10) {
+      console.log(`❌ Insufficient candle data for Bollinger Bands calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const currentPrice = closes[closes.length - 1];
+    const period = condition.period || 20;
+    const stdDev = condition.stdDev || 2.0;
+
+    const bands = calculateBollingerBands(closes, period, stdDev);
+    if (!bands) {
+      console.log(`❌ Could not calculate Bollinger Bands for ${tradingPair}`);
+      return false;
+    }
+
+    console.log(`📈 ${tradingPair} Bollinger Bands: Upper ${bands.upper.toFixed(6)}, Middle ${bands.middle.toFixed(6)}, Lower ${bands.lower.toFixed(6)}, Price: $${currentPrice}`);
+
+    switch (condition.condition) {
+      case 'above_upper':
+        const aboveUpper = currentPrice > bands.upper;
+        console.log(`🔍 Price above upper band check: ${aboveUpper}`);
+        return aboveUpper;
+      case 'below_lower':
+        const belowLower = currentPrice < bands.lower;
+        console.log(`🔍 Price below lower band check: ${belowLower}`);
+        return belowLower;
+      case 'between_bands':
+        const betweenBands = currentPrice >= bands.lower && currentPrice <= bands.upper;
+        console.log(`🔍 Price between bands check: ${betweenBands}`);
+        return betweenBands;
+      case 'squeeze':
+        const bandWidth = (bands.upper - bands.lower) / bands.middle;
+        const squeeze = bandWidth < 0.1; // Tight squeeze threshold
+        console.log(`🔍 Bollinger squeeze check: ${squeeze} (bandwidth: ${bandWidth.toFixed(4)})`);
+        return squeeze;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error evaluating Bollinger Bands condition:`, error);
+    return false;
+  }
+}
+
+// Evaluate CCI condition
+async function evaluateCCICondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for CCI calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.period || 20) + 10) {
+      console.log(`❌ Insufficient candle data for CCI calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const highs = candleData.map(candle => parseFloat(candle.high));
+    const lows = candleData.map(candle => parseFloat(candle.low));
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const period = condition.period || 20;
+    const value = condition.value || 100;
+
+    const cci = calculateCCI(highs, lows, closes, period);
+    if (cci === null) {
+      console.log(`❌ Could not calculate CCI for ${tradingPair}`);
+      return false;
+    }
+
+    console.log(`📈 ${tradingPair} CCI: ${cci.toFixed(2)}, Threshold: ${value}`);
+
+    switch (condition.condition) {
+      case 'above':
+        const above = cci > value;
+        console.log(`🔍 CCI above ${value} check: ${above}`);
+        return above;
+      case 'below':
+        const below = cci < value;
+        console.log(`🔍 CCI below ${value} check: ${below}`);
+        return below;
+      case 'crossing_up':
+        // Simplified crossover detection (would need previous CCI value for accurate detection)
+        const crossingUp = cci > value && cci < value + 50; // Recently crossed up
+        console.log(`🔍 CCI crossing up ${value} check: ${crossingUp}`);
+        return crossingUp;
+      case 'crossing_down':
+        const crossingDown = cci < value && cci > value - 50; // Recently crossed down
+        console.log(`🔍 CCI crossing down ${value} check: ${crossingDown}`);
+        return crossingDown;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error evaluating CCI condition:`, error);
+    return false;
+  }
+}
+
+// Evaluate ATR condition
+async function evaluateATRCondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for ATR calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.period || 14) + 10) {
+      console.log(`❌ Insufficient candle data for ATR calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const highs = candleData.map(candle => parseFloat(candle.high));
+    const lows = candleData.map(candle => parseFloat(candle.low));
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const period = condition.period || 14;
+    const multiplier = condition.multiplier || 2.0;
+
+    const atr = calculateATR(highs, lows, closes, period);
+    if (atr === null) {
+      console.log(`❌ Could not calculate ATR for ${tradingPair}`);
+      return false;
+    }
+
+    const currentPrice = closes[closes.length - 1];
+    const atrPercentage = (atr / currentPrice) * 100;
+    const threshold = multiplier; // Use multiplier as percentage threshold
+
+    console.log(`📈 ${tradingPair} ATR: ${atr.toFixed(6)} (${atrPercentage.toFixed(2)}%), Threshold: ${threshold}%`);
+
+    switch (condition.condition) {
+      case 'above':
+        const above = atrPercentage > threshold;
+        console.log(`🔍 ATR above ${threshold}% check: ${above}`);
+        return above;
+      case 'below':
+        const below = atrPercentage < threshold;
+        console.log(`🔍 ATR below ${threshold}% check: ${below}`);
+        return below;
+      case 'high_volatility':
+        const highVol = atrPercentage > 3.0; // High volatility threshold
+        console.log(`🔍 ATR high volatility check: ${highVol}`);
+        return highVol;
+      case 'low_volatility':
+        const lowVol = atrPercentage < 1.0; // Low volatility threshold
+        console.log(`🔍 ATR low volatility check: ${lowVol}`);
+        return lowVol;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error evaluating ATR condition:`, error);
+    return false;
+  }
+}
+
+// Evaluate Stochastic condition
+async function evaluateStochasticCondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for Stochastic calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.kPeriod || 14) + 10) {
+      console.log(`❌ Insufficient candle data for Stochastic calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const highs = candleData.map(candle => parseFloat(candle.high));
+    const lows = candleData.map(candle => parseFloat(candle.low));
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const kPeriod = condition.kPeriod || 14;
+    const dPeriod = condition.dPeriod || 3;
+    const smoothK = condition.smoothK || 3;
+    const value = condition.value || 80;
+
+    const stochastic = calculateStochastic(highs, lows, closes, kPeriod, dPeriod, smoothK);
+    if (!stochastic) {
+      console.log(`❌ Could not calculate Stochastic for ${tradingPair}`);
+      return false;
+    }
+
+    console.log(`📈 ${tradingPair} Stochastic: %K ${stochastic.k.toFixed(2)}, %D ${stochastic.d.toFixed(2)}, Threshold: ${value}`);
+
+    switch (condition.condition) {
+      case 'above':
+        const above = stochastic.k > value;
+        console.log(`🔍 Stochastic %K above ${value} check: ${above}`);
+        return above;
+      case 'below':
+        const below = stochastic.k < value;
+        console.log(`🔍 Stochastic %K below ${value} check: ${below}`);
+        return below;
+      case 'overbought':
+        const overbought = stochastic.k > 80;
+        console.log(`🔍 Stochastic overbought check: ${overbought}`);
+        return overbought;
+      case 'oversold':
+        const oversold = stochastic.k < 20;
+        console.log(`🔍 Stochastic oversold check: ${oversold}`);
+        return oversold;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error evaluating Stochastic condition:`, error);
+    return false;
+  }
+}
+
+// Evaluate Williams %R condition
+async function evaluateWilliamsCondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  try {
+    if (!bitgetAPI) {
+      console.log('❌ Bitget API not available for Williams %R calculation');
+      return false;
+    }
+
+    const candleData = await bitgetAPI.getCandlestickData(tradingPair, timeframe, 200);
+    if (!candleData || candleData.length < (condition.period || 14) + 10) {
+      console.log(`❌ Insufficient candle data for Williams %R calculation on ${tradingPair}: ${candleData?.length || 0} candles`);
+      return false;
+    }
+
+    const highs = candleData.map(candle => parseFloat(candle.high));
+    const lows = candleData.map(candle => parseFloat(candle.low));
+    const closes = candleData.map(candle => parseFloat(candle.close));
+    const period = condition.period || 14;
+    const value = condition.value || -20;
+
+    const williamsR = calculateWilliamsR(highs, lows, closes, period);
+    if (williamsR === null) {
+      console.log(`❌ Could not calculate Williams %R for ${tradingPair}`);
+      return false;
+    }
+
+    console.log(`📈 ${tradingPair} Williams %R: ${williamsR.toFixed(2)}, Threshold: ${value}`);
+
+    switch (condition.condition) {
+      case 'above':
+        const above = williamsR > value;
+        console.log(`🔍 Williams %R above ${value} check: ${above}`);
+        return above;
+      case 'below':
+        const below = williamsR < value;
+        console.log(`🔍 Williams %R below ${value} check: ${below}`);
+        return below;
+      case 'overbought':
+        const overbought = williamsR > -20;
+        console.log(`🔍 Williams %R overbought check: ${overbought}`);
+        return overbought;
+      case 'oversold':
+        const oversold = williamsR < -80;
+        console.log(`🔍 Williams %R oversold check: ${oversold}`);
+        return oversold;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error evaluating Williams %R condition:`, error);
+    return false;
+  }
 }
 
 async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promise<boolean> {

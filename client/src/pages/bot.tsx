@@ -56,6 +56,8 @@ export default function BotPage() {
     bollinger: { enabled: false, period: 20 as string | number, stdDev: 2, condition: 'above_upper' },
     stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
     williams: { enabled: false, period: 14, condition: 'above', value: -20 },
+    cci: { enabled: false, period: 20, condition: 'above', value: 100 },
+    atr: { enabled: false, period: 14, condition: 'above', multiplier: 2.0 },
     volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
   });
   
@@ -3849,6 +3851,373 @@ export default function BotPage() {
                               </div>
                             </>
                           )}
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Bollinger Bands Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.bollinger.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            bollinger: { ...prev.bollinger, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">Bollinger Bands</Label>
+                      </div>
+                    </div>
+                    {indicators.bollinger.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.bollinger.period}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              bollinger: { ...prev.bollinger, period: parseInt(e.target.value) || 20 }
+                            }))}
+                            className="mt-1"
+                            placeholder="20"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Standard Deviation</Label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={indicators.bollinger.stdDev}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              bollinger: { ...prev.bollinger, stdDev: parseFloat(e.target.value) || 2.0 }
+                            }))}
+                            className="mt-1"
+                            placeholder="2.0"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.bollinger.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              bollinger: { ...prev.bollinger, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above_upper">Above Upper Band</SelectItem>
+                              <SelectItem value="below_lower">Below Lower Band</SelectItem>
+                              <SelectItem value="between_bands">Between Bands</SelectItem>
+                              <SelectItem value="squeeze">Squeeze</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* CCI Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.cci.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            cci: { ...prev.cci, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">CCI (Commodity Channel Index)</Label>
+                      </div>
+                    </div>
+                    {indicators.cci.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.cci.period}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              cci: { ...prev.cci, period: parseInt(e.target.value) || 20 }
+                            }))}
+                            className="mt-1"
+                            placeholder="20"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.cci.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              cci: { ...prev.cci, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above</SelectItem>
+                              <SelectItem value="below">Below</SelectItem>
+                              <SelectItem value="crossing_up">Crossing Up</SelectItem>
+                              <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Value</Label>
+                          <Input
+                            type="number"
+                            value={indicators.cci.value}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              cci: { ...prev.cci, value: parseInt(e.target.value) || 100 }
+                            }))}
+                            className="mt-1"
+                            placeholder="100"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* ATR Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.atr.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            atr: { ...prev.atr, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">ATR (Average True Range)</Label>
+                      </div>
+                    </div>
+                    {indicators.atr.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.atr.period}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              atr: { ...prev.atr, period: parseInt(e.target.value) || 14 }
+                            }))}
+                            className="mt-1"
+                            placeholder="14"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.atr.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              atr: { ...prev.atr, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above Threshold</SelectItem>
+                              <SelectItem value="below">Below Threshold</SelectItem>
+                              <SelectItem value="high_volatility">High Volatility</SelectItem>
+                              <SelectItem value="low_volatility">Low Volatility</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Multiplier</Label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={indicators.atr.multiplier}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              atr: { ...prev.atr, multiplier: parseFloat(e.target.value) || 2.0 }
+                            }))}
+                            className="mt-1"
+                            placeholder="2.0"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Stochastic Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.stochastic.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            stochastic: { ...prev.stochastic, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">Stochastic Oscillator</Label>
+                      </div>
+                    </div>
+                    {indicators.stochastic.enabled && (
+                      <div className="grid grid-cols-4 gap-3">
+                        <div>
+                          <Label className="text-sm">K Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.stochastic.kPeriod}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              stochastic: { ...prev.stochastic, kPeriod: parseInt(e.target.value) || 14 }
+                            }))}
+                            className="mt-1"
+                            placeholder="14"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">D Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.stochastic.dPeriod}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              stochastic: { ...prev.stochastic, dPeriod: parseInt(e.target.value) || 3 }
+                            }))}
+                            className="mt-1"
+                            placeholder="3"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Smooth K</Label>
+                          <Input
+                            type="number"
+                            value={indicators.stochastic.smoothK}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              stochastic: { ...prev.stochastic, smoothK: parseInt(e.target.value) || 3 }
+                            }))}
+                            className="mt-1"
+                            placeholder="3"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition & Value</Label>
+                          <div className="flex gap-1">
+                            <Select 
+                              value={indicators.stochastic.condition} 
+                              onValueChange={(value) => setIndicators(prev => ({
+                                ...prev,
+                                stochastic: { ...prev.stochastic, condition: value }
+                              }))}
+                            >
+                              <SelectTrigger className="mt-1 flex-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="above">Above</SelectItem>
+                                <SelectItem value="below">Below</SelectItem>
+                                <SelectItem value="overbought">Overbought</SelectItem>
+                                <SelectItem value="oversold">Oversold</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              value={indicators.stochastic.value}
+                              onChange={(e) => setIndicators(prev => ({
+                                ...prev,
+                                stochastic: { ...prev.stochastic, value: parseInt(e.target.value) || 80 }
+                              }))}
+                              className="mt-1 w-16"
+                              placeholder="80"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Williams %R Indicator */}
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={indicators.williams.enabled}
+                          onChange={(e) => setIndicators(prev => ({
+                            ...prev,
+                            williams: { ...prev.williams, enabled: e.target.checked }
+                          }))}
+                          className="w-4 h-4"
+                        />
+                        <Label className="font-medium">Williams %R</Label>
+                      </div>
+                    </div>
+                    {indicators.williams.enabled && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <Label className="text-sm">Period</Label>
+                          <Input
+                            type="number"
+                            value={indicators.williams.period}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              williams: { ...prev.williams, period: parseInt(e.target.value) || 14 }
+                            }))}
+                            className="mt-1"
+                            placeholder="14"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-sm">Condition</Label>
+                          <Select 
+                            value={indicators.williams.condition} 
+                            onValueChange={(value) => setIndicators(prev => ({
+                              ...prev,
+                              williams: { ...prev.williams, condition: value }
+                            }))}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="above">Above</SelectItem>
+                              <SelectItem value="below">Below</SelectItem>
+                              <SelectItem value="overbought">Overbought (-20)</SelectItem>
+                              <SelectItem value="oversold">Oversold (-80)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-sm">Value</Label>
+                          <Input
+                            type="number"
+                            value={indicators.williams.value}
+                            onChange={(e) => setIndicators(prev => ({
+                              ...prev,
+                              williams: { ...prev.williams, value: parseInt(e.target.value) || -20 }
+                            }))}
+                            className="mt-1"
+                            placeholder="-20"
+                          />
                         </div>
                       </div>
                     )}
