@@ -45,19 +45,19 @@ const screenerFormSchema = z.object({
   
   ma1Enabled: z.boolean().optional(),
   ma1Type: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
-  ma1Period: z.string().optional(),
+  ma1PeriodValue: z.string().optional(),
   ma1Operator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
   ma1Comparison: z.enum(['price', 'another_ma']).optional(),
   ma1ComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
-  ma1ComparisonPeriod: z.string().optional(),
+  ma1ComparisonPeriodValue: z.string().optional(),
   
   ma2Enabled: z.boolean().optional(),
   ma2Type: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
-  ma2Period: z.string().optional(),
+  ma2PeriodValue: z.string().optional(),
   ma2Operator: z.enum(['above', 'below', 'crossing_up', 'crossing_down']).optional(),
   ma2Comparison: z.enum(['price', 'another_ma']).optional(),
   ma2ComparisonType: z.enum(['SMA', 'EMA', 'WMA', 'DEMA', 'TEMA', 'HMA', 'VWMA']).optional(),
-  ma2ComparisonPeriod: z.string().optional(),
+  ma2ComparisonPeriodValue: z.string().optional(),
   
   bollingerEnabled: z.boolean().optional(),
   bollingerPeriod: z.string().optional(),
@@ -131,18 +131,18 @@ export function CreateScreener() {
       macdOperator: 'bullish_crossover',
       ma1Enabled: false,
       ma1Type: 'SMA',
-      ma1Period: '',
+      ma1PeriodValue: '',
       ma1Operator: 'above',
       ma1Comparison: 'price',
       ma1ComparisonType: 'SMA',
-      ma1ComparisonPeriod: '',
+      ma1ComparisonPeriodValue: '',
       ma2Enabled: false,
       ma2Type: 'EMA',
-      ma2Period: '',
+      ma2PeriodValue: '',
       ma2Operator: 'above',
       ma2Comparison: 'price',
       ma2ComparisonType: 'SMA',
-      ma2ComparisonPeriod: '',
+      ma2ComparisonPeriodValue: '',
       bollingerEnabled: false,
       bollingerPeriod: '',
       bollingerStdDev: '',
@@ -213,28 +213,28 @@ export function CreateScreener() {
         };
       }
 
-      if (data.ma1Enabled && data.ma1Period) {
+      if (data.ma1Enabled && data.ma1PeriodValue) {
         criteria.movingAverage1 = {
           type: data.ma1Type || 'SMA',
-          period: parseInt(data.ma1Period),
+          period: parseInt(data.ma1PeriodValue),
           operator: data.ma1Operator || 'above',
           comparison: data.ma1Comparison || 'price',
-          comparisonMa: data.ma1Comparison === 'another_ma' && data.ma1ComparisonPeriod ? {
+          comparisonMa: data.ma1Comparison === 'another_ma' && data.ma1ComparisonPeriodValue ? {
             type: data.ma1ComparisonType || 'SMA',
-            period: parseInt(data.ma1ComparisonPeriod),
+            period: parseInt(data.ma1ComparisonPeriodValue),
           } : undefined,
         };
       }
 
-      if (data.ma2Enabled && data.ma2Period) {
+      if (data.ma2Enabled && data.ma2PeriodValue) {
         criteria.movingAverage2 = {
           type: data.ma2Type || 'EMA',
-          period: parseInt(data.ma2Period),
+          period: parseInt(data.ma2PeriodValue),
           operator: data.ma2Operator || 'above',
           comparison: data.ma2Comparison || 'price',
-          comparisonMa: data.ma2Comparison === 'another_ma' && data.ma2ComparisonPeriod ? {
+          comparisonMa: data.ma2Comparison === 'another_ma' && data.ma2ComparisonPeriodValue ? {
             type: data.ma2ComparisonType || 'SMA',
-            period: parseInt(data.ma2ComparisonPeriod),
+            period: parseInt(data.ma2ComparisonPeriodValue),
           } : undefined,
         };
       }
@@ -822,7 +822,7 @@ export function CreateScreener() {
                             />
                             <FormField
                               control={form.control}
-                              name="ma1Period"
+                              name="ma1PeriodValue"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
@@ -922,7 +922,7 @@ export function CreateScreener() {
                                 />
                                 <FormField
                                   control={form.control}
-                                  name="ma1ComparisonPeriod"
+                                  name="ma1ComparisonPeriodValue"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
@@ -1009,7 +1009,7 @@ export function CreateScreener() {
                             />
                             <FormField
                               control={form.control}
-                              name="ma2Period"
+                              name="ma2PeriodValue"
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
@@ -1109,7 +1109,7 @@ export function CreateScreener() {
                                 />
                                 <FormField
                                   control={form.control}
-                                  name="ma2ComparisonPeriod"
+                                  name="ma2ComparisonPeriodValue"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
