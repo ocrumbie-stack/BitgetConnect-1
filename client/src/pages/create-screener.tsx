@@ -827,18 +827,30 @@ export function CreateScreener() {
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
-                                    <Input
+                                    <input
                                       type="text"
                                       inputMode="numeric"
                                       pattern="[0-9]*"
                                       placeholder=""
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                       value={field.value ?? ''}
                                       onChange={(e) => {
                                         const value = e.target.value;
-                                        // Only allow digits or empty string
                                         if (value === '' || /^\d+$/.test(value)) {
-                                          field.onChange(value || undefined);
+                                          field.onChange(value === '' ? undefined : value);
                                         }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        // Allow backspace, delete, arrow keys, tab
+                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                          return;
+                                        }
+                                        // Allow digits
+                                        if (/^\d$/.test(e.key)) {
+                                          return;
+                                        }
+                                        // Block everything else
+                                        e.preventDefault();
                                       }}
                                       data-testid="input-ma1-period"
                                     />
@@ -928,18 +940,30 @@ export function CreateScreener() {
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
-                                        <Input
+                                        <input
                                           type="text"
                                           inputMode="numeric"
                                           pattern="[0-9]*"
                                           placeholder=""
+                                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                           value={field.value ?? ''}
                                           onChange={(e) => {
                                             const value = e.target.value;
-                                            // Only allow digits or empty string
                                             if (value === '' || /^\d+$/.test(value)) {
-                                              field.onChange(value || undefined);
+                                              field.onChange(value === '' ? undefined : value);
                                             }
+                                          }}
+                                          onKeyDown={(e) => {
+                                            // Allow backspace, delete, arrow keys, tab
+                                            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                              return;
+                                            }
+                                            // Allow digits
+                                            if (/^\d$/.test(e.key)) {
+                                              return;
+                                            }
+                                            // Block everything else
+                                            e.preventDefault();
                                           }}
                                           data-testid="input-ma1-comparison-period"
                                         />
@@ -1016,18 +1040,30 @@ export function CreateScreener() {
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
-                                    <Input
+                                    <input
                                       type="text"
                                       inputMode="numeric"
                                       pattern="[0-9]*"
                                       placeholder=""
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                       value={field.value ?? ''}
                                       onChange={(e) => {
                                         const value = e.target.value;
-                                        // Only allow digits or empty string
                                         if (value === '' || /^\d+$/.test(value)) {
-                                          field.onChange(value || undefined);
+                                          field.onChange(value === '' ? undefined : value);
                                         }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        // Allow backspace, delete, arrow keys, tab
+                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                          return;
+                                        }
+                                        // Allow digits
+                                        if (/^\d$/.test(e.key)) {
+                                          return;
+                                        }
+                                        // Block everything else
+                                        e.preventDefault();
                                       }}
                                       data-testid="input-ma2-period"
                                     />
@@ -1117,18 +1153,30 @@ export function CreateScreener() {
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
-                                        <Input
+                                        <input
                                           type="text"
                                           inputMode="numeric"
                                           pattern="[0-9]*"
                                           placeholder=""
+                                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                           value={field.value ?? ''}
                                           onChange={(e) => {
                                             const value = e.target.value;
-                                            // Only allow digits or empty string
                                             if (value === '' || /^\d+$/.test(value)) {
-                                              field.onChange(value || undefined);
+                                              field.onChange(value === '' ? undefined : value);
                                             }
+                                          }}
+                                          onKeyDown={(e) => {
+                                            // Allow backspace, delete, arrow keys, tab
+                                            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                              return;
+                                            }
+                                            // Allow digits
+                                            if (/^\d$/.test(e.key)) {
+                                              return;
+                                            }
+                                            // Block everything else
+                                            e.preventDefault();
                                           }}
                                           data-testid="input-ma2-comparison-period"
                                         />
