@@ -1588,10 +1588,6 @@ export default function BotPage() {
                 </p>
                 <div className="flex items-center space-x-6 mt-3 text-sm">
                   <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="font-medium">{activeExecutions.length} Active Bots</span>
-                  </div>
-                  <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
                     <DollarSign className="w-4 h-4 text-green-300" />
                     <span className="font-medium">${parseFloat(accountData?.account?.availableBalance || '0').toFixed(2)} Available</span>
                   </div>
