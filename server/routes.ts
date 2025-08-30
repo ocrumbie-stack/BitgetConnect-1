@@ -768,6 +768,97 @@ function calculateAdvancedSupportResistance(highs: number[], lows: number[], clo
 }
 
 // Manual Strategy Evaluation Functions
+// New function to handle MA crossover conditions from strategy config
+async function evaluateMAConfigCondition(condition: any, tradingPair: string, timeframe: string): Promise<boolean> {
+  if (!bitgetAPI) return false;
+
+  try {
+    // Get candlestick data for calculating moving averages
+    const interval = timeframe === '5m' ? '5m' : timeframe === '1h' ? '1H' : timeframe === '15m' ? '15m' : '1H';
+    const klines = await bitgetAPI.getCandlestickData(tradingPair, interval, 200);
+    
+    if (!klines || klines.length < 50) {
+      console.log(`❌ Insufficient kline data for ${tradingPair}`);
+      return false;
+    }
+
+    const prices = klines.map(k => parseFloat(k.close)); // Close prices
+
+    // Calculate the moving averages based on condition configuration
+    const period1 = condition.period1 || 20;
+    const period2 = condition.period2 || 50;
+    const maType1 = condition.type || 'ema';
+    const maType2 = condition.comparisonMAType || 'ema';
+
+    // Calculate MA1
+    const ma1Values = maType1.toLowerCase() === 'ema' ? 
+      calculateEMA(prices, period1) : 
+      calculateSMA(prices, period1);
+
+    // Calculate MA2 (for crossover comparison)
+    const ma2Values = maType2.toLowerCase() === 'ema' ? 
+      calculateEMA(prices, period2) : 
+      calculateSMA(prices, period2);
+
+    if (ma1Values.length < 2 || ma2Values.length < 2) {
+      console.log(`❌ Insufficient MA data for ${tradingPair}`);
+      return false;
+    }
+
+    const currentMA1 = ma1Values[ma1Values.length - 1];
+    const previousMA1 = ma1Values[ma1Values.length - 2];
+    const currentMA2 = ma2Values[ma2Values.length - 1];
+    const previousMA2 = ma2Values[ma2Values.length - 2];
+
+    console.log(`📊 ${tradingPair} MA${period1}: ${currentMA1.toFixed(6)}, MA${period2}: ${currentMA2.toFixed(6)}`);
+
+    // Evaluate condition based on type
+    switch (condition.condition) {
+      case 'crossover_below':
+        // MA1 crosses below MA2 (bearish signal)
+        if (previousMA1 >= previousMA2 && currentMA1 < currentMA2) {
+          console.log(`✅ MA${period1} crossed below MA${period2} - Bearish crossover detected`);
+          return true;
+        }
+        break;
+      
+      case 'crossover_above':
+      case 'crossing_up':
+        // MA1 crosses above MA2 (bullish signal)
+        if (previousMA1 <= previousMA2 && currentMA1 > currentMA2) {
+          console.log(`✅ MA${period1} crossed above MA${period2} - Bullish crossover detected`);
+          return true;
+        }
+        break;
+      
+      case 'above':
+        // MA1 is above MA2
+        if (currentMA1 > currentMA2) {
+          console.log(`✅ MA${period1} is above MA${period2}`);
+          return true;
+        }
+        break;
+      
+      case 'below':
+        // MA1 is below MA2
+        if (currentMA1 < currentMA2) {
+          console.log(`✅ MA${period1} is below MA${period2}`);
+          return true;
+        }
+        break;
+      
+      default:
+        console.log(`⚠️ Unknown MA condition: ${condition.condition}`);
+        return false;
+    }
+
+    return false;
+  } catch (error) {
+    console.log(`❌ Error evaluating MA condition for ${tradingPair}:`, error);
+    return false;
+  }
+}
+
 async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): Promise<boolean> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for signal evaluation');
@@ -802,7 +893,7 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
     for (const condition of entryConditions) {
       if (condition.enabled === false) continue; // Only skip if explicitly disabled
 
-      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.operator} ${condition.value}`);
+      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.condition || condition.operator} ${condition.value || condition.period1}`);
 
       if (condition.indicator === 'macd') {
         const macdSignal = await evaluateMACDCondition(condition, tradingPair, currentPrice);
@@ -828,6 +919,14 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           console.log(`✅ MACD condition met: ${condition.condition}`);
           return true;
         }
+      } else if (condition.indicator === 'ma1' || condition.indicator === 'ma2' || condition.indicator === 'ma3' || condition.indicator === 'ma' || condition.indicator === 'sma' || condition.indicator === 'ema') {
+        // Handle MA crossover conditions from strategy config
+        const maSignal = await evaluateMAConfigCondition(condition, tradingPair, strategy.config.timeframe || '5m');
+        if (maSignal) {
+          console.log(`✅ MA condition met: ${condition.condition}`);
+          return true;
+        }
+        console.log(`⏸️ Entry conditions not yet met for MA crossover - ${strategy.config.positionDirection === 'short' ? 'Short' : 'Long'} on ${tradingPair}`);
       } else if (condition.indicator === 'ma' || condition.indicator === 'sma' || condition.indicator === 'ema') {
         const maCondition = {
           ...condition,
