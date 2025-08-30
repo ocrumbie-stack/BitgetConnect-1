@@ -828,17 +828,9 @@ export function CreateScreener() {
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
                                     <Input
-                                      type="text"
-                                      inputMode="numeric"
+                                      type="number"
                                       placeholder="20"
-                                      value={field.value || ''}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Allow empty string or valid numbers
-                                        if (value === '' || /^\d*$/.test(value)) {
-                                          field.onChange(value);
-                                        }
-                                      }}
+                                      {...field}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -928,17 +920,9 @@ export function CreateScreener() {
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
                                         <Input
-                                          type="text"
-                                          inputMode="numeric"
+                                          type="number"
                                           placeholder="50"
-                                          value={field.value || ''}
-                                          onChange={(e) => {
-                                            const value = e.target.value;
-                                            // Allow empty string or valid numbers
-                                            if (value === '' || /^\d*$/.test(value)) {
-                                              field.onChange(value);
-                                            }
-                                          }}
+                                          {...field}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1015,17 +999,9 @@ export function CreateScreener() {
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
                                     <Input
-                                      type="text"
-                                      inputMode="numeric"
+                                      type="number"
                                       placeholder="50"
-                                      value={field.value || ''}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Allow empty string or valid numbers
-                                        if (value === '' || /^\d*$/.test(value)) {
-                                          field.onChange(value);
-                                        }
-                                      }}
+                                      {...field}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1115,17 +1091,9 @@ export function CreateScreener() {
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
                                         <Input
-                                          type="text"
-                                          inputMode="numeric"
+                                          type="number"
                                           placeholder="200"
-                                          value={field.value || ''}
-                                          onChange={(e) => {
-                                            const value = e.target.value;
-                                            // Allow empty string or valid numbers
-                                            if (value === '' || /^\d*$/.test(value)) {
-                                              field.onChange(value);
-                                            }
-                                          }}
+                                          {...field}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
