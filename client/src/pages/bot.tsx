@@ -97,7 +97,7 @@ export default function BotPage() {
   const [scannerResults, setScannerResults] = useState<any>(null);
 
   // Continuous Scanner state
-  const [continuousCapital, setContinuousCapital] = useState('5000');
+  const [continuousCapital, setContinuousCapital] = useState('50');
   const [continuousMaxPositions, setContinuousMaxPositions] = useState('3');
   const [continuousLeverage, setContinuousLeverage] = useState('3');
   const [continuousScanInterval, setContinuousScanInterval] = useState('60'); // seconds

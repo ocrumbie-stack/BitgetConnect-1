@@ -2593,7 +2593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     userId: deployedBot.userId,
                     strategyId: deployedBot.strategyId,
                     tradingPair: pair,
-                    capital: (parseFloat(deployedBot.capital) / 5).toString(), // Split capital across multiple opportunities
+                    capital: Math.max(parseFloat(deployedBot.capital) / 3, 10).toString(), // Split capital across opportunities, minimum $10 per trade
                     leverage: deployedBot.leverage,
                     status: 'active',
                     deploymentType: 'continuous_scanner_child',
