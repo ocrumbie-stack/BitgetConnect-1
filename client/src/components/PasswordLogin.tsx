@@ -20,11 +20,20 @@ export function PasswordLogin({ onLogin }: PasswordLoginProps) {
   const loginMutation = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
       try {
-        const response = await apiRequest('/api/auth/login', {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
-          body: { username, password }
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password })
         });
-        return response;
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Login failed');
+        }
+        
+        return await response.json();
       } catch (error: any) {
         throw new Error(error.message || 'Login failed');
       }
