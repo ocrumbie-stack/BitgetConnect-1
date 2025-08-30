@@ -4298,6 +4298,15 @@ export default function BotPage() {
           showExitVisualizer: {showExitVisualizer.toString()}<br/>
           selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
         </div>
+
+        {/* Alert Center Dialog */}
+        {showAlertCenter && (
+          <AlertCenter 
+            isOpen={showAlertCenter}
+            onClose={() => setShowAlertCenter(false)}
+            userId="default-user"
+          />
+        )}
       </div>
     </div>
   );
