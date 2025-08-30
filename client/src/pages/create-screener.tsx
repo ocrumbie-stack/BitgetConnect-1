@@ -131,18 +131,18 @@ export function CreateScreener() {
       macdOperator: 'bullish_crossover',
       ma1Enabled: false,
       ma1Type: 'SMA',
-      ma1Period: '',
+      ma1Period: undefined,
       ma1Operator: 'above',
       ma1Comparison: 'price',
       ma1ComparisonType: 'SMA',
-      ma1ComparisonPeriod: '',
+      ma1ComparisonPeriod: undefined,
       ma2Enabled: false,
       ma2Type: 'EMA',
-      ma2Period: '',
+      ma2Period: undefined,
       ma2Operator: 'above',
       ma2Comparison: 'price',
       ma2ComparisonType: 'SMA',
-      ma2ComparisonPeriod: '',
+      ma2ComparisonPeriod: undefined,
       bollingerEnabled: false,
       bollingerPeriod: '',
       bollingerStdDev: '',
@@ -830,7 +830,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder="20"
-                                      {...field}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value || undefined)}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -922,7 +923,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder="50"
-                                          {...field}
+                                          value={field.value ?? ''}
+                                          onChange={(e) => field.onChange(e.target.value || undefined)}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1001,7 +1003,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder="50"
-                                      {...field}
+                                      value={field.value ?? ''}
+                                      onChange={(e) => field.onChange(e.target.value || undefined)}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1093,7 +1096,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder="200"
-                                          {...field}
+                                          value={field.value ?? ''}
+                                          onChange={(e) => field.onChange(e.target.value || undefined)}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
