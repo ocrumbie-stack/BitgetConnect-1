@@ -751,9 +751,15 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           return true;
         }
       } else if (condition.indicator === 'rsi') {
-        const rsiSignal = await evaluateRSICondition(condition, tradingPair, strategy.config.timeframe || '1h');
+        // Map the condition format to include proper operator
+        const rsiCondition = {
+          ...condition,
+          operator: condition.condition, // Use the condition directly as operator
+          value: condition.value
+        };
+        const rsiSignal = await evaluateRSICondition(rsiCondition, tradingPair, strategy.config.timeframe || '1h');
         if (rsiSignal) {
-          console.log(`✅ RSI condition met: ${condition.operator} ${condition.value}`);
+          console.log(`✅ RSI condition met: ${rsiCondition.operator} ${rsiCondition.value}`);
           return true;
         }
       }
