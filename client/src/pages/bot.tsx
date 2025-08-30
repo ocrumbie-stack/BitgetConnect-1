@@ -1589,21 +1589,17 @@ export default function BotPage() {
   return (
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       {/* Header */}
-      <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-start gap-3">
-            <BackButton to="/" label="Home" />
-            <div>
-              <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <BackButton to="/" label="Home" />
+              <h1 className="text-xl font-semibold flex items-center gap-2">
                 <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-sm text-muted-foreground mt-2">
-                Automated trading strategies with AI-powered analysis
-              </p>
             </div>
-          </div>
-          <div className="flex gap-2">
+            <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -1628,6 +1624,7 @@ export default function BotPage() {
               <Bell className="h-4 w-4" />
               Alerts
             </Button>
+          </div>
           </div>
         </div>
       </div>
