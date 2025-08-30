@@ -3673,12 +3673,13 @@ export default function BotPage() {
                             <Label className="text-sm">Period</Label>
                             <Input
                               type="number"
-                              value={indicators.ma1?.period1 || 20}
+                              value={indicators.ma1?.period1 === '' ? '' : indicators.ma1?.period1 || 20}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
-                                ma1: { ...prev.ma1, period1: parseInt(e.target.value) || 20 }
+                                ma1: { ...prev.ma1, period1: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                               }))}
                               className="mt-1"
+                              placeholder="20"
                             />
                           </div>
                           <div>
@@ -3748,12 +3749,13 @@ export default function BotPage() {
                                 <Label className="text-sm">Comparison MA Period</Label>
                                 <Input
                                   type="number"
-                                  value={indicators.ma1?.period2 || 50}
+                                  value={indicators.ma1?.period2 === '' ? '' : indicators.ma1?.period2 || 50}
                                   onChange={(e) => setIndicators(prev => ({
                                     ...prev,
-                                    ma1: { ...prev.ma1, period2: parseInt(e.target.value) || 50 }
+                                    ma1: { ...prev.ma1, period2: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                                   }))}
                                   className="mt-1"
+                                  placeholder="50"
                                 />
                               </div>
                             </>
@@ -3807,12 +3809,13 @@ export default function BotPage() {
                             <Label className="text-sm">Period</Label>
                             <Input
                               type="number"
-                              value={indicators.ma2?.period1 || 50}
+                              value={indicators.ma2?.period1 === '' ? '' : indicators.ma2?.period1 || 50}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
-                                ma2: { ...prev.ma2, period1: parseInt(e.target.value) || 50 }
+                                ma2: { ...prev.ma2, period1: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                               }))}
                               className="mt-1"
+                              placeholder="50"
                             />
                           </div>
                           <div>
@@ -3882,12 +3885,13 @@ export default function BotPage() {
                                 <Label className="text-sm">Comparison MA Period</Label>
                                 <Input
                                   type="number"
-                                  value={indicators.ma2?.period2 || 200}
+                                  value={indicators.ma2?.period2 === '' ? '' : indicators.ma2?.period2 || 200}
                                   onChange={(e) => setIndicators(prev => ({
                                     ...prev,
-                                    ma2: { ...prev.ma2, period2: parseInt(e.target.value) || 200 }
+                                    ma2: { ...prev.ma2, period2: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                                   }))}
                                   className="mt-1"
+                                  placeholder="200"
                                 />
                               </div>
                             </>
@@ -3941,10 +3945,10 @@ export default function BotPage() {
                             <Label className="text-sm">Period 1</Label>
                             <Input
                               type="number"
-                              value={indicators.ma3?.period1 || 10}
+                              value={indicators.ma3?.period1 === '' ? '' : indicators.ma3?.period1 || 10}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
-                                ma3: { ...prev.ma3, period1: parseInt(e.target.value) || 10 }
+                                ma3: { ...prev.ma3, period1: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                               }))}
                               className="mt-1"
                               placeholder="10"
@@ -4017,12 +4021,13 @@ export default function BotPage() {
                                 <Label className="text-sm">Comparison MA Period</Label>
                                 <Input
                                   type="number"
-                                  value={indicators.ma3?.period2 || 20}
+                                  value={indicators.ma3?.period2 === '' ? '' : indicators.ma3?.period2 || 20}
                                   onChange={(e) => setIndicators(prev => ({
                                     ...prev,
-                                    ma3: { ...prev.ma3, period2: parseInt(e.target.value) || 20 }
+                                    ma3: { ...prev.ma3, period2: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                                   }))}
                                   className="mt-1"
+                                  placeholder="20"
                                 />
                               </div>
                             </>
