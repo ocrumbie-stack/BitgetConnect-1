@@ -1,7 +1,7 @@
 import { SimpleTable } from '@/components/SimpleTable';
 import { useBitgetData } from '@/hooks/useBitgetData';
 import { useMarketInsights } from '@/hooks/use5MinMovers';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -49,8 +49,8 @@ export default function Markets() {
   // Alert state
   const [showAlerts, setShowAlerts] = useState(false);
 
-  // AI Opportunity Analysis - Enhanced from Home page
-  const generateOpportunities = (strategy: string) => {
+  // AI Opportunity Analysis - Enhanced from Home page (memoized for performance)
+  const generateOpportunities = useCallback((strategy: string) => {
     if (!data || data.length === 0) return [];
 
     const analyzed = data.map((coin: any) => {
@@ -231,17 +231,31 @@ export default function Markets() {
     .slice(0, 10); // Top 10 opportunities per strategy
 
     return analyzed;
-  };
+  }, [data]);
 
-  // Generate opportunities for all strategies
-  const opportunities = {
-    momentum: generateOpportunities('momentum'),
-    breakout: generateOpportunities('breakout'), 
-    scalping: generateOpportunities('scalping'),
-    swing: generateOpportunities('swing'),
-    reversal: generateOpportunities('reversal'),
-    remarkable: generateOpportunities('remarkable')
-  };
+  // Generate opportunities for all strategies (memoized to prevent recalculation)
+  const opportunities = useMemo(() => {
+    // Only generate opportunities when viewing the opportunities tab to prevent blocking
+    if (activeTab !== 'opportunities') {
+      return {
+        momentum: [],
+        breakout: [],
+        scalping: [],
+        swing: [],
+        reversal: [],
+        remarkable: []
+      };
+    }
+    
+    return {
+      momentum: generateOpportunities('momentum'),
+      breakout: generateOpportunities('breakout'), 
+      scalping: generateOpportunities('scalping'),
+      swing: generateOpportunities('swing'),
+      reversal: generateOpportunities('reversal'),
+      remarkable: generateOpportunities('remarkable')
+    };
+  }, [data, activeTab, generateOpportunities]);
 
   const toggleStrategyExpansion = (strategy: string) => {
     setExpandedStrategies(prev => {
@@ -267,7 +281,8 @@ export default function Markets() {
       return data;
     },
     enabled: true,
-    staleTime: 0, // Always refetch to ensure fresh data
+    staleTime: 30000, // Cache for 30 seconds to prevent blocking
+    refetchOnWindowFocus: false, // Prevent blocking on navigation
   });
 
   // Get selected screener object
@@ -315,8 +330,8 @@ export default function Markets() {
     return true;
   };
 
-  // Processing data with screener criteria
-  const filteredAndSortedData = data ? data
+  // Processing data with screener criteria (memoized for performance)
+  const filteredAndSortedData = useMemo(() => data ? data
     .filter(item => {
       const searchMatch = !searchQuery || 
         item.symbol?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -372,17 +387,17 @@ export default function Markets() {
       }
       
       return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
-    }) : [];
+    }) : [], [data, searchQuery, selectedScreener, selectedScreenerObj, filter, sortBy, sortDirection]);
 
-  // Market stats calculation
-  const marketStats = data ? {
+  // Market stats calculation (memoized for performance)
+  const marketStats = useMemo(() => data ? {
     total: data.length,
     gainers: data.filter(item => parseFloat(item.change24h || '0') > 0).length,
     losers: data.filter(item => parseFloat(item.change24h || '0') < 0).length,
     highVolume: data.filter(item => parseFloat(item.volume24h || '0') > 1000000).length,
     totalVolume: data.reduce((sum, item) => sum + parseFloat(item.volume24h || '0'), 0),
     avgChange: data.reduce((sum, item) => sum + parseFloat(item.change24h || '0'), 0) / data.length
-  } : null;
+  } : null, [data]);
 
   // Helper functions
   const formatVolume = (volume: string) => {
