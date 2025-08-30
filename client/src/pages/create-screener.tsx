@@ -43,6 +43,21 @@ const screenerFormSchema = z.object({
   macdSignalPeriod: z.string().optional(),
   macdOperator: z.enum(['bullish_crossover', 'bearish_crossover', 'above_signal', 'below_signal', 'above_zero', 'below_zero']).optional(),
   
+  ma1Enabled: z.boolean().optional(),
+  ma1Type: z.enum(['sma', 'ema', 'wma', 'dema', 'tema']).optional(),
+  ma1Period: z.string().optional(),
+  ma1Operator: z.enum(['above', 'below', 'crossover_above', 'crossover_below']).optional(),
+  ma1ComparisonType: z.enum(['price', 'another_ma']).optional(),
+  ma1ComparisonMAType: z.enum(['sma', 'ema', 'wma', 'dema', 'tema']).optional(),
+  ma1ComparisonPeriod: z.string().optional(),
+
+  ma2Enabled: z.boolean().optional(),
+  ma2Type: z.enum(['sma', 'ema', 'wma', 'dema', 'tema']).optional(),
+  ma2Period: z.string().optional(),
+  ma2Operator: z.enum(['above', 'below', 'crossover_above', 'crossover_below']).optional(),
+  ma2ComparisonType: z.enum(['price', 'another_ma']).optional(),
+  ma2ComparisonMAType: z.enum(['sma', 'ema', 'wma', 'dema', 'tema']).optional(),
+  ma2ComparisonPeriod: z.string().optional(),
 
   
   bollingerEnabled: z.boolean().optional(),
@@ -115,6 +130,20 @@ export function CreateScreener() {
       macdSlowPeriod: '',
       macdSignalPeriod: '',
       macdOperator: 'bullish_crossover',
+      ma1Enabled: false,
+      ma1Type: 'sma',
+      ma1Period: '',
+      ma1Operator: 'above',
+      ma1ComparisonType: 'price',
+      ma1ComparisonMAType: 'sma',
+      ma1ComparisonPeriod: '',
+      ma2Enabled: false,
+      ma2Type: 'ema',
+      ma2Period: '',
+      ma2Operator: 'above',
+      ma2ComparisonType: 'price',
+      ma2ComparisonMAType: 'sma',
+      ma2ComparisonPeriod: '',
 
       bollingerEnabled: false,
       bollingerPeriod: '',
@@ -186,7 +215,27 @@ export function CreateScreener() {
         };
       }
 
+      if (data.ma1Enabled) {
+        criteria.ma1 = {
+          type: data.ma1Type || 'sma',
+          period: parseInt(data.ma1Period || '20'),
+          operator: data.ma1Operator || 'above',
+          comparisonType: data.ma1ComparisonType || 'price',
+          comparisonMAType: data.ma1ComparisonMAType || 'sma',
+          comparisonPeriod: data.ma1ComparisonPeriod ? parseInt(data.ma1ComparisonPeriod) : undefined,
+        };
+      }
 
+      if (data.ma2Enabled) {
+        criteria.ma2 = {
+          type: data.ma2Type || 'ema',
+          period: parseInt(data.ma2Period || '50'),
+          operator: data.ma2Operator || 'above',
+          comparisonType: data.ma2ComparisonType || 'price',
+          comparisonMAType: data.ma2ComparisonMAType || 'sma',
+          comparisonPeriod: data.ma2ComparisonPeriod ? parseInt(data.ma2ComparisonPeriod) : undefined,
+        };
+      }
 
       if (data.bollingerEnabled) {
         criteria.bollinger = {
@@ -825,6 +874,340 @@ export function CreateScreener() {
                               </FormItem>
                             )}
                           />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Moving Average 1 Indicator */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <FormField
+                          control={form.control}
+                          name="ma1Enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-ma1-enabled"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">
+                                  Moving Average 1
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {form.watch('ma1Enabled') && (
+                        <div className="ml-6 space-y-4 p-4 border rounded-lg bg-muted/50">
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma1Type"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>MA Type</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma1-type">
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="sma">SMA</SelectItem>
+                                      <SelectItem value="ema">EMA</SelectItem>
+                                      <SelectItem value="wma">WMA</SelectItem>
+                                      <SelectItem value="dema">DEMA</SelectItem>
+                                      <SelectItem value="tema">TEMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma1Period"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Period</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="20"
+                                      {...field}
+                                      data-testid="input-ma1-period"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma1Operator"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Condition</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma1-operator">
+                                        <SelectValue placeholder="Select condition" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossover_above">Crossover Above</SelectItem>
+                                      <SelectItem value="crossover_below">Crossover Below</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma1ComparisonType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Comparison</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma1-comparison-type">
+                                        <SelectValue placeholder="Compare to" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="another_ma">Another MA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            {form.watch('ma1ComparisonType') === 'another_ma' && (
+                              <>
+                                <FormField
+                                  control={form.control}
+                                  name="ma1ComparisonMAType"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison MA Type</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger data-testid="select-ma1-comparison-ma-type">
+                                            <SelectValue placeholder="Select type" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="sma">SMA</SelectItem>
+                                          <SelectItem value="ema">EMA</SelectItem>
+                                          <SelectItem value="wma">WMA</SelectItem>
+                                          <SelectItem value="dema">DEMA</SelectItem>
+                                          <SelectItem value="tema">TEMA</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="ma1ComparisonPeriod"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison MA Period</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          placeholder="50"
+                                          {...field}
+                                          data-testid="input-ma1-comparison-period"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Moving Average 2 Indicator */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <FormField
+                          control={form.control}
+                          name="ma2Enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-ma2-enabled"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">
+                                  Moving Average 2
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {form.watch('ma2Enabled') && (
+                        <div className="ml-6 space-y-4 p-4 border rounded-lg bg-muted/50">
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma2Type"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>MA Type</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-type">
+                                        <SelectValue placeholder="Select type" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="sma">SMA</SelectItem>
+                                      <SelectItem value="ema">EMA</SelectItem>
+                                      <SelectItem value="wma">WMA</SelectItem>
+                                      <SelectItem value="dema">DEMA</SelectItem>
+                                      <SelectItem value="tema">TEMA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma2Period"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Period</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="50"
+                                      {...field}
+                                      data-testid="input-ma2-period"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="ma2Operator"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Condition</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-operator">
+                                        <SelectValue placeholder="Select condition" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="above">Above</SelectItem>
+                                      <SelectItem value="below">Below</SelectItem>
+                                      <SelectItem value="crossover_above">Crossover Above</SelectItem>
+                                      <SelectItem value="crossover_below">Crossover Below</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="ma2ComparisonType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Comparison</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-ma2-comparison-type">
+                                        <SelectValue placeholder="Compare to" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="price">Price</SelectItem>
+                                      <SelectItem value="another_ma">Another MA</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            {form.watch('ma2ComparisonType') === 'another_ma' && (
+                              <>
+                                <FormField
+                                  control={form.control}
+                                  name="ma2ComparisonMAType"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison MA Type</FormLabel>
+                                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                          <SelectTrigger data-testid="select-ma2-comparison-ma-type">
+                                            <SelectValue placeholder="Select type" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="sma">SMA</SelectItem>
+                                          <SelectItem value="ema">EMA</SelectItem>
+                                          <SelectItem value="wma">WMA</SelectItem>
+                                          <SelectItem value="dema">DEMA</SelectItem>
+                                          <SelectItem value="tema">TEMA</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="ma2ComparisonPeriod"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Comparison MA Period</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          placeholder="200"
+                                          {...field}
+                                          data-testid="input-ma2-comparison-period"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
