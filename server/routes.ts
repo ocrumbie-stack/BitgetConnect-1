@@ -2339,9 +2339,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allBots = [];
       
       // Add deployed bots from database (only process non-terminated bots)
-      // Filter out terminated bots before processing to prevent confusion
-      const activeBots = deployedBots.filter(bot => bot.status !== 'terminated');
-      console.log(`📋 Processing ${activeBots.length} active bots (filtered out ${deployedBots.length - activeBots.length} terminated)`);
+      // Filter out terminated bots AND invalid trading pairs before processing to prevent confusion
+      const activeBots = deployedBots.filter(bot => 
+        bot.status !== 'terminated' && 
+        bot.tradingPair && 
+        !bot.tradingPair.includes('_MODE') &&
+        bot.tradingPair !== 'AUTO_SCANNER_MODE' &&
+        bot.tradingPair !== 'CONTINUOUS_SCANNER_MODE'
+      );
+      console.log(`📋 Processing ${activeBots.length} active bots (filtered out ${deployedBots.length - activeBots.length} terminated/invalid)`);
       
       for (const deployedBot of activeBots) {
         console.log(`🔍 Processing bot ${deployedBot.tradingPair}: status="${deployedBot.status}", deploymentType="${deployedBot.deploymentType}"`);
@@ -2839,6 +2845,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('❌ Error testing MACD:', error);
       res.status(500).json({ error: 'Failed to test MACD evaluation' });
+    }
+  });
+
+  // Cleanup invalid bots with AUTO_SCANNER_MODE trading pair
+  app.post('/api/cleanup-invalid-bots', async (req, res) => {
+    try {
+      const userId = 'default-user';
+      const allBots = await storage.getBotExecutions(userId);
+      
+      // Find bots with invalid trading pairs
+      const invalidBots = allBots.filter(bot => 
+        bot.tradingPair === 'AUTO_SCANNER_MODE' || 
+        bot.tradingPair === 'CONTINUOUS_SCANNER_MODE' ||
+        !bot.tradingPair ||
+        bot.tradingPair.includes('_MODE')
+      );
+      
+      console.log(`🧹 Found ${invalidBots.length} invalid bots to cleanup`);
+      
+      // Delete invalid bots
+      for (const bot of invalidBots) {
+        await storage.deleteBotExecution(bot.id, userId);
+        console.log(`🗑️ Deleted invalid bot: ${bot.botName} (${bot.tradingPair})`);
+      }
+      
+      res.json({
+        success: true,
+        message: `Cleaned up ${invalidBots.length} invalid bots`,
+        deletedBots: invalidBots.map(bot => ({
+          id: bot.id,
+          botName: bot.botName,
+          tradingPair: bot.tradingPair
+        }))
+      });
+    } catch (error) {
+      console.error('❌ Error cleaning up invalid bots:', error);
+      res.status(500).json({ error: 'Failed to cleanup invalid bots' });
     }
   });
 
