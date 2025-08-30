@@ -843,16 +843,18 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
       const crossover = macdLine > signalLine && prevMacdLine <= prevSignalLine;
       console.log(`🔍 Bullish crossover check: ${crossover} (Current: MACD ${macdLine.toFixed(6)} > Signal ${signalLine.toFixed(6)}, Previous: MACD ${prevMacdLine.toFixed(6)} <= Signal ${prevSignalLine.toFixed(6)})`);
       return crossover;
-    } else if (condition.condition === 'above_zero') {
-      // MACD line above zero
-      const aboveZero = macdLine > 0;
-      console.log(`🔍 MACD above zero check: ${aboveZero} (MACD: ${macdLine.toFixed(6)} > 0)`);
-      return aboveZero;
-    } else if (condition.condition === 'below_zero') {
-      // MACD line below zero
-      const belowZero = macdLine < 0;
-      console.log(`🔍 MACD below zero check: ${belowZero} (MACD: ${macdLine.toFixed(6)} < 0)`);
-      return belowZero;
+    } else if (condition.condition === 'histogram_above_zero') {
+      // MACD histogram above zero (MACD line above signal line)
+      const histogramAboveZero = macdLine > signalLine;
+      const histogram = macdLine - signalLine;
+      console.log(`🔍 MACD histogram above zero check: ${histogramAboveZero} (Histogram: ${histogram.toFixed(6)} > 0)`);
+      return histogramAboveZero;
+    } else if (condition.condition === 'histogram_below_zero') {
+      // MACD histogram below zero (MACD line below signal line)
+      const histogramBelowZero = macdLine < signalLine;
+      const histogram = macdLine - signalLine;
+      console.log(`🔍 MACD histogram below zero check: ${histogramBelowZero} (Histogram: ${histogram.toFixed(6)} < 0)`);
+      return histogramBelowZero;
     } else if (condition.condition === 'bearish_crossover') {
       // Bearish crossover: MACD line crosses below signal line
       const crossover = macdLine < signalLine && prevMacdLine >= prevSignalLine;
