@@ -2835,11 +2835,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const availableBalance = parseFloat(account.available || '0');
         const unrealizedPnl = parseFloat(account.unrealizedPL || '0');
         
-        // Calculate Total Equity = Available Balance + Margin Used (as per user preference)
-        const actualTotalEquity = availableBalance + totalMarginUsed;
+        // Calculate Total Equity = Margin + P&L (as per user specification: Equity = margin + PnL)
+        const actualTotalEquity = totalMarginUsed + unrealizedPnl;
         
-        // Calculate Total Balance = Total Equity + Available Balance + P&L (as per user preference)
-        const calculatedTotalBalance = actualTotalEquity + availableBalance + unrealizedPnl;
+        // Total Balance = Available Balance + Total Equity (complete account value)
+        const calculatedTotalBalance = availableBalance + actualTotalEquity;
         
 
         
