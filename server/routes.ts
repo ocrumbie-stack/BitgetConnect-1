@@ -2350,8 +2350,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const deployedBot of activeBots) {
         console.log(`🔍 Processing bot ${deployedBot.tradingPair}: status="${deployedBot.status}", deploymentType="${deployedBot.deploymentType}"`);
         
-        // Handle continuous scanner differently
+        // Handle continuous scanner differently - scan multiple pairs
         if (deployedBot.deploymentType === 'continuous_scanner') {
+          // Add the scanner to the display list
           allBots.push({
             id: deployedBot.id,
             userId: userId,
@@ -2378,11 +2379,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
             exitReason: null,
             positionData: null
           });
+          
+          // Now perform actual scanning logic for top pairs
+          try {
+            console.log(`🔄 Continuous Scanner: Evaluating top trading pairs for strategy ${deployedBot.strategyId}`);
+            
+            // Get strategy configuration
+            const strategies = await storage.getBotStrategies('default-user');
+            const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+            
+            if (strategy && strategy.strategy === 'manual') {
+              // Get top volume pairs for scanning
+              const futuresData = await storage.getAllFuturesData();
+              const topPairs = futuresData
+                .filter(coin => coin.symbol.endsWith('USDT'))
+                .sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h))
+                .slice(0, 20) // Top 20 pairs
+                .map(coin => coin.symbol);
+              
+              console.log(`🔍 Scanning ${topPairs.length} top pairs: ${topPairs.slice(0, 5).join(', ')}...`);
+              
+              // Check each pair against strategy conditions
+              for (const pair of topPairs) {
+                // Skip if we already have a position for this pair
+                if (positions.find((pos: any) => pos.symbol === pair)) {
+                  continue;
+                }
+                
+                // Evaluate this pair against the strategy
+                const entrySignalMet = await evaluateManualStrategyEntry(strategy, pair);
+                
+                if (entrySignalMet) {
+                  console.log(`🎯 Continuous Scanner: Entry signal found for ${pair}!`);
+                  
+                  // Create a temporary bot execution for this pair
+                  const tempBotData = {
+                    id: `scanner-${pair}-${Date.now()}`,
+                    userId: deployedBot.userId,
+                    strategyId: deployedBot.strategyId,
+                    tradingPair: pair,
+                    capital: (parseFloat(deployedBot.capital) / 5).toString(), // Split capital across multiple opportunities
+                    leverage: deployedBot.leverage,
+                    status: 'active',
+                    deploymentType: 'continuous_scanner_child',
+                    botName: `🔄 Scanner → ${pair}`,
+                  };
+                  
+                  // Place order for this pair using existing order placement logic
+                  const orderSuccess = await placeManualStrategyOrder(strategy, tempBotData);
+                  
+                  if (orderSuccess) {
+                    console.log(`✅ Continuous Scanner placed order for ${pair}`);
+                    
+                    // Create a bot execution record for tracking
+                    await storage.createBotExecution({
+                      userId: deployedBot.userId,
+                      strategyId: deployedBot.strategyId,
+                      tradingPair: pair,
+                      capital: tempBotData.capital,
+                      leverage: tempBotData.leverage,
+                      status: 'active',
+                      deploymentType: 'continuous_scanner_child',
+                      botName: tempBotData.botName,
+                    });
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Error in continuous scanner logic:`, error);
+          }
+          
           continue;
         }
 
-        // Check if this is a strategy bot (manual/folder/auto_scanner) that needs entry evaluation
-        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner')) {
+        // Check if this is a strategy bot (manual/folder/auto_scanner/continuous_scanner) that needs entry evaluation
+        if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner' || deployedBot.deploymentType === 'continuous_scanner')) {
           try {
             // Get the strategy configuration
             const strategies = await storage.getBotStrategies('default-user');
