@@ -114,7 +114,8 @@ export default function BotPage() {
   // Organization mutation
   const organizationMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/organize-strategies', 'POST', {});
+      const response = await apiRequest('POST', '/api/organize-strategies', {});
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
