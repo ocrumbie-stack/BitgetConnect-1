@@ -3507,10 +3507,10 @@ export default function BotPage() {
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.rsi?.period || 14}
+                            value={indicators.rsi?.period === '' ? '' : indicators.rsi?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              rsi: { ...prev.rsi, period: e.target.value === '' ? '' : parseInt(e.target.value) || 14 }
+                              rsi: { ...prev.rsi, period: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="14"
@@ -3538,10 +3538,10 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.rsi?.value || 70}
+                            value={indicators.rsi?.value === '' ? '' : indicators.rsi?.value || 70}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              rsi: { ...prev.rsi, value: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }
+                              rsi: { ...prev.rsi, value: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="e.g. 50"
@@ -3573,10 +3573,10 @@ export default function BotPage() {
                           <Label className="text-sm">Fast Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd?.fastPeriod || 12}
+                            value={indicators.macd?.fastPeriod === '' ? '' : indicators.macd?.fastPeriod || 12}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              macd: { ...prev.macd, fastPeriod: parseInt(e.target.value) || 12 }
+                              macd: { ...prev.macd, fastPeriod: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                           />
@@ -3585,10 +3585,10 @@ export default function BotPage() {
                           <Label className="text-sm">Slow Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd?.slowPeriod || 26}
+                            value={indicators.macd?.slowPeriod === '' ? '' : indicators.macd?.slowPeriod || 26}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              macd: { ...prev.macd, slowPeriod: parseInt(e.target.value) || 26 }
+                              macd: { ...prev.macd, slowPeriod: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                           />
@@ -3597,10 +3597,10 @@ export default function BotPage() {
                           <Label className="text-sm">Signal Period</Label>
                           <Input
                             type="number"
-                            value={indicators.macd?.signalPeriod || 9}
+                            value={indicators.macd?.signalPeriod === '' ? '' : indicators.macd?.signalPeriod || 9}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              macd: { ...prev.macd, signalPeriod: parseInt(e.target.value) || 9 }
+                              macd: { ...prev.macd, signalPeriod: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                           />
@@ -3990,10 +3990,10 @@ export default function BotPage() {
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.cci?.period || 20}
+                            value={indicators.cci?.period === '' ? '' : indicators.cci?.period || 20}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              cci: { ...prev.cci, period: parseInt(e.target.value) || 20 }
+                              cci: { ...prev.cci, period: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="20"
@@ -4023,10 +4023,10 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.cci?.value || 100}
+                            value={indicators.cci?.value === '' ? '' : indicators.cci?.value || 100}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              cci: { ...prev.cci, value: parseInt(e.target.value) || 100 }
+                              cci: { ...prev.cci, value: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="100"
@@ -4058,10 +4058,10 @@ export default function BotPage() {
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.atr?.period || 14}
+                            value={indicators.atr?.period === '' ? '' : indicators.atr?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              atr: { ...prev.atr, period: parseInt(e.target.value) || 14 }
+                              atr: { ...prev.atr, period: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="14"
@@ -4092,10 +4092,10 @@ export default function BotPage() {
                           <Input
                             type="number"
                             step="0.1"
-                            value={indicators.atr?.multiplier || 2.0}
+                            value={indicators.atr?.multiplier === '' ? '' : indicators.atr?.multiplier || 2.0}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              atr: { ...prev.atr, multiplier: parseFloat(e.target.value) || 2.0 }
+                              atr: { ...prev.atr, multiplier: e.target.value === '' ? '' : parseFloat(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="2.0"
@@ -4127,10 +4127,10 @@ export default function BotPage() {
                           <Label className="text-sm">K Period</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic?.kPeriod || 14}
+                            value={indicators.stochastic?.kPeriod === '' ? '' : indicators.stochastic?.kPeriod || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              stochastic: { ...prev.stochastic, kPeriod: parseInt(e.target.value) || 14 }
+                              stochastic: { ...prev.stochastic, kPeriod: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="14"
@@ -4140,10 +4140,10 @@ export default function BotPage() {
                           <Label className="text-sm">D Period</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic?.dPeriod || 3}
+                            value={indicators.stochastic?.dPeriod === '' ? '' : indicators.stochastic?.dPeriod || 3}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              stochastic: { ...prev.stochastic, dPeriod: parseInt(e.target.value) || 3 }
+                              stochastic: { ...prev.stochastic, dPeriod: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="3"
@@ -4153,10 +4153,10 @@ export default function BotPage() {
                           <Label className="text-sm">Smooth K</Label>
                           <Input
                             type="number"
-                            value={indicators.stochastic?.smoothK || 3}
+                            value={indicators.stochastic?.smoothK === '' ? '' : indicators.stochastic?.smoothK || 3}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              stochastic: { ...prev.stochastic, smoothK: parseInt(e.target.value) || 3 }
+                              stochastic: { ...prev.stochastic, smoothK: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="3"
@@ -4184,10 +4184,10 @@ export default function BotPage() {
                             </Select>
                             <Input
                               type="number"
-                              value={indicators.stochastic?.value || 80}
+                              value={indicators.stochastic?.value === '' ? '' : indicators.stochastic?.value || 80}
                               onChange={(e) => setIndicators(prev => ({
                                 ...prev,
-                                stochastic: { ...prev.stochastic, value: parseInt(e.target.value) || 80 }
+                                stochastic: { ...prev.stochastic, value: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                               }))}
                               className="mt-1 w-16"
                               placeholder="80"
@@ -4220,10 +4220,10 @@ export default function BotPage() {
                           <Label className="text-sm">Period</Label>
                           <Input
                             type="number"
-                            value={indicators.williams?.period || 14}
+                            value={indicators.williams?.period === '' ? '' : indicators.williams?.period || 14}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              williams: { ...prev.williams, period: parseInt(e.target.value) || 14 }
+                              williams: { ...prev.williams, period: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="14"
@@ -4253,10 +4253,10 @@ export default function BotPage() {
                           <Label className="text-sm">Value</Label>
                           <Input
                             type="number"
-                            value={indicators.williams?.value || -20}
+                            value={indicators.williams?.value === '' ? '' : indicators.williams?.value || -20}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              williams: { ...prev.williams, value: parseInt(e.target.value) || -20 }
+                              williams: { ...prev.williams, value: e.target.value === '' ? '' : parseInt(e.target.value) || '' }
                             }))}
                             className="mt-1"
                             placeholder="-20"
