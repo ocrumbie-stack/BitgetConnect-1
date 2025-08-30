@@ -3563,7 +3563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const position = positions.find((pos: any) => pos.symbol === deployedBot.tradingPair);
-        const mapping = botMappings.find(m => m.symbol === deployedBot.tradingPair);
+        // CLEANUP: Removed botMappings reference - using dynamic data only
         
         // For manual strategy bots, create exit criteria from strategy config
         let exitCriteria = null;
@@ -3609,10 +3609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let finalExitCriteria = exitCriteria; // This contains user input from strategy config
           
           if (!finalExitCriteria) {
-            // Only use mapping or calculate if no user config exists
-            finalExitCriteria = mapping?.exitCriteria;
-            
-            if (!finalExitCriteria) {
+            // CLEANUP: Removed mapping dependency - calculate exit criteria directly
               // Last resort: calculate optimal setup
               const botLeverage = parseFloat(deployedBot.leverage || '3');
               const deploymentType = deployedBot.deploymentType || 'folder';
@@ -3626,9 +3623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               };
               
               console.log(`🎯 ${deployedBot.botName} (${botLeverage}x leverage): Using calculated - SL ${tradeSetup.stopLoss}% TP ${tradeSetup.takeProfit}% (pair price movements)`);
-            } else {
-              console.log(`📋 ${deployedBot.botName}: Using mapping criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
-            }
+
           } else {
             console.log(`✅ ${deployedBot.botName}: Using USER CONFIGURED criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
           }
@@ -3705,8 +3700,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             roi: roiPercent.toFixed(2),
             runtime: `${runtime}m`,
             deploymentType: deployedBot.deploymentType || 'manual',
-            botName: deployedBot.botName || mapping?.botName || `Bot ${deployedBot.tradingPair}`,
-            riskLevel: mapping?.riskLevel || 'Medium',
+            botName: deployedBot.botName || `Bot ${deployedBot.tradingPair}`, // CLEANUP: Removed mapping dependency
+            riskLevel: 'Medium', // CLEANUP: Removed mapping dependency
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
             updatedAt: new Date(),
@@ -3900,81 +3895,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get exit criteria for all bots
+  // Get exit criteria for all bots - CLEANUP: Return dynamic data only
   app.get('/api/bot-exit-criteria', async (req, res) => {
     try {
-      const botMappings = [
-        { 
-          symbol: 'BTCUSDT', 
-          botName: 'Grid Trading Pro', 
-          exitCriteria: {
-            stopLoss: -5.0,
-            takeProfit: 8.0, 
-            maxRuntime: 240,
-            exitStrategy: 'grid_rebalance'
-          }
-        },
-        { 
-          symbol: 'ETHUSDT', 
-          botName: 'Smart Momentum', 
-          exitCriteria: {
-            stopLoss: -4.0,
-            takeProfit: 12.0,
-            maxRuntime: 180,
-            exitStrategy: 'momentum_reversal'
-          }
-        },
-        { 
-          symbol: 'SOLUSDT', 
-          botName: 'Smart Scalping Bot', 
-          exitCriteria: {
-            stopLoss: -2.0,
-            takeProfit: 3.0,
-            maxRuntime: 60,
-            exitStrategy: 'scalp_quick_exit'
-          }
-        },
-        { 
-          symbol: 'BNBUSDT', 
-          botName: 'Smart Arbitrage', 
-          exitCriteria: {
-            stopLoss: -3.0,
-            takeProfit: 5.0,
-            maxRuntime: 360,
-            exitStrategy: 'arbitrage_spread_close'
-          }
-        },
-        { 
-          symbol: 'ADAUSDT', 
-          botName: 'AI Dollar Cost Average', 
-          exitCriteria: {
-            stopLoss: -8.0,
-            takeProfit: 15.0,
-            maxRuntime: 720,
-            exitStrategy: 'dca_accumulation'
-          }
-        },
-        { 
-          symbol: 'AVAXUSDT', 
-          botName: 'Smart Swing Trader', 
-          exitCriteria: {
-            stopLoss: -6.0,
-            takeProfit: 10.0,
-            maxRuntime: 480,
-            exitStrategy: 'swing_trend_reversal'
-          }
-        },
-        { 
-          symbol: 'LTCUSDT', 
-          botName: 'Test AI Bot', 
-          exitCriteria: {
-            stopLoss: -5.0,
-            takeProfit: 7.0,
-            maxRuntime: 120,
-            exitStrategy: 'test_exit'
-          }
-        }
-      ];
+      // CLEANUP: Removed static mappings - return empty array or dynamic data
+      const botMappings = [];
       
       res.json(botMappings);
     } catch (error) {
@@ -4100,29 +4025,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const positions = await storage.getUserPositions(userId);
       console.log(`📊 Found ${positions.length} active positions`);
 
-      // Define AI bot mappings based on our test data
-      const botMappings = [
-        { symbol: 'BTCUSDT', botName: 'Grid Trading Pro', leverage: '2' },
-        { symbol: 'ETHUSDT', botName: 'Smart Momentum', leverage: '3' },
-        { symbol: 'SOLUSDT', botName: 'Smart Scalping Bot', leverage: '5' },
-        { symbol: 'BNBUSDT', botName: 'Smart Arbitrage', leverage: '2' },
-        { symbol: 'ADAUSDT', botName: 'AI Dollar Cost Average', leverage: '1' },
-        { symbol: 'AVAXUSDT', botName: 'Smart Swing Trader', leverage: '3' }
-      ];
+      // CLEANUP: Removed static mappings - use dynamic position data
 
       const createdExecutions = [];
 
       for (const position of positions) {
-        const mapping = botMappings.find(m => m.symbol === position.symbol);
-        if (mapping) {
+        // CLEANUP: Generate dynamic bot name instead of using mappings
+        const botName = `Smart Bot ${position.symbol.replace('USDT', '')}`;
+        if (position.symbol) {
           try {
             // Create simple strategy first
             let strategy;
             try {
               strategy = await storage.createBotStrategy({
                 userId: userId,
-                name: mapping.botName,
-                description: `AI Bot: ${mapping.botName}`,
+                name: botName,
+                description: `AI Bot: ${botName}`,
                 strategy: 'ai',
                 riskLevel: 'medium',
                 config: {
@@ -4137,9 +4055,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } catch (strategyError) {
               // Try to find existing strategy
               const strategies = await storage.getBotStrategies(userId);
-              strategy = strategies.find(s => s.name === mapping.botName);
+              strategy = strategies.find(s => s.name === botName);
               if (!strategy) {
-                console.log(`⚠️ Could not create strategy for ${mapping.botName}, skipping...`);
+                console.log(`⚠️ Could not create strategy for ${botName}, skipping...`);
                 continue;
               }
             }
@@ -4151,13 +4069,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               tradingPair: position.symbol,
               status: 'active',
               capital: '10',
-              leverage: mapping.leverage,
-              botName: mapping.botName,
+              leverage: '3', // Default leverage for dynamic bots
+              botName: botName,
               startedAt: new Date()
             });
 
             createdExecutions.push(execution);
-            console.log(`✅ Created bot execution for ${mapping.botName} on ${position.symbol}`);
+            console.log(`✅ Created bot execution for ${botName} on ${position.symbol}`);
           } catch (error) {
             console.error(`❌ Failed to create bot execution for ${position.symbol}:`, error.message);
           }
