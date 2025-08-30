@@ -3435,9 +3435,10 @@ export default function BotPage() {
                             value={indicators.rsi.period}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              rsi: { ...prev.rsi, period: parseInt(e.target.value) || 14 }
+                              rsi: { ...prev.rsi, period: e.target.value === '' ? '' : parseInt(e.target.value) || 14 }
                             }))}
                             className="mt-1"
+                            placeholder="14"
                           />
                         </div>
                         <div>
@@ -3465,9 +3466,10 @@ export default function BotPage() {
                             value={indicators.rsi.value}
                             onChange={(e) => setIndicators(prev => ({
                               ...prev,
-                              rsi: { ...prev.rsi, value: parseInt(e.target.value) || 70 }
+                              rsi: { ...prev.rsi, value: e.target.value === '' ? '' : parseInt(e.target.value) || 0 }
                             }))}
                             className="mt-1"
+                            placeholder="e.g. 50"
                           />
                         </div>
                       </div>
