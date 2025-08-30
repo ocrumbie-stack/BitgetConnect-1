@@ -1642,24 +1642,24 @@ export default function BotPage() {
           <Card 
             className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'executions' 
-                ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/40 dark:to-green-900/40 border-green-300 dark:border-green-600' 
-                : 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-600'
+                ? 'bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-800/40 dark:to-emerald-900/40 border-emerald-300 dark:border-emerald-600' 
+                : 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800 hover:border-emerald-300 dark:hover:border-emerald-600'
             }`}
             onClick={() => handleTabChange('executions')}
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500 rounded-md">
+                <div className="p-2 bg-emerald-500 rounded-md">
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
-                  <div className="text-xl font-bold text-green-700 dark:text-green-300">
+                  <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
                     {(() => {
                       const activeBots = (activeExecutions as any[]).filter(ex => ex.status === 'active');
                       return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-green-600 dark:text-green-400">Active</div>
+                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Active</div>
                 </div>
               </div>
             </CardContent>
@@ -1668,21 +1668,21 @@ export default function BotPage() {
           <Card 
             className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
               activeTab === 'ai' 
-                ? 'bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800/40 dark:to-purple-900/40 border-purple-300 dark:border-purple-600' 
-                : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-600'
+                ? 'bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800/40 dark:to-indigo-900/40 border-indigo-300 dark:border-indigo-600' 
+                : 'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border-indigo-200 dark:border-indigo-800 hover:border-indigo-300 dark:hover:border-indigo-600'
             }`}
             onClick={() => handleTabChange('ai')}
           >
             <CardContent className="p-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500 rounded-md">
+                <div className="p-2 bg-indigo-500 rounded-md">
                   <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex-1 text-center">
-                  <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
+                  <div className="text-xl font-bold text-indigo-700 dark:text-indigo-300">
                     6
                   </div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">AI Bots</div>
+                  <div className="text-sm text-indigo-600 dark:text-indigo-400">AI Bots</div>
                 </div>
               </div>
             </CardContent>
