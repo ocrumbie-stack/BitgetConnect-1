@@ -117,6 +117,29 @@ export default function BotPage() {
     refetchOnMount: true
   });
 
+  // Organization mutation
+  const organizationMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/organize-strategies', 'POST', {});
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Organization Complete",
+        description: data.message || "All strategies have been organized into folders",
+        variant: "default"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/bot-executions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/screeners'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Organization Failed",
+        description: error?.message || "Failed to organize strategies",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Auto-fix existing auto scanner strategies on first load
   useEffect(() => {
     const fixAutoScannerStrategies = async () => {
@@ -1580,15 +1603,32 @@ export default function BotPage() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAlertCenter(true)}
-            className="flex items-center gap-2"
-          >
-            <Bell className="h-4 w-4" />
-            Alerts
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => organizationMutation.mutate()}
+              disabled={organizationMutation.isPending}
+              className="flex items-center gap-2"
+              data-testid="button-organize-strategies"
+            >
+              {organizationMutation.isPending ? (
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+              ) : (
+                <Settings className="h-4 w-4" />
+              )}
+              {organizationMutation.isPending ? 'Organizing...' : 'Organize'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAlertCenter(true)}
+              className="flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4" />
+              Alerts
+            </Button>
+          </div>
         </div>
       </div>
 
