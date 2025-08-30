@@ -838,6 +838,7 @@ export function CreateScreener() {
                                           field.onChange(value);
                                         }
                                       }}
+                                      autoComplete="off"
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -937,6 +938,7 @@ export function CreateScreener() {
                                               field.onChange(value);
                                             }
                                           }}
+                                          autoComplete="off"
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1023,6 +1025,7 @@ export function CreateScreener() {
                                           field.onChange(value);
                                         }
                                       }}
+                                      autoComplete="off"
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1122,6 +1125,7 @@ export function CreateScreener() {
                                               field.onChange(value);
                                             }
                                           }}
+                                          autoComplete="off"
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
