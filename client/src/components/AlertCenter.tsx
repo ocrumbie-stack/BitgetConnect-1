@@ -35,10 +35,21 @@ import type { Alert, AlertSetting } from '@shared/schema';
 
 interface AlertCenterProps {
   userId?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AlertCenter({ userId = 'default-user', isOpen: externalIsOpen, onClose }: AlertCenterProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
   const [activeTab, setActiveTab] = useState('alerts');
   const [showCreateAlert, setShowCreateAlert] = useState(false);
   const { toast } = useToast();
@@ -180,7 +191,7 @@ export function AlertCenter({ userId = 'default-user' }: AlertCenterProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogTrigger asChild>
         <Button variant="ghost" className="relative p-2" data-testid="button-alerts">
           <Bell className="h-5 w-5" />
