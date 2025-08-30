@@ -74,20 +74,7 @@ export function Home() {
 
   const socialSentiment = getSocialSentiment();
 
-  // Market health indicators
-  const getMarketHealth = () => {
-    const volatility = data ? data.reduce((sum, item) => sum + Math.abs(parseFloat(item.change24h || '0')), 0) / data.length : 0;
-    const activeMarkets = data?.filter(item => parseFloat(item.volume24h || '0') > 100000).length || 0;
-    
-    return {
-      volatility: volatility * 100,
-      liquidity: (activeMarkets / (data?.length || 1)) * 100,
-      momentum: sentiment.bullish - sentiment.bearish,
-      stability: 100 - (volatility * 100)
-    };
-  };
-
-  const marketHealth = getMarketHealth();
+  // CLEANUP: Removed market health calculation
 
   const formatVolume = (volume: number) => {
     if (volume >= 1e9) return `$${(volume / 1e9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}B`;
@@ -874,85 +861,7 @@ export function Home() {
               </Card>
             </div>
 
-            {/* Market Health Dashboard */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-pink-500" />
-                  Market Health Dashboard
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                      {marketHealth.volatility.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-blue-500">Volatility</div>
-                    <div className="text-xs text-muted-foreground">
-                      {marketHealth.volatility > 8 ? 'High' : marketHealth.volatility > 4 ? 'Medium' : 'Low'}
-                    </div>
-                  </div>
-                  
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                      {marketHealth.liquidity.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-green-500">Liquidity</div>
-                    <div className="text-xs text-muted-foreground">
-                      {marketHealth.liquidity > 70 ? 'High' : marketHealth.liquidity > 40 ? 'Medium' : 'Low'}
-                    </div>
-                  </div>
-                  
-                  <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                      {marketHealth.momentum > 0 ? '+' : ''}{marketHealth.momentum.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-purple-500">Momentum</div>
-                    <div className="text-xs text-muted-foreground">
-                      {Math.abs(marketHealth.momentum) > 20 ? 'Strong' : Math.abs(marketHealth.momentum) > 10 ? 'Moderate' : 'Weak'}
-                    </div>
-                  </div>
-                  
-                  <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
-                      {marketHealth.stability.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-yellow-500">Stability</div>
-                    <div className="text-xs text-muted-foreground">
-                      {marketHealth.stability > 90 ? 'High' : marketHealth.stability > 80 ? 'Medium' : 'Low'}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Market Insights */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-blue-500" />
-                  Market Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-                  {socialSentiment.insights.map((insight, index) => (
-                    <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <div className="p-1 bg-blue-500 rounded-full mt-0.5">
-                        <Star className="h-2 w-2 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium break-words">{insight}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {Math.floor(Math.random() * 30 + 1)}m ago
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
 
 
