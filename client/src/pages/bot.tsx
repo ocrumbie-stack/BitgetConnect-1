@@ -3545,6 +3545,10 @@ export default function BotPage() {
                             <SelectContent>
                               <SelectItem value="bullish_crossover">Bullish Crossover</SelectItem>
                               <SelectItem value="bearish_crossover">Bearish Crossover</SelectItem>
+                              <SelectItem value="histogram_above_zero">Histogram Above Zero</SelectItem>
+                              <SelectItem value="histogram_below_zero">Histogram Below Zero</SelectItem>
+                              <SelectItem value="macd_above_signal">MACD Above Signal</SelectItem>
+                              <SelectItem value="macd_below_signal">MACD Below Signal</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

@@ -871,6 +871,16 @@ async function evaluateMACDCondition(condition: any, tradingPair: string, curren
       const crossover = macdLine < signalLine && prevMacdLine >= prevSignalLine;
       console.log(`🔍 Bearish crossover check: ${crossover} (Current: MACD ${macdLine.toFixed(6)} < Signal ${signalLine.toFixed(6)}, Previous: MACD ${prevMacdLine.toFixed(6)} >= Signal ${prevSignalLine.toFixed(6)})`);
       return crossover;
+    } else if (condition.condition === 'macd_above_signal') {
+      // MACD line above signal line (static condition)
+      const aboveSignal = macdLine > signalLine;
+      console.log(`🔍 MACD above signal check: ${aboveSignal} (MACD: ${macdLine.toFixed(6)} > Signal: ${signalLine.toFixed(6)})`);
+      return aboveSignal;
+    } else if (condition.condition === 'macd_below_signal') {
+      // MACD line below signal line (static condition)
+      const belowSignal = macdLine < signalLine;
+      console.log(`🔍 MACD below signal check: ${belowSignal} (MACD: ${macdLine.toFixed(6)} < Signal: ${signalLine.toFixed(6)})`);
+      return belowSignal;
     }
     
     return false;
