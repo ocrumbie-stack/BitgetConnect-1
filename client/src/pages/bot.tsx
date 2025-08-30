@@ -272,7 +272,7 @@ export default function BotPage() {
   console.log(`🔍 Debug Active Bots:`, {
     totalExecutions: allExecutions.length,
     activeExecutions: activeExecutions.length,
-    statuses: allExecutions.map((ex: any) => ({ id: ex.id, status: ex.status, pair: ex.tradingPair })),
+    statuses: allExecutions.map((ex: any) => ({ id: ex.id, status: ex.status, pair: ex.tradingPair, deploymentType: ex.deploymentType })),
     currentTab: activeTab
   });
 
@@ -2530,6 +2530,14 @@ export default function BotPage() {
                       }
                       folderGroups[folderName].push(execution);
                     } 
+                    // Continuous scanner bots (special handling)
+                    else if (execution.deploymentType === 'continuous_scanner' || execution.tradingPair === 'CONTINUOUS_SCANNER_MODE') {
+                      const folderName = execution.folderName || '🔄 Continuous Scanner';
+                      if (!folderGroups[folderName]) {
+                        folderGroups[folderName] = [];
+                      }
+                      folderGroups[folderName].push(execution);
+                    }
                     // Manual individual bots
                     else if (!execution.folderName || execution.deploymentType === 'manual') {
                       manualExecutions.push(execution);
