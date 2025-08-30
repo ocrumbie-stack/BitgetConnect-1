@@ -989,6 +989,9 @@ export default function BotPage() {
 
   // Handle editing strategy
   const handleEditStrategy = (strategy: any) => {
+    // Prevent page jumping by ensuring scroll position is maintained
+    const currentScrollY = window.scrollY;
+    
     setEditingStrategy(strategy);
     // Pre-populate form with existing strategy data
     setStrategyName(strategy.name);
@@ -1006,9 +1009,6 @@ export default function BotPage() {
         ...strategy.config.indicators
       }));
     }
-    
-    // Show the form dialog
-    setShowCreateForm(true);
     
     // Pre-populate indicators with default structure to avoid undefined errors
     const defaultIndicators = {
@@ -1036,7 +1036,13 @@ export default function BotPage() {
       setIndicators(defaultIndicators);
     }
     
+    // Show only the edit form, prevent page jumping
     setShowEditForm(true);
+    
+    // Restore scroll position after state update
+    setTimeout(() => {
+      window.scrollTo(0, currentScrollY);
+    }, 0);
   };
 
   // Update strategy mutation
