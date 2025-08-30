@@ -826,7 +826,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder=""
-                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={field.onChange}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -918,7 +919,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder=""
-                                          {...field}
+                                          value={field.value || ''}
+                                          onChange={field.onChange}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -997,7 +999,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder=""
-                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={field.onChange}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1089,7 +1092,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder=""
-                                          {...field}
+                                          value={field.value || ''}
+                                          onChange={field.onChange}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
