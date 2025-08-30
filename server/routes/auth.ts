@@ -133,7 +133,11 @@ router.post('/create-demo-user', async (req, res) => {
     // Check if demo user already exists
     const existingUser = await storage.getUserByUsername('admin');
     if (existingUser) {
-      return res.json({ message: 'Demo user already exists' });
+      return res.json({ 
+        message: 'Demo user already exists',
+        userId: existingUser.id,
+        username: existingUser.username 
+      });
     }
     
     // Create demo user
@@ -158,7 +162,26 @@ router.post('/create-demo-user', async (req, res) => {
     
   } catch (error) {
     console.error('Demo user creation error:', error);
-    res.status(500).json({ message: 'Failed to create demo user' });
+    res.status(500).json({ message: 'Failed to create demo user', error: error.message });
+  }
+});
+
+// Debug endpoint to check user status
+router.get('/debug-user', async (req, res) => {
+  try {
+    const user = await storage.getUserByUsername('admin');
+    if (user) {
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ 
+        message: 'User found',
+        user: userWithoutPassword 
+      });
+    } else {
+      res.json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Debug user error:', error);
+    res.status(500).json({ message: 'Debug failed', error: error.message });
   }
 });
 
