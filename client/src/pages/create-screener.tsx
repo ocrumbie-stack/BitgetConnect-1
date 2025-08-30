@@ -209,28 +209,28 @@ export function CreateScreener() {
         };
       }
 
-      if (data.ma1Enabled) {
+      if (data.ma1Enabled && data.ma1Period) {
         criteria.movingAverage1 = {
           type: data.ma1Type || 'SMA',
-          period: parseInt(data.ma1Period || '20'),
+          period: parseInt(data.ma1Period),
           operator: data.ma1Operator || 'above',
           comparison: data.ma1Comparison || 'price',
-          comparisonMa: data.ma1Comparison === 'another_ma' ? {
+          comparisonMa: data.ma1Comparison === 'another_ma' && data.ma1ComparisonPeriod ? {
             type: data.ma1ComparisonType || 'SMA',
-            period: parseInt(data.ma1ComparisonPeriod || '50'),
+            period: parseInt(data.ma1ComparisonPeriod),
           } : undefined,
         };
       }
 
-      if (data.ma2Enabled) {
+      if (data.ma2Enabled && data.ma2Period) {
         criteria.movingAverage2 = {
           type: data.ma2Type || 'EMA',
-          period: parseInt(data.ma2Period || '50'),
+          period: parseInt(data.ma2Period),
           operator: data.ma2Operator || 'above',
           comparison: data.ma2Comparison || 'price',
-          comparisonMa: data.ma2Comparison === 'another_ma' ? {
+          comparisonMa: data.ma2Comparison === 'another_ma' && data.ma2ComparisonPeriod ? {
             type: data.ma2ComparisonType || 'SMA',
-            period: parseInt(data.ma2ComparisonPeriod || '200'),
+            period: parseInt(data.ma2ComparisonPeriod),
           } : undefined,
         };
       }
@@ -825,7 +825,7 @@ export function CreateScreener() {
                                   <FormControl>
                                     <Input
                                       type="number"
-                                      placeholder="20"
+                                      placeholder=""
                                       {...field}
                                       data-testid="input-ma1-period"
                                     />
@@ -917,7 +917,7 @@ export function CreateScreener() {
                                       <FormControl>
                                         <Input
                                           type="number"
-                                          placeholder="50"
+                                          placeholder=""
                                           {...field}
                                           data-testid="input-ma1-comparison-period"
                                         />
@@ -996,7 +996,7 @@ export function CreateScreener() {
                                   <FormControl>
                                     <Input
                                       type="number"
-                                      placeholder="50"
+                                      placeholder=""
                                       {...field}
                                       data-testid="input-ma2-period"
                                     />
@@ -1088,7 +1088,7 @@ export function CreateScreener() {
                                       <FormControl>
                                         <Input
                                           type="number"
-                                          placeholder="200"
+                                          placeholder=""
                                           {...field}
                                           data-testid="input-ma2-comparison-period"
                                         />
