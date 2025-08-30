@@ -3414,8 +3414,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Check each pair against strategy conditions
               for (const pair of topPairs) {
-                // Skip if we already have a position for this pair
+                // Skip if we already have a position OR existing bot for this pair
                 if (positions.find((pos: any) => pos.symbol === pair)) {
+                  continue;
+                }
+                
+                // CRITICAL FIX: Also skip if we already have an active/waiting bot for this pair to prevent duplicates
+                const existingBot = deployedBots.find(bot => 
+                  bot.tradingPair === pair && 
+                  (bot.status === 'active' || bot.status === 'waiting_entry') &&
+                  (bot.deploymentType === 'continuous_scanner_child' || bot.deploymentType === 'continuous_scanner')
+                );
+                if (existingBot) {
+                  console.log(`⏸️ Skipping ${pair} - already has bot: ${existingBot.botName} (${existingBot.status})`);
                   continue;
                 }
                 
@@ -3745,6 +3756,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             exitReason: null,
             positionData: null
           });
+        }
+      }
+
+      // CLEANUP: Terminate orphaned continuous_scanner_child bots that no longer have positions
+      const orphanedChildBots = deployedBots.filter(bot => 
+        bot.deploymentType === 'continuous_scanner_child' && 
+        bot.status === 'active' &&
+        !positions.find((pos: any) => pos.symbol === bot.tradingPair)
+      );
+      
+      if (orphanedChildBots.length > 0) {
+        console.log(`🧹 Found ${orphanedChildBots.length} orphaned continuous_scanner_child bots without positions, terminating to prevent duplicates`);
+        for (const orphanBot of orphanedChildBots) {
+          await storage.updateBotExecution(orphanBot.id, { 
+            status: 'terminated',
+            exitReason: 'Position closed - auto cleanup'
+          });
+          console.log(`🗑️ Terminated orphaned bot: ${orphanBot.botName} (${orphanBot.tradingPair})`);
         }
       }
 
