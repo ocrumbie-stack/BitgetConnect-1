@@ -105,30 +105,32 @@ export default function BotPage() {
   // Fetch user strategies (filter to only show manually created ones)
   const { data: allStrategies = [], isLoading: strategiesLoading } = useQuery({
     queryKey: ['/api/bot-strategies'],
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: 10000, // Cache for 10 seconds to prevent blocking
+    refetchOnWindowFocus: false, // Prevent blocking on navigation
     refetchOnMount: true
   });
 
   // Removed manual organization mutation - folders are now assigned automatically
 
-  // Auto-fix existing auto scanner strategies on first load
+  // Auto-fix existing auto scanner strategies on first load (non-blocking)
   useEffect(() => {
-    const fixAutoScannerStrategies = async () => {
-      try {
-        const response = await fetch('/api/fix-auto-scanner-strategies', { method: 'POST' });
-        if (response.ok) {
-          const result = await response.json();
-          if (result.updatedCount > 0) {
-            console.log(`✅ Fixed ${result.updatedCount} auto scanner strategies`);
-            // Refresh the strategies list
-            queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
+    const fixAutoScannerStrategies = () => {
+      // Use setTimeout to make this non-blocking
+      setTimeout(async () => {
+        try {
+          const response = await fetch('/api/fix-auto-scanner-strategies', { method: 'POST' });
+          if (response.ok) {
+            const result = await response.json();
+            if (result.updatedCount > 0) {
+              console.log(`✅ Fixed ${result.updatedCount} auto scanner strategies`);
+              // Refresh the strategies list
+              queryClient.invalidateQueries({ queryKey: ['/api/bot-strategies'] });
+            }
           }
+        } catch (error) {
+          console.log('Auto-fix already completed or not needed');
         }
-      } catch (error) {
-        console.log('Auto-fix already completed or not needed');
-      }
+      }, 100); // Small delay to prevent blocking
     };
     
     // Only run this once when strategies are first loaded
@@ -244,7 +246,9 @@ export default function BotPage() {
   const { data: allExecutions = [], isLoading: executionsLoading } = useQuery({
     queryKey: ['/api/bot-executions'],
     refetchInterval: 5000, // Refresh every 5 seconds for real-time data
-    refetchIntervalInBackground: true
+    refetchIntervalInBackground: true,
+    staleTime: 3000, // Use cached data for 3 seconds to prevent blocking
+    refetchOnWindowFocus: false // Prevent blocking on navigation
   });
 
   // Fetch futures data for AI suggestions
@@ -284,6 +288,8 @@ export default function BotPage() {
         return [];
       }
     },
+    staleTime: 30000, // Cache folders for 30 seconds to prevent blocking
+    refetchOnWindowFocus: false // Prevent blocking on navigation
   });
 
   // Create strategy mutation

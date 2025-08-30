@@ -4,9 +4,9 @@ import type { FuturesData } from '@shared/schema';
 export function useBitgetData() {
   return useQuery<FuturesData[]>({
     queryKey: ['/api/futures'],
-    refetchInterval: 30000, // Reduced frequency: refetch every 30 seconds
-    staleTime: 25000, // Keep data fresh for 25 seconds
-    refetchOnWindowFocus: false, // Disable refetch on focus to reduce requests
+    refetchInterval: 5000, // Real-time: refetch every 5 seconds
+    staleTime: 2000, // Keep data fresh for 2 seconds
+    refetchOnWindowFocus: false, // Keep disabled to prevent navigation delays
     retry: 2,
   });
 }
@@ -14,10 +14,10 @@ export function useBitgetData() {
 export function useAccountData(userId: string) {
   return useQuery({
     queryKey: ['/api/account', userId],
-    refetchInterval: 60000, // Reduced frequency: refetch every 60 seconds
-    staleTime: 45000, // Keep data fresh for 45 seconds
+    refetchInterval: 10000, // Real-time: refetch every 10 seconds
+    staleTime: 5000, // Keep data fresh for 5 seconds
     enabled: !!userId, // Only run query if userId is provided
-    refetchOnWindowFocus: false, // Disable refetch on focus
+    refetchOnWindowFocus: false, // Keep disabled to prevent navigation delays
   });
 }
 
