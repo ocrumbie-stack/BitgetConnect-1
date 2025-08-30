@@ -1741,13 +1741,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`📁 Starting strategy organization (force=${force})...`);
       
-      // Get all unorganized bot executions
+      // Get all unorganized bot executions (now includes manual deployments)
       const executions = await storage.getBotExecutions(userId);
       const unorganizedExecutions = executions.filter(bot => 
         !bot.folderName && 
         bot.status !== 'terminated' && 
-        bot.deploymentType && 
-        bot.deploymentType !== 'manual'
+        bot.deploymentType
       );
       
       console.log(`📊 Found ${unorganizedExecutions.length} unorganized executions out of ${executions.length} total`);
@@ -4100,18 +4099,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let folderName = validatedData.folderName;
       let folderId = validatedData.folderId;
       
-      if (!folderName && validatedData.deploymentType && validatedData.deploymentType !== 'manual') {
+      if (!folderName && validatedData.deploymentType) {
         try {
           // Get strategy for folder organization
           const strategies = await storage.getBotStrategies(userId);
           const strategy = strategies.find(s => s.id === validatedData.strategyId);
           
-          // Create organized folder
+          // Create organized folder (now includes manual deployments)
           const folder = await createOrganizedFolder(userId, strategy, validatedData.deploymentType, [validatedData.tradingPair].filter(Boolean));
           folderName = folder.name;
           folderId = folder.id;
           
-          console.log(`📁 Auto-organized deployment into folder: ${folderName}`);
+          console.log(`📁 Auto-organized ${validatedData.deploymentType} deployment into folder: ${folderName}`);
         } catch (folderError) {
           console.log(`⚠️ Failed to create organized folder, continuing without: ${folderError}`);
         }
