@@ -1594,12 +1594,12 @@ export default function BotPage() {
           <div className="flex items-center gap-3">
             <BackButton to="/" label="Home" />
             <div>
-              <h1 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
-                <Bot className="h-6 w-6" />
+              <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-muted-foreground text-sm">
-                Create reusable trading strategies and run them on any trading pair
+              <p className="text-muted-foreground text-xs mt-1">
+                Automated trading strategies with AI-powered analysis
               </p>
             </div>
           </div>
