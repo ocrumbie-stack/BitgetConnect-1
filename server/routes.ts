@@ -3744,16 +3744,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             runtime: `${runtime}m`,
             deploymentType: deployedBot.deploymentType || 'manual',
             botName: deployedBot.botName || `Bot ${deployedBot.tradingPair}`,
-            riskLevel: mapping?.riskLevel || 'Medium',
+            riskLevel: 'Medium', // CLEANUP: Removed mapping dependency
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
             updatedAt: new Date(),
-            exitCriteria: mapping ? {
-              stopLoss: `${mapping.exitCriteria.stopLoss}%`,
-              takeProfit: `${mapping.exitCriteria.takeProfit}%`,
-              maxRuntime: `${mapping.exitCriteria.maxRuntime}m`,
-              strategy: mapping.exitCriteria.exitStrategy
-            } : null,
+            exitCriteria: null, // CLEANUP: Removed mapping dependency
             exitTriggered: false,
             exitReason: null,
             positionData: null
