@@ -1799,7 +1799,31 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
       return false;
     }
     
-    // Prepare order data - fix side parameter for Bitget API
+    // Calculate TP/SL prices from user configuration
+    let takeProfitPrice: string | undefined;
+    let stopLossPrice: string | undefined;
+    
+    if (riskManagement?.takeProfit && riskManagement?.stopLoss) {
+      console.log(`📊 Calculating TP/SL from user config: ${riskManagement.takeProfit}% TP, ${riskManagement.stopLoss}% SL`);
+      
+      // User configured percentages - convert to actual prices
+      const tpPercent = parseFloat(riskManagement.takeProfit.toString()) / 100;
+      const slPercent = parseFloat(riskManagement.stopLoss.toString()) / 100;
+      
+      if (positionDirection === 'long') {
+        // Long position: TP higher, SL lower
+        takeProfitPrice = (currentPrice * (1 + tpPercent)).toFixed(6);
+        stopLossPrice = (currentPrice * (1 - slPercent)).toFixed(6);
+      } else {
+        // Short position: TP lower, SL higher  
+        takeProfitPrice = (currentPrice * (1 - tpPercent)).toFixed(6);
+        stopLossPrice = (currentPrice * (1 + slPercent)).toFixed(6);
+      }
+      
+      console.log(`💰 Calculated TP/SL prices: TP ${takeProfitPrice}, SL ${stopLossPrice} (based on current price ${currentPrice})`);
+    }
+
+    // Prepare order data with user's TP/SL values
     const orderData = {
       symbol: tradingPair,
       marginCoin: 'USDT',
@@ -1808,18 +1832,22 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
       size: positionSize.toFixed(6),
       leverage: leverageNum,
       source: 'manual_strategy',
-      botName: deployedBot.botName
+      botName: deployedBot.botName,
+      // Include user's TP/SL values if configured
+      ...(takeProfitPrice && { takeProfit: takeProfitPrice }),
+      ...(stopLossPrice && { stopLoss: stopLossPrice })
     };
 
-    console.log(`📊 Order details:`, orderData);
+    console.log(`📊 Order details with USER TP/SL:`, orderData);
     
-    // Place the order
+    // Place the order with user's configured TP/SL
     const orderResult = await bitgetAPI.placeOrder(orderData);
-    console.log(`✅ Order placed successfully:`, orderResult);
+    console.log(`✅ Order placed successfully with USER configured TP/SL:`, orderResult);
     
-    // Set up stop loss and take profit if configured
-    if (riskManagement?.stopLoss || riskManagement?.takeProfit) {
-      await setStopLossAndTakeProfit(tradingPair, positionDirection, currentPrice, riskManagement);
+    if (takeProfitPrice && stopLossPrice) {
+      console.log(`🎯 USER TP/SL applied: TP ${riskManagement.takeProfit}% at $${takeProfitPrice}, SL ${riskManagement.stopLoss}% at $${stopLossPrice}`);
+    } else {
+      console.log(`⚠️ No TP/SL applied - user configuration missing or incomplete`);
     }
     
     return true;
@@ -3595,33 +3623,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get leverage from deployed bot (default to 3x if not specified)
             const botLeverage = parseFloat(deployedBot.leverage || '3');
             
-            // Use dynamic limits if user didn't specify custom ones
+            // ONLY USE USER INPUT PARAMETERS - NO OVERRIDES OR PRESETS
             const userStopLoss = strategy.config.riskManagement.stopLoss;
             const userTakeProfit = strategy.config.riskManagement.takeProfit;
             
             let finalStopLoss, finalTakeProfit;
             
             if (userStopLoss && userTakeProfit) {
-              // User specified custom limits - validate account risk
-              const maxAccountLoss = userStopLoss * botLeverage;
-              const maxAccountGain = userTakeProfit * botLeverage;
-              
-              if (maxAccountLoss > 10) { // More than 10% account risk
-                console.log(`⚠️ Manual strategy ${deployedBot.botName}: User stop loss ${userStopLoss}% with ${botLeverage}x leverage = ${maxAccountLoss}% account risk! Finding better trade setup.`);
-                const tradeSetup = calculateOptimalTradeSetup(botLeverage, 'manual');
-                finalStopLoss = tradeSetup.stopLoss;
-                finalTakeProfit = tradeSetup.takeProfit;
-                console.log(`🎯 Switching to ${tradeSetup.tradeProfile} profile for safer ${botLeverage}x leverage trading`);
-              } else {
-                finalStopLoss = userStopLoss;
-                finalTakeProfit = userTakeProfit;
-              }
+              // Use EXACTLY what the user configured - no validation or overrides
+              finalStopLoss = userStopLoss;
+              finalTakeProfit = userTakeProfit;
+              console.log(`✅ Using USER CONFIGURED values: ${userStopLoss}% SL, ${userTakeProfit}% TP (no overrides)`);
             } else {
-              // No user limits - calculate optimal trade setup
+              // Only calculate fallbacks if user didn't specify ANY values
               const tradeSetup = calculateOptimalTradeSetup(botLeverage, 'manual');
               finalStopLoss = tradeSetup.stopLoss;
               finalTakeProfit = tradeSetup.takeProfit;
-              console.log(`🎯 Using ${tradeSetup.tradeProfile} profile for ${botLeverage}x leverage trading`);
+              console.log(`🎯 No user values found - using calculated: ${finalStopLoss}% SL, ${finalTakeProfit}% TP`);
             }
             
             exitCriteria = {
@@ -3631,28 +3649,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
               exitStrategy: 'manual_exit'
             };
             
-            console.log(`🛡️ Manual strategy ${deployedBot.botName} (${botLeverage}x leverage): SL ${finalStopLoss}% (${(finalStopLoss * botLeverage).toFixed(1)}% account), TP ${finalTakeProfit}% (${(finalTakeProfit * botLeverage).toFixed(1)}% account)`);
+            console.log(`📊 Manual strategy ${deployedBot.botName} (${botLeverage}x leverage): SL ${finalStopLoss}% TP ${finalTakeProfit}% (pair price movements)`);
           }
         }
         
         if (position) {
-          // Get exit criteria from various sources, with dynamic leverage-safe defaults
-          let finalExitCriteria = exitCriteria || mapping?.exitCriteria;
+          // PRIORITY: Use user-configured exit criteria first, then fallback to calculated
+          let finalExitCriteria = exitCriteria; // This contains user input from strategy config
           
           if (!finalExitCriteria) {
-            // No predefined criteria - find optimal trade setup for leverage
-            const botLeverage = parseFloat(deployedBot.leverage || '3');
-            const deploymentType = deployedBot.deploymentType || 'folder';
-            const tradeSetup = calculateOptimalTradeSetup(botLeverage, deploymentType);
+            // Only use mapping or calculate if no user config exists
+            finalExitCriteria = mapping?.exitCriteria;
             
-            finalExitCriteria = {
-              stopLoss: -tradeSetup.stopLoss, // Negative for loss
-              takeProfit: tradeSetup.takeProfit, // Positive for profit
-              maxRuntime: 240, // Default 4 hours
-              exitStrategy: tradeSetup.tradeProfile
-            };
-            
-            console.log(`🎯 ${deployedBot.botName} (${botLeverage}x leverage): Using ${tradeSetup.tradeProfile} - SL ${tradeSetup.stopLoss}% (${(tradeSetup.stopLoss * botLeverage).toFixed(1)}% account), TP ${tradeSetup.takeProfit}% (${(tradeSetup.takeProfit * botLeverage).toFixed(1)}% account)`);
+            if (!finalExitCriteria) {
+              // Last resort: calculate optimal setup
+              const botLeverage = parseFloat(deployedBot.leverage || '3');
+              const deploymentType = deployedBot.deploymentType || 'folder';
+              const tradeSetup = calculateOptimalTradeSetup(botLeverage, deploymentType);
+              
+              finalExitCriteria = {
+                stopLoss: -tradeSetup.stopLoss, // Negative for loss
+                takeProfit: tradeSetup.takeProfit, // Positive for profit
+                maxRuntime: 240, // Default 4 hours
+                exitStrategy: tradeSetup.tradeProfile
+              };
+              
+              console.log(`🎯 ${deployedBot.botName} (${botLeverage}x leverage): Using calculated - SL ${tradeSetup.stopLoss}% TP ${tradeSetup.takeProfit}% (pair price movements)`);
+            } else {
+              console.log(`📋 ${deployedBot.botName}: Using mapping criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
+            }
+          } else {
+            console.log(`✅ ${deployedBot.botName}: Using USER CONFIGURED criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
           }
           // Bot has an active position
           const runtime = deployedBot.startedAt 
