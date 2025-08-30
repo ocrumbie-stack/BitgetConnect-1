@@ -1591,15 +1591,15 @@ export default function BotPage() {
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <BackButton to="/" label="Home" />
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
                 <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-muted-foreground text-xs">
-                Automated strategies with AI analysis
+              <p className="text-muted-foreground text-xs whitespace-nowrap">
+                Automated trading strategies with AI-powered analysis
               </p>
             </div>
           </div>
