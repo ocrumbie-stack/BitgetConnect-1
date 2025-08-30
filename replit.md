@@ -7,6 +7,7 @@ Table design preference: Compact rows with minimal padding (py-2) for space effi
 Navigation preference: Pages should open instantly at the top without scrolling animations for immediate access to content.
 Bots page UX preference: Use clickable overview cards for navigation instead of redundant tab system - streamlined interface with functional cards that show active states.
 Folder organization preference: All bots should be automatically assigned to appropriate folders without requiring manual organization buttons. Users want seamless automatic categorization by deployment type (auto scanner, manual strategy, folder deployment, etc.) without any manual intervention.
+Interface preference: Clean, minimal interface without unnecessary alerts or notification buttons on main pages - keep only essential functionality visible.
 Account balance display: Total Balance = Total Equity + Available Balance + P&L (complete account value including position allocations).
 Header structure preference: Total Balance, Total Equity, Available Balance (in that specific order).
 Balance calculation logic: Total Equity = Available Balance + Margin Used, Total Balance = Total Equity + Available Balance + P&L.

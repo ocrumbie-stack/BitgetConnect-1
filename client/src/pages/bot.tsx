@@ -1599,17 +1599,9 @@ export default function BotPage() {
               </div>
             </div>
             
-            {/* Enhanced Action Buttons */}
+            {/* Action area - reserved for future features */}
             <div className="flex items-center space-x-3">
-              <Button 
-                onClick={() => setShowAlertCenter(true)}
-                variant="secondary" 
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                data-testid="button-alerts"
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                Alerts
-              </Button>
+              {/* Action buttons can be added here as needed */}
             </div>
           </div>
         </div>
