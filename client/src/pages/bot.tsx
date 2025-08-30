@@ -1598,8 +1598,8 @@ export default function BotPage() {
                 <Bot className="h-5 w-5" />
                 Trading Bots
               </h1>
-              <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                Automated trading strategies with AI-powered analysis
+              <p className="text-sm text-muted-foreground mt-2">
+                AI-powered trading automation
               </p>
             </div>
           </div>
