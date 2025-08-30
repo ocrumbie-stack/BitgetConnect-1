@@ -106,6 +106,12 @@ export default function AccountOverview() {
                 {formatCurrency(account?.totalEquity)}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium">Total Balance:</span>
+              <span className="text-sm font-mono font-medium" data-testid="total-balance">
+                {formatCurrency(account?.totalBalance)}
+              </span>
+            </div>
           </div>
         </div>
 
