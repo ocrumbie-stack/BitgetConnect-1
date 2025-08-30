@@ -1769,9 +1769,19 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
       return false;
     }
 
-    // Get available balance to ensure order doesn't exceed account capacity
-    const accountInfo = await bitgetAPI.getAccountInfo();
-    const availableBalance = parseFloat(accountInfo.availableBalance || accountInfo.available || '0');
+    // Get available balance from our processed account route, not raw Bitget API
+    let availableBalance = 0;
+    try {
+      const accountResponse = await fetch('http://localhost:5000/api/account/default-user');
+      const accountData = await accountResponse.json();
+      availableBalance = parseFloat(accountData.account?.availableBalance || '0');
+      console.log(`💰 Available balance from processed route: $${availableBalance}`);
+    } catch (error) {
+      console.log(`⚠️ Failed to get processed balance, falling back to direct API`);
+      const accountData = await bitgetAPI.getAccountInfo();
+      const accountArray = Array.isArray(accountData) ? accountData : [accountData];
+      availableBalance = parseFloat(accountArray[0]?.availableBalance || accountArray[0]?.available || '0');
+    }
     
     console.log(`💰 Available balance: $${availableBalance}`);
     
@@ -3455,14 +3465,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   if (orderSuccess) {
                     console.log(`✅ Continuous Scanner placed order for ${pair}`);
                     
-                    // Create organized folder for continuous scanner deployments
+                    // Create organized folder for continuous scanner deployments with strategy name
                     let folderData = { folderName: null, folderId: null };
                     try {
                       const strategies = await storage.getBotStrategies('default-user');
-                      const strategy = strategies.find(s => s.id === deployedBot.strategyId);
-                      const folder = await createOrganizedFolder(deployedBot.userId, strategy, 'continuous_scanner', [pair]);
-                      folderData = { folderName: folder.name, folderId: folder.id };
-                      console.log(`📁 Auto-organized continuous scanner child into: ${folder.name}`);
+                      const currentStrategy = strategies.find(s => s.id === deployedBot.strategyId);
+                      
+                      if (currentStrategy) {
+                        // Use strategy name in folder
+                        const now = new Date();
+                        const timeStr = now.toLocaleString('en-US', { 
+                          month: '2-digit', 
+                          day: '2-digit', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        });
+                        const folderName = `🔄 ${currentStrategy.name} - ${timeStr}`;
+                        
+                        const folder = await storage.createFolder({
+                          userId: deployedBot.userId,
+                          name: folderName,
+                          pairs: [pair],
+                          description: `Continuous scanner deployment for ${currentStrategy.name}`,
+                          createdAt: new Date(),
+                          updatedAt: new Date()
+                        });
+                        
+                        folderData = { folderName: folder.name, folderId: folder.id };
+                        console.log(`📁 Auto-organized continuous scanner child into: ${folder.name}`);
+                      }
                     } catch (folderError) {
                       console.log(`⚠️ Failed to organize continuous scanner child, continuing: ${folderError}`);
                     }
