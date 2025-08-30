@@ -392,51 +392,48 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
   }
 }
 
-// Conservative Trade Selection: Wider stops, higher win rate
+// PRICE-BASED TP/SL: Actual pair percentage moves (not leverage-adjusted)
 function calculateOptimalTradeSetup(leverage: number, botType: string = 'default'): { stopLoss: number, takeProfit: number, tradeProfile: string } {
-  // ULTRA CONSERVATIVE account risk - prevent account destruction
-  const maxAccountLoss = 1.5; // Maximum 1.5% account risk per trade
-  const targetAccountGain = 4.5; // 3:1 reward-to-risk ratio
+  // SIMPLIFIED PRICE-BASED TP/SL - pure percentage moves of the trading pair
+  // These are actual price movement percentages, NOT leverage-adjusted
   
-  // Calculate required position percentages with MUCH WIDER STOPS
-  let stopLossPercent = Math.max(5.0, maxAccountLoss / leverage * 3); // Minimum 5% stop loss
-  let takeProfitPercent = Math.max(10.0, targetAccountGain / leverage * 3); // Minimum 10% take profit
+  let stopLossPercent = 2.0;  // 2% pair price move stop loss
+  let takeProfitPercent = 5.0; // 5% pair price move take profit
   
-  // CRYPTO-SPECIFIC adjustments - these markets are volatile
+  // Adjust based on volatility and leverage for account safety
   if (leverage >= 10) {
-    stopLossPercent = Math.max(8.0, stopLossPercent); // 8% minimum for high leverage
-    takeProfitPercent = Math.max(15.0, takeProfitPercent); // 15% minimum target
-    console.log(`🔥 HIGH LEVERAGE (${leverage}x) - Wider stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+    stopLossPercent = 1.5;   // Tighter stops for high leverage (1.5% pair move = 15% account)
+    takeProfitPercent = 3.0; // Quicker profits for high leverage (3% pair move = 30% account)
+    console.log(`🔥 HIGH LEVERAGE (${leverage}x) - Tight stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
   } else if (leverage >= 5) {
-    stopLossPercent = Math.max(6.0, stopLossPercent); // 6% minimum for medium leverage  
-    takeProfitPercent = Math.max(12.0, takeProfitPercent); // 12% minimum target
-    console.log(`⚡ MEDIUM LEVERAGE (${leverage}x) - Conservative stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+    stopLossPercent = 2.0;   // Standard stops for medium leverage (2% pair move = 10% account)
+    takeProfitPercent = 4.0; // Standard profits for medium leverage (4% pair move = 20% account)
+    console.log(`⚡ MEDIUM LEVERAGE (${leverage}x) - Standard stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
   } else {
-    stopLossPercent = Math.max(4.0, stopLossPercent); // 4% minimum for low leverage
-    takeProfitPercent = Math.max(10.0, takeProfitPercent); // 10% minimum target
-    console.log(`🛡️ LOW LEVERAGE (${leverage}x) - Standard stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+    stopLossPercent = 3.0;   // Wider stops for low leverage (3% pair move = 9% account)
+    takeProfitPercent = 6.0; // Wider profits for low leverage (6% pair move = 18% account)
+    console.log(`🛡️ LOW LEVERAGE (${leverage}x) - Wide stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
   }
   
-  // Determine trade profile based on realistic percentages
-  let tradeProfile = 'safe_swing';
-  if (stopLossPercent >= 8.0) {
-    tradeProfile = 'wide_position_trading'; // Large moves, very low frequency
-  } else if (stopLossPercent >= 6.0) {
-    tradeProfile = 'conservative_swing'; // Medium moves, low frequency
+  // Determine trade profile based on stop size
+  let tradeProfile = 'scalping';
+  if (stopLossPercent >= 3.0) {
+    tradeProfile = 'swing_trading'; // Larger price moves
+  } else if (stopLossPercent >= 2.0) {
+    tradeProfile = 'day_trading'; // Medium price moves
   } else {
-    tradeProfile = 'safe_swing'; // Smaller moves, medium frequency
+    tradeProfile = 'scalping'; // Small price moves
   }
   
-  // Override for known risky bot types
+  // Auto scanner adjustments
   if (botType.includes('auto_scanner') || botType === 'auto_scanner') {
-    // Auto scanner needs even wider stops due to algorithmic entry
-    stopLossPercent = Math.max(stopLossPercent * 1.2, 6.0);
-    takeProfitPercent = Math.max(takeProfitPercent * 1.0, 10.0); // Reduced multiplier for quicker exits
-    tradeProfile = 'algorithmic_wide';
-    console.log(`🤖 AUTO SCANNER - Extra wide stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP`);
+    stopLossPercent = Math.max(stopLossPercent * 1.2, 2.0); // Slightly wider for algorithmic entries
+    takeProfitPercent = Math.max(takeProfitPercent * 1.1, 4.0); // Slightly higher targets
+    tradeProfile = 'algorithmic_trading';
+    console.log(`🤖 AUTO SCANNER - Adjusted stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
   }
   
-  console.log(`🎯 ACCOUNT SAFE - ${leverage}x leverage: ${stopLossPercent.toFixed(1)}% SL (${(stopLossPercent / leverage * 1.5).toFixed(1)}% account), ${takeProfitPercent.toFixed(1)}% TP (${(takeProfitPercent / leverage * 1.5).toFixed(1)}% account)`);
+  console.log(`🎯 PAIR PRICE MOVES - ${leverage}x leverage: ${stopLossPercent.toFixed(1)}% SL, ${takeProfitPercent.toFixed(1)}% TP (${(stopLossPercent * leverage).toFixed(1)}% account risk, ${(takeProfitPercent * leverage).toFixed(1)}% account gain potential)`);
   
   return {
     stopLoss: stopLossPercent,
