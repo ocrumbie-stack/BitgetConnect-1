@@ -720,7 +720,7 @@ export default function BotPage() {
       macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
       ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
       ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
-      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossover_above', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -1016,7 +1016,7 @@ export default function BotPage() {
       macd: { enabled: false, fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, condition: 'bullish_crossover' },
       ma1: { enabled: false, type: 'sma', period1: 20, condition: 'above', period2: 50, comparisonType: 'price', comparisonMAType: 'sma' },
       ma2: { enabled: false, type: 'ema', period1: 50, condition: 'above', period2: 200, comparisonType: 'price', comparisonMAType: 'sma' },
-      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossing_up', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
+      ma3: { enabled: false, type: 'sma', period1: 10, condition: 'crossover_above', period2: 20, comparisonType: 'price', comparisonMAType: 'sma' },
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
@@ -3619,8 +3619,8 @@ export default function BotPage() {
                               <SelectContent>
                                 <SelectItem value="above">Above</SelectItem>
                                 <SelectItem value="below">Below</SelectItem>
-                                <SelectItem value="crossing_up">Crossing Up</SelectItem>
-                                <SelectItem value="crossing_down">Crossing Down</SelectItem>
+                                <SelectItem value="crossover_above">Crossover Above</SelectItem>
+                                <SelectItem value="crossover_below">Crossover Below</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
