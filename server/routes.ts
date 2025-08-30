@@ -889,17 +889,24 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
       return false;
     }
 
-    // Evaluate each entry condition
+    // Evaluate ALL entry conditions - ALL must be met for signal
+    let conditionsMet = 0;
+    let totalConditions = entryConditions.filter(c => c.enabled !== false).length;
+    
+    console.log(`🎯 Strategy requires ALL ${totalConditions} conditions to be met for entry signal`);
+
     for (const condition of entryConditions) {
       if (condition.enabled === false) continue; // Only skip if explicitly disabled
 
-      console.log(`🔍 Checking condition: ${condition.indicator} ${condition.condition || condition.operator} ${condition.value || condition.period1}`);
+      console.log(`🔍 Checking condition ${conditionsMet + 1}/${totalConditions}: ${condition.indicator} ${condition.condition || condition.operator} ${condition.value || condition.period1}`);
+
+      let conditionResult = false;
 
       if (condition.indicator === 'macd') {
         const macdSignal = await evaluateMACDCondition(condition, tradingPair, currentPrice);
         if (macdSignal) {
           console.log(`✅ MACD condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'rsi') {
         // Map the condition format to include proper operator
@@ -911,22 +918,15 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
         const rsiSignal = await evaluateRSICondition(rsiCondition, tradingPair, strategy.config.timeframe || '1h');
         if (rsiSignal) {
           console.log(`✅ RSI condition met: ${rsiCondition.operator} ${rsiCondition.value}`);
-          return true;
-        }
-      } else if (condition.indicator === 'macd') {
-        const macdSignal = await evaluateMACDCondition(condition, tradingPair, 0);
-        if (macdSignal) {
-          console.log(`✅ MACD condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'ma1' || condition.indicator === 'ma2' || condition.indicator === 'ma3' || condition.indicator === 'ma' || condition.indicator === 'sma' || condition.indicator === 'ema') {
         // Handle MA crossover conditions from strategy config
         const maSignal = await evaluateMAConfigCondition(condition, tradingPair, strategy.config.timeframe || '5m');
         if (maSignal) {
           console.log(`✅ MA condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
-        console.log(`⏸️ Entry conditions not yet met for MA crossover - ${strategy.config.positionDirection === 'short' ? 'Short' : 'Long'} on ${tradingPair}`);
       } else if (condition.indicator === 'ma' || condition.indicator === 'sma' || condition.indicator === 'ema') {
         const maCondition = {
           ...condition,
@@ -936,44 +936,59 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
         const maSignal = await evaluateMACondition(maCondition, tradingPair, strategy.config.timeframe || '1h');
         if (maSignal) {
           console.log(`✅ MA condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'bollinger') {
         const bollingerSignal = await evaluateBollingerCondition(condition, tradingPair, strategy.config.timeframe || '1h');
         if (bollingerSignal) {
           console.log(`✅ Bollinger Bands condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'cci') {
         const cciSignal = await evaluateCCICondition(condition, tradingPair, strategy.config.timeframe || '1h');
         if (cciSignal) {
           console.log(`✅ CCI condition met: ${condition.condition} ${condition.value}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'atr') {
         const atrSignal = await evaluateATRCondition(condition, tradingPair, strategy.config.timeframe || '1h');
         if (atrSignal) {
           console.log(`✅ ATR condition met: ${condition.condition}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'stochastic') {
         const stochasticSignal = await evaluateStochasticCondition(condition, tradingPair, strategy.config.timeframe || '1h');
         if (stochasticSignal) {
           console.log(`✅ Stochastic condition met: ${condition.condition} ${condition.value}`);
-          return true;
+          conditionResult = true;
         }
       } else if (condition.indicator === 'williams') {
         const williamsSignal = await evaluateWilliamsCondition(condition, tradingPair, strategy.config.timeframe || '1h');
         if (williamsSignal) {
           console.log(`✅ Williams %R condition met: ${condition.condition} ${condition.value}`);
-          return true;
+          conditionResult = true;
         }
+      } else {
+        console.log(`⚠️ Unknown indicator: ${condition.indicator}`);
       }
-      // Add more indicators here as needed
+
+      // Count met conditions
+      if (conditionResult) {
+        conditionsMet++;
+        console.log(`✅ Condition ${conditionsMet}/${totalConditions} met`);
+      } else {
+        console.log(`❌ Condition ${conditionsMet + 1}/${totalConditions} not met`);
+      }
     }
 
-    console.log(`⏸️ Entry conditions not yet met for ${strategy.name} on ${tradingPair}`);
-    return false;
+    // Check if ALL conditions are met
+    if (conditionsMet === totalConditions) {
+      console.log(`🎯 ALL ${totalConditions} CONDITIONS MET! Entry signal confirmed for ${strategy.config.positionDirection === 'short' ? 'Short' : 'Long'} on ${tradingPair}`);
+      return true;
+    } else {
+      console.log(`⏸️ Entry signal incomplete: ${conditionsMet}/${totalConditions} conditions met for ${strategy.config.positionDirection === 'short' ? 'Short' : 'Long'} on ${tradingPair}`);
+      return false;
+    }
   } catch (error) {
     console.error(`❌ Error evaluating entry conditions:`, error);
     return false;
