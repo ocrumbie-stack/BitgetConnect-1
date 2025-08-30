@@ -45,10 +45,10 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: 15000, // Auto-refetch every 15 seconds for balanced performance
-      refetchOnWindowFocus: true,
-      staleTime: 10000, // Keep data fresh for 10 seconds to reduce unnecessary requests
-      retry: 3,
+      refetchInterval: 60000, // Reduced frequency: auto-refetch every 60 seconds
+      refetchOnWindowFocus: false, // Disabled to prevent delays on page navigation
+      staleTime: 30000, // Keep data fresh for 30 seconds to reduce requests
+      retry: 2, // Reduced retries for faster failures
     },
     mutations: {
       retry: false,
