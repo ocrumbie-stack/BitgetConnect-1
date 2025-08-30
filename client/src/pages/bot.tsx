@@ -1634,7 +1634,7 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'executions' 
                 ? 'bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-800/40 dark:to-emerald-900/40 border-emerald-300 dark:border-emerald-600' 
                 : 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800 hover:border-emerald-300 dark:hover:border-emerald-600'
@@ -1660,7 +1660,7 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'ai' 
                 ? 'bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800/40 dark:to-indigo-900/40 border-indigo-300 dark:border-indigo-600' 
                 : 'bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border-indigo-200 dark:border-indigo-800 hover:border-indigo-300 dark:hover:border-indigo-600'
@@ -1683,7 +1683,7 @@ export default function BotPage() {
           </Card>
 
           <Card 
-            className={`cursor-pointer transition-colors duration-200 min-h-[80px] ${
+            className={`cursor-pointer transition-colors duration-200 min-h-[80px] border ${
               activeTab === 'scanner' 
                 ? 'bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-800/40 dark:to-cyan-900/40 border-cyan-300 dark:border-cyan-600' 
                 : 'bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-800 hover:border-cyan-300 dark:hover:border-cyan-600'
