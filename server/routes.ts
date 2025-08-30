@@ -762,6 +762,12 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
           console.log(`✅ RSI condition met: ${rsiCondition.operator} ${rsiCondition.value}`);
           return true;
         }
+      } else if (condition.indicator === 'macd') {
+        const macdSignal = await evaluateMACDCondition(condition, tradingPair, 0);
+        if (macdSignal) {
+          console.log(`✅ MACD condition met: ${condition.condition}`);
+          return true;
+        }
       }
       // Add more indicators here (Bollinger, etc.) as needed
     }
