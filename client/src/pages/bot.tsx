@@ -98,13 +98,7 @@ export default function BotPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
-  // Continuous Scanner state
-  const [continuousCapital, setContinuousCapital] = useState('50');
-  const [continuousMaxPositions, setContinuousMaxPositions] = useState('3');
-  const [continuousLeverage, setContinuousLeverage] = useState('3');
-  const [continuousScanInterval, setContinuousScanInterval] = useState('60'); // seconds
-  const [isContinuousActive, setIsContinuousActive] = useState(false);
-  const [continuousStats, setContinuousStats] = useState({ scansCount: 0, tradesPlaced: 0, lastScan: null });
+  // CLEANUP: Removed continuous scanner state - feature disabled for performance
 
 
 
