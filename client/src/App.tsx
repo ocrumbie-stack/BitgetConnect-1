@@ -24,7 +24,8 @@ import { Settings } from "@/pages/settings";
 import BalanceHistory from "@/pages/balance-history";
 
 function Router() {
-  useScrollToTop(); // Auto-scroll to top on route changes
+  // Temporarily disable auto-scroll to isolate navigation delay issue
+  // useScrollToTop(); // Auto-scroll to top on route changes
   
   return (
     <div className="relative">

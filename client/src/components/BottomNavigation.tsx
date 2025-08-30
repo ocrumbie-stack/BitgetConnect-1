@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { Home, TrendingUp, BarChart3, Bot, Wallet } from 'lucide-react';
 
 export function BottomNavigation() {
@@ -20,9 +20,9 @@ export function BottomNavigation() {
           const isActive = location === item.path;
           
           return (
-            <Link
+            <button
               key={item.path}
-              href={item.path}
+              onClick={() => window.location.pathname !== item.path && (window.location.href = item.path)}
               className={`flex flex-col items-center p-2 rounded-lg transition-none ${
                 isActive 
                   ? 'text-primary' 
@@ -32,7 +32,7 @@ export function BottomNavigation() {
             >
               <Icon className="h-5 w-5 mb-1" />
               <span className="text-xs font-medium">{item.label}</span>
-            </Link>
+            </button>
           );
         })}
       </div>
