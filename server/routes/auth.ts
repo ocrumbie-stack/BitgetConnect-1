@@ -86,6 +86,47 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Change password endpoint
+router.post('/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+    
+    // For now, we'll use a simple approach without session management
+    // In production, you would get user ID from session/JWT
+    const user = await storage.getUserByUsername('admin'); // Assuming admin user for demo
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!isValidPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+    
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password in database
+    await storage.updateUserPassword(user.id, hashedNewPassword);
+    
+    res.json({ message: 'Password changed successfully' });
+    
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Create demo user endpoint
 router.post('/create-demo-user', async (req, res) => {
   try {
