@@ -192,16 +192,19 @@ export function AlertCenter({ userId = 'default-user', isOpen: externalIsOpen, o
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="relative p-2" data-testid="button-alerts">
-          <Bell className="h-5 w-5" />
-          {unreadAlerts.length > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center">
-              {unreadAlerts.length > 9 ? '9+' : unreadAlerts.length}
-            </Badge>
-          )}
-        </Button>
-      </DialogTrigger>
+      {/* Only render trigger when no external control is provided */}
+      {!onClose && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" className="relative p-2" data-testid="button-alerts">
+            <Bell className="h-5 w-5" />
+            {unreadAlerts.length > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-red-500 text-white rounded-full flex items-center justify-center">
+                {unreadAlerts.length > 9 ? '9+' : unreadAlerts.length}
+              </Badge>
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="max-w-4xl h-[80vh] p-0">
         <DialogHeader className="p-6 pb-0">
