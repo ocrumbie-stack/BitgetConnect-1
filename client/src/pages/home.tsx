@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Bot, Brain, Zap, Target, TrendingUp as Trend, Award, ChevronRight, Gauge, ChevronDown, ChevronUp, Info, Eye, EyeOff, RefreshCw, AlertTriangle, Users, MessageCircle, ThumbsUp, ThumbsDown, Heart, Smile, Frown, Meh, Star, Volume2, Clock, Shield, Settings } from 'lucide-react';
 
 import { Link, useLocation } from 'wouter';
-import { AlertDemoCreator } from '@/components/AlertDemoCreator';
+
 import DynamicRiskMeter from '@/components/DynamicRiskMeter';
 import AccountOverview from '@/components/AccountOverview';
 
@@ -872,7 +872,7 @@ export function Home() {
                   <CardContent className="p-3 text-center">
                     <BarChart3 className="h-6 w-6 mx-auto mb-2 text-purple-600" />
                     <div className="font-medium text-sm">Start Trading</div>
-                    <div className="text-xs text-purple-600 dark:text-purple-400">Open positions</div>
+                    <div className="text-xs text-purple-600 dark:text-purple-400">Place orders</div>
                   </CardContent>
                 </Card>
               </Link>
@@ -888,10 +888,7 @@ export function Home() {
               </Link>
             </div>
 
-            {/* Alert System Demo */}
-            <div className="mt-6">
-              <AlertDemoCreator />
-            </div>
+
           </TabsContent>
         </Tabs>
 
