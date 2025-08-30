@@ -1721,6 +1721,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'Test endpoint works!' });
   });
 
+  // Auto-trigger organize function on server start
+  setTimeout(async () => {
+    try {
+      console.log('🔧 Auto-triggering organization function...');
+      const userId = 'default-user';
+      
+      // Get all bot executions
+      const executions = await storage.getBotExecutions(userId);
+      console.log(`📊 Auto-organize: Total executions: ${executions.length}`);
+      
+      const unorganizedExecutions = executions.filter(bot => 
+        !bot.folderName && 
+        bot.status !== 'terminated' && 
+        bot.deploymentType
+      );
+      
+      console.log(`📊 Auto-organize: Found ${unorganizedExecutions.length} unorganized executions`);
+      
+      if (unorganizedExecutions.length > 0) {
+        // Auto-trigger organization by simulating a POST request
+        const organizationResult = await fetch('http://localhost:5000/api/organize-strategies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force: false })
+        }).catch(() => null);
+        
+        if (organizationResult) {
+          console.log('✅ Auto-organization triggered successfully');
+        } else {
+          console.log('⚠️ Auto-organization fetch failed, will organize manually...');
+          // Manual organization logic here if needed
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Auto-organization error:', error.message);
+    }
+  }, 5000); // Wait 5 seconds after server start
+
 
 
   // Catch-all middleware for positions endpoints
@@ -1743,6 +1781,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get all unorganized bot executions (now includes manual deployments)
       const executions = await storage.getBotExecutions(userId);
+      console.log(`📊 Total executions: ${executions.length}`);
+      console.log(`📋 Sample executions:`, executions.slice(0, 3).map(e => ({
+        id: e.id.substring(0, 8),
+        folderName: e.folderName,
+        deploymentType: e.deploymentType,
+        status: e.status,
+        tradingPair: e.tradingPair
+      })));
+      
       const unorganizedExecutions = executions.filter(bot => 
         !bot.folderName && 
         bot.status !== 'terminated' && 
@@ -1820,16 +1867,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = 'default-user';
       
-      // Get all scanner strategies that need folders
+      // Get all strategies that need folders (now includes manual deployments)
       const executions = await storage.getBotExecutions(userId);
-      const scannerExecutions = executions.filter(bot => 
-        (bot.deploymentType === 'auto_scanner' || bot.deploymentType === 'continuous_scanner') &&
+      console.log(`📊 Fix-Auto: Total executions: ${executions.length}`);
+      const unorganizedExecutions = executions.filter(bot => 
         !bot.folderName &&
-        bot.status !== 'terminated'
+        bot.status !== 'terminated' &&
+        bot.deploymentType
       );
+      console.log(`📊 Fix-Auto: Found ${unorganizedExecutions.length} unorganized executions`);
       
       let fixed = 0;
-      for (const execution of scannerExecutions) {
+      for (const execution of unorganizedExecutions) {
         try {
           const strategies = await storage.getBotStrategies(userId);
           const strategy = strategies.find(s => s.id === execution.strategyId);
