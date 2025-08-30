@@ -831,15 +831,6 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="20"
                                       {...field}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Prevent clearing completely - restore to default if empty
-                                        if (value === '') {
-                                          field.onChange('20');
-                                        } else {
-                                          field.onChange(value);
-                                        }
-                                      }}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -932,15 +923,6 @@ export function CreateScreener() {
                                           type="number"
                                           placeholder="50"
                                           {...field}
-                                          onChange={(e) => {
-                                            const value = e.target.value;
-                                            // Prevent clearing completely - restore to default if empty
-                                            if (value === '') {
-                                              field.onChange('50');
-                                            } else {
-                                              field.onChange(value);
-                                            }
-                                          }}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1020,15 +1002,6 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="50"
                                       {...field}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Prevent clearing completely - restore to default if empty
-                                        if (value === '') {
-                                          field.onChange('50');
-                                        } else {
-                                          field.onChange(value);
-                                        }
-                                      }}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1121,15 +1094,6 @@ export function CreateScreener() {
                                           type="number"
                                           placeholder="200"
                                           {...field}
-                                          onChange={(e) => {
-                                            const value = e.target.value;
-                                            // Prevent clearing completely - restore to default if empty
-                                            if (value === '') {
-                                              field.onChange('200');
-                                            } else {
-                                              field.onChange(value);
-                                            }
-                                          }}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
@@ -1183,15 +1147,6 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="12"
                                       {...field}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Prevent clearing completely - restore to default if empty
-                                        if (value === '') {
-                                          field.onChange('12');
-                                        } else {
-                                          field.onChange(value);
-                                        }
-                                      }}
                                       data-testid="input-macd-fast-period"
                                     />
                                   </FormControl>
@@ -1210,15 +1165,6 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="26"
                                       {...field}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Prevent clearing completely - restore to default if empty
-                                        if (value === '') {
-                                          field.onChange('26');
-                                        } else {
-                                          field.onChange(value);
-                                        }
-                                      }}
                                       data-testid="input-macd-slow-period"
                                     />
                                   </FormControl>
@@ -1237,15 +1183,6 @@ export function CreateScreener() {
                                       type="number"
                                       placeholder="9"
                                       {...field}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Prevent clearing completely - restore to default if empty
-                                        if (value === '') {
-                                          field.onChange('9');
-                                        } else {
-                                          field.onChange(value);
-                                        }
-                                      }}
                                       data-testid="input-macd-signal-period"
                                     />
                                   </FormControl>
