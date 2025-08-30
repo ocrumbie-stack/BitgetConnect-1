@@ -23,10 +23,10 @@ export function BottomNavigation() {
             <Link
               key={item.path}
               href={item.path}
-              className={`flex flex-col items-center p-2 transition-none ${
+              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
                 isActive 
                   ? 'text-primary' 
-                  : 'text-muted-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               data-testid={`nav-${item.label.toLowerCase()}`}
             >

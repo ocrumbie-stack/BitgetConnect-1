@@ -1566,9 +1566,9 @@ export default function BotPage() {
       {/* Hero Section with Animated Background */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-900 dark:via-purple-900 dark:to-indigo-900">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0">
           <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-          <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000 transform -translate-x-8"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
           <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
         
@@ -4290,7 +4290,12 @@ export default function BotPage() {
             </DialogContent>
           </Dialog>
         )}
-
+        
+        {/* Debug info */}
+        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
+          showExitVisualizer: {showExitVisualizer.toString()}<br/>
+          selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
+        </div>
 
         {/* Alert Center Dialog */}
         {showAlertCenter && (
