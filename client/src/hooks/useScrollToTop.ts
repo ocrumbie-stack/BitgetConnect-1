@@ -5,9 +5,7 @@ export function useScrollToTop() {
   const [location] = useLocation();
   
   useEffect(() => {
-    // Only scroll to top if we're not already at the top
-    if (window.scrollY > 0) {
-      window.scrollTo(0, 0);
-    }
+    // Keep scroll behavior minimal and fast
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location]);
 }
