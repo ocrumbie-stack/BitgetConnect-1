@@ -1592,11 +1592,12 @@ export default function BotPage() {
                     <span className="font-medium">
                       BTC {(() => {
                         const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
-                        const change = parseFloat(btcData?.change24h || '0');
+                        const change = parseFloat(btcData?.change24h || '0') * 100;
                         return change >= 0 ? '+' : '';
                       })()} {(() => {
                         const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
-                        return parseFloat(btcData?.change24h || '0').toFixed(2);
+                        const change = parseFloat(btcData?.change24h || '0') * 100;
+                        return change.toFixed(2);
                       })()}%
                     </span>
                   </div>
