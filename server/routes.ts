@@ -2433,15 +2433,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const strategy = strategies.find(s => s.id === deployedBot.strategyId);
             
             if (strategy && strategy.strategy === 'manual') {
-              // Get top volume pairs for scanning
+              // Get top 20 most volatile pairs for scanning (sorted by daily price change)
               const futuresData = await storage.getAllFuturesData();
               const topPairs = futuresData
                 .filter(coin => coin.symbol.endsWith('USDT'))
-                .sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h))
-                .slice(0, 20) // Top 20 pairs
+                .filter(coin => coin.change24h && Math.abs(parseFloat(coin.change24h)) > 0) // Filter out pairs with no movement
+                .sort((a, b) => Math.abs(parseFloat(b.change24h)) - Math.abs(parseFloat(a.change24h))) // Sort by absolute change (most volatile)
+                .slice(0, 20) // Top 20 most volatile pairs
                 .map(coin => coin.symbol);
               
-              console.log(`🔍 Scanning ${topPairs.length} top pairs: ${topPairs.slice(0, 5).join(', ')}...`);
+              console.log(`🔍 Scanning ${topPairs.length} most volatile pairs: ${topPairs.slice(0, 5).join(', ')}...`);
               
               // Check each pair against strategy conditions
               for (const pair of topPairs) {
