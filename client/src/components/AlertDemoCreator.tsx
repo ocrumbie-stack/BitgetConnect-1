@@ -15,12 +15,16 @@ export function AlertDemoCreator({ userId = 'default-user' }: AlertDemoCreatorPr
   const queryClient = useQueryClient();
   
   const createAlertMutation = useMutation({
-    mutationFn: (alert: any) => apiRequest('/api/alerts', 'POST', alert),
+    mutationFn: async (alert: any) => {
+      const response = await apiRequest('POST', '/api/alerts', { ...alert, userId });
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts', userId] });
       toast({ title: 'Demo alert created!' });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Failed to create alert:', error);
       toast({ title: 'Failed to create alert', variant: 'destructive' });
     }
   });
