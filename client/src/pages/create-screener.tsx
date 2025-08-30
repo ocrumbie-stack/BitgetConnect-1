@@ -830,7 +830,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder="20"
-                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={(e) => field.onChange(e.target.value)}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -922,7 +923,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder="50"
-                                          {...field}
+                                          value={field.value || ''}
+                                          onChange={(e) => field.onChange(e.target.value)}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1001,7 +1003,8 @@ export function CreateScreener() {
                                     <Input
                                       type="number"
                                       placeholder="50"
-                                      {...field}
+                                      value={field.value || ''}
+                                      onChange={(e) => field.onChange(e.target.value)}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1093,7 +1096,8 @@ export function CreateScreener() {
                                         <Input
                                           type="number"
                                           placeholder="200"
-                                          {...field}
+                                          value={field.value || ''}
+                                          onChange={(e) => field.onChange(e.target.value)}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
