@@ -1771,7 +1771,7 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
 
     // Get available balance to ensure order doesn't exceed account capacity
     const accountInfo = await bitgetAPI.getAccountInfo();
-    const availableBalance = parseFloat(accountInfo.available || '0');
+    const availableBalance = parseFloat(accountInfo.availableBalance || accountInfo.available || '0');
     
     console.log(`💰 Available balance: $${availableBalance}`);
     
