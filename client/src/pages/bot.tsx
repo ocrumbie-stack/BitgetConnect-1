@@ -1383,8 +1383,12 @@ export default function BotPage() {
     if (value.length > 0 && futuresData && Array.isArray(futuresData)) {
       const filtered = (futuresData as any[])
         .filter((coin: any) => 
-          coin.symbol.toLowerCase().includes(value.toLowerCase()) ||
-          coin.symbol.replace('USDT', '').toLowerCase().includes(value.toLowerCase())
+          // Filter out continuous scanner modes and invalid trading pairs
+          coin.symbol !== 'CONTINUOUS_SCANNER_MODE' &&
+          coin.symbol !== 'AUTO_SCANNER_MODE' &&
+          !coin.symbol.includes('_MODE') &&
+          (coin.symbol.toLowerCase().includes(value.toLowerCase()) ||
+           coin.symbol.replace('USDT', '').toLowerCase().includes(value.toLowerCase()))
         )
         .slice(0, 8) // Show max 8 suggestions
         .sort((a, b) => {
