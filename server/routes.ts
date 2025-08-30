@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { BitgetAPI } from "./services/bitgetApi";
 import { insertBitgetCredentialsSchema, insertFuturesDataSchema, insertBotStrategySchema, insertBotExecutionSchema, insertScreenerSchema, insertAlertSettingSchema, insertAlertSchema } from "@shared/schema";
+import authRoutes from "./routes/auth";
 
 let bitgetAPI: BitgetAPI | null = null;
 let updateInterval: NodeJS.Timeout | null = null;
@@ -1884,6 +1885,8 @@ async function setStopLossAndTakeProfit(symbol: string, side: string, entryPrice
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.use('/api/auth', authRoutes);
   const httpServer = createServer(app);
 
   // Debug ALL requests

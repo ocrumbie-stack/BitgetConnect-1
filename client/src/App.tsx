@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { PasswordLogin } from "@/components/PasswordLogin";
 
 import NotFound from "@/pages/not-found";
 import Screener from "@/pages/screener";
@@ -25,11 +27,25 @@ import BalanceHistory from "@/pages/balance-history";
 
 function Router() {
   useScrollToTop(); // Auto-scroll to top on route changes
+  const { user, isLoading, login } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <PasswordLogin onLogin={login} />;
+  }
   
   return (
     <div className="relative">
-
-      
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/markets" component={Markets} />
@@ -57,10 +73,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="dark">
-          <Toaster />
-          <Router />
-        </div>
+        <AuthProvider>
+          <div className="dark">
+            <Toaster />
+            <Router />
+          </div>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

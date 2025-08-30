@@ -1,5 +1,5 @@
 # Overview
-This project is a mobile-optimized crypto trading application designed for real-time Bitget perpetual futures trading. Its primary purpose is to provide users with tools for market monitoring, order placement, automated trading bot setup, and streamlined strategy deployment. The application aims to empower users with advanced AI-powered trading opportunities, efficient organization through folder-based trading pair management, and bulk bot deployment capabilities. The business vision is to provide a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
+This project is a mobile-optimized crypto trading application for real-time Bitget perpetual futures trading. Its purpose is to provide users with tools for market monitoring, order placement, automated trading bot setup, and streamlined strategy deployment. It aims to offer advanced AI-powered trading opportunities, efficient organization via folder-based trading pair management, and bulk bot deployment. The business vision is to deliver a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -35,7 +35,7 @@ Dynamic Exit Visualizer Design Standards: ESTABLISHED DESIGN SYSTEM for consiste
 # System Architecture
 
 ## UI/UX Decisions
-The application prioritizes a clean, professional mobile-optimized design, mirroring modern trading interfaces. It features a bottom navigation bar, collapsible folder views, and intuitive interfaces. shadcn/ui components ensure consistent visuals. AI-powered features include color-coded risk levels, confidence ratings, and strategy-specific icons. A consistent design system is established for modals/popups, using clean layouts and clear data representation.
+The application prioritizes a clean, professional mobile-optimized design mirroring modern trading interfaces. It features a bottom navigation bar, collapsible folder views, and intuitive interfaces. shadcn/ui components ensure consistent visuals. AI-powered features include color-coded risk levels, confidence ratings, and strategy-specific icons. A consistent design system is established for modals/popups, using clean layouts and clear data representation.
 
 ## Technical Implementations
 The frontend is built with React 18, TypeScript, and Vite, using Tailwind CSS with shadcn/ui for mobile-first responsive design. State management uses React Query for server state and Wouter for client-side routing. Real-time updates are via WebSocket. The backend uses Express.js with TypeScript, integrates with the Bitget API, and provides a WebSocket server. Data is stored in-memory with an `IStorage` interface, designed for future PostgreSQL integration with Drizzle ORM. Key technical implementations include real-time data streaming via WebSockets, comprehensive trading pair organization, an AI-powered trading opportunity recommendation system, reusable strategy templates for the bot system, an enhanced multi-bucket analysis system for volatility classification, a dynamic leverage safety system, and sophisticated entry point analysis.

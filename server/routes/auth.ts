@@ -1,0 +1,124 @@
+import { Router } from 'express';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+import { createInsertSchema } from 'drizzle-zod';
+import { users } from '@shared/schema';
+import { storage } from '../storage';
+
+const router = Router();
+
+// Login schema
+const loginSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required')
+});
+
+// Registration schema
+const registerSchema = createInsertSchema(users).omit({ id: true });
+
+// Login endpoint
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = loginSchema.parse(req.body);
+    
+    // Find user by username
+    const user = await storage.getUserByUsername(username);
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+    
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+    
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ 
+      message: 'Login successful', 
+      user: userWithoutPassword 
+    });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: error.errors[0].message });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Register endpoint (for creating demo user)
+router.post('/register', async (req, res) => {
+  try {
+    const userData = registerSchema.parse(req.body);
+    
+    // Check if user already exists
+    const existingUser = await storage.getUserByUsername(userData.username);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    // Create user
+    const newUser = await storage.createUser({
+      ...userData,
+      password: hashedPassword,
+      tradingStyle: userData.tradingStyle || 'balanced'
+    });
+    
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.status(201).json({ 
+      message: 'User created successfully', 
+      user: userWithoutPassword 
+    });
+    
+  } catch (error) {
+    console.error('Registration error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: error.errors[0].message });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Create demo user endpoint
+router.post('/create-demo-user', async (req, res) => {
+  try {
+    // Check if demo user already exists
+    const existingUser = await storage.getUserByUsername('admin');
+    if (existingUser) {
+      return res.json({ message: 'Demo user already exists' });
+    }
+    
+    // Create demo user
+    const hashedPassword = await bcrypt.hash('password', 10);
+    const demoUser = await storage.createUser({
+      username: 'admin',
+      password: hashedPassword,
+      tradingStyle: 'balanced',
+      preferences: {
+        confidenceThreshold: 70,
+        maxLeverage: 5,
+        riskTolerance: 'medium',
+        timeframePreference: '15m'
+      }
+    });
+    
+    const { password: _, ...userWithoutPassword } = demoUser;
+    res.json({ 
+      message: 'Demo user created successfully', 
+      user: userWithoutPassword 
+    });
+    
+  } catch (error) {
+    console.error('Demo user creation error:', error);
+    res.status(500).json({ message: 'Failed to create demo user' });
+  }
+});
+
+export default router;
