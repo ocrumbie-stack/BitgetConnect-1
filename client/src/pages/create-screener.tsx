@@ -827,7 +827,8 @@ export function CreateScreener() {
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
-                                    <Input
+                                    <input
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                       type="text"
                                       placeholder=""
                                       value={field.value || ''}
@@ -839,6 +840,8 @@ export function CreateScreener() {
                                         }
                                       }}
                                       autoComplete="off"
+                                      name={`ma1-period-${Date.now()}`}
+                                      key={`ma1-period-${Date.now()}`}
                                       data-testid="input-ma1-period"
                                     />
                                   </FormControl>
@@ -927,7 +930,8 @@ export function CreateScreener() {
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
-                                        <Input
+                                        <input
+                                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                           type="text"
                                           placeholder=""
                                           value={field.value || ''}
@@ -939,6 +943,8 @@ export function CreateScreener() {
                                             }
                                           }}
                                           autoComplete="off"
+                                          name={`ma1-comp-period-${Date.now()}`}
+                                          key={`ma1-comp-period-${Date.now()}`}
                                           data-testid="input-ma1-comparison-period"
                                         />
                                       </FormControl>
@@ -1014,7 +1020,8 @@ export function CreateScreener() {
                                 <FormItem>
                                   <FormLabel>Period</FormLabel>
                                   <FormControl>
-                                    <Input
+                                    <input
+                                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                       type="text"
                                       placeholder=""
                                       value={field.value || ''}
@@ -1026,6 +1033,8 @@ export function CreateScreener() {
                                         }
                                       }}
                                       autoComplete="off"
+                                      name={`ma2-period-${Date.now()}`}
+                                      key={`ma2-period-${Date.now()}`}
                                       data-testid="input-ma2-period"
                                     />
                                   </FormControl>
@@ -1114,7 +1123,8 @@ export function CreateScreener() {
                                     <FormItem>
                                       <FormLabel>Comparison Period</FormLabel>
                                       <FormControl>
-                                        <Input
+                                        <input
+                                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                           type="text"
                                           placeholder=""
                                           value={field.value || ''}
@@ -1126,6 +1136,8 @@ export function CreateScreener() {
                                             }
                                           }}
                                           autoComplete="off"
+                                          name={`ma2-comp-period-${Date.now()}`}
+                                          key={`ma2-comp-period-${Date.now()}`}
                                           data-testid="input-ma2-comparison-period"
                                         />
                                       </FormControl>
