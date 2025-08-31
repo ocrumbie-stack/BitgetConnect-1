@@ -17,6 +17,14 @@ interface ApiCredentials {
   apiPassphrase: string;
 }
 
+interface ConnectionStatus {
+  connected?: boolean;
+  lastChecked?: string;
+  hasCredentials?: boolean;
+  message?: string;
+  error?: string;
+}
+
 export function ApiSettings() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -28,15 +36,15 @@ export function ApiSettings() {
   });
 
   // Check connection status
-  const { data: connectionStatus, refetch: refetchStatus } = useQuery({
-    queryKey: ['/api/status'],
+  const { data: connectionStatus, refetch: refetchStatus } = useQuery<ConnectionStatus>({
+    queryKey: ['/api/bitget/status'],
     refetchInterval: 30000 // Check every 30 seconds
   });
 
   // Save credentials mutation
   const saveCredentialsMutation = useMutation({
     mutationFn: async (creds: ApiCredentials) => {
-      const response = await fetch('/api/credentials', {
+      const response = await fetch('/api/bitget/credentials', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +71,7 @@ export function ApiSettings() {
       setCredentials({ apiKey: '', apiSecret: '', apiPassphrase: '' });
       refetchStatus();
       queryClient.invalidateQueries({ queryKey: ['/api/account'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bitget/status'] });
     },
     onError: (error: Error) => {
       toast({
@@ -86,7 +95,7 @@ export function ApiSettings() {
     saveCredentialsMutation.mutate(credentials);
   };
 
-  const isConnected = connectionStatus?.apiConnected;
+  const isConnected = connectionStatus?.connected || false;
 
   return (
     <>
@@ -141,9 +150,9 @@ export function ApiSettings() {
             </Button>
           </div>
 
-          {connectionStatus?.lastUpdate && (
+          {connectionStatus?.lastChecked && (
             <div className="text-xs text-muted-foreground text-center">
-              Last checked: {new Date(connectionStatus.lastUpdate).toLocaleTimeString()}
+              Last checked: {new Date(connectionStatus.lastChecked).toLocaleTimeString()}
             </div>
           )}
         </CardContent>
