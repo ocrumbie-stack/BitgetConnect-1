@@ -3156,8 +3156,12 @@ export default function BotPage() {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => {
-                        console.log('Switching to continuous scanner mode');
-                        setDeploymentMode('continuous_scanner');
+                        try {
+                          console.log('Switching to continuous scanner mode');
+                          setDeploymentMode('continuous_scanner');
+                        } catch (error) {
+                          console.error('Error switching to continuous scanner:', error);
+                        }
                       }}
                     >
                       <div className="flex items-center gap-3">
@@ -3166,7 +3170,13 @@ export default function BotPage() {
                           name="deploymentMode" 
                           value="continuous_scanner"
                           checked={deploymentMode === 'continuous_scanner'}
-                          onChange={() => setDeploymentMode('continuous_scanner')}
+                          onChange={() => {
+                            try {
+                              setDeploymentMode('continuous_scanner');
+                            } catch (error) {
+                              console.error('Error setting deployment mode:', error);
+                            }
+                          }}
                           className="text-purple-500"
                         />
                         <div>
@@ -3249,7 +3259,7 @@ export default function BotPage() {
                         <Input
                           type="number"
                           placeholder="5000"
-                          value={continuousCapital}
+                          value={continuousCapital || ''}
                           onChange={(e) => setContinuousCapital(e.target.value)}
                           className="mt-1"
                         />
@@ -3259,7 +3269,7 @@ export default function BotPage() {
                         <Input
                           type="number"
                           placeholder="3"
-                          value={continuousMaxPositions}
+                          value={continuousMaxPositions || ''}
                           onChange={(e) => setContinuousMaxPositions(e.target.value)}
                           className="mt-1"
                         />
@@ -3272,7 +3282,7 @@ export default function BotPage() {
                         <Input
                           type="number"
                           placeholder="3"
-                          value={continuousLeverage}
+                          value={continuousLeverage || ''}
                           onChange={(e) => setContinuousLeverage(e.target.value)}
                           className="mt-1"
                         />
@@ -3282,7 +3292,7 @@ export default function BotPage() {
                         <Input
                           type="number"
                           placeholder="60"
-                          value={continuousScanInterval}
+                          value={continuousScanInterval || ''}
                           onChange={(e) => setContinuousScanInterval(e.target.value)}
                           className="mt-1"
                         />
@@ -3298,7 +3308,7 @@ export default function BotPage() {
                         </span>
                       </div>
                       <div className="text-xs text-gray-600 dark:text-gray-300">
-                        Scans: {continuousStats?.scansCount || 0} | Trades: {continuousStats?.tradesPlaced || 0}
+                        Scans: {(continuousStats && continuousStats.scansCount) || 0} | Trades: {(continuousStats && continuousStats.tradesPlaced) || 0}
                       </div>
                     </div>
                   </div>
