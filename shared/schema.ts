@@ -137,6 +137,7 @@ export const botExecutions = pgTable("bot_executions", {
   folderName: text("folder_name"), // Store folder name for compatibility
   startedAt: timestamp("started_at"),
   pausedAt: timestamp("paused_at"),
+  exitReason: text("exit_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -162,6 +163,10 @@ export const screeners = pgTable("screeners", {
     minMarketCap?: number;
     maxMarketCap?: number;
     symbols?: string[];
+    deploymentType?: string;
+    strategyId?: string;
+    createdBy?: string;
+    timestamp?: string;
     
     // Technical indicators
     rsi?: {
@@ -350,10 +355,7 @@ export const insertBotStrategySchema = createInsertSchema(botStrategies).omit({
 
 export const insertBotExecutionSchema = createInsertSchema(botExecutions).omit({
   id: true,
-  startedAt: true,
-  pausedAt: true,
   createdAt: true,
-  updatedAt: true,
 });
 
 export const insertScreenerSchema = createInsertSchema(screeners).omit({

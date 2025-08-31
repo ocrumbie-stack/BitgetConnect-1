@@ -172,12 +172,12 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     if (rsiAnalysis) {
       indicators.rsi = rsiAnalysis;
       // ONLY trade extreme RSI levels - avoid the middle zone
-      if (rsiAnalysis.value < 25) {
+      if (rsiAnalysis < 25) {
         bullishScore += 25; // Very oversold -> Strong buy signal
-        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.value.toFixed(1)} (+25)`);
-      } else if (rsiAnalysis.value > 75) {
+        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.toFixed(1)} (+25)`);
+      } else if (rsiAnalysis > 75) {
         bearishScore += 25; // Very overbought -> Strong sell signal
-        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.value.toFixed(1)} (+25)`);
+        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.toFixed(1)} (+25)`);
       }
       // Skip weak RSI signals in 30-70 range that cause bad entries
     }
@@ -186,7 +186,7 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const bbAnalysis = calculateBollingerBands(closes, 20, 2);
     if (bbAnalysis) {
       indicators.bollingerBands = bbAnalysis;
-      const { current, upper, lower, squeeze } = bbAnalysis;
+      const { upper, lower } = bbAnalysis;
       
       // Only trade extreme band touches - avoid weak signals
       if (currentPrice <= lower * 0.995) { // Must be BELOW lower band, not just touching
@@ -305,11 +305,11 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     }
     
     // BASIC safety checks - Only block extremely dangerous entries
-    const isExtremelyOverbought = indicators.rsi?.value > 85 && bullishScore > bearishScore; 
-    const isExtremelyOversold = indicators.rsi?.value < 15 && bearishScore > bullishScore;
+    const isExtremelyOverbought = indicators.rsi > 85 && bullishScore > bearishScore; 
+    const isExtremelyOversold = indicators.rsi < 15 && bearishScore > bullishScore;
     
     if (isExtremelyOverbought || isExtremelyOversold) {
-      console.log(`❌ BLOCKED extreme RSI entry: RSI ${indicators.rsi?.value}`);
+      console.log(`❌ BLOCKED extreme RSI entry: RSI ${indicators.rsi}`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
     
@@ -595,8 +595,8 @@ function calculateSupportResistance(highs: number[], lows: number[], closes: num
     const recentLows = lows.slice(-50).sort((a, b) => a - b);
     
     // Identify key levels (remove duplicates within 1%)
-    const supportLevels = [];
-    const resistanceLevels = [];
+    const supportLevels: number[] = [];
+    const resistanceLevels: number[] = [];
     
     for (const low of recentLows) {
       if (!supportLevels.find(level => Math.abs(level - low) / level < 0.01)) {
@@ -889,7 +889,7 @@ async function evaluateManualStrategyEntry(strategy: any, tradingPair: string): 
 
     // Evaluate ALL entry conditions - ALL must be met for signal
     let conditionsMet = 0;
-    let totalConditions = entryConditions.filter(c => c.enabled !== false).length;
+    let totalConditions = entryConditions.filter((c: any) => c.enabled !== false).length;
     
     console.log(`🎯 Strategy requires ALL ${totalConditions} conditions to be met for entry signal`);
 
@@ -1778,7 +1778,7 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
       console.log(`⚠️ Failed to get processed balance, falling back to direct API`);
       const accountData = await bitgetAPI.getAccountInfo();
       const accountArray = Array.isArray(accountData) ? accountData : [accountData];
-      availableBalance = parseFloat(accountArray[0]?.availableBalance || accountArray[0]?.available || '0');
+      availableBalance = parseFloat((accountArray[0] as any)?.availableBalance || (accountArray[0] as any)?.available || '0');
     }
     
     console.log(`💰 Available balance: $${availableBalance}`);
@@ -1828,7 +1828,7 @@ async function placeManualStrategyOrder(strategy: any, deployedBot: any): Promis
     const orderData = {
       symbol: tradingPair,
       marginCoin: 'USDT',
-      side: positionDirection === 'long' ? 'buy' : 'sell', // Fixed: use buy/sell instead of open_long/open_short
+      side: (positionDirection === 'long' ? 'buy' : 'sell') as 'buy' | 'sell', // Fixed: use buy/sell instead of open_long/open_short
       orderType: 'market',
       size: positionSize.toFixed(6),
       leverage: leverageNum,
