@@ -762,7 +762,7 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Fetch futures data for auto-suggest
-  const { data: futuresData = [] } = useQuery({
+  const { data: futuresData = [] } = useQuery<any[]>({
     queryKey: ['/api/futures'],
     refetchInterval: 5000,
   });
@@ -787,7 +787,7 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
       ...futuresData.map((f: any) => f.symbol || '').filter((s: string) => s)
     ];
 
-    const filtered = [...new Set(allPairs)]
+    const filtered = Array.from(new Set(allPairs))
       .filter(pair => pair.includes(searchTerm))
       .slice(0, 10);
 
