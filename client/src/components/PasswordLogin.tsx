@@ -138,6 +138,9 @@ export function PasswordLogin({ onLogin }: PasswordLoginProps) {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Demo credentials: <strong>admin</strong> / <strong>password</strong>
             </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              If login fails in deployment, visit: /api/auth/create-demo-user
+            </p>
           </div>
         </CardContent>
       </Card>

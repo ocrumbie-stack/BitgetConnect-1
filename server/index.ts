@@ -38,6 +38,35 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Automatically create demo user on startup for production deployments
+  if (app.get("env") !== "development") {
+    try {
+      const { storage } = await import("./storage");
+      const bcrypt = await import("bcryptjs");
+      
+      const existingUser = await storage.getUserByUsername('admin');
+      if (!existingUser) {
+        const hashedPassword = await bcrypt.hash('password', 10);
+        await storage.createUser({
+          username: 'admin',
+          password: hashedPassword,
+          tradingStyle: 'balanced',
+          preferences: {
+            confidenceThreshold: 70,
+            maxLeverage: 5,
+            riskTolerance: 'medium',
+            timeframePreference: '15m'
+          }
+        });
+        console.log('✅ Demo user created automatically for production deployment');
+      } else {
+        console.log('✅ Demo user already exists in production');
+      }
+    } catch (error) {
+      console.error('❌ Failed to create demo user:', error);
+    }
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
