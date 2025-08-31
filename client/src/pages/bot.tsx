@@ -3437,11 +3437,17 @@ export default function BotPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label>Timeframe</Label>
-                    <Select value={timeframe} onValueChange={setTimeframe}>
-                      <SelectTrigger>
+                    <Select 
+                      value={timeframe} 
+                      onValueChange={(value) => {
+                        console.log('Timeframe changed to:', value);
+                        setTimeframe(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select timeframe" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-50">
                         <SelectItem value="1m">1 Minute</SelectItem>
                         <SelectItem value="5m">5 Minutes</SelectItem>
                         <SelectItem value="15m">15 Minutes</SelectItem>
@@ -3453,11 +3459,17 @@ export default function BotPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Risk Level</Label>
-                    <Select value={riskLevel} onValueChange={setRiskLevel}>
-                      <SelectTrigger>
+                    <Select 
+                      value={riskLevel} 
+                      onValueChange={(value) => {
+                        console.log('Risk level changed to:', value);
+                        setRiskLevel(value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select risk level" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-50">
                         <SelectItem value="low">Low Risk</SelectItem>
                         <SelectItem value="medium">Medium Risk</SelectItem>
                         <SelectItem value="high">High Risk</SelectItem>
