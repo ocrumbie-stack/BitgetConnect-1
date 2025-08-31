@@ -80,7 +80,12 @@ export default function BotPage() {
   const [continuousLeverage, setContinuousLeverage] = useState('3');
   const [continuousScanInterval, setContinuousScanInterval] = useState('300');
   const [isContinuousActive, setIsContinuousActive] = useState(false);
-  const [continuousStats, setContinuousStats] = useState<any>(null);
+  const [continuousStats, setContinuousStats] = useState<any>({
+    scansCount: 0,
+    tradesPlaced: 0,
+    profit: 0,
+    lastScan: null
+  });
   const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner' | 'continuous_scanner'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
@@ -3275,7 +3280,7 @@ export default function BotPage() {
                         </span>
                       </div>
                       <div className="text-xs text-gray-600 dark:text-gray-300">
-                        Scans: {continuousStats.scansCount} | Trades: {continuousStats.tradesPlaced}
+                        Scans: {continuousStats?.scansCount || 0} | Trades: {continuousStats?.tradesPlaced || 0}
                       </div>
                     </div>
                   </div>
