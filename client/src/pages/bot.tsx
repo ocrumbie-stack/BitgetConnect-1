@@ -903,19 +903,13 @@ export default function BotPage() {
         const continuousData = {
           userId: 'default-user',
           strategyId: strategy.id,
-          tradingPair: 'CONTINUOUS_SCANNER_MODE', // Special marker for continuous scanner
           capital: continuousCapital,
           leverage: continuousLeverage,
-          status: 'active',
-          deploymentType: 'continuous_scanner',
-          botName: `🔄 Continuous Scanner - ${strategy.name}`,
-          settings: {
-            maxPositions: continuousMaxPositions,
-            scanInterval: continuousScanInterval
-          }
+          maxPositions: continuousMaxPositions,
+          scanInterval: continuousScanInterval
         };
 
-        await runStrategyMutation.mutateAsync(continuousData);
+        await continuousScannerMutation.mutateAsync(continuousData);
         setIsContinuousActive(true);
         setShowRunDialog(false);
         toast({
