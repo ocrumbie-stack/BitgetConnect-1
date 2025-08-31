@@ -594,6 +594,16 @@ export default function BotPage() {
     await autoScannerMutation.mutateAsync(scannerData);
   };
 
+  // Handle stopping auto scanner
+  const handleStopAutoScanner = () => {
+    setIsScanning(false);
+    setScannerResults(null);
+    toast({
+      title: "Scanner Stopped",
+      description: "Auto scanner has been stopped",
+    });
+  };
+
   // Handle bot deployment from scan results
   const handleDeployBots = async () => {
     if (!scannerResults?.opportunities || scannerResults.opportunities.length === 0) {
@@ -2038,17 +2048,17 @@ export default function BotPage() {
                     </p>
                   </div>
 
-                  {/* Start Scanner Button */}
+                  {/* Start/Stop Scanner Button */}
                   <Button
-                    onClick={handleAutoScannerScan}
-                    disabled={isScanning || autoScannerMutation.isPending}
-                    className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
+                    onClick={isScanning ? handleStopAutoScanner : handleAutoScannerScan}
+                    disabled={autoScannerMutation.isPending}
+                    className={`w-full ${isScanning ? 'bg-red-500 hover:bg-red-600' : 'bg-cyan-500 hover:bg-cyan-600'} text-white`}
                     data-testid="button-start-scanner"
                   >
                     {isScanning ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Scanning Market...
+                        <X className="h-4 w-4 mr-2" />
+                        Stop Auto Scanner
                       </>
                     ) : (
                       <>
