@@ -3157,7 +3157,7 @@ export default function BotPage() {
                         />
                         <div>
                           <div className="font-medium">Continuous Scanner</div>
-                          <div className="text-sm text-muted-foreground">Continuously scans and deploys bots on volatile pairs</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">Continuously scans and deploys bots on volatile pairs</div>
                         </div>
                       </div>
                     </div>
