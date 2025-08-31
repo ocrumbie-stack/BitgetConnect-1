@@ -29,7 +29,7 @@ function createFolderName(deploymentType: string, tradingStyle?: string, scanner
     case 'folder':
       return `📁 ${tradingStyle || 'Folder'} Deployment - ${timestamp}`;
     case 'manual':
-      return `⚡ ${tradingStyle || 'Manual'} Strategy - ${timestamp}`;
+      return `⚡ ${scannerName || tradingStyle || 'Manual'} - ${timestamp}`;
     default:
       return `🚀 Trading Deployment - ${timestamp}`;
   }
