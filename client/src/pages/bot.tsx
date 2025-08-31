@@ -1021,6 +1021,30 @@ export default function BotPage() {
     window.scrollTo(scrollPosition.x, scrollPosition.y);
   };
 
+  // Cleanup body styles when component unmounts or editing changes
+  useEffect(() => {
+    return () => {
+      // Always cleanup body styles when component unmounts
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.width = '';
+    };
+  }, []);
+
+  // Cleanup body styles when editing state changes
+  useEffect(() => {
+    if (!editingStrategy && !showCreateForm) {
+      // Reset body styles when not editing
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.width = '';
+    }
+  }, [editingStrategy, showCreateForm]);
+
   // Handle editing strategy
   const handleEditStrategy = (strategy: any) => {
     // Store current scroll position
