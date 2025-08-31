@@ -54,10 +54,10 @@ export default function BotPage() {
     ma2: { enabled: false, type: 'ema', period1: 50 as string | number, condition: 'above', period2: 200 as string | number, comparisonType: 'price', comparisonMAType: 'sma' },
     ma3: { enabled: false, type: 'sma', period1: 10 as string | number, condition: 'crossing_up', period2: 20 as string | number, comparisonType: 'price', comparisonMAType: 'sma' },
     bollinger: { enabled: false, period: 20 as string | number, stdDev: 2, condition: 'above_upper' },
-    stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
-    williams: { enabled: false, period: 14, condition: 'above', value: -20 },
-    cci: { enabled: false, period: 20, condition: 'above', value: 100 },
-    atr: { enabled: false, period: 14, condition: 'above', multiplier: 2.0 },
+    stochastic: { enabled: false, kPeriod: 14 as string | number, dPeriod: 3 as string | number, smoothK: 3 as string | number, condition: 'above', value: 80 as string | number },
+    williams: { enabled: false, period: 14 as string | number, condition: 'above', value: -20 as string | number },
+    cci: { enabled: false, period: 20 as string | number, condition: 'above', value: 100 as string | number },
+    atr: { enabled: false, period: 14 as string | number, condition: 'above', multiplier: 2.0 as string | number },
     volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
   });
   
@@ -73,6 +73,14 @@ export default function BotPage() {
   const [showAlertCenter, setShowAlertCenter] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<{[key: string]: boolean}>({});
   const [selectedFolder, setSelectedFolder] = useState<string>('');
+  
+  // Continuous scanner state variables
+  const [continuousCapital, setContinuousCapital] = useState('5000');
+  const [continuousMaxPositions, setContinuousMaxPositions] = useState('10');
+  const [continuousLeverage, setContinuousLeverage] = useState('3');
+  const [continuousScanInterval, setContinuousScanInterval] = useState('300');
+  const [isContinuousActive, setIsContinuousActive] = useState(false);
+  const [continuousStats, setContinuousStats] = useState<any>(null);
   const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner' | 'continuous_scanner'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
@@ -730,6 +738,8 @@ export default function BotPage() {
       bollinger: { enabled: false, period: 20, stdDev: 2, condition: 'above_upper' },
       stochastic: { enabled: false, kPeriod: 14, dPeriod: 3, smoothK: 3, condition: 'above', value: 80 },
       williams: { enabled: false, period: 14, condition: 'above', value: -20 },
+      cci: { enabled: false, period: 20, condition: 'above', value: 100 },
+      atr: { enabled: false, period: 14, condition: 'above', multiplier: 2.0 },
       volume: { enabled: false, condition: 'above_average', multiplier: 1.5 }
     });
     setShowCreateForm(false);
@@ -1597,11 +1607,11 @@ export default function BotPage() {
                     <TrendingUp className="w-4 h-4 text-orange-300" />
                     <span className="font-medium">
                       BTC {(() => {
-                        const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
+                        const btcData = Array.isArray(futuresData) ? futuresData.find((coin: any) => coin.symbol === 'BTCUSDT') : null;
                         const change = parseFloat(btcData?.change24h || '0') * 100;
                         return change >= 0 ? '+' : '';
                       })()} {(() => {
-                        const btcData = futuresData?.find(coin => coin.symbol === 'BTCUSDT');
+                        const btcData = Array.isArray(futuresData) ? futuresData.find((coin: any) => coin.symbol === 'BTCUSDT') : null;
                         const change = parseFloat(btcData?.change24h || '0') * 100;
                         return change.toFixed(2);
                       })()}%
@@ -1609,7 +1619,7 @@ export default function BotPage() {
                   </div>
                   <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1 backdrop-blur-sm">
                     <DollarSign className="w-4 h-4 text-green-300" />
-                    <span className="font-medium">${parseFloat(accountData?.account?.availableBalance || '0').toFixed(2)} Available</span>
+                    <span className="font-medium">${parseFloat((accountData as any)?.account?.availableBalance || '0').toFixed(2)} Available</span>
                   </div>
                 </div>
               </div>
