@@ -3082,7 +3082,11 @@ export default function BotPage() {
                         />
                         <div>
                           <div className="font-medium">Single Trading Pair</div>
-                          <div className="text-sm text-muted-foreground">Deploy bot to one specific trading pair</div>
+                          <div className={`text-sm ${
+                            deploymentMode === 'individual' 
+                              ? 'text-blue-700 dark:text-blue-300' 
+                              : 'text-muted-foreground'
+                          }`}>Deploy bot to one specific trading pair</div>
                         </div>
                       </div>
                     </div>
@@ -3106,7 +3110,11 @@ export default function BotPage() {
                         />
                         <div>
                           <div className="font-medium">Folder Deployment</div>
-                          <div className="text-sm text-muted-foreground">Deploy to all pairs in selected folder</div>
+                          <div className={`text-sm ${
+                            deploymentMode === 'folder' 
+                              ? 'text-purple-700 dark:text-purple-300' 
+                              : 'text-muted-foreground'
+                          }`}>Deploy to all pairs in selected folder</div>
                         </div>
                       </div>
                     </div>
@@ -3131,7 +3139,11 @@ export default function BotPage() {
                           />
                           <div>
                             <div className="font-medium">Auto Market Scanner</div>
-                            <div className="text-sm text-muted-foreground">AI finds optimal trading opportunities automatically</div>
+                            <div className={`text-sm ${
+                              deploymentMode === 'auto_scanner' 
+                                ? 'text-cyan-700 dark:text-cyan-300' 
+                                : 'text-muted-foreground'
+                            }`}>AI finds optimal trading opportunities automatically</div>
                           </div>
                         </div>
                       </div>
@@ -3157,7 +3169,11 @@ export default function BotPage() {
                         />
                         <div>
                           <div className="font-medium">Continuous Scanner</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">Continuously scans and deploys bots on volatile pairs</div>
+                          <div className={`text-sm ${
+                            deploymentMode === 'continuous_scanner' 
+                              ? 'text-orange-700 dark:text-orange-300' 
+                              : 'text-gray-600 dark:text-gray-300'
+                          }`}>Continuously scans and deploys bots on volatile pairs</div>
                         </div>
                       </div>
                     </div>
