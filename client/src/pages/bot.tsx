@@ -3362,7 +3362,7 @@ export default function BotPage() {
             }
             setShowCreateForm(open);
           }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-visible">
               <DialogHeader>
                 <DialogTitle>{editingStrategy ? 'Edit Trading Strategy' : 'Create Custom Trading Strategy'}</DialogTitle>
                 <DialogDescription>{editingStrategy ? 'Update your personalized trading strategy' : 'Build a personalized trading strategy with technical indicators and risk management'}</DialogDescription>
@@ -3447,7 +3447,7 @@ export default function BotPage() {
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select timeframe" />
                       </SelectTrigger>
-                      <SelectContent className="z-50">
+                      <SelectContent className="z-[9999]">
                         <SelectItem value="1m">1 Minute</SelectItem>
                         <SelectItem value="5m">5 Minutes</SelectItem>
                         <SelectItem value="15m">15 Minutes</SelectItem>
@@ -3469,7 +3469,7 @@ export default function BotPage() {
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select risk level" />
                       </SelectTrigger>
-                      <SelectContent className="z-50">
+                      <SelectContent className="z-[9999]">
                         <SelectItem value="low">Low Risk</SelectItem>
                         <SelectItem value="medium">Medium Risk</SelectItem>
                         <SelectItem value="high">High Risk</SelectItem>
