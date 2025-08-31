@@ -30,6 +30,7 @@ import {
   type MarketOpportunity,
   type InsertMarketOpportunity,
   users,
+  bitgetCredentials,
   screeners,
   botStrategies,
   botExecutions,
@@ -784,11 +785,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {
-    return this.memStorage.getBitgetCredentials(userId);
+    try {
+      const result = await db.select().from(bitgetCredentials).where(eq(bitgetCredentials.userId, userId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.error('Error getting Bitget credentials:', error);
+      return undefined;
+    }
   }
 
   async saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials> {
-    return this.memStorage.saveBitgetCredentials(credentials);
+    try {
+      // Delete existing credentials for this user first
+      await db.delete(bitgetCredentials).where(eq(bitgetCredentials.userId, credentials.userId));
+      
+      // Insert new credentials
+      const result = await db.insert(bitgetCredentials).values(credentials).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error saving Bitget credentials:', error);
+      throw error;
+    }
   }
 
   async getAllFuturesData(): Promise<FuturesData[]> {
