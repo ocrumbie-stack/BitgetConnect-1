@@ -3281,7 +3281,7 @@ export default function BotPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-scan-interval">Scan Interval (seconds)</Label>
+                        <Label htmlFor="continuous-scan-interval" className="text-gray-900 dark:text-gray-100 font-medium">Scan Interval (seconds)</Label>
                         <Input
                           id="continuous-scan-interval"
                           type="number"
