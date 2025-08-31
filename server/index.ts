@@ -50,14 +50,7 @@ app.use((req, res, next) => {
         const hashedPassword = await bcrypt.hash('password', 10);
         await storage.createUser({
           username: 'admin',
-          password: hashedPassword,
-          tradingStyle: 'balanced',
-          preferences: {
-            confidenceThreshold: 70,
-            maxLeverage: 5,
-            riskTolerance: 'medium',
-            timeframePreference: '15m'
-          }
+          password: hashedPassword
         });
         console.log('✅ Demo user created automatically for production deployment');
       } else {
