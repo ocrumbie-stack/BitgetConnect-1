@@ -3439,7 +3439,7 @@ export default function BotPage() {
                     <Label>Timeframe</Label>
                     <Select value={timeframe} onValueChange={setTimeframe}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select timeframe" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1m">1 Minute</SelectItem>
@@ -3455,7 +3455,7 @@ export default function BotPage() {
                     <Label>Risk Level</Label>
                     <Select value={riskLevel} onValueChange={setRiskLevel}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select risk level" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="low">Low Risk</SelectItem>
