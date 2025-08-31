@@ -3211,12 +3211,12 @@ export default function BotPage() {
                               onClick={() => selectPair(pair)}
                             >
                               <div>
-                                <span className="font-medium">{pair.symbol}</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{pair.symbol}</span>
                                 <span className={`ml-2 text-sm ${parseFloat(pair.change24h) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {parseFloat(pair.change24h) >= 0 ? '+' : ''}{parseFloat(pair.change24h).toFixed(2)}%
                                 </span>
                               </div>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-gray-600 dark:text-muted-foreground">
                                 Vol: ${(parseFloat(pair.volume24h) / 1000000).toFixed(1)}M
                               </span>
                             </div>
