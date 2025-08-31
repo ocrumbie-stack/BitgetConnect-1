@@ -66,8 +66,7 @@ router.post('/register', async (req, res) => {
     // Create user
     const newUser = await storage.createUser({
       ...userData,
-      password: hashedPassword,
-      tradingStyle: userData.tradingStyle || 'balanced'
+      password: hashedPassword
     });
     
     // Return user without password
@@ -145,7 +144,6 @@ router.post('/create-demo-user', async (req, res) => {
     const demoUser = await storage.createUser({
       username: 'admin',
       password: hashedPassword,
-      tradingStyle: 'balanced',
       preferences: {
         confidenceThreshold: 70,
         maxLeverage: 5,
@@ -162,7 +160,7 @@ router.post('/create-demo-user', async (req, res) => {
     
   } catch (error) {
     console.error('Demo user creation error:', error);
-    res.status(500).json({ message: 'Failed to create demo user', error: error.message });
+    res.status(500).json({ message: 'Failed to create demo user', error: String(error) });
   }
 });
 
@@ -181,7 +179,7 @@ router.get('/debug-user', async (req, res) => {
     }
   } catch (error) {
     console.error('Debug user error:', error);
-    res.status(500).json({ message: 'Debug failed', error: error.message });
+    res.status(500).json({ message: 'Debug failed', error: String(error) });
   }
 });
 

@@ -53,7 +53,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<User>;
   
   getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined>;
   saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials>;
@@ -181,6 +181,16 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const updatedUser = { ...user, password: hashedPassword };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {
