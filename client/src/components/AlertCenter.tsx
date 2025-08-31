@@ -625,7 +625,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
                 placeholder="Enter screener name or ID"
                 data-testid="input-screener"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
                 Alert when any pair matches the selected screener criteria
               </p>
             </div>
@@ -714,7 +714,7 @@ function CreateAlertSettingDialog({ userId, onClose, onSubmit, isSubmitting }: C
               placeholder="e.g., DeFi Tokens, Top 10, My Watchlist"
               data-testid="input-folder-name"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
               Monitor alerts for all pairs in a specific folder
             </p>
           </div>
@@ -904,7 +904,7 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
         </div>
       )}
       
-      <p className="text-xs text-muted-foreground mt-1">
+      <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
         Specify a trading pair or leave empty to monitor all pairs
       </p>
     </div>
