@@ -2431,24 +2431,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Bitget API if credentials are available
   const initializeBitgetAPI = async () => {
     try {
-      const apiKey = process.env.BITGET_API_KEY;
-      const apiSecret = process.env.BITGET_API_SECRET;
-      const apiPassphrase = process.env.BITGET_API_PASSPHRASE;
-
-      if (apiKey && apiSecret && apiPassphrase) {
+      // Try to get user credentials from storage first
+      const defaultUserCredentials = await storage.getBitgetCredentials('default-user');
+      
+      if (defaultUserCredentials) {
         bitgetAPI = new BitgetAPI({
-          apiKey,
-          apiSecret,
-          apiPassphrase
+          apiKey: defaultUserCredentials.apiKey,
+          apiSecret: defaultUserCredentials.apiSecret,
+          apiPassphrase: defaultUserCredentials.apiPassphrase
         });
 
         const isConnected = await bitgetAPI.testConnection();
         if (isConnected) {
-          console.log('Bitget API connection established');
+          console.log('Bitget API connection established using user credentials');
           startDataUpdates();
         } else {
-          console.error('Bitget API connection failed');
+          console.error('Bitget API connection failed with user credentials');
         }
+      } else {
+        console.log('No user API credentials found. Please configure your Bitget API credentials in settings.');
       }
     } catch (error) {
       console.error('Failed to initialize Bitget API:', error);
@@ -2607,8 +2608,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return ema;
   }
 
-  // API Routes
-  app.post('/api/credentials', async (req, res) => {
+  // API Routes for Bitget credentials and status
+  app.get('/api/bitget/status', async (req, res) => {
+    try {
+      const isConnected = bitgetAPI !== null;
+      let connectionDetails = null;
+      
+      if (isConnected && bitgetAPI) {
+        try {
+          // Test the current connection
+          const testResult = await bitgetAPI.testConnection();
+          connectionDetails = {
+            connected: testResult,
+            lastChecked: new Date().toISOString(),
+            hasCredentials: true
+          };
+        } catch (error) {
+          connectionDetails = {
+            connected: false,
+            lastChecked: new Date().toISOString(),
+            hasCredentials: true,
+            error: 'Connection test failed'
+          };
+        }
+      } else {
+        connectionDetails = {
+          connected: false,
+          lastChecked: new Date().toISOString(),
+          hasCredentials: false,
+          message: 'No API credentials configured'
+        };
+      }
+      
+      res.json(connectionDetails);
+    } catch (error: any) {
+      res.status(500).json({
+        connected: false,
+        lastChecked: new Date().toISOString(),
+        error: error.message || 'Failed to check status'
+      });
+    }
+  });
+
+  app.post('/api/bitget/credentials', async (req, res) => {
     try {
       const credentials = insertBitgetCredentialsSchema.parse(req.body);
       
@@ -2631,6 +2673,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Initialize API with new credentials
       bitgetAPI = testAPI;
       startDataUpdates();
+      
+      console.log('✅ User API credentials saved and activated successfully');
 
       res.json({ 
         message: 'Credentials saved successfully',
@@ -5292,8 +5336,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Initialize sample data on startup
-  await initializeBitgetAPI();
   await initializeSampleData();
+  
+  // Initialize Bitget API on startup using user credentials
+  await initializeBitgetAPI();
 
   return httpServer;
 

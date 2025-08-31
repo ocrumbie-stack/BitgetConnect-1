@@ -1,5 +1,8 @@
 # Overview
-OcTrader is a mobile-optimized crypto trading application for real-time Bitget perpetual futures trading. It provides tools for market monitoring, efficient order placement, automated trading bot setup, and streamlined strategy deployment. The platform aims to offer advanced AI-powered trading opportunities, efficient organization via folder-based trading pair management, and bulk bot deployment, striving to be a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
+OcTrader is a mobile-optimized crypto trading application for real-time Bitget perpetual futures trading. It provides tools for market monitoring, efficient order placement, automated trading bot setup, and streamlined strategy deployment. The platform features a secure user-specific API credential system where each user configures their own Bitget API keys through the settings interface. The platform aims to offer advanced AI-powered trading opportunities, efficient organization via folder-based trading pair management, and bulk bot deployment, striving to be a sophisticated, user-friendly platform for advanced trading strategies and market analysis.
+
+# Recent Changes
+**User-Specific API Credentials System (Latest)**: Completely removed hardcoded Bitget API credentials and implemented secure user-specific credential management. Users now configure their own API keys through the settings page, ensuring personal account security and eliminating shared credential risks. System now shows "No user API credentials found" message until users configure their own credentials.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
