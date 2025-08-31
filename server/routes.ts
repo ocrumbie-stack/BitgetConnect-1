@@ -3037,42 +3037,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Now terminate ALL bot executions to ensure they don't reappear
-      console.log('🤖 Terminating all bot executions...');
+      // Only terminate bots that have positions that were actually closed
+      console.log('🤖 Terminating bots with closed positions...');
       try {
-        // Use a more direct approach - get all executions for the user
         const allExecutions = await storage.getBotExecutions(userId || 'default-user');
         console.log(`📋 Found ${allExecutions.length} total bot executions`);
         
-        if (allExecutions.length > 0) {
-          console.log(`📊 Bot statuses: ${allExecutions.map(bot => `${bot.tradingPair}:${bot.status}`).join(', ')}`);
-        }
-        
-        // Terminate ALL bots regardless of status (except those already terminated)
+        // Only terminate bots whose trading pairs had positions that were closed
+        const closedSymbols = closedPositions.map(pos => pos.symbol);
         let terminatedCount = 0;
+        
         for (const bot of allExecutions) {
-          if (bot.status !== 'terminated') {
+          // Only terminate bots if their trading pair had a position that was closed
+          if (bot.status !== 'terminated' && closedSymbols.includes(bot.tradingPair)) {
             try {
               await storage.updateBotExecution(bot.id, {
-                status: 'terminated'
+                status: 'terminated',
+                exitReason: 'Position closed via Close All Positions'
               });
-              console.log(`🛑 Terminated bot: ${bot.id} (${bot.tradingPair}) - was ${bot.status}`);
+              console.log(`🛑 Terminated bot: ${bot.id} (${bot.tradingPair}) - had closed position`);
               terminatedCount++;
             } catch (error: any) {
               console.error(`❌ Failed to terminate bot ${bot.id}:`, error);
             }
           }
         }
-        console.log(`✅ Successfully terminated ${terminatedCount} bots`);
+        console.log(`✅ Successfully terminated ${terminatedCount} bots with closed positions`);
+        
+        // Keep bots without positions running for future opportunities
+        const keptBots = allExecutions.filter(bot => 
+          bot.status !== 'terminated' && !closedSymbols.includes(bot.tradingPair)
+        );
+        if (keptBots.length > 0) {
+          console.log(`📌 Kept ${keptBots.length} bots running: ${keptBots.map(bot => bot.tradingPair).join(', ')}`);
+        }
       } catch (error: any) {
-        console.error('❌ Error terminating bots:', error);
+        console.error('❌ Error processing bot terminations:', error);
       }
       
       res.json({
         success: true,
         message: positions.length === 0 ? 
-          `No positions to close, but terminated all active bots` : 
-          `Closed ${closedPositions.length} of ${positions.length} positions and terminated all active bots`,
+          `No positions to close, bots remain active for future opportunities` : 
+          `Closed ${closedPositions.length} of ${positions.length} positions and terminated ${closedPositions.length} related bots. Other bots remain active.`,
         closedPositions,
         errors: errors.length > 0 ? errors : undefined
       });
