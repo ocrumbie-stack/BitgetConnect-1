@@ -277,7 +277,7 @@ export default function Markets() {
       const response = await fetch('/api/screeners/user1');
       if (!response.ok) throw new Error('Failed to fetch screeners');
       const data = await response.json();
-      console.log('Fetched screeners:', data);
+      // Remove debug logging
       return data;
     },
     enabled: true,

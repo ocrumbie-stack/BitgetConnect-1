@@ -16,10 +16,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
-  // Debug log to check what data we're receiving
-  useEffect(() => {
-    console.log('DynamicExitVisualizer received bot data:', bot);
-  }, [bot]);
+  // Remove debug logging to prevent console output display
   
   // Fetch real-time price data for the trading pair
   const { data: futures } = useQuery({
