@@ -319,6 +319,22 @@ export function CreateScreener() {
     }
   });
 
+  // Watch form values once at the top to prevent re-render loops
+  const watchedValues = form.watch();
+  const ma1ComparisonType = watchedValues.ma1ComparisonType;
+  const ma2ComparisonType = watchedValues.ma2ComparisonType;
+  const rsiEnabled = watchedValues.rsiEnabled;
+  const rsiOperator = watchedValues.rsiOperator;
+  const macdEnabled = watchedValues.macdEnabled;
+  const ma1Enabled = watchedValues.ma1Enabled;
+  const ma2Enabled = watchedValues.ma2Enabled;
+  const bollingerEnabled = watchedValues.bollingerEnabled;
+  const stochasticEnabled = watchedValues.stochasticEnabled;
+  const williamsEnabled = watchedValues.williamsEnabled;
+  const atrEnabled = watchedValues.atrEnabled;
+  const cciEnabled = watchedValues.cciEnabled;
+  const momentumEnabled = watchedValues.momentumEnabled;
+
   const onSubmit = (data: ScreenerFormData) => {
     createScreenerMutation.mutate(data);
   };
@@ -1042,7 +1058,7 @@ export function CreateScreener() {
                                 </FormItem>
                               )}
                             />
-                            {form.watch('ma1ComparisonType') === 'another_ma' && (
+                            {ma1ComparisonType === 'another_ma' && (
                               <>
                                 <FormField
                                   control={form.control}
@@ -1209,7 +1225,7 @@ export function CreateScreener() {
                                 </FormItem>
                               )}
                             />
-                            {form.watch('ma2ComparisonType') === 'another_ma' && (
+                            {ma2ComparisonType === 'another_ma' && (
                               <>
                                 <FormField
                                   control={form.control}
