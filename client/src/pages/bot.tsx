@@ -2079,7 +2079,7 @@ export default function BotPage() {
                 {/* Deployment Configuration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="space-y-3">
-                    <label className="text-sm font-medium">Total Capital ($)</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Total Capital ($)</label>
                     <Input
                       type="number"
                       value={scannerCapital}
@@ -2971,7 +2971,7 @@ export default function BotPage() {
                   
                   <form onSubmit={handleCreateAutoAIBot} className="space-y-4">
                     <div>
-                      <Label htmlFor="autoai-capital">Investment Amount ($)</Label>
+                      <Label htmlFor="autoai-capital" className="text-gray-900 dark:text-gray-100 font-medium">Investment Amount ($)</Label>
                       <Input
                         id="autoai-capital"
                         type="number"
@@ -2985,7 +2985,7 @@ export default function BotPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="autoai-leverage">Leverage</Label>
+                      <Label htmlFor="autoai-leverage" className="text-gray-900 dark:text-gray-100 font-medium">Leverage</Label>
                       <Select value={autoAIBotLeverage} onValueChange={setAutoAIBotLeverage}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select leverage" />
@@ -3061,7 +3061,7 @@ export default function BotPage() {
               <div className="space-y-6 py-4">
                 {/* Deployment Mode Selector - RESTORED */}
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Deployment Mode</Label>
+                  <Label className="text-base font-semibold text-gray-900 dark:text-gray-100">Deployment Mode</Label>
                   <div className="grid grid-cols-1 gap-2">
                     <div 
                       className={`p-3 border rounded-lg cursor-pointer transition-all ${
@@ -3183,7 +3183,7 @@ export default function BotPage() {
                 {/* Individual Pair Selection */}
                 {deploymentMode === 'individual' && (
                   <div className="space-y-2">
-                    <Label htmlFor="pair-search">Select Trading Pair</Label>
+                    <Label htmlFor="pair-search" className="text-gray-900 dark:text-gray-100 font-medium">Select Trading Pair</Label>
                     <div className="relative">
                       <Input
                         id="pair-search"
@@ -3221,7 +3221,7 @@ export default function BotPage() {
                 {/* Folder Selection */}
                 {deploymentMode === 'folder' && (
                   <div className="space-y-2">
-                    <Label>Select Folder</Label>
+                    <Label className="text-gray-900 dark:text-gray-100 font-medium">Select Folder</Label>
                     <Select value={selectedFolder} onValueChange={setSelectedFolder}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose a folder" />
@@ -3244,7 +3244,7 @@ export default function BotPage() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-capital">Capital per Position</Label>
+                        <Label htmlFor="continuous-capital" className="text-gray-900 dark:text-gray-100 font-medium">Capital per Position</Label>
                         <Input
                           id="continuous-capital"
                           type="number"
@@ -3255,7 +3255,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-max-positions">Max Positions</Label>
+                        <Label htmlFor="continuous-max-positions" className="text-gray-900 dark:text-gray-100 font-medium">Max Positions</Label>
                         <Input
                           id="continuous-max-positions"
                           type="number"
@@ -3266,7 +3266,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-leverage">Leverage</Label>
+                        <Label htmlFor="continuous-leverage" className="text-gray-900 dark:text-gray-100 font-medium">Leverage</Label>
                         <Select value={continuousLeverage} onValueChange={setContinuousLeverage}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select leverage" />
@@ -3300,7 +3300,7 @@ export default function BotPage() {
                 {(deploymentMode !== 'continuous_scanner' &&
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="capital">Capital ($)</Label>
+                    <Label htmlFor="capital" className="text-gray-900 dark:text-gray-100 font-medium">Capital ($)</Label>
                     <Input
                       id="capital"
                       type="number"
@@ -3312,7 +3312,7 @@ export default function BotPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="leverage">Leverage</Label>
+                    <Label htmlFor="leverage" className="text-gray-900 dark:text-gray-100 font-medium">Leverage</Label>
                     <Select value={leverage} onValueChange={setLeverage}>
                       <SelectTrigger>
                         <SelectValue />
