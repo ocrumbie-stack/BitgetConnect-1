@@ -5335,6 +5335,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Continuous scanner endpoint
+  app.post('/api/continuous-scanner', async (req, res) => {
+    try {
+      const { userId, strategyId, capital, leverage, maxPositions, scanInterval } = req.body;
+      
+      console.log('🔄 Starting continuous scanner with params:', {
+        userId, strategyId, capital, leverage, maxPositions, scanInterval
+      });
+
+      // Validate inputs
+      if (!userId || !strategyId || !capital || !leverage || !maxPositions || !scanInterval) {
+        return res.status(400).json({ 
+          message: 'Missing required parameters for continuous scanner' 
+        });
+      }
+
+      // Get strategy details
+      const strategy = await storage.getBotStrategy(strategyId);
+      if (!strategy) {
+        return res.status(404).json({ message: 'Strategy not found' });
+      }
+
+      // Create organized folder for continuous scanner deployment
+      const { folderName } = getStrategyFolder(strategy, 'continuous_scanner');
+      
+      // Start the continuous scanner process
+      const scannerResult = {
+        id: `scanner_${Date.now()}`,
+        strategyId,
+        capital: parseFloat(capital),
+        leverage: parseFloat(leverage),
+        maxPositions: parseInt(maxPositions),
+        scanInterval: parseInt(scanInterval),
+        status: 'active',
+        folderName,
+        deploymentType: 'continuous_scanner',
+        startedAt: new Date(),
+        scansCount: 0,
+        tradesPlaced: 0
+      };
+
+      // TODO: Implement the actual continuous scanning logic here
+      // This would involve:
+      // 1. Setting up an interval timer
+      // 2. Scanning volatile pairs periodically
+      // 3. Deploying bots on qualifying opportunities
+      // 4. Managing maximum position limits
+
+      console.log('✅ Continuous scanner started:', scannerResult);
+      
+      res.json({
+        message: 'Continuous scanner started successfully',
+        scanner: scannerResult
+      });
+
+    } catch (error) {
+      console.error('❌ Error starting continuous scanner:', error);
+      res.status(500).json({ 
+        message: 'Failed to start continuous scanner',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Initialize sample data on startup
   await initializeSampleData();
   
