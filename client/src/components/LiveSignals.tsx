@@ -24,9 +24,18 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
         setLoading(true);
         const response = await fetch(`/api/signals/${symbol}`);
         const data = await response.json();
-        setSignalsData(data);
+        
+        // Check if the response contains an error or invalid data structure
+        if (data.message && data.message.includes('not configured')) {
+          setSignalsData(null);
+        } else if (data.rsi && data.macd && data.volume && data.ema) {
+          setSignalsData(data);
+        } else {
+          setSignalsData(null);
+        }
       } catch (error) {
         console.error('Failed to fetch signals:', error);
+        setSignalsData(null);
       } finally {
         setLoading(false);
       }
@@ -115,20 +124,20 @@ export function LiveSignals({ symbol }: LiveSignalsProps) {
       </div>
       <div className="space-y-1 text-xs">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 ${getStatusColor(signalsData.rsi.status)} rounded-full`}></div>
-          <span>{getSignalText('rsi', signalsData.rsi)}</span>
+          <div className={`w-2 h-2 ${getStatusColor(signalsData?.rsi?.status || 'neutral')} rounded-full`}></div>
+          <span>{getSignalText('rsi', signalsData?.rsi || { status: 'neutral', value: 0 })}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 ${getStatusColor(signalsData.macd.status)} rounded-full`}></div>
-          <span>{getSignalText('macd', signalsData.macd)}</span>
+          <div className={`w-2 h-2 ${getStatusColor(signalsData?.macd?.status || 'neutral')} rounded-full`}></div>
+          <span>{getSignalText('macd', signalsData?.macd || { status: 'neutral', signal: 'none' })}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 ${getStatusColor(signalsData.volume.status)} rounded-full`}></div>
-          <span>{getSignalText('volume', signalsData.volume)}</span>
+          <div className={`w-2 h-2 ${getStatusColor(signalsData?.volume?.status || 'neutral')} rounded-full`}></div>
+          <span>{getSignalText('volume', signalsData?.volume || { status: 'neutral', trend: 'stable' })}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 ${getStatusColor(signalsData.ema?.status || 'neutral')} rounded-full`}></div>
-          <span>{getSignalText('ema', signalsData.ema || { status: 'neutral' })}</span>
+          <span>{getSignalText('ema', signalsData?.ema || { status: 'neutral', ema20: 0, ema50: 0 })}</span>
         </div>
       </div>
     </div>
