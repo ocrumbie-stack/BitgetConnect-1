@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cache Buster</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>Cache Test - Current Time: <span id="time"></span></h1>
+    <p>Continuous Scanner Status: DISABLED (Coming Soon)</p>
+    <script>
+        document.getElementById('time').textContent = new Date().toISOString();
+        // Force redirect to main app with cache busting
+        setTimeout(() => {
+            window.location.href = '/?v=' + Date.now();
+        }, 2000);
+    </script>
+</body>
+</html>

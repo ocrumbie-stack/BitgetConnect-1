@@ -3127,8 +3127,8 @@ export default function BotPage() {
                           className="text-gray-400"
                         />
                         <div>
-                          <div className="font-medium text-gray-500">Continuous Scanner (Coming Soon)</div>
-                          <div className="text-sm text-muted-foreground">Feature temporarily disabled for stability</div>
+                          <div className="font-medium text-gray-500">Continuous Scanner (Coming Soon) - v2.0</div>
+                          <div className="text-sm text-muted-foreground">Feature temporarily disabled for stability - Updated Aug 31</div>
                         </div>
                       </div>
                     </div>
