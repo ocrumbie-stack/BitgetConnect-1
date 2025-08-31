@@ -86,7 +86,7 @@ export default function BotPage() {
     profit: 0,
     lastScan: null
   });
-  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner' | 'continuous_scanner'>('individual');
+  const [deploymentMode, setDeploymentMode] = useState<'individual' | 'folder' | 'auto_scanner'>('individual');
   const [showBotSettings, setShowBotSettings] = useState(false);
   const [selectedBot, setSelectedBot] = useState<any>(null);
   const [showBotInfo, setShowBotInfo] = useState(false);
@@ -856,25 +856,7 @@ export default function BotPage() {
       return;
     }
 
-    // Validate continuous scanner settings
-    if (deploymentMode === 'continuous_scanner') {
-      if (!continuousCapital || parseFloat(continuousCapital) <= 0) {
-        alert('Please enter valid capital per position for continuous scanner.');
-        return;
-      }
-      if (!continuousMaxPositions || parseInt(continuousMaxPositions) <= 0) {
-        alert('Please enter valid max positions for continuous scanner.');
-        return;
-      }
-      if (!continuousLeverage || parseFloat(continuousLeverage) <= 0) {
-        alert('Please enter valid leverage for continuous scanner.');
-        return;
-      }
-      if (!continuousScanInterval || parseInt(continuousScanInterval) < 30) {
-        alert('Scan interval must be at least 30 seconds.');
-        return;
-      }
-    }
+
 
     // Auto scanner mode doesn't need pair/folder validation - it selects automatically
 
@@ -898,24 +880,7 @@ export default function BotPage() {
           title: "AI Bot Deployed Successfully! 🤖",
           description: `Auto scanner will find optimal trading opportunities using ${leverage}x leverage with $${capital} capital`,
         });
-      } else if (deploymentMode === 'continuous_scanner') {
-        // Start continuous scanner
-        const continuousData = {
-          userId: 'default-user',
-          strategyId: strategy.id,
-          capital: continuousCapital,
-          leverage: continuousLeverage,
-          maxPositions: continuousMaxPositions,
-          scanInterval: continuousScanInterval
-        };
 
-        await continuousScannerMutation.mutateAsync(continuousData);
-        setIsContinuousActive(true);
-        setShowRunDialog(false);
-        toast({
-          title: "Continuous Scanner Started! 🔄",
-          description: `Scanning top 20 volatile pairs every ${continuousScanInterval}s, max ${continuousMaxPositions} positions with ${continuousLeverage}x leverage`,
-        });
       } else if (selectedFolder) {
         // Deploy to folder
         const folder = (folders as any[]).find(f => f.id === selectedFolder);
@@ -3148,40 +3113,22 @@ export default function BotPage() {
                       </div>
                     )}
 
-                    {/* Continuous Scanner Mode - Available for all strategies */}
+                    {/* Continuous Scanner Mode - Temporarily disabled for debugging */}
                     <div 
-                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                        deploymentMode === 'continuous_scanner' 
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => {
-                        try {
-                          console.log('Switching to continuous scanner mode');
-                          setDeploymentMode('continuous_scanner');
-                        } catch (error) {
-                          console.error('Error switching to continuous scanner:', error);
-                        }
-                      }}
+                      className="p-3 border rounded-lg opacity-50 cursor-not-allowed border-gray-200"
                     >
                       <div className="flex items-center gap-3">
                         <input 
                           type="radio" 
                           name="deploymentMode" 
                           value="continuous_scanner"
-                          checked={deploymentMode === 'continuous_scanner'}
-                          onChange={() => {
-                            try {
-                              setDeploymentMode('continuous_scanner');
-                            } catch (error) {
-                              console.error('Error setting deployment mode:', error);
-                            }
-                          }}
-                          className="text-purple-500"
+                          checked={false}
+                          disabled={true}
+                          className="text-gray-400"
                         />
                         <div>
-                          <div className="font-medium">Continuous Scanner</div>
-                          <div className="text-sm text-muted-foreground">Keeps scanning top 20 volatile pairs and places orders when conditions are met</div>
+                          <div className="font-medium text-gray-500">Continuous Scanner (Coming Soon)</div>
+                          <div className="text-sm text-muted-foreground">Feature temporarily disabled for stability</div>
                         </div>
                       </div>
                     </div>
@@ -3245,77 +3192,10 @@ export default function BotPage() {
                   </div>
                 )}
 
-                {/* Continuous Scanner Settings */}
-                {deploymentMode === 'continuous_scanner' && (
-                  <div className="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">Continuous Scanner Configuration</h4>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Capital per Position</Label>
-                        <Input
-                          type="number"
-                          placeholder="5000"
-                          value={continuousCapital || ''}
-                          onChange={(e) => setContinuousCapital(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Max Positions</Label>
-                        <Input
-                          type="number"
-                          placeholder="3"
-                          value={continuousMaxPositions || ''}
-                          onChange={(e) => setContinuousMaxPositions(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Leverage</Label>
-                        <Input
-                          type="number"
-                          placeholder="3"
-                          value={continuousLeverage || ''}
-                          onChange={(e) => setContinuousLeverage(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-gray-900 dark:text-gray-100 font-semibold">Scan Interval (seconds)</Label>
-                        <Input
-                          type="number"
-                          placeholder="60"
-                          value={continuousScanInterval || ''}
-                          onChange={(e) => setContinuousScanInterval(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
 
-                    {/* Status Display */}
-                    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${isContinuousActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {isContinuousActive ? 'Scanner Active' : 'Scanner Stopped'}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">
-                        Scans: {(continuousStats && continuousStats.scansCount) || 0} | Trades: {(continuousStats && continuousStats.tradesPlaced) || 0}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Capital and Leverage - Only show for non-continuous modes */}
-                {deploymentMode !== 'continuous_scanner' && (
+                {/* Capital and Leverage */}
+                {(
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="capital">Capital ($)</Label>
@@ -3369,9 +3249,7 @@ export default function BotPage() {
                     ) : (
                       <>
                         <Play className="h-4 w-4 mr-2" />
-                        {deploymentMode === 'continuous_scanner' 
-                          ? (isContinuousActive ? 'Stop Continuous Scanner' : 'Start Continuous Scanner')
-                          : deploymentMode === 'auto_scanner' 
+                        {deploymentMode === 'auto_scanner' 
                           ? 'Deploy AI Scanner'
                           : deploymentMode === 'folder' 
                           ? 'Deploy to Folder'
