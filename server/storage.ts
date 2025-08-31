@@ -69,6 +69,7 @@ export interface IStorage {
   updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo>;
   
   getBotStrategies(userId: string): Promise<BotStrategy[]>;
+  getBotStrategy(id: string): Promise<BotStrategy | undefined>;
   createBotStrategy(strategy: InsertBotStrategy): Promise<BotStrategy>;
   updateBotStrategy(id: string, strategy: Partial<InsertBotStrategy>): Promise<BotStrategy>;
   deleteBotStrategy(id: string): Promise<void>;
@@ -313,6 +314,10 @@ export class MemStorage implements IStorage {
 
   async getBotStrategies(userId: string): Promise<BotStrategy[]> {
     return Array.from(this.botStrategies.values()).filter(strategy => strategy.userId === userId);
+  }
+
+  async getBotStrategy(id: string): Promise<BotStrategy | undefined> {
+    return this.botStrategies.get(id);
   }
 
   async createBotStrategy(insertStrategy: InsertBotStrategy): Promise<BotStrategy> {
@@ -816,6 +821,11 @@ export class DatabaseStorage implements IStorage {
 
   async getBotStrategies(userId: string): Promise<BotStrategy[]> {
     return await db.select().from(botStrategies).where(eq(botStrategies.userId, userId));
+  }
+
+  async getBotStrategy(id: string): Promise<BotStrategy | undefined> {
+    const result = await db.select().from(botStrategies).where(eq(botStrategies.id, id)).limit(1);
+    return result[0] || undefined;
   }
 
   async createBotStrategy(strategy: InsertBotStrategy): Promise<BotStrategy> {
