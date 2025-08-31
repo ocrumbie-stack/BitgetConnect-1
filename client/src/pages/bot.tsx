@@ -79,7 +79,6 @@ export default function BotPage() {
   const [continuousMaxPositions, setContinuousMaxPositions] = useState('10');
   const [continuousLeverage, setContinuousLeverage] = useState('3');
   const [continuousScanInterval, setContinuousScanInterval] = useState('300');
-  const [isContinuousActive, setIsContinuousActive] = useState(false);
   const [continuousStats, setContinuousStats] = useState<any>({
     scansCount: 0,
     tradesPlaced: 0,
@@ -3362,7 +3361,7 @@ export default function BotPage() {
                       <>
                         <Play className="h-4 w-4 mr-2" />
                         {deploymentMode === 'continuous_scanner' 
-                          ? (isContinuousActive ? 'Stop Continuous Scanner' : 'Start Continuous Scanner')
+                          ? 'Start Continuous Scanner'
                           : deploymentMode === 'auto_scanner' 
                           ? 'Deploy AI Scanner'
                           : deploymentMode === 'folder' 
