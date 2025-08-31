@@ -6164,6 +6164,15 @@ export function addUserPreferencesRoutes(app: any, storage: any) {
       
       console.log(`🔄 Starting continuous scanner for strategy ${strategyId} with ${maxPositions} max positions`);
       
+      // Get strategy details for proper folder naming
+      const strategy = await storage.getBotStrategy(strategyId);
+      if (!strategy) {
+        return res.status(404).json({ message: 'Strategy not found' });
+      }
+
+      // Create organized folder for continuous scanner deployment
+      const { folderName } = getStrategyFolder(strategy, 'continuous_scanner');
+
       // Create a continuous scanner bot execution  
       const continuousBotData = {
         userId,
@@ -6173,7 +6182,8 @@ export function addUserPreferencesRoutes(app: any, storage: any) {
         leverage,
         status: 'active',
         deploymentType: 'continuous_scanner',
-        botName: `🔄 Continuous Scanner`,
+        botName: `🔄 ${strategy.name}`, // Use actual strategy name
+        folderName: folderName, // Use proper folder name with strategy name
         settings: {
           maxPositions: parseInt(maxPositions),
           scanInterval: parseInt(scanInterval)
