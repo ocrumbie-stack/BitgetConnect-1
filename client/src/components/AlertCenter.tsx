@@ -880,21 +880,21 @@ function TradingPairAutosuggest({ value, onChange, placeholder }: TradingPairAut
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-50 w-full mt-1 bg-black dark:bg-black border border-gray-600 dark:border-gray-500 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-black border border-gray-300 dark:border-gray-500 rounded-md shadow-lg max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
               type="button"
-              className={`w-full text-left px-3 py-2 hover:bg-gray-800 transition-colors border-b border-gray-700 last:border-b-0 ${
-                index === selectedIndex ? 'bg-gray-800' : ''
+              className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0 ${
+                index === selectedIndex ? 'bg-gray-100 dark:bg-gray-800' : ''
               }`}
               onClick={() => handleSuggestionClick(suggestion)}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">{suggestion}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{suggestion}</span>
                 {futuresData.find((f: any) => f.symbol === suggestion) && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
                     ${futuresData.find((f: any) => f.symbol === suggestion)?.price || 'N/A'}
                   </span>
                 )}
