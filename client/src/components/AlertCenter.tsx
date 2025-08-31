@@ -66,7 +66,7 @@ export function AlertCenter({ userId = 'default-user', isOpen: externalIsOpen, o
           return [];
         }
         const data = await response.json();
-        console.log('Fetched alerts:', data);
+        // Remove debug logging
         return data;
       } catch (error) {
         console.error('Error fetching alerts:', error);
@@ -87,7 +87,7 @@ export function AlertCenter({ userId = 'default-user', isOpen: externalIsOpen, o
           return [];
         }
         const data = await response.json();
-        console.log('Fetched alert settings:', data);
+        // Remove debug logging
         return data;
       } catch (error) {
         console.error('Error fetching alert settings:', error);
