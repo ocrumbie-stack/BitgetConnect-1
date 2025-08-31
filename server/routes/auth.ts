@@ -143,13 +143,7 @@ router.post('/create-demo-user', async (req, res) => {
     const hashedPassword = await bcrypt.hash('password', 10);
     const demoUser = await storage.createUser({
       username: 'admin',
-      password: hashedPassword,
-      preferences: {
-        confidenceThreshold: 70,
-        maxLeverage: 5,
-        riskTolerance: 'medium',
-        timeframePreference: '15m'
-      }
+      password: hashedPassword
     });
     
     const { password: _, ...userWithoutPassword } = demoUser;

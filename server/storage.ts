@@ -53,7 +53,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserPassword(userId: string, hashedPassword: string): Promise<User>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
   
   getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined>;
   saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials>;
@@ -178,19 +178,23 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      tradingStyle: insertUser.tradingStyle || 'balanced',
+      preferences: insertUser.preferences || {}
+    };
     this.users.set(id, user);
     return user;
   }
 
-  async updateUserPassword(userId: string, hashedPassword: string): Promise<User> {
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
     const user = this.users.get(userId);
     if (!user) {
       throw new Error('User not found');
     }
     const updatedUser = { ...user, password: hashedPassword };
     this.users.set(userId, updatedUser);
-    return updatedUser;
   }
 
   async getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined> {
@@ -296,6 +300,7 @@ export class MemStorage implements IStorage {
       marginUsed: info.marginUsed || null,
       unrealizedPnl: info.unrealizedPnl || null,
       totalEquity: info.totalEquity || null,
+      totalBalance: info.totalBalance || null,
       marginRatio: info.marginRatio || null,
       maintenanceMargin: info.maintenanceMargin || null,
       lastUpdated: new Date()
@@ -769,7 +774,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
     await db
       .update(users)
-      .set({ password: hashedPassword, updatedAt: new Date() })
+      .set({ password: hashedPassword })
       .where(eq(users.id, userId));
   }
 

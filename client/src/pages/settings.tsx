@@ -72,7 +72,7 @@ export function Settings() {
         </Card>
 
         {/* Change Password */}
-        <ChangePassword currentUser={user} />
+        <ChangePassword currentUser={user || undefined} />
 
         {/* API Configuration */}
         <Card>
