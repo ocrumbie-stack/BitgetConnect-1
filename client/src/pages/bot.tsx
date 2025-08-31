@@ -4338,11 +4338,7 @@ export default function BotPage() {
           </Dialog>
         )}
         
-        {/* Debug info */}
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded opacity-75 z-50">
-          showExitVisualizer: {showExitVisualizer.toString()}<br/>
-          selectedBot: {selectedBotForVisualization?.tradingPair || 'none'}
-        </div>
+
 
         {/* Alert Center Dialog */}
         {showAlertCenter && (
