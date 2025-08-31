@@ -3778,6 +3778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             deploymentType: deployedBot.deploymentType || 'manual',
             botName: deployedBot.botName || `Bot ${deployedBot.tradingPair}`, // CLEANUP: Removed mapping dependency
             riskLevel: 'Medium', // CLEANUP: Removed mapping dependency
+            folderName: deployedBot.folderName, // Include folder name from database
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
             updatedAt: new Date(),
@@ -3821,6 +3822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             deploymentType: deployedBot.deploymentType || 'manual',
             botName: deployedBot.botName || `Bot ${deployedBot.tradingPair}`,
             riskLevel: 'Medium', // CLEANUP: Removed mapping dependency
+            folderName: deployedBot.folderName, // Include folder name from database
             startedAt: deployedBot.startedAt || deployedBot.createdAt,
             createdAt: deployedBot.createdAt,
             updatedAt: new Date(),
