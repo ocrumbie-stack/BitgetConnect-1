@@ -3544,6 +3544,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           continue;
         }
 
+        // Handle manual/folder deployments - ensure they have proper folder names with strategy names
+        if (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder') {
+          // Get strategy for proper naming and folder organization
+          const strategies = await storage.getBotStrategies('default-user');
+          const strategy = strategies.find(s => s.id === deployedBot.strategyId);
+          
+          // Check if bot has generic folder name and update it with strategy name
+          let folderName = deployedBot.folderName;
+          if (strategy && (!folderName || folderName === 'Test' || folderName === 'Manual Strategy' || folderName.includes('Manual Strategy'))) {
+            folderName = `⚡ ${strategy.name}`;
+            // Update the bot with proper folder name
+            try {
+              await storage.updateBotExecution(deployedBot.id, { 
+                folderName: folderName 
+              });
+              console.log(`📁 Updated ${deployedBot.tradingPair} folder name to: ${folderName}`);
+            } catch (updateError) {
+              console.log(`⚠️ Failed to update bot folder name: ${updateError}`);
+            }
+          }
+        }
+
         // Check if this is a strategy bot that needs entry evaluation 
         // CRITICAL: Exclude continuous_scanner_child bots from re-evaluation to prevent duplicates
         if ((deployedBot.status === 'waiting_entry' || (deployedBot.status === 'active' && !positions.find((pos: any) => pos.symbol === deployedBot.tradingPair))) && deployedBot.strategyId && (deployedBot.deploymentType === 'manual' || deployedBot.deploymentType === 'folder' || deployedBot.deploymentType === 'auto_scanner' || deployedBot.deploymentType === 'continuous_scanner') && deployedBot.deploymentType !== 'continuous_scanner_child') {
