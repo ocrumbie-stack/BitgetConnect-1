@@ -3029,7 +3029,8 @@ export default function BotPage() {
             setShowExitVisualizer(false);
             setSelectedBotForVisualization(null);
           }}>
-            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden mx-4">
+              <div className="overflow-y-auto max-h-full">
               <DialogHeader>
                 <DialogTitle>Exit Information - {selectedBotForVisualization.tradingPair}</DialogTitle>
                 <DialogDescription>Real-time exit conditions and position details</DialogDescription>
@@ -3041,6 +3042,7 @@ export default function BotPage() {
                   setSelectedBotForVisualization(null);
                 }}
               />
+              </div>
             </DialogContent>
           </Dialog>
         )}
