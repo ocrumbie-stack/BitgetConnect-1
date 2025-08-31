@@ -3266,7 +3266,7 @@ export default function BotPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-leverage" className="text-gray-900 dark:text-gray-100 font-medium">Leverage</Label>
+                        <Label htmlFor="continuous-leverage" className="text-gray-900 dark:text-gray-100 font-medium min-h-[2.5rem] flex items-center">Leverage</Label>
                         <Select value={continuousLeverage} onValueChange={setContinuousLeverage}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select leverage" />
@@ -3281,7 +3281,7 @@ export default function BotPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="continuous-scan-interval" className="text-gray-900 dark:text-gray-100 font-medium">Scan Interval (seconds)</Label>
+                        <Label htmlFor="continuous-scan-interval" className="text-gray-900 dark:text-gray-100 font-medium min-h-[2.5rem] flex items-center">Scan Interval (seconds)</Label>
                         <Input
                           id="continuous-scan-interval"
                           type="number"
