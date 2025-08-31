@@ -3155,7 +3155,10 @@ export default function BotPage() {
                           ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
-                      onClick={() => setDeploymentMode('continuous_scanner')}
+                      onClick={() => {
+                        console.log('Switching to continuous scanner mode');
+                        setDeploymentMode('continuous_scanner');
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <input 
