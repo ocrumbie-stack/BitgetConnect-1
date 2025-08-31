@@ -123,7 +123,7 @@ export const botExecutions = pgTable("bot_executions", {
   userId: varchar("user_id").notNull(),
   strategyId: varchar("strategy_id").notNull().references(() => botStrategies.id, { onDelete: 'cascade' }),
   tradingPair: text("trading_pair").notNull(),
-  status: text("status").notNull().default('inactive'), // 'active', 'inactive', 'paused'
+  status: text("status").notNull().default('waiting_entry'), // 'active', 'waiting_entry', 'paused', 'terminated'
   capital: decimal("capital", { precision: 20, scale: 8 }).notNull(),
   leverage: varchar("leverage").default('1'),
   profit: decimal("profit", { precision: 20, scale: 8 }).default('0'),
