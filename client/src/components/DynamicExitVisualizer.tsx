@@ -377,7 +377,7 @@ export function DynamicExitVisualizer({ bot, onClose }: DynamicExitVisualizerPro
     };
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-xl max-w-lg mx-auto border border-gray-700">
+    <div className="bg-gray-900 rounded-lg shadow-xl max-w-full mx-auto border border-gray-700 overflow-hidden">
       {/* Simple Header */}
       <div className="bg-gray-800 p-4 rounded-t-lg border-b border-gray-700">
         <div className="flex items-center justify-between">
