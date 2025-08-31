@@ -110,7 +110,8 @@ export default function BotPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
 
-  // CLEANUP: Removed continuous scanner state - feature disabled for performance
+  // Continuous scanner state
+  const [isContinuousActive, setIsContinuousActive] = useState(false);
 
 
 
