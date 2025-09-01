@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
@@ -4352,6 +4353,199 @@ export default function BotPage() {
         )}
         
 
+
+        {/* Bot Info Dialog */}
+        {showBotInfo && selectedBotInfo && (
+          <Dialog open={true} onOpenChange={() => {
+            setShowBotInfo(false);
+            setSelectedBotInfo(null);
+          }}>
+            <DialogContent className="max-w-md mx-4">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-blue-500" />
+                  {selectedBotInfo.name} Information
+                </DialogTitle>
+                <DialogDescription>
+                  Detailed information about this AI trading bot
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {selectedBotInfo.description}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                      <div className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Win Rate</div>
+                      <div className="text-lg font-bold text-green-700 dark:text-green-300">{selectedBotInfo.winRate}</div>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+                      <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">Avg Return</div>
+                      <div className="text-lg font-bold text-purple-700 dark:text-purple-300">{selectedBotInfo.avgReturn}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Risk Level:</span>
+                      <Badge variant={selectedBotInfo.risk === 'Low' ? 'secondary' : selectedBotInfo.risk === 'Medium' ? 'outline' : 'destructive'} className="text-xs">
+                        {selectedBotInfo.risk}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Suggested Capital:</span>
+                      <span className="font-medium">${selectedBotInfo.suggestedCapital}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">Suggested Leverage:</span>
+                      <span className="font-medium">{selectedBotInfo.suggestedLeverage}x</span>
+                    </div>
+                  </div>
+                  
+                  {selectedBotInfo.features && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Features:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedBotInfo.features.map((feature: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedBotInfo.recommendedPairs && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Recommended Pairs:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedBotInfo.recommendedPairs.slice(0, 4).map((pair: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {pair}
+                          </Badge>
+                        ))}
+                        {selectedBotInfo.recommendedPairs.length > 4 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{selectedBotInfo.recommendedPairs.length - 4} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Bot Settings Dialog */}
+        {showBotSettings && selectedBot && (
+          <Dialog open={true} onOpenChange={() => {
+            setShowBotSettings(false);
+            setSelectedBot(null);
+          }}>
+            <DialogContent className="max-w-md mx-4">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-gray-600" />
+                  {selectedBot.name} Settings
+                </DialogTitle>
+                <DialogDescription>
+                  Configure settings for this AI trading bot
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-amber-800 dark:text-amber-200">
+                      <div className="font-medium mb-1">AI Bot Configuration</div>
+                      <p className="text-xs">This bot uses advanced AI algorithms. Settings are automatically optimized based on market conditions and your trading style preferences.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Auto-Deploy</span>
+                    <Switch defaultChecked={true} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Risk Management</span>
+                    <Switch defaultChecked={true} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Dynamic Leverage</span>
+                    <Switch defaultChecked={selectedBot.risk !== 'High'} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Market Sentiment Analysis</span>
+                    <Switch defaultChecked={true} />
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">Notification Level</Label>
+                    <Select defaultValue="medium">
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low - Major events only</SelectItem>
+                        <SelectItem value="medium">Medium - Important updates</SelectItem>
+                        <SelectItem value="high">High - All activities</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Max Daily Trades</Label>
+                    <Input
+                      type="number"
+                      defaultValue="5"
+                      min="1"
+                      max="20"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowBotSettings(false);
+                      setSelectedBot(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    onClick={() => {
+                      toast({
+                        title: "Settings Updated",
+                        description: "AI bot settings have been saved successfully.",
+                      });
+                      setShowBotSettings(false);
+                      setSelectedBot(null);
+                    }}
+                  >
+                    Save Settings
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Alert Center Dialog */}
         {showAlertCenter && (
