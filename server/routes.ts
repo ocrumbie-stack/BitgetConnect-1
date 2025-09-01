@@ -5495,6 +5495,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               try {
                 const deployedBot = await storage.createBotExecution(botData);
                 console.log(`✅ Continuous Scanner deployed bot for ${pair}: ${deployedBot.id}`);
+                
+                // Actually place the order on Bitget
+                const orderResult = await bitgetAPI?.placeOrder({
+                  symbol: pair,
+                  side: analysis.direction === 'bullish' ? 'buy' : 'sell',
+                  orderType: 'market',
+                  size: (positionCapital * parseFloat(leverage)).toString(),
+                  leverage: leverage
+                });
+                
+                if (orderResult?.success) {
+                  // Update bot status to active since order was placed
+                  await storage.updateBotExecution(deployedBot.id, {
+                    status: 'active',
+                    orderId: orderResult.orderId
+                  });
+                  console.log(`🚀 Order placed successfully for ${pair}: ${orderResult.orderId}`);
+                } else {
+                  console.error(`❌ Failed to place order for ${pair}, keeping bot in waiting_entry`);
+                }
+                
                 scannerResult.tradesPlaced++;
               } catch (deployError) {
                 console.error(`❌ Failed to deploy bot for ${pair}:`, deployError);
