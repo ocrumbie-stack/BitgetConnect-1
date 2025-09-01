@@ -29,8 +29,10 @@ export default function BotPage() {
   // Scroll to top when changing tabs (per user preference for instant page access)
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    // Scroll to top for immediate access to content
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    // Only scroll to top for non-executions tabs to prevent hiding active bot content
+    if (tab !== 'executions') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
   };
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRunDialog, setShowRunDialog] = useState(false);
