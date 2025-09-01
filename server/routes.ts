@@ -5429,12 +5429,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const allTickers = await bitgetAPI?.getAllFuturesTickers() || [];
           const volatilePairs = allTickers
             .filter(ticker => ticker.symbol.endsWith('USDT'))
-            .filter(ticker => ticker.change24h && Math.abs(parseFloat(ticker.change24h)) > 0.8) // Min 0.8% daily movement
+            .filter(ticker => ticker.change24h && Math.abs(parseFloat(ticker.change24h)) > 0.008) // Min 0.8% daily movement (0.008 in decimal)
             .sort((a, b) => Math.abs(parseFloat(b.change24h || '0')) - Math.abs(parseFloat(a.change24h || '0')))
             .slice(0, 20) // Top 20 most volatile
             .map(ticker => ticker.symbol);
           
           console.log(`🎯 Scanning ${volatilePairs.length} volatile pairs: ${volatilePairs.slice(0, 5).join(', ')}...`);
+          
+          // Debug: Check why no pairs are found
+          if (volatilePairs.length === 0) {
+            const usdtPairs = allTickers.filter(ticker => ticker.symbol.endsWith('USDT'));
+            console.log(`🔍 DEBUG: Found ${usdtPairs.length} total USDT pairs`);
+            const pairsWithChange = usdtPairs.filter(ticker => ticker.change24h);
+            console.log(`🔍 DEBUG: ${pairsWithChange.length} pairs have change24h data`);
+            const sampleChanges = pairsWithChange.slice(0, 5).map(t => `${t.symbol}: ${t.change24h}%`);
+            console.log(`🔍 DEBUG: Sample changes: ${sampleChanges.join(', ')}`);
+            console.log(`🔍 DEBUG: Looking for pairs with >0.8% movement...`);
+          }
           
           // Check each volatile pair for entry opportunities
           for (const pair of volatilePairs) {
