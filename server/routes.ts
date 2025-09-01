@@ -5417,7 +5417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`🔄 Continuous Scanner: Running scan cycle...`);
           
           // Get current active positions to respect maxPositions limit
-          const currentPositions = await bitgetAPI?.getUserPositions() || [];
+          const currentPositions = await bitgetAPI?.getPositions() || [];
           const activePositions = currentPositions.filter((pos: any) => parseFloat(pos.size) !== 0);
           
           if (activePositions.length >= parseInt(maxPositions)) {
@@ -5429,8 +5429,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const allTickers = await bitgetAPI?.getAllFuturesTickers() || [];
           const volatilePairs = allTickers
             .filter(ticker => ticker.symbol.endsWith('USDT'))
-            .filter(ticker => ticker.priceChangePercent && Math.abs(parseFloat(ticker.priceChangePercent)) > 0.8) // Min 0.8% daily movement
-            .sort((a, b) => Math.abs(parseFloat(b.priceChangePercent || '0')) - Math.abs(parseFloat(a.priceChangePercent || '0')))
+            .filter(ticker => ticker.change24h && Math.abs(parseFloat(ticker.change24h)) > 0.8) // Min 0.8% daily movement
+            .sort((a, b) => Math.abs(parseFloat(b.change24h || '0')) - Math.abs(parseFloat(a.change24h || '0')))
             .slice(0, 20) // Top 20 most volatile
             .map(ticker => ticker.symbol);
           
@@ -5490,7 +5490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
               
               // Check if we've reached max positions after this deployment
-              const updatedPositions = await bitgetAPI?.getUserPositions() || [];
+              const updatedPositions = await bitgetAPI?.getPositions() || [];
               const updatedActivePositions = updatedPositions.filter((pos: any) => parseFloat(pos.size) !== 0);
               if (updatedActivePositions.length >= parseInt(maxPositions)) {
                 console.log(`🏁 Continuous Scanner: Max positions reached, pausing deployment`);
