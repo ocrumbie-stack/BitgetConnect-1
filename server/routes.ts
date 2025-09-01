@@ -3835,16 +3835,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // CRITICAL FIX: Terminate ALL continuous_scanner_child bots without positions (both active AND waiting_entry)
-      // This prevents waiting_entry bots from being re-evaluated and creating duplicates
+      // FIXED: Only terminate active bots without positions (not waiting_entry bots)
+      // waiting_entry bots are SUPPOSED to not have positions - they're waiting for entry signals
       const orphanedChildBots = deployedBots.filter(bot => 
         bot.deploymentType === 'continuous_scanner_child' && 
-        (bot.status === 'active' || bot.status === 'waiting_entry') &&
+        bot.status === 'active' && // Only active bots, NOT waiting_entry 
         !positions.find((pos: any) => pos.symbol === bot.tradingPair)
       );
       
       if (orphanedChildBots.length > 0) {
-        console.log(`🧹 Found ${orphanedChildBots.length} orphaned continuous_scanner_child bots (active/waiting) without positions, terminating to prevent duplicates`);
+        console.log(`🧹 Found ${orphanedChildBots.length} orphaned continuous_scanner_child bots (active only) without positions, terminating to prevent duplicates`);
         for (const orphanBot of orphanedChildBots) {
           await storage.updateBotExecution(orphanBot.id, { 
             status: 'terminated',
