@@ -5467,7 +5467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Evaluate this pair for entry using AI analysis
             const analysis = await evaluateAIBotEntry(pair, ['5m'], 100);
             
-            if (analysis.hasSignal && analysis.confidence >= 35) {
+            if (analysis.hasSignal && analysis.confidence >= 30) {
               console.log(`🎯 Continuous Scanner: Strong signal found for ${pair}! Confidence: ${analysis.confidence}%`);
               
               // Calculate position size (divide capital across maxPositions)
