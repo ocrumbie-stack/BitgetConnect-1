@@ -1602,7 +1602,7 @@ export default function BotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20 overflow-x-hidden overflow-y-auto">
       {/* Hero Section with Clean Background */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-900 dark:via-purple-900 dark:to-indigo-900">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -2459,7 +2459,7 @@ export default function BotPage() {
 
           {/* Active Executions Section */}
           {activeTab === 'executions' && (
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 pb-8">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Running Bots</h3>
               {activeExecutions.length > 0 && (
@@ -2486,7 +2486,7 @@ export default function BotPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3 w-full overflow-hidden">
+              <div className="space-y-3 w-full">
                 {(() => {
                   // Group executions by deployment type and folder
                   const folderGroups: { [key: string]: any[] } = {};
