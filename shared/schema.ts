@@ -319,9 +319,8 @@ export const alerts = pgTable("alerts", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
 });
 
 export const insertBitgetCredentialsSchema = createInsertSchema(bitgetCredentials).pick({
