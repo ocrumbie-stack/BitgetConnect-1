@@ -2503,8 +2503,8 @@ export default function BotPage() {
                       execution.botName.includes('AI') && !execution.botName.includes('Auto AI')
                     );
                     
-                    // True Auto Market Scanner bots (deployed via Auto Market Scanner)
-                    if (execution.deploymentType === 'auto_scanner' && !isAIStrategy) {
+                    // True Auto Market Scanner bots (deployed via Auto Market Scanner) AND Continuous Scanner bots
+                    if ((execution.deploymentType === 'auto_scanner' || execution.deploymentType === 'continuous_scanner_child') && !isAIStrategy) {
                       // Group by scanner name extracted from bot name or use folder name
                       let scannerGroupName = execution.folderName || '🤖 Auto Scanner';
                       
