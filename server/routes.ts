@@ -3351,6 +3351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get deployed bots from database - filter active only for performance
       const allDeployedBots = await storage.getBotExecutions(userId);
+      
       const deployedBots = allDeployedBots.filter(bot => bot.status === 'active' || bot.status === 'waiting_entry');
       console.log(`📋 Active deployed bots: ${deployedBots.length} (filtered from ${allDeployedBots.length} total)`);
       
@@ -5407,12 +5408,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tradesPlaced: 0
       };
 
-      // TODO: Implement the actual continuous scanning logic here
-      // This would involve:
-      // 1. Setting up an interval timer
-      // 2. Scanning volatile pairs periodically
-      // 3. Deploying bots on qualifying opportunities
-      // 4. Managing maximum position limits
+      // Implement the actual continuous scanning logic
+      const scanIntervalMs = parseInt(scanInterval) * 1000; // Convert seconds to milliseconds
+      
+      // Start the continuous scanning process
+      const intervalId = setInterval(async () => {
+        try {
+          console.log(`🔄 Continuous Scanner: Running scan cycle...`);
+          
+          // Get current active positions to respect maxPositions limit
+          const currentPositions = await bitgetAPI?.getUserPositions() || [];
+          const activePositions = currentPositions.filter((pos: any) => parseFloat(pos.size) !== 0);
+          
+          if (activePositions.length >= parseInt(maxPositions)) {
+            console.log(`⏸️ Continuous Scanner: Max positions reached (${activePositions.length}/${maxPositions})`);
+            return;
+          }
+          
+          // Get top 20 most volatile USDT pairs for scanning
+          const allTickers = await bitgetAPI?.getAllFuturesTickers() || [];
+          const volatilePairs = allTickers
+            .filter(ticker => ticker.symbol.endsWith('USDT'))
+            .filter(ticker => ticker.priceChangePercent && Math.abs(parseFloat(ticker.priceChangePercent)) > 0.8) // Min 0.8% daily movement
+            .sort((a, b) => Math.abs(parseFloat(b.priceChangePercent || '0')) - Math.abs(parseFloat(a.priceChangePercent || '0')))
+            .slice(0, 20) // Top 20 most volatile
+            .map(ticker => ticker.symbol);
+          
+          console.log(`🎯 Scanning ${volatilePairs.length} volatile pairs: ${volatilePairs.slice(0, 5).join(', ')}...`);
+          
+          // Check each volatile pair for entry opportunities
+          for (const pair of volatilePairs) {
+            // Skip if we already have a position for this pair
+            if (activePositions.find((pos: any) => pos.symbol === pair)) {
+              continue;
+            }
+            
+            // Skip if we already have an active bot for this pair
+            const existingBots = await storage.getBotExecutions(userId);
+            const existingBot = existingBots.find(bot => 
+              bot.tradingPair === pair && 
+              (bot.status === 'active' || bot.status === 'waiting_entry')
+            );
+            if (existingBot) {
+              continue;
+            }
+            
+            // Evaluate this pair for entry using AI analysis
+            const analysis = await evaluateAIBotEntry(pair, ['5m'], 100);
+            
+            if (analysis.hasSignal && analysis.confidence >= 35) {
+              console.log(`🎯 Continuous Scanner: Strong signal found for ${pair}! Confidence: ${analysis.confidence}%`);
+              
+              // Calculate position size (divide capital across maxPositions)
+              const positionCapital = Math.max(parseFloat(capital) / parseInt(maxPositions), 20);
+              
+              // Create bot execution for this opportunity
+              const botData = {
+                userId,
+                strategyId,
+                tradingPair: pair,
+                capital: positionCapital.toString(),
+                leverage: leverage.toString(),
+                status: 'waiting_entry',
+                deploymentType: 'continuous_scanner_child',
+                botName: `🔄 Scanner Bot: ${pair}`,
+                folderName: folderName,
+                settings: {
+                  parentScannerId: scannerResult.id,
+                  entryConditions: analysis.indicators,
+                  confidence: analysis.confidence,
+                  direction: analysis.direction
+                }
+              };
+              
+              try {
+                const deployedBot = await storage.createBotExecution(botData);
+                console.log(`✅ Continuous Scanner deployed bot for ${pair}: ${deployedBot.id}`);
+                scannerResult.tradesPlaced++;
+              } catch (deployError) {
+                console.error(`❌ Failed to deploy bot for ${pair}:`, deployError);
+              }
+              
+              // Check if we've reached max positions after this deployment
+              const updatedPositions = await bitgetAPI?.getUserPositions() || [];
+              const updatedActivePositions = updatedPositions.filter((pos: any) => parseFloat(pos.size) !== 0);
+              if (updatedActivePositions.length >= parseInt(maxPositions)) {
+                console.log(`🏁 Continuous Scanner: Max positions reached, pausing deployment`);
+                break;
+              }
+            }
+          }
+          
+          scannerResult.scansCount++;
+          console.log(`📊 Continuous Scanner cycle complete. Scans: ${scannerResult.scansCount}, Trades: ${scannerResult.tradesPlaced}`);
+          
+        } catch (scanError) {
+          console.error(`❌ Continuous Scanner error:`, scanError);
+        }
+      }, scanIntervalMs);
+      
+      // Store interval ID for cleanup (in production, you'd want to store this in a database)
+      global.continuousScanners = global.continuousScanners || new Map();
+      global.continuousScanners.set(scannerResult.id, intervalId);
 
       console.log('✅ Continuous scanner started:', scannerResult);
       
@@ -5427,6 +5524,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Failed to start continuous scanner',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Stop Continuous Scanner Endpoint
+  app.post('/api/continuous-scanner/stop', async (req, res) => {
+    try {
+      const { scannerId } = req.body;
+      
+      if (!scannerId) {
+        return res.status(400).json({ message: 'Scanner ID required' });
+      }
+      
+      // Stop the interval timer
+      const intervals = global.continuousScanners || new Map();
+      const intervalId = intervals.get(scannerId);
+      
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervals.delete(scannerId);
+        console.log(`🛑 Continuous Scanner ${scannerId} stopped`);
+        
+        res.json({
+          message: 'Continuous scanner stopped successfully',
+          scannerId
+        });
+      } else {
+        res.status(404).json({ message: 'Scanner not found' });
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error stopping continuous scanner:', error);
+      res.status(500).json({ message: 'Failed to stop continuous scanner' });
     }
   });
 
