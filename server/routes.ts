@@ -1886,6 +1886,86 @@ async function setStopLossAndTakeProfit(symbol: string, side: string, entryPrice
   }
 }
 
+// Initialize sample market opportunities
+async function initializeSampleData() {
+  try {
+    const existingOpportunities = await storage.getMarketOpportunities();
+
+    if (existingOpportunities.length === 0) {
+      const futuresData = await storage.getAllFuturesData();
+
+      if (futuresData && futuresData.length > 0) {
+        const sampleOpportunities = [
+          {
+            symbol: 'BTCUSDT',
+            opportunityType: 'breakout',
+            timeframe: '4h',
+            strength: 78,
+            confidence: 85,
+            description: 'Bitcoin approaching resistance level with strong volume. Potential breakout setup with good risk/reward ratio.',
+            analysis: {
+              technicalFactors: [
+                { indicator: 'RSI', value: 65, signal: 'bullish', weight: 0.3 },
+                { indicator: 'MACD', value: 0.02, signal: 'bullish', weight: 0.25 },
+                { indicator: 'Volume', value: 1.8, signal: 'bullish', weight: 0.2 }
+              ],
+              fundamentalFactors: ['Institutional adoption increasing', 'Regulatory clarity improving'],
+              marketContext: {
+                volume: 1.8,
+                volatility: 0.65,
+                trend: 'bullish',
+                sentiment: 'bullish'
+              },
+              entryZone: { min: 114800, max: 115200, optimal: 115000 },
+              targets: [116500, 118000, 120000],
+              stopLoss: 113500
+            },
+            recommendedStrategies: ['momentum', 'breakout'],
+            suitableForUsers: ['moderate', 'aggressive'],
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            isActive: true
+          },
+          {
+            symbol: 'ETHUSDT',
+            opportunityType: 'reversal',
+            timeframe: '1h',
+            strength: 72,
+            confidence: 78,
+            description: 'Ethereum showing oversold conditions with potential for reversal. Good opportunity for contrarian traders.',
+            analysis: {
+              technicalFactors: [
+                { indicator: 'RSI', value: 28, signal: 'bullish', weight: 0.35 },
+                { indicator: 'Stochastic', value: 15, signal: 'bullish', weight: 0.25 },
+                { indicator: 'Support', value: 4180, signal: 'bullish', weight: 0.3 }
+              ],
+              fundamentalFactors: ['Network upgrades scheduled', 'DeFi activity increasing'],
+              marketContext: {
+                volume: 1.2,
+                volatility: 0.45,
+                trend: 'bearish',
+                sentiment: 'neutral'
+              },
+              entryZone: { min: 4180, max: 4220, optimal: 4200 },
+              targets: [4350, 4500, 4680],
+              stopLoss: 4120
+            },
+            recommendedStrategies: ['mean_reversion', 'scalping'],
+            suitableForUsers: ['aggressive', 'high_risk'],
+            expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
+            isActive: true
+          }
+        ];
+
+        for (const opp of sampleOpportunities) {
+          await storage.createMarketOpportunity(opp);
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Failed to initialize sample data:', error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.use('/api/auth', authRoutes);
@@ -5315,6 +5395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await initializeBitgetAPI();
 
   return httpServer;
+}
 
 // SOPHISTICATED ENTRY POINT ANALYSIS - Based on provided entry rules
 async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
@@ -5903,85 +5984,6 @@ async function generateSampleRecommendations(userId: string, marketData: any[], 
 
   // Duplicate order endpoint removed - using the one defined at the top
 
-  // Initialize sample market opportunities
-  async function initializeSampleData() {
-    try {
-      const existingOpportunities = await storage.getMarketOpportunities();
-
-      if (existingOpportunities.length === 0) {
-        const futuresData = await storage.getAllFuturesData();
-
-        if (futuresData && futuresData.length > 0) {
-          const sampleOpportunities = [
-            {
-              symbol: 'BTCUSDT',
-              opportunityType: 'breakout',
-              timeframe: '4h',
-              strength: 78,
-              confidence: 85,
-              description: 'Bitcoin approaching resistance level with strong volume. Potential breakout setup with good risk/reward ratio.',
-              analysis: {
-                technicalFactors: [
-                  { indicator: 'RSI', value: 65, signal: 'bullish', weight: 0.3 },
-                  { indicator: 'MACD', value: 0.02, signal: 'bullish', weight: 0.25 },
-                  { indicator: 'Volume', value: 1.8, signal: 'bullish', weight: 0.2 }
-                ],
-                fundamentalFactors: ['Institutional adoption increasing', 'Regulatory clarity improving'],
-                marketContext: {
-                  volume: 1.8,
-                  volatility: 0.65,
-                  trend: 'bullish',
-                  sentiment: 'bullish'
-                },
-                entryZone: { min: 114800, max: 115200, optimal: 115000 },
-                targets: [116500, 118000, 120000],
-                stopLoss: 113500
-              },
-              recommendedStrategies: ['momentum', 'breakout'],
-              suitableForUsers: ['moderate', 'aggressive'],
-              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-              isActive: true
-            },
-            {
-              symbol: 'ETHUSDT',
-              opportunityType: 'reversal',
-              timeframe: '1h',
-              strength: 72,
-              confidence: 78,
-              description: 'Ethereum showing oversold conditions with potential for reversal. Good opportunity for contrarian traders.',
-              analysis: {
-                technicalFactors: [
-                  { indicator: 'RSI', value: 28, signal: 'bullish', weight: 0.35 },
-                  { indicator: 'Stochastic', value: 15, signal: 'bullish', weight: 0.25 },
-                  { indicator: 'Support', value: 4180, signal: 'bullish', weight: 0.3 }
-                ],
-                fundamentalFactors: ['Network upgrades scheduled', 'DeFi activity increasing'],
-                marketContext: {
-                  volume: 1.2,
-                  volatility: 0.45,
-                  trend: 'bearish',
-                  sentiment: 'neutral'
-                },
-                entryZone: { min: 4180, max: 4220, optimal: 4200 },
-                targets: [4350, 4500, 4680],
-                stopLoss: 4120
-              },
-              recommendedStrategies: ['mean_reversion', 'scalping'],
-              suitableForUsers: ['aggressive', 'high_risk'],
-              expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
-              isActive: true
-            }
-          ];
-
-          for (const opp of sampleOpportunities) {
-            await storage.createMarketOpportunity(opp);
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Failed to initialize sample data:', error);
-    }
-  }
 }
 
 // Calculate volatility from recent price data
