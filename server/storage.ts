@@ -384,6 +384,8 @@ export class MemStorage implements IStorage {
       folderId: insertExecution.folderId || null,
       botName: insertExecution.botName || null,
       folderName: insertExecution.folderName || null,
+      isAIBot: insertExecution.isAIBot || false,
+      source: insertExecution.source || null,
       startedAt: null,
       pausedAt: null,
       createdAt: now,

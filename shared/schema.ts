@@ -135,6 +135,8 @@ export const botExecutions = pgTable("bot_executions", {
   folderId: varchar("folder_id"), // Reference to the folder if deployed via bulk
   botName: text("bot_name"), // Store custom bot name for display
   folderName: text("folder_name"), // Store folder name for compatibility
+  isAIBot: boolean("is_ai_bot").default(false), // Flag to identify AI bot deployments
+  source: text("source"), // 'manual', 'ai_bot', 'auto_scanner' - prevents AI bots from appearing in manual strategies
   startedAt: timestamp("started_at"),
   pausedAt: timestamp("paused_at"),
   exitReason: text("exit_reason"),
@@ -167,7 +169,7 @@ export const screeners = pgTable("screeners", {
     strategyId?: string;
     createdBy?: string;
     timestamp?: string;
-    
+
     // Technical indicators
     rsi?: {
       period: number;
