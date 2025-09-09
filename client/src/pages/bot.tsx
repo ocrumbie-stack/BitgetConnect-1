@@ -882,16 +882,17 @@ export default function BotPage() {
 
     try {
       if (deploymentMode === 'auto_scanner') {
-        // Deploy AI bot using Auto Market Scanner
+        // Deploy AI bot using Auto Market Scanner - use virtual strategy ID
         const executionData = {
           userId: 'default-user',
-          strategyId: strategy.id,
+          strategyId: `ai_virtual_${strategy.id}`, // Virtual ID to prevent strategy creation
           tradingPair: 'AUTO_SCANNER_MODE', // Special marker for auto scanner
           capital,
           leverage,
           status: 'waiting_entry',
           deploymentType: 'auto_scanner',
-          botName: `Auto AI - ${strategy.name}`
+          botName: `Auto AI - ${strategy.name}`,
+          isAIBot: true // Mark as AI bot to prevent strategy record creation
         };
         
         await runStrategyMutation.mutateAsync(executionData);
@@ -904,11 +905,12 @@ export default function BotPage() {
         // Start continuous scanner
         const continuousData = {
           userId: 'default-user',
-          strategyId: strategy.id,
+          strategyId: `ai_virtual_${strategy.id}`, // Virtual ID to prevent strategy creation
           capital: continuousCapital,
           leverage: continuousLeverage,
           maxPositions: continuousMaxPositions,
-          scanInterval: continuousScanInterval
+          scanInterval: continuousScanInterval,
+          isAIBot: true // Mark as AI bot
         };
 
         await continuousScannerMutation.mutateAsync(continuousData);
@@ -940,7 +942,7 @@ export default function BotPage() {
         for (const pair of folder.tradingPairs) {
           const executionData = {
             userId: 'default-user',
-            strategyId: strategy.isAI ? strategy.id : strategy.id,
+            strategyId: strategy.isAI ? `ai_virtual_${strategy.id}` : strategy.id, // Use virtual ID for AI bots
             tradingPair: pair,
             capital,
             leverage,
@@ -948,7 +950,8 @@ export default function BotPage() {
             deploymentType: strategy.isAI ? 'ai_bot' : 'folder',
             folderId: selectedFolder,
             botName: `${folder.name} - ${strategy.name}`, // Use folder name as bot name
-            folderName: folder.name // Also store folder name for compatibility
+            folderName: folder.name, // Also store folder name for compatibility
+            isAIBot: strategy.isAI // Mark AI bots to prevent strategy creation
           };
           
           await runStrategyMutation.mutateAsync(executionData);
@@ -963,13 +966,14 @@ export default function BotPage() {
         // Use either tradingPair or pairSearch as fallback
         const finalTradingPair = tradingPair || pairSearch;
         // Deploy to individual pair
-        let actualStrategyId = strategy.id;
+        let actualStrategyId;
         
-        // For AI bots, use the existing ID without creating a permanent strategy
+        // For AI bots, use virtual strategy ID to prevent permanent strategy creation
         if (strategy.isAI) {
-          // AI bots use their existing ID for execution without creating permanent strategies
+          actualStrategyId = `ai_virtual_${strategy.id}`;
+          console.log(`🤖 Deploying AI bot: ${strategy.name} with virtual strategyId: ${actualStrategyId}`);
+        } else {
           actualStrategyId = strategy.id;
-          console.log(`🤖 Deploying AI bot: ${strategy.name} with strategyId: ${actualStrategyId}`);
         }
 
         const executionData = {
@@ -980,7 +984,8 @@ export default function BotPage() {
           leverage,
           status: 'active',
           deploymentType: strategy.isAI ? 'ai_bot' : 'manual',
-          botName: strategy.name // Always use the strategy name for bot naming
+          botName: strategy.name, // Always use the strategy name for bot naming
+          isAIBot: strategy.isAI // Mark AI bots to prevent strategy creation
         };
         
         await runStrategyMutation.mutateAsync(executionData);
