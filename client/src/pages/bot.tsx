@@ -641,7 +641,11 @@ export default function BotPage() {
       opportunities: scannerResults.opportunities,
       totalCapital: parseFloat(scannerCapital),
       leverage: parseInt(scannerLeverage),
-      scannerName: scannerName.trim() || `Auto Scanner - ${new Date().toLocaleDateString()}`
+      scannerName: scannerName.trim() || `Auto Scanner - ${new Date().toLocaleDateString()}`,
+      customTPSL: useCustomTPSL ? {
+        stopLoss: parseFloat(scannerStopLoss),
+        takeProfit: parseFloat(scannerTakeProfit)
+      } : null
     };
 
     await autoDeployMutation.mutateAsync(deployData);
