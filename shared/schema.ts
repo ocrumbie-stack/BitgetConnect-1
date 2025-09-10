@@ -137,6 +137,8 @@ export const botExecutions = pgTable("bot_executions", {
   folderName: text("folder_name"), // Store folder name for compatibility
   isAIBot: boolean("is_ai_bot").default(false), // Flag to identify AI bot deployments
   source: text("source"), // 'manual', 'ai_bot', 'auto_scanner' - prevents AI bots from appearing in manual strategies
+  customStopLoss: decimal("custom_stop_loss", { precision: 5, scale: 2 }), // Custom stop loss percentage
+  customTakeProfit: decimal("custom_take_profit", { precision: 5, scale: 2 }), // Custom take profit percentage
   startedAt: timestamp("started_at"),
   pausedAt: timestamp("paused_at"),
   exitReason: text("exit_reason"),
