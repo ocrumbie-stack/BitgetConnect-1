@@ -486,7 +486,7 @@ export default function Markets() {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold">Markets</h1>
+              <h1 className="text-xl font-semibold">Markets Scanner</h1>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-muted-foreground">Live</span>
