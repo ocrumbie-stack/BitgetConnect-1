@@ -3768,7 +3768,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let finalExitCriteria = exitCriteria; // This contains user input from strategy config
 
           if (!finalExitCriteria) {
-            // CLEANUP: Removed mapping dependency - calculate exit criteria directly
+            // Check for custom TP/SL from auto scanner deployment
+            const customSL = deployedBot.customStopLoss ? parseFloat(deployedBot.customStopLoss) : null;
+            const customTP = deployedBot.customTakeProfit ? parseFloat(deployedBot.customTakeProfit) : null;
+            
+            if (customSL && customTP) {
+              // Use custom TP/SL values from deployment
+              finalExitCriteria = {
+                stopLoss: -Math.abs(customSL), // Negative for loss
+                takeProfit: Math.abs(customTP), // Positive for profit
+                maxRuntime: 240, // Default 4 hours
+                exitStrategy: 'auto_scanner_custom'
+              };
+              
+              console.log(`✅ ${deployedBot.tradingPair} (${deployedBot.leverage}x leverage): Using CUSTOM TP/SL - SL ${customSL}% TP ${customTP}% (user input)`);
+              
+            } else {
               // Last resort: calculate optimal setup
               const botLeverage = parseFloat(deployedBot.leverage || '3');
               const deploymentType = deployedBot.deploymentType || 'folder';
@@ -3781,10 +3796,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 exitStrategy: tradeSetup.tradeProfile
               };
 
-              console.log(`🎯 ${deployedBot.botName} (${botLeverage}x leverage): Using calculated - SL ${tradeSetup.stopLoss}% TP ${tradeSetup.takeProfit}% (pair price movements)`);
-
+              console.log(`🎯 ${deployedBot.tradingPair} (${botLeverage}x leverage): Using calculated - SL ${tradeSetup.stopLoss}% TP ${tradeSetup.takeProfit}% (pair price movements)`);
+            }
           } else {
-            console.log(`✅ ${deployedBot.botName}: Using USER CONFIGURED criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
+            console.log(`✅ ${deployedBot.tradingPair}: Using USER CONFIGURED criteria - SL ${Math.abs(finalExitCriteria.stopLoss)}% TP ${finalExitCriteria.takeProfit}%`);
           }
           // Bot has an active position
           const runtime = deployedBot.startedAt 
