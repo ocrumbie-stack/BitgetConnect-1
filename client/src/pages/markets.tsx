@@ -920,8 +920,8 @@ export default function Markets() {
                   </div>
                 </div>
 
-                {/* Trading Strategy Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                {/* Trading Strategy Grid - Optimized for mobile */}
+                <div className={`grid gap-4 mb-6 ${isSimpleMode ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
                   {[
                     { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
                     { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
