@@ -120,6 +120,9 @@ export default function BotPage() {
 
   // Continuous scanner state
   const [isContinuousActive, setIsContinuousActive] = useState(false);
+  
+  // Simple mode for scanner (user-friendly)
+  const [isSimpleMode, setIsSimpleMode] = useState(true);
 
 
 
@@ -2012,11 +2015,25 @@ export default function BotPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Search className="h-5 w-5" />
-                Autonomous Market Scanner
+                {isSimpleMode ? 'AI Bot Creator' : 'Autonomous Market Scanner'}
               </h3>
-              <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200">
-                AI-Powered Auto Deployment
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={isSimpleMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsSimpleMode(!isSimpleMode)}
+                  className="flex items-center gap-2 text-sm"
+                  data-testid="button-scanner-simple-mode"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  {isSimpleMode ? 'Simple' : 'Advanced'}
+                </Button>
+                {!isSimpleMode && (
+                  <Badge variant="outline" className="bg-cyan-50 text-cyan-700 border-cyan-200">
+                    AI-Powered Auto Deployment
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Scanner Configuration Card */}
@@ -2027,99 +2044,135 @@ export default function BotPage() {
                     <Target className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Scanner Configuration</h4>
-                    <p className="text-sm text-muted-foreground">Configure trading style, max bots, and start scanning</p>
+                    <h4 className="font-semibold">
+                      {isSimpleMode ? 'Create AI Trading Bots' : 'Scanner Configuration'}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {isSimpleMode 
+                        ? 'AI will find and trade the best crypto opportunities for you automatically' 
+                        : 'Configure trading style, max bots, and start scanning'
+                      }
+                    </p>
                   </div>
                 </div>
                 
-                {/* Trading Style Selector */}
-                <div className="mb-6">
-                  <TradingStyleSelector />
-                </div>
+                {/* Trading Style Selector - Hidden in Simple Mode */}
+                {!isSimpleMode && (
+                  <div className="mb-6">
+                    <TradingStyleSelector />
+                  </div>
+                )}
+
+                {/* Simple Mode Quick Setup */}
+                {isSimpleMode && (
+                  <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-blue-500" />
+                      <h5 className="font-medium text-blue-700 dark:text-blue-300">Quick Setup Guide</h5>
+                    </div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400 space-y-2">
+                      <p>1. Choose how many bots you want (recommended: 3-5)</p>
+                      <p>2. Give your bot group a name</p>
+                      <p>3. Click "Start AI Bot Creator" - our AI will do the rest!</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Scanner Settings */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Maximum Bots to Deploy</label>
+                    <label className="text-sm font-medium">
+                      {isSimpleMode ? 'How many bots to create?' : 'Maximum Bots to Deploy'}
+                    </label>
                     <Input
                       type="number"
                       value={scannerMaxBots}
                       onChange={(e) => setScannerMaxBots(e.target.value)}
-                      placeholder="e.g., 5"
+                      placeholder={isSimpleMode ? "5" : "e.g., 5"}
                       min="1"
                       max="10"
                       data-testid="input-max-bots"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Maximum number of AI bots to deploy automatically (1-10)
+                      {isSimpleMode 
+                        ? 'AI will create this many trading bots for different opportunities (1-10)'
+                        : 'Maximum number of AI bots to deploy automatically (1-10)'
+                      }
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Scanner Name</label>
+                    <label className="text-sm font-medium">
+                      {isSimpleMode ? 'Name your bot group' : 'Scanner Name'}
+                    </label>
                     <Input
                       type="text"
                       value={scannerName}
                       onChange={(e) => setScannerName(e.target.value)}
-                      placeholder="e.g., Morning Scalp Session"
+                      placeholder={isSimpleMode ? "My AI Trading Bots" : "e.g., Morning Scalp Session"}
                       data-testid="input-scanner-name"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Custom name for organizing deployed bots in a dedicated folder
+                      {isSimpleMode
+                        ? 'A friendly name to help you organize your bots'
+                        : 'Custom name for organizing deployed bots in a dedicated folder'
+                      }
                     </p>
                   </div>
 
-                  {/* Custom TP/SL Configuration */}
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={useCustomTPSL}
-                        onCheckedChange={setUseCustomTPSL}
-                        data-testid="switch-custom-tpsl"
-                      />
-                      <Label className="text-sm font-medium">Use Custom TP/SL</Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Override default TP/SL calculations with your own values
-                    </p>
-                    
-                    {useCustomTPSL && (
-                      <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Stop Loss (%)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            value={scannerStopLoss}
-                            onChange={(e) => setScannerStopLoss(e.target.value)}
-                            placeholder="3.0"
-                            min="0.1"
-                            max="20"
-                            data-testid="input-custom-stop-loss"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Pair percentage loss to exit
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Take Profit (%)</Label>
-                          <Input
-                            type="number" 
-                            step="0.1"
-                            value={scannerTakeProfit}
-                            onChange={(e) => setScannerTakeProfit(e.target.value)}
-                            placeholder="6.0"
-                            min="0.1"
-                            max="50"
-                            data-testid="input-custom-take-profit"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Pair percentage gain to exit
-                          </p>
-                        </div>
+                  {/* Custom TP/SL Configuration - Hidden in Simple Mode */}
+                  {!isSimpleMode && (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          checked={useCustomTPSL}
+                          onCheckedChange={setUseCustomTPSL}
+                          data-testid="switch-custom-tpsl"
+                        />
+                        <Label className="text-sm font-medium">Use Custom TP/SL</Label>
                       </div>
-                    )}
-                  </div>
+                      <p className="text-xs text-muted-foreground">
+                        Override default TP/SL calculations with your own values
+                      </p>
+                      
+                      {useCustomTPSL && (
+                        <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Stop Loss (%)</Label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              value={scannerStopLoss}
+                              onChange={(e) => setScannerStopLoss(e.target.value)}
+                              placeholder="3.0"
+                              min="0.1"
+                              max="20"
+                              data-testid="input-custom-stop-loss"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Pair percentage loss to exit
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Take Profit (%)</Label>
+                            <Input
+                              type="number" 
+                              step="0.1"
+                              value={scannerTakeProfit}
+                              onChange={(e) => setScannerTakeProfit(e.target.value)}
+                              placeholder="6.0"
+                              min="0.1"
+                              max="50"
+                              data-testid="input-custom-take-profit"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Pair percentage gain to exit
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Start/Stop Scanner Button */}
                   <Button
@@ -2131,12 +2184,12 @@ export default function BotPage() {
                     {isScanning ? (
                       <>
                         <X className="h-4 w-4 mr-2" />
-                        Stop Auto Scanner
+                        {isSimpleMode ? 'Stop Creating Bots' : 'Stop Auto Scanner'}
                       </>
                     ) : (
                       <>
                         <Search className="h-4 w-4 mr-2" />
-                        Start Auto Scanner
+                        {isSimpleMode ? 'Start AI Bot Creator' : 'Start Auto Scanner'}
                       </>
                     )}
                   </Button>
@@ -2162,18 +2215,23 @@ export default function BotPage() {
                 {/* Deployment Configuration */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="space-y-3">
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Total Capital ($)</label>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {isSimpleMode ? 'How much to invest? ($)' : 'Total Capital ($)'}
+                    </label>
                     <Input
                       type="number"
                       value={scannerCapital}
                       onChange={(e) => setScannerCapital(e.target.value)}
-                      placeholder="10000"
+                      placeholder={isSimpleMode ? "1000" : "10000"}
                       className="bg-white dark:bg-gray-800"
                       disabled={isScanning}
                       data-testid="input-scanner-capital"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Will be split equally across selected opportunities
+                      {isSimpleMode 
+                        ? 'This amount will be split across all your bots automatically'
+                        : 'Will be split equally across selected opportunities'
+                      }
                     </p>
                   </div>
 
@@ -2191,7 +2249,10 @@ export default function BotPage() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      Leverage for all deployed bots
+                      {isSimpleMode
+                        ? 'Multiplier for potential gains (higher = more risk)'
+                        : 'Leverage for all deployed bots'
+                      }
                     </p>
                   </div>
 
@@ -2209,7 +2270,10 @@ export default function BotPage() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {scannerResults ? 'Results available for deployment' : 'Start scanner to find opportunities'}
+                      {isSimpleMode
+                        ? (scannerResults ? 'Ready to create your bots!' : 'Run AI Bot Creator first')
+                        : (scannerResults ? 'Results available for deployment' : 'Start scanner to find opportunities')
+                      }
                     </p>
                   </div>
                 </div>
