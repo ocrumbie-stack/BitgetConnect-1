@@ -485,32 +485,48 @@ export default function Markets() {
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-semibold">Markets</h1>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAlerts(true)}
-                className="flex items-center gap-2 text-sm"
-                data-testid="button-alerts"
-              >
-                <Bell className="h-4 w-4" />
-                Alerts
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLocation('/folders')}
-                className="flex items-center gap-2 text-sm"
-                data-testid="button-folders"
-              >
-                <Folder className="h-4 w-4" />
-                Folders
-              </Button>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold">Markets</h1>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-muted-foreground">Live</span>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={isSimpleMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsSimpleMode(!isSimpleMode)}
+                className="flex items-center gap-2 text-sm"
+                data-testid="button-simple-mode"
+              >
+                <Sparkles className="h-4 w-4" />
+                {isSimpleMode ? 'Simple' : 'Advanced'}
+              </Button>
+              {!isSimpleMode && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAlerts(true)}
+                    className="flex items-center gap-2 text-sm"
+                    data-testid="button-alerts"
+                  >
+                    <Bell className="h-4 w-4" />
+                    Alerts
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLocation('/folders')}
+                    className="flex items-center gap-2 text-sm"
+                    data-testid="button-folders"
+                  >
+                    <Folder className="h-4 w-4" />
+                    Folders
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           
