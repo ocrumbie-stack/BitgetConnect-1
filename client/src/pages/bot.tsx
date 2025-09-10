@@ -112,6 +112,11 @@ export default function BotPage() {
   const [scannerName, setScannerName] = useState(''); // Custom scanner name for folder organization
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
+  
+  // Custom TP/SL state for auto scanner
+  const [scannerStopLoss, setScannerStopLoss] = useState('3.0');
+  const [scannerTakeProfit, setScannerTakeProfit] = useState('6.0');
+  const [useCustomTPSL, setUseCustomTPSL] = useState(false);
 
   // Continuous scanner state
   const [isContinuousActive, setIsContinuousActive] = useState(false);
@@ -591,7 +596,11 @@ export default function BotPage() {
       userId: 'default-user',
       maxBots: parseInt(scannerMaxBots),
       minConfidence: minConfidence,
-      tradingStyle: tradingStyle
+      tradingStyle: tradingStyle,
+      customTPSL: useCustomTPSL ? {
+        stopLoss: parseFloat(scannerStopLoss),
+        takeProfit: parseFloat(scannerTakeProfit)
+      } : null
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
@@ -2054,6 +2063,58 @@ export default function BotPage() {
                     <p className="text-xs text-muted-foreground">
                       Custom name for organizing deployed bots in a dedicated folder
                     </p>
+                  </div>
+
+                  {/* Custom TP/SL Configuration */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        checked={useCustomTPSL}
+                        onCheckedChange={setUseCustomTPSL}
+                        data-testid="switch-custom-tpsl"
+                      />
+                      <Label className="text-sm font-medium">Use Custom TP/SL</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Override default TP/SL calculations with your own values
+                    </p>
+                    
+                    {useCustomTPSL && (
+                      <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Stop Loss (%)</Label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={scannerStopLoss}
+                            onChange={(e) => setScannerStopLoss(e.target.value)}
+                            placeholder="3.0"
+                            min="0.1"
+                            max="20"
+                            data-testid="input-custom-stop-loss"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Pair percentage loss to exit
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Take Profit (%)</Label>
+                          <Input
+                            type="number" 
+                            step="0.1"
+                            value={scannerTakeProfit}
+                            onChange={(e) => setScannerTakeProfit(e.target.value)}
+                            placeholder="6.0"
+                            min="0.1"
+                            max="50"
+                            data-testid="input-custom-take-profit"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Pair percentage gain to exit
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Start/Stop Scanner Button */}
