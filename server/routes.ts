@@ -4776,7 +4776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto Market Scanner - SCAN ONLY (returns opportunities, no deployment)
   app.post('/api/auto-scanner/scan', async (req, res) => {
     try {
-      const { userId = 'default-user', maxBots = 10, minConfidence = 25, tradingStyle = 'balanced' } = req.body;
+      const { userId = 'default-user', maxBots = 10, minConfidence = 25, tradingStyle = 'balanced', customTPSL = null } = req.body;
 
       if (!bitgetAPI) {
         return res.status(400).json({ error: 'Bitget API not available' });
@@ -5059,7 +5059,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           minConfidenceUsed: minConfidence,
           maxBotsRequested: maxBots
-        }
+        },
+        customTPSL: customTPSL
       });
 
     } catch (error) {
@@ -5071,7 +5072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto Scanner - DEPLOY selected opportunities
   app.post('/api/auto-scanner/deploy', async (req, res) => {
     try {
-      const { userId = 'default-user', opportunities, totalCapital, leverage = 3, scannerName } = req.body;
+      const { userId = 'default-user', opportunities, totalCapital, leverage = 3, scannerName, customTPSL = null } = req.body;
 
       if (!opportunities || opportunities.length === 0) {
         return res.status(400).json({ error: 'No opportunities provided for deployment' });
@@ -5147,6 +5148,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             riskLevel: 'medium'
           });
 
+          // Calculate TP/SL values to use
+          let finalStopLoss, finalTakeProfit;
+          
+          if (customTPSL) {
+            finalStopLoss = customTPSL.stopLoss;
+            finalTakeProfit = customTPSL.takeProfit;
+            console.log(`🎯 Using CUSTOM TP/SL for ${opportunity.symbol}: ${finalStopLoss}% SL, ${finalTakeProfit}% TP`);
+          } else {
+            const tradeSetup = calculateOptimalTradeSetup(leverage, 'auto_scanner');
+            finalStopLoss = tradeSetup.stopLoss;
+            finalTakeProfit = tradeSetup.takeProfit;
+            console.log(`🎯 Using CALCULATED TP/SL for ${opportunity.symbol}: ${finalStopLoss}% SL, ${finalTakeProfit}% TP`);
+          }
+
           // Deploy bot execution with IMMEDIATE trade execution since criteria are already met
           const botExecution = {
             userId,
@@ -5158,7 +5173,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             deploymentType: 'auto_scanner',
             folderName: scannerFolder ? scannerFolder.name : 'Auto Market Scanner',
             confidence: opportunity.confidence.toString(),
-            direction: opportunity.direction
+            direction: opportunity.direction,
+            customStopLoss: finalStopLoss,
+            customTakeProfit: finalTakeProfit,
+            exitCriteria: {
+              stopLoss: -Math.abs(finalStopLoss),
+              takeProfit: Math.abs(finalTakeProfit),
+              maxRuntime: 240,
+              exitStrategy: customTPSL ? 'auto_scanner_custom' : 'auto_scanner_calculated'
+            }
           };
 
           const savedBot = await storage.createBotExecution(botExecution);
