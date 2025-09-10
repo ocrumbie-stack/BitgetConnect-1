@@ -5169,7 +5169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tradingPair: opportunity.symbol,
             capital: capitalPerBot.toFixed(2),
             leverage: leverage.toString(),
-            status: 'waiting_entry', // Will be updated to 'active' after trade execution
+            status: 'active', // Set to active immediately for auto scanner deployments
             deploymentType: 'auto_scanner',
             folderName: scannerFolder ? scannerFolder.name : 'Auto Market Scanner',
             confidence: opportunity.confidence.toString(),
@@ -5188,56 +5188,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // IMMEDIATE TRADE EXECUTION - Since scanner already confirmed criteria are met
           console.log(`🚀 AUTO-EXECUTING TRADE: ${opportunity.symbol} ${opportunity.direction?.toUpperCase()} with ${opportunity.confidence}% confidence`);
+          
+          // Update bot to active status immediately (since scanner already confirmed entry)
+          await storage.updateBotExecution(savedBot.id, {
+            status: 'active',
+            updatedAt: new Date()
+          });
+          savedBot.status = 'active';
 
           try {
             if (!bitgetAPI) {
-              throw new Error('Bitget API not available for trade execution');
-            }
-
-            // Calculate position size based on capital and leverage
-            const positionValue = parseFloat(capitalPerBot.toFixed(2)) * parseInt(leverage.toString());
-            const currentPrice = opportunity.price;
-            const quantity = (positionValue / currentPrice).toFixed(4);
-
-            // Execute the trade immediately
-            const orderParams = {
-              symbol: opportunity.symbol,
-              side: opportunity.direction === 'long' ? 'buy' : 'sell',
-              orderType: 'market',
-              size: quantity,
-              marginCoin: 'USDT',
-              timeInForceValue: 'IOC'
-            };
-
-            console.log(`📊 Order Details: ${orderParams.side} ${orderParams.size} ${opportunity.symbol} at market price`);
-
-            const orderResult = await bitgetAPI.placeOrder(orderParams);
-
-            if (orderResult.success) {
-              // Update bot status to active with position info
-              await storage.updateBotExecution(savedBot.id, {
-                status: 'active',
-                updatedAt: new Date(),
-                positionData: {
-                  orderId: orderResult.data?.orderId,
-                  quantity: quantity,
-                  entryPrice: currentPrice.toString(),
-                  side: opportunity.direction,
-                  leverage: leverage.toString()
-                }
-              });
-
-              console.log(`✅ TRADE EXECUTED: ${opportunity.symbol} ${opportunity.direction?.toUpperCase()} - Order ID: ${orderResult.data?.orderId}`);
-
-              // Update the bot object for response
-              savedBot.status = 'active';
-              savedBot.positionData = orderResult.data;
-
+              console.log('⚠️ Bitget API not available - bot set to active for manual monitoring');
             } else {
-              console.log(`⚠️ Trade execution failed for ${opportunity.symbol}: ${orderResult.message || 'Unknown error'}`);
-              console.log(`🔄 Bot will remain in waiting_entry status for manual monitoring`);
-            }
+              // Calculate position size based on capital and leverage
+              const positionValue = parseFloat(capitalPerBot.toFixed(2)) * parseInt(leverage.toString());
+              const currentPrice = opportunity.price;
+              const quantity = (positionValue / currentPrice).toFixed(4);
 
+              // Execute the trade immediately
+              const orderParams = {
+                symbol: opportunity.symbol,
+                side: opportunity.direction === 'long' ? 'buy' : 'sell',
+                orderType: 'market',
+                size: quantity,
+                marginCoin: 'USDT',
+                timeInForceValue: 'IOC'
+              };
+
+              console.log(`📊 Order Details: ${orderParams.side} ${orderParams.size} ${opportunity.symbol} at market price`);
+
+              const orderResult = await bitgetAPI.placeOrder(orderParams);
+
+              if (orderResult.success) {
+                // Update bot status to active with position info
+                await storage.updateBotExecution(savedBot.id, {
+                  status: 'active',
+                  updatedAt: new Date(),
+                  positionData: {
+                    orderId: orderResult.data?.orderId,
+                    quantity: quantity,
+                    entryPrice: currentPrice.toString(),
+                    side: opportunity.direction,
+                    leverage: leverage.toString()
+                  }
+                });
+
+                console.log(`✅ TRADE EXECUTED: ${opportunity.symbol} ${opportunity.direction?.toUpperCase()} - Order ID: ${orderResult.data?.orderId}`);
+
+                // Update the bot object for response
+                savedBot.status = 'active';
+                savedBot.positionData = orderResult.data;
+
+              } else {
+                console.log(`⚠️ Trade execution failed for ${opportunity.symbol}: ${orderResult.message || 'Unknown error'}`);
+                console.log(`🔄 Bot already set to active for monitoring`);
+              }
+            }
           } catch (tradeError) {
             console.error(`❌ Auto-execution failed for ${opportunity.symbol}:`, tradeError);
           }
