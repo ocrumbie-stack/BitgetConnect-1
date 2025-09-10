@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info, Bell } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info, Bell, HelpCircle, Sparkles } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -45,6 +45,7 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
+  const [isSimpleMode, setIsSimpleMode] = useState(true);
   
   // Alert state
   const [showAlerts, setShowAlerts] = useState(false);
@@ -233,7 +234,7 @@ export default function Markets() {
     return analyzed;
   }, [data]);
 
-  // Generate opportunities for all strategies (memoized to prevent recalculation)
+  // Generate opportunities for all strategies (lazy loaded and memoized for performance)
   const opportunities = useMemo(() => {
     // Only generate opportunities when viewing the opportunities tab to prevent blocking
     if (activeTab !== 'opportunities') {
@@ -247,15 +248,22 @@ export default function Markets() {
       };
     }
     
-    return {
-      momentum: generateOpportunities('momentum'),
-      breakout: generateOpportunities('breakout'), 
-      scalping: generateOpportunities('scalping'),
-      swing: generateOpportunities('swing'),
-      reversal: generateOpportunities('reversal'),
-      remarkable: generateOpportunities('remarkable')
+    // Lazy load only expanded strategies for better performance
+    const result: any = {
+      momentum: [],
+      breakout: [],
+      scalping: [],
+      swing: [],
+      reversal: [],
+      remarkable: []
     };
-  }, [data, activeTab, generateOpportunities]);
+    
+    expandedStrategies.forEach(strategy => {
+      result[strategy] = generateOpportunities(strategy);
+    });
+    
+    return result;
+  }, [data, activeTab, expandedStrategies, generateOpportunities]);
 
   const toggleStrategyExpansion = (strategy: string) => {
     setExpandedStrategies(prev => {
@@ -717,11 +725,28 @@ export default function Markets() {
                   </CardContent>
                 </Card>
 
+                {/* Quick Help for Simple Mode */}
+                {isSimpleMode && (
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div>
+                          <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Market Scanner Guide</h3>
+                          <p className="text-sm text-blue-700 dark:text-blue-200">
+                            View live crypto prices and 24h changes. Tap cards above to filter by gainers, losers, or view all markets. Use search below to find specific coins.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
                 {/* Search Functionality */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder="Search markets..."
+                    placeholder={isSimpleMode ? "Search coins (e.g., BTC, ETH)..." : "Search markets..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 h-10 text-base"
@@ -729,83 +754,111 @@ export default function Markets() {
                   />
                 </div>
 
-                {/* Unified Screener Selection & Management */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-muted-foreground">Screener Filter:</label>
-                    <Button
-                      onClick={() => setLocation('/create-screener')}
-                      size="sm"
-                      className="h-8 px-3 text-xs"
-                      data-testid="button-create-screener"
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      New
-                    </Button>
+                {/* Simple mode - Basic sorting options */}
+                {isSimpleMode ? (
+                  <div className="space-y-3">
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        variant={sortBy === 'change' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleSort('change')}
+                        className="flex items-center gap-2"
+                        data-testid="sort-change-simple"
+                      >
+                        <TrendingUp className="h-4 w-4" />
+                        Sort by Change {sortBy === 'change' && (sortDirection === 'desc' ? '↓' : '↑')}
+                      </Button>
+                      <Button
+                        variant={sortBy === 'volume' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleSort('volume')}
+                        className="flex items-center gap-2"
+                        data-testid="sort-volume-simple"
+                      >
+                        <Volume2 className="h-4 w-4" />
+                        Sort by Volume {sortBy === 'volume' && (sortDirection === 'desc' ? '↓' : '↑')}
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
-                    <SelectTrigger className="w-full h-10 text-base">
-                      <SelectValue placeholder="Select screener filter...">
-                        {selectedScreener === 'none' || !selectedScreener ? (
+                ) : (
+                  /* Advanced mode - Unified Screener Selection & Management */
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-muted-foreground">Screener Filter:</label>
+                      <Button
+                        onClick={() => setLocation('/create-screener')}
+                        size="sm"
+                        className="h-8 px-3 text-xs"
+                        data-testid="button-create-screener"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        New
+                      </Button>
+                    </div>
+                    
+                    <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
+                      <SelectTrigger className="w-full h-10 text-base">
+                        <SelectValue placeholder="Select screener filter...">
+                          {selectedScreener === 'none' || !selectedScreener ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                              <span className="text-sm">All Markets</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm">{userScreeners.find((s: any) => s.id === selectedScreener)?.name || 'Selected Screener'}</span>
+                            </div>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
                             <span className="text-sm">All Markets</span>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-sm">{userScreeners.find((s: any) => s.id === selectedScreener)?.name || 'Selected Screener'}</span>
-                          </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                          <span className="text-sm">All Markets</span>
-                        </div>
-                      </SelectItem>
-                      {userScreeners.map((screener: any) => (
-                        <SelectItem key={screener.id} value={screener.id}>
-                          <div className="flex items-center justify-between w-full min-w-0">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                              <span className="text-sm truncate">{screener.name}</span>
-                            </div>
-                            <div className="flex items-center gap-1 ml-6 flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditScreener(screener.id);
-                                }}
-                                title="Edit screener"
-                              >
-                                <Edit className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm" 
-                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteScreener(screener.id);
-                                }}
-                                title="Delete screener"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        {userScreeners.map((screener: any) => (
+                          <SelectItem key={screener.id} value={screener.id}>
+                            <div className="flex items-center justify-between w-full min-w-0">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                <span className="text-sm truncate">{screener.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 ml-6 flex-shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditScreener(screener.id);
+                                  }}
+                                  title="Edit screener"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm" 
+                                  className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteScreener(screener.id);
+                                  }}
+                                  title="Delete screener"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* Market Data Table */}
