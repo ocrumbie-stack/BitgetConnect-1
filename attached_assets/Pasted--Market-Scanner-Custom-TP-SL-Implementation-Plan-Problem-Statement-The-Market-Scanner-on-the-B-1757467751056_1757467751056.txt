@@ -1,0 +1,149 @@
+
+# Market Scanner Custom TP/SL Implementation Plan
+
+## Problem Statement
+The Market Scanner on the Bots page currently uses preset TP/SL values calculated by `calculateOptimalTradeSetup()`. Users want to input their own TP/SL values as actual pair percentage changes (not leverage-adjusted).
+
+## Research Findings
+
+### Key Files Identified:
+1. **`client/src/pages/bot.tsx`** (lines 2800-3100) - Scanner UI configuration
+2. **`server/routes.ts`** (lines 1200-1300, 6500-6600) - Auto scanner deployment & TP/SL logic
+3. **`server/storage.ts`** - Data persistence
+
+### Current Flow:
+1. User configures scanner (capital, leverage, max bots)
+2. Backend calls `calculateOptimalTradeSetup(leverage, 'auto_scanner')`
+3. Returns preset values: 2-3% SL, 4-6% TP (pair percentage moves)
+4. Deploys bots with calculated values
+
+### Issues Found:
+- No UI inputs for custom TP/SL
+- Auto scanner bypasses user TP/SL preferences
+- Backend hardcoded to use `calculateOptimalTradeSetup()`
+
+## Implementation Plan
+
+### Phase 1: Frontend UI Changes
+**File: `client/src/pages/bot.tsx`**
+
+1. **Add State Variables** (around line 100):
+   ```typescript
+   const [scannerStopLoss, setScannerStopLoss] = useState('3.0');
+   const [scannerTakeProfit, setScannerTakeProfit] = useState('6.0');
+   const [useCustomTPSL, setUseCustomTPSL] = useState(false);
+   ```
+
+2. **Add UI Input Fields** (around line 2900 in Scanner Configuration Card):
+   ```typescript
+   {/* Custom TP/SL Toggle */}
+   <div className="space-y-3">
+     <div className="flex items-center space-x-2">
+       <Switch 
+         checked={useCustomTPSL}
+         onCheckedChange={setUseCustomTPSL}
+       />
+       <Label>Use Custom TP/SL</Label>
+     </div>
+     
+     {useCustomTPSL && (
+       <div className="grid grid-cols-2 gap-4">
+         <div className="space-y-2">
+           <Label>Stop Loss (%)</Label>
+           <Input
+             type="number"
+             step="0.1"
+             value={scannerStopLoss}
+             onChange={(e) => setScannerStopLoss(e.target.value)}
+             placeholder="3.0"
+           />
+         </div>
+         <div className="space-y-2">
+           <Label>Take Profit (%)</Label>
+           <Input
+             type="number" 
+             step="0.1"
+             value={scannerTakeProfit}
+             onChange={(e) => setScannerTakeProfit(e.target.value)}
+             placeholder="6.0"
+           />
+         </div>
+       </div>
+     )}
+   </div>
+   ```
+
+3. **Update Scanner Request** (around line 3000):
+   ```typescript
+   const scannerData = {
+     userId: 'default-user',
+     maxBots: parseInt(scannerMaxBots),
+     minConfidence: minConfidence,
+     tradingStyle: tradingStyle,
+     customTPSL: useCustomTPSL ? {
+       stopLoss: parseFloat(scannerStopLoss),
+       takeProfit: parseFloat(scannerTakeProfit)
+     } : null
+   };
+   ```
+
+### Phase 2: Backend API Changes
+**File: `server/routes.ts`**
+
+1. **Update Auto Scanner Scan Endpoint** (around line 1200):
+   ```typescript
+   app.post('/api/auto-scanner/scan', async (req, res) => {
+     const { userId, maxBots, minConfidence, tradingStyle, customTPSL } = req.body;
+     
+     // Store custom TP/SL in scan results for later deployment
+     const scanResults = {
+       opportunities: opportunities,
+       customTPSL: customTPSL || null,
+       // ... other properties
+     };
+   });
+   ```
+
+2. **Update Auto Scanner Deploy Endpoint** (around line 1250):
+   ```typescript
+   app.post('/api/auto-scanner/deploy', async (req, res) => {
+     const { opportunities, customTPSL } = req.body;
+     
+     for (const opportunity of opportunities) {
+       // Use custom TP/SL if provided, otherwise calculate
+       let finalStopLoss, finalTakeProfit;
+       
+       if (customTPSL) {
+         finalStopLoss = customTPSL.stopLoss;
+         finalTakeProfit = customTPSL.takeProfit;
+         console.log(`🎯 Using CUSTOM TP/SL: ${finalStopLoss}% SL, ${finalTakeProfit}% TP`);
+       } else {
+         const tradeSetup = calculateOptimalTradeSetup(leverage, 'auto_scanner');
+         finalStopLoss = tradeSetup.stopLoss;
+         finalTakeProfit = tradeSetup.takeProfit;
+         console.log(`🎯 Using CALCULATED TP/SL: ${finalStopLoss}% SL, ${finalTakeProfit}% TP`);
+       }
+       
+       // Store in bot execution with custom values
+       const executionData = {
+         // ... existing properties
+         customStopLoss: finalStopLoss,
+         customTakeProfit: finalTakeProfit,
+         exitCriteria: {
+           stopLoss: -Math.abs(finalStopLoss),
+           takeProfit: Math.abs(finalTakeProfit),
+           maxRuntime: 240,
+           exitStrategy: 'auto_scanner_custom'
+         }
+       };
+     }
+   });
+   ```
+
+3. **Update Bot Execution Monitoring** (around line 2800):
+   ```typescript
+   // In the bot monitoring loop, use custom TP/SL if available
+   if (deployedBot.customStopLoss && deployedBot.customTakeProfit) {
+     finalExitCriteria = {
+       stopLoss: -Math.abs(deployedBot.customStopLoss),
+       takeProfit: Math.abs(deployedBot.c...
