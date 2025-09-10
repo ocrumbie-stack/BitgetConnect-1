@@ -628,102 +628,106 @@ export default function Markets() {
                   </Card>
                 </div>
 
-                {/* Additional Filter Options */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Card 
-                    className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                    onClick={() => {
-                      setFilter('stable');
-                      setSearchQuery('');
-                      setSelectedScreener('');
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500 rounded-lg">
-                          <Eye className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="stable-pairs">
-                            {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) < 0.02).length || 0}
+                {/* Additional Filter Options - Only show in advanced mode */}
+                {!isSimpleMode && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Card 
+                      className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                      onClick={() => {
+                        setFilter('stable');
+                        setSearchQuery('');
+                        setSelectedScreener('');
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-500 rounded-lg">
+                            <Eye className="h-5 w-5 text-white" />
                           </div>
-                          <div className="text-sm text-blue-600 dark:text-blue-400">Stable (&lt;2%)</div>
+                          <div>
+                            <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="stable-pairs">
+                              {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) < 0.02).length || 0}
+                            </div>
+                            <div className="text-sm text-blue-600 dark:text-blue-400">Stable (&lt;2%)</div>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
 
-                  <Card 
-                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                    onClick={() => {
-                      setFilter('large-cap');
-                      setSearchQuery('');
-                      setSelectedScreener('');
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-yellow-500 rounded-lg">
-                          <DollarSign className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-xl font-bold text-yellow-700 dark:text-yellow-300" data-testid="large-cap-pairs">
-                            {isLoading ? '...' : data?.filter(item => parseFloat(item.volume24h || '0') > 20000000).length || 0}
+                    <Card 
+                      className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                      onClick={() => {
+                        setFilter('large-cap');
+                        setSearchQuery('');
+                        setSelectedScreener('');
+                      }}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-yellow-500 rounded-lg">
+                            <DollarSign className="h-5 w-5 text-white" />
                           </div>
-                          <div className="text-sm text-yellow-600 dark:text-yellow-400">Large Cap</div>
+                          <div>
+                            <div className="text-xl font-bold text-yellow-700 dark:text-yellow-300" data-testid="large-cap-pairs">
+                              {isLoading ? '...' : data?.filter(item => parseFloat(item.volume24h || '0') > 20000000).length || 0}
+                            </div>
+                            <div className="text-sm text-yellow-600 dark:text-yellow-400">Large Cap</div>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
 
-                {/* Market Average Change Card */}
-                <Card className={`bg-gradient-to-br ${
-                  marketStats && marketStats.avgChange >= 0
-                    ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800'
-                    : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
-                }`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          marketStats && marketStats.avgChange >= 0 ? 'bg-emerald-500' : 'bg-orange-500'
-                        }`}>
-                          <Activity className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-lg font-medium mb-1">Market Sentiment</div>
-                          <div className={`text-xl font-bold ${
-                            marketStats && marketStats.avgChange >= 0
-                              ? 'text-emerald-700 dark:text-emerald-300'
-                              : 'text-orange-700 dark:text-orange-300'
-                          }`} data-testid="avg-change">
-                            {isLoading ? '...' : marketStats ? `${(marketStats.avgChange * 100).toFixed(2)}%` : '0.00%'}
+                {/* Market Average Change Card - Only show in advanced mode */}
+                {!isSimpleMode && (
+                  <Card className={`bg-gradient-to-br ${
+                    marketStats && marketStats.avgChange >= 0
+                      ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800'
+                      : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
+                  }`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            marketStats && marketStats.avgChange >= 0 ? 'bg-emerald-500' : 'bg-orange-500'
+                          }`}>
+                            <Activity className="h-5 w-5 text-white" />
                           </div>
-                          <div className={`text-sm ${
+                          <div>
+                            <div className="text-lg font-medium mb-1">Market Sentiment</div>
+                            <div className={`text-xl font-bold ${
+                              marketStats && marketStats.avgChange >= 0
+                                ? 'text-emerald-700 dark:text-emerald-300'
+                                : 'text-orange-700 dark:text-orange-300'
+                            }`} data-testid="avg-change">
+                              {isLoading ? '...' : marketStats ? `${(marketStats.avgChange * 100).toFixed(2)}%` : '0.00%'}
+                            </div>
+                            <div className={`text-sm ${
+                              marketStats && marketStats.avgChange >= 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-orange-600 dark:text-orange-400'
+                            }`}>
+                              Average Change (24h)
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm font-medium ${
                             marketStats && marketStats.avgChange >= 0
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-orange-600 dark:text-orange-400'
                           }`}>
-                            Average Change (24h)
+                            {marketStats && marketStats.avgChange >= 0 ? 'Bullish' : 'Bearish'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Vol: {marketStats ? formatVolume(marketStats.totalVolume.toString()) : '$0'}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={`text-sm font-medium ${
-                          marketStats && marketStats.avgChange >= 0
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-orange-600 dark:text-orange-400'
-                        }`}>
-                          {marketStats && marketStats.avgChange >= 0 ? 'Bullish' : 'Bearish'}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Vol: {marketStats ? formatVolume(marketStats.totalVolume.toString()) : '$0'}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Quick Help for Simple Mode */}
                 {isSimpleMode && (
@@ -877,6 +881,21 @@ export default function Markets() {
             {/* AI Opportunities Tab Content */}
             <TabsContent value="opportunities" className="space-y-4 mt-3">
               <div className="px-4">
+                {/* Quick Help for AI Opportunities */}
+                <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 mb-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Brain className="h-5 w-5 text-purple-600 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-purple-900 dark:text-purple-100 mb-1">AI Opportunities Guide</h3>
+                        <p className="text-sm text-purple-700 dark:text-purple-200">
+                          AI analyzes market data to find trading opportunities. Click strategy cards below to see specific trading pairs and recommendations based on different trading styles.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Header with controls */}
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-medium flex items-center gap-2">
@@ -887,15 +906,17 @@ export default function Markets() {
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-300">
                       Live Analysis
                     </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.location.reload()}
-                      className="flex items-center gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Refresh
-                    </Button>
+                    {!isSimpleMode && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.location.reload()}
+                        className="flex items-center gap-2"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Refresh
+                      </Button>
+                    )}
                   </div>
                 </div>
 
