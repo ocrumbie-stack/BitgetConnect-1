@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info, Bell, HelpCircle, Sparkles } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Filter, ChevronDown, Plus, Edit, Trash2, MoreVertical, Folder, Star, BarChart3, Volume2, DollarSign, Activity, Eye, Brain, Zap, Target, AlertTriangle, ChevronUp, RefreshCw, TrendingUp as Trend, Info, Bell } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -45,7 +45,6 @@ export default function Markets() {
   const [activeTab, setActiveTab] = useState('screener');
   const [expandedStrategies, setExpandedStrategies] = useState<Set<string>>(new Set(['momentum']));
   const [showAllOpportunities, setShowAllOpportunities] = useState<{ [key: string]: boolean }>({});
-  const [isSimpleMode, setIsSimpleMode] = useState(true);
   
   // Alert state
   const [showAlerts, setShowAlerts] = useState(false);
@@ -234,7 +233,7 @@ export default function Markets() {
     return analyzed;
   }, [data]);
 
-  // Generate opportunities for all strategies (lazy loaded and memoized for performance)
+  // Generate opportunities for all strategies (memoized to prevent recalculation)
   const opportunities = useMemo(() => {
     // Only generate opportunities when viewing the opportunities tab to prevent blocking
     if (activeTab !== 'opportunities') {
@@ -248,22 +247,15 @@ export default function Markets() {
       };
     }
     
-    // Lazy load only expanded strategies for better performance
-    const result: any = {
-      momentum: [],
-      breakout: [],
-      scalping: [],
-      swing: [],
-      reversal: [],
-      remarkable: []
+    return {
+      momentum: generateOpportunities('momentum'),
+      breakout: generateOpportunities('breakout'), 
+      scalping: generateOpportunities('scalping'),
+      swing: generateOpportunities('swing'),
+      reversal: generateOpportunities('reversal'),
+      remarkable: generateOpportunities('remarkable')
     };
-    
-    expandedStrategies.forEach(strategy => {
-      result[strategy] = generateOpportunities(strategy);
-    });
-    
-    return result;
-  }, [data, activeTab, expandedStrategies, generateOpportunities]);
+  }, [data, activeTab, generateOpportunities]);
 
   const toggleStrategyExpansion = (strategy: string) => {
     setExpandedStrategies(prev => {
@@ -485,48 +477,32 @@ export default function Markets() {
       <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold">Markets Scanner</h1>
+            <h1 className="text-xl font-semibold">Markets</h1>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAlerts(true)}
+                className="flex items-center gap-2 text-sm"
+                data-testid="button-alerts"
+              >
+                <Bell className="h-4 w-4" />
+                Alerts
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation('/folders')}
+                className="flex items-center gap-2 text-sm"
+                data-testid="button-folders"
+              >
+                <Folder className="h-4 w-4" />
+                Folders
+              </Button>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-muted-foreground">Live</span>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={isSimpleMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsSimpleMode(!isSimpleMode)}
-                className="flex items-center gap-2 text-sm"
-                data-testid="button-simple-mode"
-              >
-                <Sparkles className="h-4 w-4" />
-                {isSimpleMode ? 'Simple' : 'Advanced'}
-              </Button>
-              {!isSimpleMode && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAlerts(true)}
-                    className="flex items-center gap-2 text-sm"
-                    data-testid="button-alerts"
-                  >
-                    <Bell className="h-4 w-4" />
-                    Alerts
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLocation('/folders')}
-                    className="flex items-center gap-2 text-sm"
-                    data-testid="button-folders"
-                  >
-                    <Folder className="h-4 w-4" />
-                    Folders
-                  </Button>
-                </>
-              )}
             </div>
           </div>
           
@@ -644,129 +620,108 @@ export default function Markets() {
                   </Card>
                 </div>
 
-                {/* Additional Filter Options - Only show in advanced mode */}
-                {!isSimpleMode && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Card 
-                      className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                      onClick={() => {
-                        setFilter('stable');
-                        setSearchQuery('');
-                        setSelectedScreener('');
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-500 rounded-lg">
-                            <Eye className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="stable-pairs">
-                              {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) < 0.02).length || 0}
-                            </div>
-                            <div className="text-sm text-blue-600 dark:text-blue-400">Stable (&lt;2%)</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card 
-                      className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                      onClick={() => {
-                        setFilter('large-cap');
-                        setSearchQuery('');
-                        setSelectedScreener('');
-                      }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-yellow-500 rounded-lg">
-                            <DollarSign className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="text-xl font-bold text-yellow-700 dark:text-yellow-300" data-testid="large-cap-pairs">
-                              {isLoading ? '...' : data?.filter(item => parseFloat(item.volume24h || '0') > 20000000).length || 0}
-                            </div>
-                            <div className="text-sm text-yellow-600 dark:text-yellow-400">Large Cap</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-                {/* Market Average Change Card - Only show in advanced mode */}
-                {!isSimpleMode && (
-                  <Card className={`bg-gradient-to-br ${
-                    marketStats && marketStats.avgChange >= 0
-                      ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800'
-                      : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
-                  }`}>
+                {/* Additional Filter Options */}
+                <div className="grid grid-cols-2 gap-3">
+                  <Card 
+                    className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('stable');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            marketStats && marketStats.avgChange >= 0 ? 'bg-emerald-500' : 'bg-orange-500'
-                          }`}>
-                            <Activity className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="text-lg font-medium mb-1">Market Sentiment</div>
-                            <div className={`text-xl font-bold ${
-                              marketStats && marketStats.avgChange >= 0
-                                ? 'text-emerald-700 dark:text-emerald-300'
-                                : 'text-orange-700 dark:text-orange-300'
-                            }`} data-testid="avg-change">
-                              {isLoading ? '...' : marketStats ? `${(marketStats.avgChange * 100).toFixed(2)}%` : '0.00%'}
-                            </div>
-                            <div className={`text-sm ${
-                              marketStats && marketStats.avgChange >= 0
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-orange-600 dark:text-orange-400'
-                            }`}>
-                              Average Change (24h)
-                            </div>
-                          </div>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500 rounded-lg">
+                          <Eye className="h-5 w-5 text-white" />
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm font-medium ${
+                        <div>
+                          <div className="text-xl font-bold text-blue-700 dark:text-blue-300" data-testid="stable-pairs">
+                            {isLoading ? '...' : data?.filter(item => Math.abs(parseFloat(item.change24h || '0')) < 0.02).length || 0}
+                          </div>
+                          <div className="text-sm text-blue-600 dark:text-blue-400">Stable (&lt;2%)</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200 dark:border-yellow-800 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => {
+                      setFilter('large-cap');
+                      setSearchQuery('');
+                      setSelectedScreener('');
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-yellow-500 rounded-lg">
+                          <DollarSign className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-yellow-700 dark:text-yellow-300" data-testid="large-cap-pairs">
+                            {isLoading ? '...' : data?.filter(item => parseFloat(item.volume24h || '0') > 20000000).length || 0}
+                          </div>
+                          <div className="text-sm text-yellow-600 dark:text-yellow-400">Large Cap</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Market Average Change Card */}
+                <Card className={`bg-gradient-to-br ${
+                  marketStats && marketStats.avgChange >= 0
+                    ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-800'
+                    : 'from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          marketStats && marketStats.avgChange >= 0 ? 'bg-emerald-500' : 'bg-orange-500'
+                        }`}>
+                          <Activity className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-lg font-medium mb-1">Market Sentiment</div>
+                          <div className={`text-xl font-bold ${
+                            marketStats && marketStats.avgChange >= 0
+                              ? 'text-emerald-700 dark:text-emerald-300'
+                              : 'text-orange-700 dark:text-orange-300'
+                          }`} data-testid="avg-change">
+                            {isLoading ? '...' : marketStats ? `${(marketStats.avgChange * 100).toFixed(2)}%` : '0.00%'}
+                          </div>
+                          <div className={`text-sm ${
                             marketStats && marketStats.avgChange >= 0
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-orange-600 dark:text-orange-400'
                           }`}>
-                            {marketStats && marketStats.avgChange >= 0 ? 'Bullish' : 'Bearish'}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Vol: {marketStats ? formatVolume(marketStats.totalVolume.toString()) : '$0'}
+                            Average Change (24h)
                           </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                      <div className="text-right">
+                        <div className={`text-sm font-medium ${
+                          marketStats && marketStats.avgChange >= 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-orange-600 dark:text-orange-400'
+                        }`}>
+                          {marketStats && marketStats.avgChange >= 0 ? 'Bullish' : 'Bearish'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Vol: {marketStats ? formatVolume(marketStats.totalVolume.toString()) : '$0'}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                {/* Quick Help for Simple Mode */}
-                {isSimpleMode && (
-                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Market Scanner Guide</h3>
-                          <p className="text-sm text-blue-700 dark:text-blue-200">
-                            View live crypto prices and 24h changes. Tap cards above to filter by gainers, losers, or view all markets. Use search below to find specific coins.
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                
                 {/* Search Functionality */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    placeholder={isSimpleMode ? "Search coins (e.g., BTC, ETH)..." : "Search markets..."}
+                    placeholder="Search markets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 h-10 text-base"
@@ -774,111 +729,83 @@ export default function Markets() {
                   />
                 </div>
 
-                {/* Simple mode - Basic sorting options */}
-                {isSimpleMode ? (
-                  <div className="space-y-3">
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        variant={sortBy === 'change' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleSort('change')}
-                        className="flex items-center gap-2"
-                        data-testid="sort-change-simple"
-                      >
-                        <TrendingUp className="h-4 w-4" />
-                        Sort by Change {sortBy === 'change' && (sortDirection === 'desc' ? '↓' : '↑')}
-                      </Button>
-                      <Button
-                        variant={sortBy === 'volume' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleSort('volume')}
-                        className="flex items-center gap-2"
-                        data-testid="sort-volume-simple"
-                      >
-                        <Volume2 className="h-4 w-4" />
-                        Sort by Volume {sortBy === 'volume' && (sortDirection === 'desc' ? '↓' : '↑')}
-                      </Button>
-                    </div>
+                {/* Unified Screener Selection & Management */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-muted-foreground">Screener Filter:</label>
+                    <Button
+                      onClick={() => setLocation('/create-screener')}
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      data-testid="button-create-screener"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      New
+                    </Button>
                   </div>
-                ) : (
-                  /* Advanced mode - Unified Screener Selection & Management */
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-muted-foreground">Screener Filter:</label>
-                      <Button
-                        onClick={() => setLocation('/create-screener')}
-                        size="sm"
-                        className="h-8 px-3 text-xs"
-                        data-testid="button-create-screener"
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        New
-                      </Button>
-                    </div>
-                    
-                    <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
-                      <SelectTrigger className="w-full h-10 text-base">
-                        <SelectValue placeholder="Select screener filter...">
-                          {selectedScreener === 'none' || !selectedScreener ? (
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                              <span className="text-sm">All Markets</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-sm">{userScreeners.find((s: any) => s.id === selectedScreener)?.name || 'Selected Screener'}</span>
-                            </div>
-                          )}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">
+                  
+                  <Select value={selectedScreener || 'none'} onValueChange={handleScreenerChange}>
+                    <SelectTrigger className="w-full h-10 text-base">
+                      <SelectValue placeholder="Select screener filter...">
+                        {selectedScreener === 'none' || !selectedScreener ? (
                           <div className="flex items-center gap-2">
                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
                             <span className="text-sm">All Markets</span>
                           </div>
-                        </SelectItem>
-                        {userScreeners.map((screener: any) => (
-                          <SelectItem key={screener.id} value={screener.id}>
-                            <div className="flex items-center justify-between w-full min-w-0">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                                <span className="text-sm truncate">{screener.name}</span>
-                              </div>
-                              <div className="flex items-center gap-1 ml-6 flex-shrink-0">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditScreener(screener.id);
-                                  }}
-                                  title="Edit screener"
-                                >
-                                  <Edit className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm" 
-                                  className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteScreener(screener.id);
-                                  }}
-                                  title="Delete screener"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-sm">{userScreeners.find((s: any) => s.id === selectedScreener)?.name || 'Selected Screener'}</span>
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                          <span className="text-sm">All Markets</span>
+                        </div>
+                      </SelectItem>
+                      {userScreeners.map((screener: any) => (
+                        <SelectItem key={screener.id} value={screener.id}>
+                          <div className="flex items-center justify-between w-full min-w-0">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                              <span className="text-sm truncate">{screener.name}</span>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                            <div className="flex items-center gap-1 ml-6 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditScreener(screener.id);
+                                }}
+                                title="Edit screener"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm" 
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteScreener(screener.id);
+                                }}
+                                title="Delete screener"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Market Data Table */}
@@ -897,21 +824,6 @@ export default function Markets() {
             {/* AI Opportunities Tab Content */}
             <TabsContent value="opportunities" className="space-y-4 mt-3">
               <div className="px-4">
-                {/* Quick Help for AI Opportunities */}
-                <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 mb-4">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Brain className="h-5 w-5 text-purple-600 mt-0.5" />
-                      <div>
-                        <h3 className="font-medium text-purple-900 dark:text-purple-100 mb-1">AI Opportunities Guide</h3>
-                        <p className="text-sm text-purple-700 dark:text-purple-200">
-                          AI analyzes market data to find trading opportunities. Click strategy cards below to see specific trading pairs and recommendations based on different trading styles.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Header with controls */}
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-medium flex items-center gap-2">
@@ -922,22 +834,20 @@ export default function Markets() {
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-300">
                       Live Analysis
                     </Badge>
-                    {!isSimpleMode && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.location.reload()}
-                        className="flex items-center gap-2"
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Refresh
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh
+                    </Button>
                   </div>
                 </div>
 
-                {/* Trading Strategy Grid - Optimized for mobile */}
-                <div className={`grid gap-4 mb-6 ${isSimpleMode ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
+                {/* Trading Strategy Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                   {[
                     { key: 'momentum', label: 'Momentum', icon: Zap, iconColor: 'bg-yellow-500', desc: 'Strong directional moves' },
                     { key: 'breakout', label: 'Breakout', icon: TrendingUp, iconColor: 'bg-green-500', desc: 'Volume breakouts' },
