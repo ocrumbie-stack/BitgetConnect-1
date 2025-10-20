@@ -1,5 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 import crypto from 'crypto';
+import { PositionGuard, Side } from '../core/positionGuard';
+
+// Shared guard for all Bitget entries
+const positionGuard = new PositionGuard(10_000);
 
 export interface BitgetConfig {
   apiKey: string;
@@ -215,6 +219,20 @@ export class BitgetAPI {
       throw new Error('Failed to fetch positions from Bitget API');
     }
   }
+  // Normalize the currently active position for a symbol, or null if none
+  async getActivePositionForSymbol(symbol: string): Promise<{ side: Side; size: number } | null> {
+    try {
+      const positions = await this.getPositions();
+      const pos = positions.find((p: any) => p.symbol === symbol && Number(p.total) > 0);
+      if (!pos) return null;
+      const side = (pos.holdSide as Side) || 'long';
+      const size = Number(pos.total) || 0;
+      return { side, size };
+    } catch {
+      return null;
+    }
+  }
+
 
   async getOrders(): Promise<any[]> {
     try {
@@ -334,6 +352,27 @@ export class BitgetAPI {
       // Format the size with proper precision
       const formattedSize = parseFloat(orderParams.size).toFixed(sizePrecision);
 
+      // ---------- ONE-POSITION GUARD START ----------
+      const mappedSide: Side = orderParams.side === 'buy' ? 'long' : 'short';
+      // 0) Fast de-dupe & ping-pong protection
+      if (!positionGuard.canEnter(orderParams.symbol, mappedSide)) {
+        console.log('⛔ blocked_by_guard (cooldown or active)');
+        return { ok: false, reason: 'blocked_by_guard' };
+      }
+      if (!positionGuard.begin(orderParams.symbol, mappedSide)) {
+        console.log('⛔ already_locked (another entry in-flight)');
+        return { ok: false, reason: 'already_locked' };
+      }
+      // 1) Double-check live position to avoid duplicates/opposites
+      const __pos = await this.getActivePositionForSymbol(orderParams.symbol);
+      if (__pos && __pos.size) {
+        const reason = __pos.side === mappedSide ? 'same_side_already_open' : 'opposite_side_open';
+        console.log(`⛔ ${reason} — symbol=${orderParams.symbol}, holdSide=${__pos.side}, size=${__pos.size}`);
+        positionGuard.end(orderParams.symbol, mappedSide, 7000);
+        return { ok: false, reason };
+      }
+      // ---------- ONE-POSITION GUARD END ----------
+
       // STEP 1: Always place the main order first to open/close the position
       console.log('🚀 Placing main order...');
       const orderData = {
@@ -371,7 +410,9 @@ export class BitgetAPI {
         
         if (!symbolTicker) {
           console.log('⚠️ Could not find current price for trailing stop, skipping...');
-          return mainOrderResponse.data; // Return main order success
+          const __main = mainOrderResponse.data;
+      positionGuard.end(orderParams.symbol, mappedSide, 7000);
+      return __main; // Return main order success
         }
         
         const currentPrice = parseFloat(symbolTicker.lastPr);
@@ -408,11 +449,13 @@ export class BitgetAPI {
           console.log('✅ Trailing stop plan order placed successfully:', JSON.stringify(trailingStopResponse.data, null, 2));
           
           // Return combined response indicating both orders were placed
-          return {
+          const __result = {
             ...mainOrderResponse.data,
             trailingStopAdded: true,
             trailingStopOrderId: trailingStopResponse.data.data?.orderId
           };
+          positionGuard.end(orderParams.symbol, mappedSide, 7000);
+          return __result;
         } catch (trailingError: any) {
           console.log('⚠️ Trailing stop plan order failed, but main order succeeded:', trailingError.response?.data?.msg || trailingError.message);
           return {
@@ -422,8 +465,12 @@ export class BitgetAPI {
         }
       }
 
-      return mainOrderResponse.data;
+      const __main = mainOrderResponse.data;
+      positionGuard.end(orderParams.symbol, mappedSide, 7000);
+      return __main;
     } catch (error: any) {
+      // ensure guard is released on error
+      try { positionGuard.end(orderParams.symbol, mappedSide, 7000); } catch {}
       console.error('Error placing order:', error.response?.data || error.message || error);
       
       // Handle different types of errors
