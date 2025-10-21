@@ -1691,7 +1691,7 @@ export default function BotPage() {
                   <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Custom Strategies</div>
                 </div>
               </div>
             </CardContent>
@@ -1717,7 +1717,7 @@ export default function BotPage() {
                       return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Active</div>
+                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Active Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1740,7 +1740,7 @@ export default function BotPage() {
                   <div className="text-xl font-bold text-indigo-700 dark:text-indigo-300">
                     6
                   </div>
-                  <div className="text-sm text-indigo-600 dark:text-indigo-400">AI Bots</div>
+                  <div className="text-sm text-indigo-600 dark:text-indigo-400">Auto Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1768,7 +1768,7 @@ export default function BotPage() {
                       return scannerBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Market Scanner</div>
+                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Smart Scanner</div>
                 </div>
               </div>
             </CardContent>
