@@ -1635,7 +1635,7 @@ export default function BotPage() {
                   <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                     <Bot className="h-6 w-6" />
                   </div>
-                  AI Trading Bots
+                  Trading Bots
                 </h1>
                 <p className="text-blue-100 text-lg font-medium">
                   Deploy intelligent trading strategies powered by machine learning
