@@ -8,7 +8,7 @@ export function BottomNavigation() {
     { path: '/', label: 'Home', icon: Home },
     { path: '/markets', label: 'Markets', icon: TrendingUp },
     { path: '/trade', label: 'Trade', icon: BarChart3 },
-    { path: '/bot', label: 'Bot', icon: Bot },
+    { path: '/active-bots', label: 'Active Bots', icon: Bot },
     { path: '/assets', label: 'Assets', icon: Wallet },
   ];
 
@@ -18,17 +18,17 @@ export function BottomNavigation() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path;
-          
+
           return (
             <Link
               key={item.path}
               href={item.path}
               className={`flex flex-col items-center p-2 transition-colors ${
-                isActive 
-                  ? 'text-primary' 
+                isActive
+                  ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
-              data-testid={`nav-${item.label.toLowerCase()}`}
+              data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
             >
               <Icon className="h-5 w-5 mb-1" />
               <span className="text-xs font-medium">{item.label}</span>

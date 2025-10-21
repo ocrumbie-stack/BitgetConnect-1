@@ -26,7 +26,7 @@ import { Settings } from "@/pages/settings";
 import BalanceHistory from "@/pages/balance-history";
 
 function Router() {
-  useScrollToTop(); // Auto-scroll to top on route changes
+  useScrollToTop();
   const { user, isLoading, login } = useAuth();
 
   if (isLoading) {
@@ -43,7 +43,7 @@ function Router() {
   if (!user) {
     return <PasswordLogin onLogin={login} />;
   }
-  
+
   return (
     <div className="relative">
       <Switch>
@@ -51,7 +51,18 @@ function Router() {
         <Route path="/markets" component={Markets} />
         <Route path="/trade" component={Trade} />
         <Route path="/charts" component={Charts} />
+
+        {/* Active Bots (new) + legacy alias */}
+        <Route path="/active-bots" component={BotPage} />
         <Route path="/bot" component={BotPage} />
+
+        {/* Auto Bots route (lands on AI tab) */}
+        <Route path="/auto-bots" component={BotPage} />
+
+        {/* Smart Scanner (new) + legacy alias */}
+        <Route path="/smart-scanner" component={Screener} />
+        <Route path="/advanced" component={Screener} />
+
         <Route path="/assets" component={Assets} />
         <Route path="/settings" component={Settings} />
         <Route path="/analyzer" component={Analyzer} />
@@ -60,7 +71,6 @@ function Router() {
         <Route path="/folders/:id" component={FolderDetailPage} />
         <Route path="/create-screener" component={CreateScreener} />
         <Route path="/edit-screener/:id" component={EditScreener} />
-        <Route path="/advanced" component={Screener} />
         <Route path="/balance-history" component={BalanceHistory} />
         <Route component={NotFound} />
       </Switch>
