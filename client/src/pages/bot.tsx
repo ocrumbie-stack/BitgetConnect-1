@@ -1635,7 +1635,7 @@ export default function BotPage() {
                   <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                     <Bot className="h-6 w-6" />
                   </div>
-                  AI Trading Bots
+                  Trading Bots
                 </h1>
                 <p className="text-blue-100 text-lg font-medium">
                   Deploy intelligent trading strategies powered by machine learning
@@ -1691,7 +1691,7 @@ export default function BotPage() {
                   <div className="text-xl font-bold text-blue-700 dark:text-blue-300">
                     {(userStrategies as any[]).length}
                   </div>
-                  <div className="text-sm text-blue-600 dark:text-blue-400">Strategies</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400">Custom Strategies</div>
                 </div>
               </div>
             </CardContent>
@@ -1717,7 +1717,7 @@ export default function BotPage() {
                       return activeBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Active</div>
+                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Active Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1740,7 +1740,7 @@ export default function BotPage() {
                   <div className="text-xl font-bold text-indigo-700 dark:text-indigo-300">
                     6
                   </div>
-                  <div className="text-sm text-indigo-600 dark:text-indigo-400">AI Bots</div>
+                  <div className="text-sm text-indigo-600 dark:text-indigo-400">Auto Bots</div>
                 </div>
               </div>
             </CardContent>
@@ -1768,7 +1768,7 @@ export default function BotPage() {
                       return scannerBots.length;
                     })()}
                   </div>
-                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Market Scanner</div>
+                  <div className="text-sm text-cyan-600 dark:text-cyan-400">Smart Scanner</div>
                 </div>
               </div>
             </CardContent>
@@ -1841,7 +1841,7 @@ export default function BotPage() {
           {activeTab === 'ai' && (
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">AI Trading Bots</h3>
+              <h3 className="text-lg font-semibold">Trading Bots</h3>
               <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                 6 Professional Bots Available
               </Badge>
