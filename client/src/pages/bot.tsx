@@ -1841,7 +1841,7 @@ export default function BotPage() {
           {activeTab === 'ai' && (
           <div className="space-y-4 mt-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">AI Trading Bots</h3>
+              <h3 className="text-lg font-semibold">Trading Bots</h3>
               <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                 6 Professional Bots Available
               </Badge>
