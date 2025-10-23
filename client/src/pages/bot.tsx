@@ -574,20 +574,15 @@ export default function BotPage() {
     // Use selected trading style from the TradingStyleSelector
     // Default to balanced if no style is selected
     let tradingStyle = 'balanced';
-    let minConfidence = 60; // Default balanced confidence
     
     // Try to get current trading style from user preferences
     if (userPrefs && typeof userPrefs === 'object' && 'tradingStyle' in userPrefs) {
       tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
     }
 
-    // Set confidence based on trading style presets - REALISTIC thresholds
-    const styleConfidenceMap: { [key: string]: number } = {
-      'conservative': 35,
-      'balanced': 25,
-      'aggressive': 20
-    };
-    minConfidence = styleConfidenceMap[tradingStyle] || 25;
+    // Use a single good confidence level for all trading styles
+    // The trading style only determines the timeframe for analysis
+    const minConfidence = 65;
 
     setIsScanning(true);
     setScannerResults(null);
