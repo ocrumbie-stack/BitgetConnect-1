@@ -581,8 +581,8 @@ export default function BotPage() {
     }
 
     // Confidence threshold for auto scanner (normalized to 100% scale)
-    // Backend applies bucket-specific thresholds: Aggressive ≥65%, Balanced ≥60%, Conservative ≥50%
-    // General scanner uses base threshold of 50% with volatility adjustments
+    // All trading styles use the same 50% confidence threshold
+    // Trading styles only determine which timeframes are used for analysis
     const minConfidence = 50;
 
     setIsScanning(true);

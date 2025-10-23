@@ -213,8 +213,8 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
                     </Label>
                     <div className="mt-2 p-3 bg-muted rounded-lg">
                       <p className="text-sm text-muted-foreground">
-                        The scanner will analyze pairs on the {customSettings.timeframePreference} timeframes for this trading style.
-                        Confidence threshold and other parameters are automatically optimized for best results.
+                        The scanner will analyze all trading pairs on the {customSettings.timeframePreference} timeframes for this trading style.
+                        All styles use the same 50% confidence threshold - only the analysis timeframes differ.
                       </p>
                     </div>
                   </div>
