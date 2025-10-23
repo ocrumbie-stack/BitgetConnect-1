@@ -409,23 +409,6 @@ export class MemStorage implements IStorage {
       exitReason: insertExecution.exitReason ?? null,
       createdAt: now,
       updatedAt: now,
-      };
-      leverage: insertExecution.leverage || '1',
-      profit: insertExecution.profit || '0',
-      trades: insertExecution.trades || '0',
-      winRate: insertExecution.winRate || '0',
-      roi: insertExecution.roi || '0',
-      runtime: insertExecution.runtime || '0',
-      deploymentType: insertExecution.deploymentType || null,
-      folderId: insertExecution.folderId || null,
-      botName: insertExecution.botName || null,
-      folderName: insertExecution.folderName || null,
-      isAIBot: insertExecution.isAIBot || false,
-      source: insertExecution.source || null,
-      startedAt: null,
-      pausedAt: null,
-      createdAt: now,
-      updatedAt: now
     };
   
     this.botExecutions.set(id, execution);
@@ -468,10 +451,6 @@ async markExecutionCompleted(
   this.botExecutions.set(executionId, updated);
   return updated;
 }
-}
-
-export const storage = new InMemoryStorage();
-export default storage;
 
   async deleteBotExecution(id: string): Promise<void> {
     this.botExecutions.delete(id);

@@ -247,42 +247,6 @@ export class BitgetAPI {
       const regularOrdersList = regularOrdersResponse.data.data?.entrustedList || [];
       const regularOrders = Array.isArray(regularOrdersList) ? regularOrdersList : [];
       console.log(`📋 Found ${regularOrders.length} regular orders`);
-
-        // Attach/modify TP/SL on the OPEN position using absolute prices
-        async setPositionTPSL(params: { symbol: string; takeProfit: string; stopLoss: string }) {
-          const body = {
-            symbol: params.symbol,
-            productType: "USDT-FUTURES",
-            presetStopSurplusPrice: params.takeProfit,
-            presetStopLossPrice: params.stopLoss,
-          };
-          const resp = await this.client.post("/api/v2/mix/order/modify-tpsl", body);
-          return resp.data;
-        }
-
-        async getContractConfig(symbol: string) {
-          const resp = await this.client.get("/api/v2/mix/market/contracts", {
-            params: { productType: "USDT-FUTURES" },
-          });
-          return resp.data?.data || [];
-        }
-
-        async getCandlestickData(symbol: string, granularity: string) {
-          // Bitget granularity is typically like 1m, 5m, 15m, 1H, 4H, 1D
-          const resp = await this.client.get("/api/v2/mix/market/candles", {
-            params: { symbol, granularity },
-          });
-          return resp.data?.data || [];
-        }
-
-        async getActivePositionForSymbol(symbol: string) {
-          const resp = await this.client.get("/api/v2/mix/position/single-position", {
-            params: { symbol, productType: "USDT-FUTURES" },
-          });
-          return resp.data?.data || null;
-        }
-      }
-
       
       // Now try to fetch both TP/SL and trailing stop plan orders
       let planOrders: any[] = [];
