@@ -2295,6 +2295,11 @@ export default function BotPage() {
                                       {opp.direction?.toUpperCase()}
                                     </span>
                                     <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
+                                    {opp.timeframes && (
+                                      <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                        {opp.timeframes.join('+')}
+                                      </span>
+                                    )}
                                   </div>
                                 ))}
                               </div>

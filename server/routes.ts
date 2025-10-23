@@ -5080,10 +5080,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               indicators: aiResult.indicators,
               price: parseFloat(ticker.lastPr || '0'),
               volume24h: parseFloat(ticker.quoteVolume || '0'),
-              change24h: parseFloat(ticker.change24h || '0')
+              change24h: parseFloat(ticker.change24h || '0'),
+              timeframes: config.timeframes // Add timeframe information
             });
 
-            console.log(`✨ HIGH CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} signal with ${aiResult.confidence}% confidence`);
+            console.log(`✨ HIGH CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} signal with ${aiResult.confidence}% confidence on ${config.timeframes.join('+')} timeframes`);
           }
         } catch (error) {
           console.error(`❌ Error analyzing ${ticker.symbol}:`, error);
@@ -5108,10 +5109,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 indicators: aiResult.indicators,
                 price: parseFloat(ticker.lastPr || '0'),
                 volume24h: parseFloat(ticker.quoteVolume || '0'),
-                change24h: parseFloat(ticker.change24h || '0')
+                change24h: parseFloat(ticker.change24h || '0'),
+                timeframes: config.timeframes // Add timeframe information
               });
 
-              console.log(`📉 LOWER CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} with ${aiResult.confidence}%`);
+              console.log(`📉 LOWER CONFIDENCE: ${ticker.symbol} - ${aiResult.direction?.toUpperCase()} with ${aiResult.confidence}% on ${config.timeframes.join('+')} timeframes`);
             }
           } catch (error) {
             console.error(`❌ Error in lower confidence scan for ${ticker.symbol}:`, error);
