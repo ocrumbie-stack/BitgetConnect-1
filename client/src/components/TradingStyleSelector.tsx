@@ -21,17 +21,9 @@ const tradingStyles = {
     color: 'bg-blue-500',
     description: '4H + 1D timeframes for stable growth',
     settings: {
-      confidenceThreshold: 75,
-      maxLeverage: 3,
-      riskTolerance: 'low' as const,
       timeframePreference: '4H+1D' as const,
-      tradingStyleSettings: {
-        aggressive: false,
-        scalping: false,
-        volatilityFocus: false,
-      }
     },
-    features: ['4H + 1D timeframes', 'High confidence (75%)', 'Low leverage (3x)', 'Long-term trends']
+    features: ['4H + 1D timeframes', 'Long-term trends', 'Lower frequency trading']
   },
   balanced: {
     name: 'Balanced',
@@ -39,17 +31,9 @@ const tradingStyles = {
     color: 'bg-green-500',
     description: '15M + 1H timeframes for steady returns',
     settings: {
-      confidenceThreshold: 60,
-      maxLeverage: 5,
-      riskTolerance: 'medium' as const,
       timeframePreference: '15m+1H' as const,
-      tradingStyleSettings: {
-        aggressive: false,
-        scalping: false,
-        volatilityFocus: false,
-      }
     },
-    features: ['15M + 1H timeframes', 'Medium confidence (60%)', 'Moderate leverage (5x)', 'Balanced approach']
+    features: ['15M + 1H timeframes', 'Medium-term trends', 'Balanced approach']
   },
   aggressive: {
     name: 'Aggressive',
@@ -57,30 +41,14 @@ const tradingStyles = {
     color: 'bg-red-500',
     description: '1M + 5M timeframes for quick profits',
     settings: {
-      confidenceThreshold: 45,
-      maxLeverage: 10,
-      riskTolerance: 'high' as const,
       timeframePreference: '1m+5m' as const,
-      tradingStyleSettings: {
-        aggressive: true,
-        scalping: true,
-        volatilityFocus: true,
-      }
     },
-    features: ['1M + 5M timeframes', 'Quick trades (45%)', 'High leverage (10x)', 'Fast scalping']
+    features: ['1M + 5M timeframes', 'Fast scalping', 'High frequency trading']
   }
 };
 
 type TradingStyleSettings = {
-  confidenceThreshold: number;
-  maxLeverage: number;
-  riskTolerance: 'low' | 'medium' | 'high';
   timeframePreference: '1m' | '5m' | '15m' | '1h' | '4h' | '1d' | '1m+5m' | '15m+1H' | '4H+1D';
-  tradingStyleSettings: {
-    aggressive: boolean;
-    scalping: boolean;
-    volatilityFocus: boolean;
-  };
 };
 
 export function TradingStyleSelector({ userId = 'default-user', onStyleChange }: TradingStyleSelectorProps) {
@@ -195,7 +163,7 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
                           <div>
                             <div className="font-medium">{currentStyle.name} Style</div>
                             <div className="text-sm text-muted-foreground">
-                              {customSettings.confidenceThreshold}% confidence • {customSettings.maxLeverage}x leverage
+                              {customSettings.timeframePreference} timeframes
                             </div>
                           </div>
                         </>
@@ -241,12 +209,12 @@ export function TradingStyleSelector({ userId = 'default-user', onStyleChange }:
                 <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium">
-                      Confidence Threshold: {customSettings.confidenceThreshold}%
+                      Timeframe: {customSettings.timeframePreference}
                     </Label>
                     <div className="mt-2 p-3 bg-muted rounded-lg">
                       <p className="text-sm text-muted-foreground">
-                        Standardized threshold for optimal {tradingStyles[selectedStyle].name.toLowerCase()} trading performance. 
-                        This setting is automatically optimized and cannot be manually adjusted.
+                        The scanner will analyze pairs on the {customSettings.timeframePreference} timeframes for this trading style.
+                        Confidence threshold and other parameters are automatically optimized for best results.
                       </p>
                     </div>
                   </div>
