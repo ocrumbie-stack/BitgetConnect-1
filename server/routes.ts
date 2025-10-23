@@ -5672,12 +5672,12 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
   const entryRules = {
     balanced: {
       timeframes: { signal_tf: '1h', trigger_tf: '15m' },
-      minConfidence: 45,
+      minConfidence: 75,
       volumeMultiple: 1.5
     },
     aggressive: {
       timeframes: { signal_tf: '5m', trigger_tf: '1m' },
-      minConfidence: 50,
+      minConfidence: 85,
       volumeMultiple: 2.0
     }
   };
@@ -5733,7 +5733,7 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
     for (const pair of bucketResults.ConservativeBiasOnly.slice(0, 3)) {
       try {
         const entryAnalysis = await evaluateConservativeEntry(pair);
-        if (entryAnalysis.confidence >= 40) {
+        if (entryAnalysis.confidence >= 70) {
           entryOpportunities.push({
             ...entryAnalysis,
             bucket: 'Conservative',
