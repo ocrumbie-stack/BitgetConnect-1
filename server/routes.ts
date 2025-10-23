@@ -393,38 +393,214 @@ async function placeAIBotOrder(deployedBot: any, direction: 'long' | 'short'): P
   }
 }
 
-// PRICE-BASED TP/SL: Actual pair percentage moves (not leverage-adjusted)
-function calculateOptimalTradeSetup(leverage: number, botType: string = 'default'): { stopLoss: number, takeProfit: number, tradeProfile: string } {
-  // SIMPLIFIED PRICE-BASED TP/SL - pure percentage moves of the trading pair
-  // These are actual price movement percentages, NOT leverage-adjusted
+/**
+   * Auto-Scanner: DEPLOY
+   * Body:
+   * {
+   *   userId: string,
+   *   opportunities: Array<{ symbol: string; price: number; direction: 'long' | 'short'; confidence?: number }>,
+   *   totalCapital: number,
+   *   leverage: number, // sizing only
+   *   scannerName?: string,
+   *   customTPSL?: { takeProfit?: number; stopLoss?: number }, // percents, e.g., 2
+   *   folderName?: string
+   * }
+   */
+  app.post("/api/auto-scanner/deploy", async (req: Request, res: Response) => {
+    try {
+      const {
+        userId = "default-user",
+        opportunities = [],
+        totalCapital = 0,
+        leverage = 1,
+        scannerName,
+        customTPSL,
+        folderName,
+      } = req.body || {};
 
-  let stopLossPercent = 2.0;  // 2% pair price move stop loss
-  let takeProfitPercent = 5.0; // 5% pair price move take profit
+      if (!Array.isArray(opportunities) || opportunities.length === 0) {
+        return res.status(400).json({ success: false, message: "No opportunities provided." });
+      }
+      if (totalCapital <= 0) {
+        return res.status(400).json({ success: false, message: "Invalid totalCapital." });
+      }
 
-  // Adjust based on volatility and leverage for account safety
-  if (leverage >= 10) {
-    stopLossPercent = 1.5;   // Tighter stops for high leverage (1.5% pair move = 15% account)
-    takeProfitPercent = 3.0; // Quicker profits for high leverage (3% pair move = 30% account)
-    console.log(`🔥 HIGH LEVERAGE (${leverage}x) - Tight stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
-  } else if (leverage >= 5) {
-    stopLossPercent = 2.0;   // Standard stops for medium leverage (2% pair move = 10% account)
-    takeProfitPercent = 4.0; // Standard profits for medium leverage (4% pair move = 20% account)
-    console.log(`⚡ MEDIUM LEVERAGE (${leverage}x) - Standard stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
-  } else {
-    stopLossPercent = 3.0;   // Wider stops for low leverage (3% pair move = 9% account)
-    takeProfitPercent = 6.0; // Wider profits for low leverage (6% pair move = 18% account)
-    console.log(`🛡️ LOW LEVERAGE (${leverage}x) - Wide stops: ${stopLossPercent}% SL, ${takeProfitPercent}% TP (pair price moves)`);
-  }
+      const capitalPerBot = totalCapital / opportunities.length;
+      const deployedBots: any[] = [];
+      const folderLabel = folderName || scannerName || `SmartScanner-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 
-  // Determine trade profile based on stop size
-  let tradeProfile = 'scalping';
-  if (stopLossPercent >= 3.0) {
-    tradeProfile = 'swing_trading'; // Larger price moves
-  } else if (stopLossPercent >= 2.0) {
-    tradeProfile = 'day_trading'; // Medium price moves
-  } else {
-    tradeProfile = 'scalping'; // Small price moves
-  }
+      for (const opportunity of opportunities) {
+        const { symbol, direction, price, confidence } = opportunity;
+
+        // 1) Create bot execution as ACTIVE & one-shot
+        const savedBot = await storage.createBotExecution({
+          userId,
+          strategyId: `ai_virtual_${symbol}`,
+          tradingPair: symbol,
+          capital: capitalPerBot.toFixed(2),
+          leverage: String(leverage),
+          status: "active",
+          deploymentType: "auto_scanner",
+          folderName: folderLabel,
+          isAIBot: true,
+          source: "auto_scanner",
+          oneShot: true,
+          completed: false,
+          customTakeProfit: customTPSL?.takeProfit != null ? String(customTPSL.takeProfit) : null,
+          customStopLoss: customTPSL?.stopLoss != null ? String(customTPSL.stopLoss) : null,
+        });
+
+        // 2) Immediate market order (no waiting_entry)
+        try {
+          // Sizing: leverage used ONLY for size
+          const positionValue = Number(capitalPerBot.toFixed(2)) * Number(leverage);
+          const markPrice = Number(price);
+          const qty = positionValue / (markPrice || 1);
+          const quantity = qty > 0 ? qty.toFixed(4) : "0";
+
+          const orderParams = {
+            symbol,
+            side: direction === "long" ? "buy" : "sell" as const,
+            orderType: "market" as const,
+            size: quantity,
+            marginCoin: "USDT",
+            timeInForceValue: "IOC",
+          };
+
+          const orderResult = await bitgetAPI.placeOrder(orderParams);
+
+          if (orderResult?.success) {
+            // 3) Resolve actual entry price
+            let entryPrice =
+              Number(orderResult?.data?.priceFilled) ||
+              Number(orderResult?.data?.fillPrice) || NaN;
+
+            if (!Number.isFinite(entryPrice) || entryPrice <= 0) {
+              const pos = await bitgetAPI.getActivePositionForSymbol(symbol);
+              entryPrice = Number(pos?.openPriceAvg || pos?.entryPrice || markPrice);
+            }
+
+            // 4) Compute absolute TP/SL as EXACT % move from entry
+            const tpPct = Number(customTPSL?.takeProfit ?? 2) / 100; // default 2%
+            const slPct = Number(customTPSL?.stopLoss ?? 2) / 100;
+
+            const rawTp = direction === "long" ? entryPrice * (1 + tpPct) : entryPrice * (1 - tpPct);
+            const rawSl = direction === "long" ? entryPrice * (1 - slPct) : entryPrice * (1 + slPct);
+
+            // 5) Round by tick size
+            let pricePlace = 6;
+            try {
+              const cfgs = await bitgetAPI.getContractConfig(symbol);
+              const cfg = Array.isArray(cfgs) ? cfgs.find((c: any) => c.symbol === symbol) : null;
+              if (cfg?.pricePlace) pricePlace = parseInt(cfg.pricePlace);
+            } catch {
+              /* non-fatal */
+            }
+            const tpPrice = rawTp.toFixed(pricePlace);
+            const slPrice = rawSl.toFixed(pricePlace);
+
+            // 6) Attach TP/SL to the position
+            await bitgetAPI.setPositionTPSL({ symbol, takeProfit: tpPrice, stopLoss: slPrice });
+
+            // 7) Persist position data
+            await storage.updateBotExecution(savedBot.id, {
+              status: "active",
+              positionData: {
+                orderId: orderResult?.data?.orderId,
+                quantity,
+                entryPrice: String(entryPrice),
+                side: direction,
+                leverage: String(leverage),
+                takeProfit: tpPrice,
+                stopLoss: slPrice,
+              },
+            });
+
+            deployedBots.push({
+              ...savedBot,
+              status: "active",
+              tradingPair: symbol,
+              direction,
+              confidence,
+            });
+          } else {
+            deployedBots.push({
+              ...savedBot,
+              status: "active",
+              tradingPair: symbol,
+              direction,
+              confidence,
+              note: `Order failed: ${orderResult?.message || "Unknown error"}`,
+            });
+          }
+        } catch (err: any) {
+          deployedBots.push({
+            ...savedBot,
+            status: "active",
+            tradingPair: symbol,
+            direction,
+            confidence,
+            note: `Order exception: ${err?.message || String(err)}`,
+          });
+        }
+      }
+
+      const activeBots = deployedBots.filter((b) => b.status === "active").length;
+
+      res.json({
+        success: true,
+        message: `Successfully deployed ${deployedBots.length} AI bots - ${activeBots} trades executed immediately`,
+        deployedBots: deployedBots.length,
+        activeTradesExecuted: activeBots,
+        totalCapital,
+        capitalPerBot: Number(capitalPerBot.toFixed(2)),
+        deployedDetails: deployedBots.map((bot) => ({
+          symbol: bot.tradingPair,
+          confidence: bot.confidence,
+          direction: bot.direction,
+          capital: bot.capital,
+          status: bot.status,
+          positionExecuted: bot.status === "active",
+          botId: bot.id,
+        })),
+      });
+    } catch (e: any) {
+      console.error("Deploy error:", e);
+      res.status(500).json({ success: false, message: e?.message || "Deploy failed" });
+    }
+  });
+
+  /**
+   * Auto-Scanner: STATUS
+   * Returns counts without any `waiting_entry` state.
+   */
+  app.get("/api/auto-scanner/status/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+      const all = await storage.getBotExecutions(userId);
+      const autoScannerBots = all.filter((b) => b.deploymentType === "auto_scanner");
+
+      const activeBots = autoScannerBots.filter((b) => b.status === "active").length;
+      const terminatedBots = autoScannerBots.filter((b) => b.status === "terminated").length;
+
+      const totalCapital = autoScannerBots.reduce((sum, b) => sum + parseFloat(b.capital || "0"), 0);
+      const totalProfit = autoScannerBots.reduce((sum, b) => sum + parseFloat(b.profit || "0"), 0);
+
+      res.json({
+        totalBots: autoScannerBots.length,
+        activeBots,
+        terminatedBots,
+        totalCapital: totalCapital.toFixed(2),
+        totalProfit: totalProfit.toFixed(2),
+        profitPercentage: totalCapital > 0 ? ((totalProfit / totalCapital) * 100).toFixed(2) : "0.00",
+        bots: autoScannerBots,
+      });
+    } catch (e: any) {
+      console.error("Status error:", e);
+      res.status(500).json({ success: false, message: e?.message || "Status failed" });
+    }
+  });
+}
 
   // Auto scanner adjustments
   if (botType.includes('auto_scanner') || botType === 'auto_scanner') {

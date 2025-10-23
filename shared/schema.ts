@@ -117,34 +117,85 @@ export const botStrategies = pgTable("bot_strategies", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Bot Executions (active bot runs with specific trading pairs)
+
+/**
+ * Bot lifecycle states (simplified — no 'waiting_entry')
+ */
+export type BotStatus = "active" | "exit_pending" | "terminated";
+export type DeploymentType = "manual" | "auto_scanner" | "folder";
+export type BotSource = "manual" | "ai_bot" | "auto_scanner";
+export type CompletedReason = "tp" | "sl" | "manual" | "other";
+
+/**
+ * bot_executions
+ * - Default status is 'active' (Smart Scanner enters immediately)
+ * - One-shot controls: oneShot, completed, completedReason
+ * - positionData jsonb for storing orderId, entryPrice, TP/SL, etc.
+ */
 export const botExecutions = pgTable("bot_executions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  strategyId: varchar("strategy_id").notNull().references(() => botStrategies.id, { onDelete: 'cascade' }),
+  id: varchar("id", { length: 36 })
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+
+  userId: varchar("user_id", { length: 64 }).notNull(),
+  strategyId: varchar("strategy_id", { length: 128 }).notNull(),
   tradingPair: text("trading_pair").notNull(),
-  status: text("status").notNull().default('waiting_entry'), // 'active', 'waiting_entry', 'paused', 'terminated'
-  capital: decimal("capital", { precision: 20, scale: 8 }).notNull(),
-  leverage: varchar("leverage").default('1'),
-  profit: decimal("profit", { precision: 20, scale: 8 }).default('0'),
-  trades: varchar("trades").default('0'),
-  winRate: decimal("win_rate", { precision: 5, scale: 2 }).default('0'),
-  roi: decimal("roi", { precision: 10, scale: 4 }).default('0'),
-  runtime: varchar("runtime").default('0'),
-  deploymentType: text("deployment_type").default('manual'), // 'manual', 'folder'
-  folderId: varchar("folder_id"), // Reference to the folder if deployed via bulk
-  botName: text("bot_name"), // Store custom bot name for display
-  folderName: text("folder_name"), // Store folder name for compatibility
-  isAIBot: boolean("is_ai_bot").default(false), // Flag to identify AI bot deployments
-  source: text("source"), // 'manual', 'ai_bot', 'auto_scanner' - prevents AI bots from appearing in manual strategies
-  customStopLoss: decimal("custom_stop_loss", { precision: 5, scale: 2 }), // Custom stop loss percentage
-  customTakeProfit: decimal("custom_take_profit", { precision: 5, scale: 2 }), // Custom take profit percentage
-  startedAt: timestamp("started_at"),
-  pausedAt: timestamp("paused_at"),
+
+  // ❗Changed default: no 'waiting_entry' — Smart Scanner deploys as active
+  status: text("status").$type<BotStatus>().notNull().default("active"),
+
+  // Monetary/metrics — stored as NUMERIC to avoid FP issues
+  capital: numeric("capital", { precision: 20, scale: 8 }).notNull(),
+  leverage: varchar("leverage", { length: 8 }).notNull().default("1"),
+
+  profit: numeric("profit", { precision: 20, scale: 8 }).notNull().default("0"),
+  trades: varchar("trades", { length: 16 }).notNull().default("0"),
+  winRate: numeric("win_rate", { precision: 7, scale: 3 }).notNull().default("0"),
+  roi: numeric("roi", { precision: 12, scale: 6 }).notNull().default("0"),
+
+  runtime: varchar("runtime", { length: 32 }).notNull().default("0"),
+
+  // Deployment metadata
+  deploymentType: text("deployment_type")
+    .$type<DeploymentType | null>()
+    .default(null),
+  folderId: varchar("folder_id", { length: 64 }),
+  botName: text("bot_name"),
+  folderName: text("folder_name"),
+  isAIBot: boolean("is_ai_bot").notNull().default(false),
+
+  source: text("source").$type<BotSource | null>().default(null),
+
+  // Optional user-specified % TP/SL (e.g., "2" for 2%)
+  customStopLoss: numeric("custom_stop_loss", { precision: 6, scale: 3 }),
+  customTakeProfit: numeric("custom_take_profit", { precision: 6, scale: 3 }),
+
+  // ✅ One-shot lifecycle controls
+  oneShot: boolean("one_shot").notNull().default(true),
+  completed: boolean("completed").notNull().default(false),
+  completedReason: text("completed_reason")
+    .$type<CompletedReason | null>()
+    .default(null),
+
+  // 🧾 Last-known position snapshot for UI/debug (orderId, entry, TP/SL, side, etc.)
+  positionData: jsonb("position_data"),
+
+  // Timestamps
+  startedAt: timestamp("started_at", { withTimezone: false }),
+  pausedAt: timestamp("paused_at", { withTimezone: false }),
   exitReason: text("exit_reason"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+
+  createdAt: timestamp("created_at", { withTimezone: false })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: false })
+    .notNull()
+    .defaultNow(),
 });
+
+/** Drizzle type helpers */
+export type BotExecution = typeof botExecutions.$inferSelect;
+export type InsertBotExecution = typeof botExecutions.$inferInsert;
 
 export const screeners = pgTable("screeners", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

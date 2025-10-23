@@ -55,42 +55,42 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
-  
+
   getBitgetCredentials(userId: string): Promise<BitgetCredentials | undefined>;
   saveBitgetCredentials(credentials: InsertBitgetCredentials): Promise<BitgetCredentials>;
-  
+
   getAllFuturesData(): Promise<FuturesData[]>;
   updateFuturesData(data: InsertFuturesData[]): Promise<void>;
   getFuturesDataBySymbol(symbol: string): Promise<FuturesData | undefined>;
-  
+
   getUserPositions(userId: string): Promise<UserPosition[]>;
   updateUserPositions(userId: string, positions: InsertUserPosition[]): Promise<void>;
-  
+
   getAccountInfo(userId: string): Promise<AccountInfo | undefined>;
   updateAccountInfo(userId: string, info: InsertAccountInfo): Promise<AccountInfo>;
-  
+
   getBotStrategies(userId: string): Promise<BotStrategy[]>;
   getBotStrategy(id: string): Promise<BotStrategy | undefined>;
   createBotStrategy(strategy: InsertBotStrategy): Promise<BotStrategy>;
   updateBotStrategy(id: string, strategy: Partial<InsertBotStrategy>): Promise<BotStrategy>;
   deleteBotStrategy(id: string): Promise<void>;
-  
+
   getBotExecutions(userId: string): Promise<BotExecution[]>;
   createBotExecution(execution: InsertBotExecution): Promise<BotExecution>;
   updateBotExecution(id: string, execution: Partial<InsertBotExecution>): Promise<BotExecution>;
   deleteBotExecution(id: string): Promise<void>;
-  
+
   getUserScreeners(userId: string): Promise<Screener[]>;
   createScreener(screener: InsertScreener): Promise<Screener>;
   updateScreener(id: string, screener: InsertScreener): Promise<Screener>;
   deleteScreener(id: string): Promise<void>;
-  
+
   // Alert System
   getUserAlertSettings(userId: string): Promise<AlertSetting[]>;
   createAlertSetting(setting: InsertAlertSetting): Promise<AlertSetting>;
   updateAlertSetting(id: string, setting: Partial<InsertAlertSetting>): Promise<AlertSetting>;
   deleteAlertSetting(id: string): Promise<void>;
-  
+
   getUserAlerts(userId: string): Promise<Alert[]>;
   createAlert(alert: InsertAlert): Promise<Alert>;
   markAlertAsRead(id: string): Promise<void>;
@@ -107,20 +107,20 @@ export interface IStorage {
   getUserTradingPreferences(userId: string): Promise<UserTradingPreferences | undefined>;
   createUserTradingPreferences(preferences: InsertUserTradingPreferences): Promise<UserTradingPreferences>;
   updateUserTradingPreferences(userId: string, preferences: Partial<InsertUserTradingPreferences>): Promise<UserTradingPreferences>;
-  
+
   getStrategyPerformance(userId: string, strategyId?: string): Promise<StrategyPerformance[]>;
   createStrategyPerformance(performance: InsertStrategyPerformance): Promise<StrategyPerformance>;
-  
+
   getStrategyRecommendations(userId: string): Promise<StrategyRecommendation[]>;
   createStrategyRecommendation(recommendation: InsertStrategyRecommendation): Promise<StrategyRecommendation>;
   updateStrategyRecommendation(id: string, updates: Partial<InsertStrategyRecommendation>): Promise<StrategyRecommendation>;
   deleteStrategyRecommendation(id: string): Promise<void>;
-  
+
   getMarketOpportunities(userId?: string): Promise<MarketOpportunity[]>;
   createMarketOpportunity(opportunity: InsertMarketOpportunity): Promise<MarketOpportunity>;
   updateMarketOpportunity(id: string, updates: Partial<InsertMarketOpportunity>): Promise<MarketOpportunity>;
   deleteMarketOpportunity(id: string): Promise<void>;
-  
+
   // User preferences
   getUserPreferences(userId: string): Promise<{ tradingStyle: string; preferences: any } | undefined>;
   saveUserPreferences(userId: string, data: { tradingStyle: string; preferences: any }): Promise<void>;
@@ -144,7 +144,7 @@ export class MemStorage implements IStorage {
   private strategyRecommendations: Map<string, StrategyRecommendation>;
   private marketOpportunities: Map<string, MarketOpportunity>;
   private userPreferences: Map<string, { tradingStyle: string; preferences: any }>;
-  
+
   // Price history for calculating 5-minute changes
   private priceHistory: Map<string, Array<{ price: number; timestamp: number }>>;
 
@@ -220,34 +220,34 @@ export class MemStorage implements IStorage {
 
   async updateFuturesData(data: InsertFuturesData[]): Promise<void> {
     const now = Date.now();
-    
+
     data.forEach(item => {
       const id = randomUUID();
       const currentPrice = parseFloat(item.price);
-      
+
       // Store price history for 5-minute change calculation
       if (!this.priceHistory.has(item.symbol)) {
         this.priceHistory.set(item.symbol, []);
       }
-      
+
       const history = this.priceHistory.get(item.symbol)!;
       history.push({ price: currentPrice, timestamp: now });
-      
+
       // Keep only last 10 minutes of data (for safety margin)
       const tenMinutesAgo = now - (10 * 60 * 1000);
       const filteredHistory = history.filter(h => h.timestamp > tenMinutesAgo);
       this.priceHistory.set(item.symbol, filteredHistory);
-      
+
       // Calculate 5-minute change
       const fiveMinutesAgo = now - (5 * 60 * 1000);
       const fiveMinutePrice = filteredHistory.find(h => h.timestamp <= fiveMinutesAgo + 30000); // 30s tolerance
-      
+
       let change5m = '0';
       if (fiveMinutePrice) {
         const changePercent = ((currentPrice - fiveMinutePrice.price) / fiveMinutePrice.price);
         change5m = changePercent.toString();
       }
-      
+
       const futuresItem: FuturesData & { change5m?: string } = {
         ...item,
         id,
@@ -357,13 +357,13 @@ export class MemStorage implements IStorage {
 
   async getBotExecutions(userId: string): Promise<BotExecution[]> {
     const executions = Array.from(this.botExecutions.values()).filter(execution => execution.userId === userId);
-    
+
     // Debug: Log each bot execution status 
     console.log(`📋 Storage getBotExecutions for ${userId}:`);
     executions.forEach(bot => {
       console.log(`  - ${bot.tradingPair}: status="${bot.status}", deploymentType="${bot.deploymentType}"`);
     });
-    
+
     return executions;
   }
 
@@ -373,7 +373,43 @@ export class MemStorage implements IStorage {
     const execution: BotExecution = { 
       ...insertExecution,
       id,
-      status: insertExecution.status || 'inactive',
+      userId: insertExecution.userId,
+      strategyId: insertExecution.strategyId,
+      tradingPair: insertExecution.tradingPair,
+      
+      // Smart Scanner: default ACTIVE (no waiting_entry)
+      status: (insertExecution.status as BotExecution["status"]) || "active",
+
+      capital: insertExecution.capital,
+      leverage: insertExecution.leverage ?? "1",
+      profit: insertExecution.profit ?? "0",
+      trades: insertExecution.trades ?? "0",
+      winRate: insertExecution.winRate ?? "0",
+      roi: insertExecution.roi ?? "0",
+      runtime: insertExecution.runtime ?? "0",
+
+      deploymentType: insertExecution.deploymentType ?? null,
+      folderId: insertExecution.folderId ?? null,
+      botName: insertExecution.botName ?? null,
+      folderName: insertExecution.folderName ?? null,
+      isAIBot: insertExecution.isAIBot ?? false,
+      source: insertExecution.source ?? null,
+
+      customStopLoss: insertExecution.customStopLoss ?? null,
+      customTakeProfit: insertExecution.customTakeProfit ?? null,
+
+      oneShot: insertExecution.oneShot ?? true,
+      completed: insertExecution.completed ?? false,
+      completedReason: insertExecution.completedReason ?? null,
+
+      positionData: insertExecution.positionData,
+
+      startedAt: insertExecution.startedAt ?? null,
+      pausedAt: insertExecution.pausedAt ?? null,
+      exitReason: insertExecution.exitReason ?? null,
+      createdAt: now,
+      updatedAt: now,
+      };
       leverage: insertExecution.leverage || '1',
       profit: insertExecution.profit || '0',
       trades: insertExecution.trades || '0',
@@ -391,6 +427,7 @@ export class MemStorage implements IStorage {
       createdAt: now,
       updatedAt: now
     };
+  
     this.botExecutions.set(id, execution);
     return execution;
   }
@@ -408,6 +445,33 @@ export class MemStorage implements IStorage {
     this.botExecutions.set(id, updatedExecution);
     return updatedExecution;
   }
+
+async getBotExecutions(userId?: string): Promise<BotExecution[]> {
+  const all = Array.from(this.botExecutions.values());
+  if (!userId) return all;
+  return all.filter((b) => b.userId === userId);
+}
+
+async markExecutionCompleted(
+  executionId: string,
+  reason: "tp" | "sl" | "manual" | "other" = "other"
+): Promise<BotExecution> {
+  const existing = this.botExecutions.get(executionId);
+  if (!existing) throw new Error("Bot execution not found");
+  const updated: BotExecution = {
+    ...existing,
+    completed: true,
+    completedReason: reason,
+    status: "terminated",
+    updatedAt: new Date(),
+  };
+  this.botExecutions.set(executionId, updated);
+  return updated;
+}
+}
+
+export const storage = new InMemoryStorage();
+export default storage;
 
   async deleteBotExecution(id: string): Promise<void> {
     this.botExecutions.delete(id);
@@ -569,7 +633,7 @@ export class MemStorage implements IStorage {
   async updatePricePrediction(id: string, updates: Partial<PricePrediction>): Promise<boolean> {
     const existing = this.pricePredictions.get(id);
     if (!existing) return false;
-    
+
     const updated: PricePrediction = {
       ...existing,
       ...updates,
@@ -625,7 +689,7 @@ export class MemStorage implements IStorage {
       // Create new preferences if none exist
       return this.createUserTradingPreferences({ ...preferences, userId } as InsertUserTradingPreferences);
     }
-    
+
     const updated = {
       ...existing,
       ...preferences,
@@ -679,7 +743,7 @@ export class MemStorage implements IStorage {
     if (!existing) {
       throw new Error(`Strategy recommendation with id ${id} not found`);
     }
-    
+
     const updated = {
       ...existing,
       ...updates,
@@ -697,7 +761,7 @@ export class MemStorage implements IStorage {
     const opportunities = Array.from(this.marketOpportunities.values())
       .filter(opp => opp.isActive && opp.expiresAt > new Date())
       .sort((a, b) => b.strength - a.strength);
-    
+
     if (userId) {
       // Filter opportunities based on user preferences if userId is provided
       const userPrefs = await this.getUserTradingPreferences(userId);
@@ -708,7 +772,7 @@ export class MemStorage implements IStorage {
         });
       }
     }
-    
+
     return opportunities;
   }
 
@@ -730,7 +794,7 @@ export class MemStorage implements IStorage {
     if (!existing) {
       throw new Error(`Market opportunity with id ${id} not found`);
     }
-    
+
     const updated = {
       ...existing,
       ...updates,
@@ -800,7 +864,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Delete existing credentials for this user first
       await db.delete(bitgetCredentials).where(eq(bitgetCredentials.userId, credentials.userId));
-      
+
       // Insert new credentials
       const result = await db.insert(bitgetCredentials).values(credentials).returning();
       return result[0];
