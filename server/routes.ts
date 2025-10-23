@@ -101,8 +101,8 @@ function getDeploymentColor(deploymentType: string): string {
 }
 
 // Manual strategy evaluation functions
-// AI Bot Entry Evaluation - Multi-Indicator Analysis
-// Uses 50% confidence threshold consistently across all trading styles/timeframes
+// AI Bot Entry Evaluation - NEW ADVANCED INDICATOR SYSTEM
+// EMA Trend (18%) + HTF Confirmation (18%) + RSI (13%) + MACD (13%) + ADX/DI (10%) + Stochastic (8%) + Volume Z-Score (8%) + VWAP (7%) + Supertrend (5%) = 100%
 async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
@@ -114,11 +114,10 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
   }
 
-  // For auto scanner, skip the 5-minute cooldown to get fresh results
   const now = Date.now();
   const lastEval = lastEvaluationTime[tradingPair] || 0;
   const timeDiff = now - lastEval;
-  const minInterval = 5 * 1000; // Reduce to 5 seconds for focused top-50 scanning
+  const minInterval = 5 * 1000;
 
   if (timeDiff < minInterval) {
     const remainingTime = Math.ceil((minInterval - timeDiff) / 1000);
@@ -129,14 +128,14 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
   lastEvaluationTime[tradingPair] = now;
 
   try {
-    console.log(`🤖 AI Bot: Evaluating multi-timeframe analysis for ${tradingPair} (${timeframes.join(', ')})`);
+    console.log(`🤖 AI Bot: NEW INDICATOR SYSTEM analyzing ${tradingPair} (${timeframes.join(', ')})`);
 
-    // Use primary timeframe (first one) for detailed analysis, secondary for confirmation
+    // Get primary timeframe data
     const primaryTimeframe = timeframes[0];
     const candleData = await bitgetAPI.getCandlestickData(tradingPair, primaryTimeframe, dataPoints);
 
     if (!candleData || candleData.length < 50) {
-      console.log(`❌ Insufficient candle data for AI bot: ${candleData?.length || 0} candles`);
+      console.log(`❌ Insufficient candle data: ${candleData?.length || 0} candles`);
       return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
     }
 
@@ -145,176 +144,270 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const highs = candleData.map(candle => parseFloat(candle.high));
     const lows = candleData.map(candle => parseFloat(candle.low));
     const volumes = candleData.map(candle => parseFloat(candle.volume));
-
     const currentPrice = closes[closes.length - 1];
 
-    // Initialize scoring system - NORMALIZED TO 100%
-    // Maximum possible raw score: MACD(40) + RSI(25) + BB(20) + Volume(20) + MA(15) + SR(25) = 145
-    const MAX_RAW_SCORE = 145;
-    let bullishScore = 0;
-    let bearishScore = 0;
+    // Initialize scoring system - 100 points total
+    let longScore = 0;
+    let shortScore = 0;
     const indicators: any = { primaryTimeframe, allTimeframes: timeframes };
 
-    // 1. MACD Analysis (Weight: 40 points = 27.6% of total)
-    const macdAnalysis = await calculateMACD(closes);
-    if (macdAnalysis) {
-      indicators.macd = macdAnalysis;
-      // Only trade strong crossovers - ignore weak momentum
-      if (macdAnalysis.bullishCrossover) {
-        bullishScore += 40;
-        console.log(`🎯 MACD: STRONG BULLISH crossover (+40 raw, 27.6%)`);
-      } else if (macdAnalysis.bearishCrossover) {
-        bearishScore += 40;
-        console.log(`🎯 MACD: STRONG BEARISH crossover (+40 raw, 27.6%)`);
+    // ============= LONG ENTRY SCORING =============
+
+    // 1. EMA TREND (20 pts) - EMA20 > EMA50 and EMA20 slope > 0
+    const ema20Values = calculateEMA(closes, 20);
+    const ema50Values = calculateEMA(closes, 50);
+    if (ema20Values && ema50Values && ema20Values.length >= 2 && ema50Values.length >= 1) {
+      const ema20 = ema20Values[ema20Values.length - 1];
+      const ema50 = ema50Values[ema50Values.length - 1];
+      const ema20Prev = ema20Values[ema20Values.length - 2];
+      const ema20Slope = ema20 - ema20Prev;
+      
+      indicators.ema20 = ema20;
+      indicators.ema50 = ema50;
+      
+      // LONG: EMA20 > EMA50 and slope > 0
+      if (ema20 > ema50 && ema20Slope > 0) {
+        longScore += 20; // Full points
+        console.log(`🟢 EMA TREND LONG: Full (+20 pts)`);
+      } else if (ema20 > ema50) {
+        longScore += 10; // Crossover only
+        console.log(`🟡 EMA TREND LONG: Crossover only (+10 pts)`);
+      }
+      
+      // SHORT: EMA20 < EMA50 and slope < 0
+      if (ema20 < ema50 && ema20Slope < 0) {
+        shortScore += 20;
+        console.log(`🔴 EMA TREND SHORT: Full (+20 pts)`);
+      } else if (ema20 < ema50) {
+        shortScore += 10;
+        console.log(`🟠 EMA TREND SHORT: Crossover only (+10 pts)`);
       }
     }
 
-    // 2. RSI Analysis (Weight: 25 points = 17.2% of total)
-    const rsiAnalysis = calculateRSI(closes, 14);
-    if (rsiAnalysis) {
-      indicators.rsi = rsiAnalysis;
-      // ONLY trade extreme RSI levels - avoid the middle zone
-      if (rsiAnalysis < 25) {
-        bullishScore += 25;
-        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.toFixed(1)} (+25 raw, 17.2%)`);
-      } else if (rsiAnalysis > 75) {
-        bearishScore += 25;
-        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.toFixed(1)} (+25 raw, 17.2%)`);
+    // 2. RSI (15 pts) - RSI(14) > 55 and < 75 for long
+    const rsi = calculateRSI(closes, 14);
+    if (rsi) {
+      indicators.rsi = rsi;
+      
+      // LONG: RSI > 60 full, RSI > 55 partial
+      if (rsi > 60 && rsi < 75) {
+        longScore += 15;
+        console.log(`🟢 RSI LONG: Full ${rsi.toFixed(1)} (+15 pts)`);
+      } else if (rsi > 55 && rsi < 75) {
+        longScore += 7;
+        console.log(`🟡 RSI LONG: Partial ${rsi.toFixed(1)} (+7 pts)`);
+      }
+      
+      // SHORT: RSI < 40 full, RSI < 45 partial
+      if (rsi < 40 && rsi > 25) {
+        shortScore += 15;
+        console.log(`🔴 RSI SHORT: Full ${rsi.toFixed(1)} (+15 pts)`);
+      } else if (rsi < 45 && rsi > 25) {
+        shortScore += 7;
+        console.log(`🟠 RSI SHORT: Partial ${rsi.toFixed(1)} (+7 pts)`);
       }
     }
 
-    // 3. Bollinger Bands Analysis (Weight: 20 points = 13.8% of total)
-    const bbAnalysis = calculateBollingerBands(closes, 20, 2);
-    if (bbAnalysis) {
-      indicators.bollingerBands = bbAnalysis;
-      const { upper, lower } = bbAnalysis;
-
-      if (currentPrice <= lower * 0.995) {
-        bullishScore += 20;
-        console.log(`🎯 BB: EXTREME LOWER BAND breach (+20 raw, 13.8%)`);
-      } else if (currentPrice >= upper * 1.005) {
-        bearishScore += 20;
-        console.log(`🎯 BB: EXTREME UPPER BAND breach (+20 raw, 13.8%)`);
+    // 3. MACD (15 pts) - MACD > Signal and Hist > 0
+    const macdData = await calculateMACD(closes);
+    if (macdData) {
+      indicators.macd = macdData;
+      
+      // LONG: MACD > Signal and Hist > 0
+      if (macdData.macdLine > macdData.signalLine && macdData.histogram > 0) {
+        longScore += 15;
+        console.log(`🟢 MACD LONG: Full (+15 pts)`);
+      } else if (macdData.macdLine > macdData.signalLine) {
+        longScore += 7;
+        console.log(`🟡 MACD LONG: Early cross (+7 pts)`);
+      }
+      
+      // SHORT: MACD < Signal and Hist < 0
+      if (macdData.macdLine < macdData.signalLine && macdData.histogram < 0) {
+        shortScore += 15;
+        console.log(`🔴 MACD SHORT: Full (+15 pts)`);
+      } else if (macdData.macdLine < macdData.signalLine) {
+        shortScore += 7;
+        console.log(`🟠 MACD SHORT: Early cross (+7 pts)`);
       }
     }
 
-    // 4. Volume Analysis (Weight: 20 points = 13.8% of total)
-    const volumeAnalysis = calculateVolumeAnalysis(volumes, closes);
-    if (volumeAnalysis) {
-      indicators.volume = volumeAnalysis;
-      const { trend, strength, priceVolumeAlignment } = volumeAnalysis;
-
-      if (priceVolumeAlignment === 'bullish' && strength > 2.0) {
-        bullishScore += 20;
-        console.log(`🎯 VOLUME: STRONG BULLISH alignment (+20 raw, 13.8%)`);
-      } else if (priceVolumeAlignment === 'bearish' && strength > 2.0) {
-        bearishScore += 20;
-        console.log(`🎯 VOLUME: STRONG BEARISH alignment (+20 raw, 13.8%)`);
+    // 4. ADX / DI (10 pts) - ADX > 20 and +DI > -DI
+    const adxData = calculateADX(highs, lows, closes, 14);
+    if (adxData) {
+      indicators.adx = adxData;
+      
+      // LONG: ADX > 20 and +DI > -DI
+      if (adxData.adx > 20 && adxData.plusDI > adxData.minusDI) {
+        longScore += 10;
+        console.log(`🟢 ADX LONG: Full ADX ${adxData.adx.toFixed(1)} (+10 pts)`);
+      } else if (adxData.plusDI > adxData.minusDI) {
+        longScore += 5;
+        console.log(`🟡 ADX LONG: Weak trend (+5 pts)`);
+      }
+      
+      // SHORT: ADX > 20 and -DI > +DI
+      if (adxData.adx > 20 && adxData.minusDI > adxData.plusDI) {
+        shortScore += 10;
+        console.log(`🔴 ADX SHORT: Full ADX ${adxData.adx.toFixed(1)} (+10 pts)`);
+      } else if (adxData.minusDI > adxData.plusDI) {
+        shortScore += 5;
+        console.log(`🟠 ADX SHORT: Weak trend (+5 pts)`);
       }
     }
 
-    // 5. Moving Average Analysis (Weight: 15 points = 10.3% of total)
-    const maAnalysis = calculateMovingAverageAnalysis(closes);
-    if (maAnalysis) {
-      indicators.movingAverages = maAnalysis;
-      const { ema20, ema50, crossover, trend } = maAnalysis;
-
-      if (crossover === 'golden' && currentPrice > ema20 * 1.01) {
-        bullishScore += 15;
-        console.log(`🎯 MA: CONFIRMED GOLDEN CROSS (+15 raw, 10.3%)`);
-      } else if (crossover === 'death' && currentPrice < ema20 * 0.99) {
-        bearishScore += 15;
-        console.log(`🎯 MA: CONFIRMED DEATH CROSS (+15 raw, 10.3%)`);
+    // 5. STOCHASTIC (10 pts) - %K > %D and %K > 30 (< 80)
+    const stoch = calculateStochastic(highs, lows, closes, 14, 3, 3);
+    if (stoch) {
+      indicators.stochastic = stoch;
+      
+      // LONG: %K > %D and %K > 30 (< 80)
+      if (stoch.k > stoch.d && stoch.k > 30 && stoch.k < 80) {
+        longScore += 10;
+        console.log(`🟢 STOCHASTIC LONG: Full %K ${stoch.k.toFixed(1)} (+10 pts)`);
+      } else if (stoch.k > stoch.d && stoch.k < 50) {
+        longScore += 5;
+        console.log(`🟡 STOCHASTIC LONG: Cross below 50 (+5 pts)`);
+      }
+      
+      // SHORT: %K < %D and %K < 70 (> 20)
+      if (stoch.k < stoch.d && stoch.k < 70 && stoch.k > 20) {
+        shortScore += 10;
+        console.log(`🔴 STOCHASTIC SHORT: Full %K ${stoch.k.toFixed(1)} (+10 pts)`);
+      } else if (stoch.k < stoch.d && stoch.k > 50) {
+        shortScore += 5;
+        console.log(`🟠 STOCHASTIC SHORT: Cross above 50 (+5 pts)`);
       }
     }
 
-    // 6. Support/Resistance Analysis (Weight: up to 25 points = 17.2% of total)
-    const srAnalysis = calculateAdvancedSupportResistance(highs, lows, closes, volumes, currentPrice);
-    if (srAnalysis) {
-      indicators.supportResistance = srAnalysis;
-      const { 
-        nearSupport, nearResistance, supportStrength, resistanceStrength, 
-        bounceConfirmed, rejectionConfirmed, breakoutBullish, breakdownBearish,
-        volumeConfirmation, multiTouchSupport, multiTouchResistance
-      } = srAnalysis;
-
-      if (nearSupport && supportStrength > 0.8 && bounceConfirmed && multiTouchSupport) {
-        bullishScore += 18;
-        console.log(`🎯 S/R: MULTI-TOUCH SUPPORT bounce (+18 raw, 12.4%)`);
-      } 
-      else if (nearResistance && resistanceStrength > 0.8 && rejectionConfirmed && multiTouchResistance) {
-        bearishScore += 18;
-        console.log(`🎯 S/R: MULTI-TOUCH RESISTANCE rejection (+18 raw, 12.4%)`);
+    // 6. VOLUME Z-SCORE (10 pts) - z > +0.5 and price > EMA20
+    const volZScore = calculateVolumeZScore(volumes);
+    if (volZScore !== null && ema20Values) {
+      const ema20 = ema20Values[ema20Values.length - 1];
+      indicators.volumeZScore = volZScore;
+      
+      // LONG: z > +0.5 and price > EMA20
+      if (volZScore > 1.0 && currentPrice > ema20) {
+        longScore += 10;
+        console.log(`🟢 VOLUME Z-SCORE LONG: Full z=${volZScore.toFixed(2)} (+10 pts)`);
+      } else if (volZScore > 0.5 && currentPrice > ema20) {
+        longScore += 5;
+        console.log(`🟡 VOLUME Z-SCORE LONG: Partial z=${volZScore.toFixed(2)} (+5 pts)`);
       }
-      else if (breakoutBullish && volumeConfirmation && supportStrength > 0.7) {
-        bullishScore += 25;
-        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKOUT (+25 raw, 17.2%)`);
-      }
-      else if (breakdownBearish && volumeConfirmation && resistanceStrength > 0.7) {
-        bearishScore += 25;
-        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKDOWN (+25 raw, 17.2%)`);
-      }
-      else if (nearSupport && supportStrength > 0.6) {
-        bullishScore += 8;
-        console.log(`🎯 S/R: SUPPORT area (+8 raw, 5.5%)`);
-      } else if (nearResistance && resistanceStrength > 0.6) {
-        bearishScore += 8;
-        console.log(`🎯 S/R: RESISTANCE area (+8 raw, 5.5%)`);
+      
+      // SHORT: z < -0.5 and price < EMA20
+      if (volZScore < -1.0 && currentPrice < ema20) {
+        shortScore += 10;
+        console.log(`🔴 VOLUME Z-SCORE SHORT: Full z=${volZScore.toFixed(2)} (+10 pts)`);
+      } else if (volZScore < -0.5 && currentPrice < ema20) {
+        shortScore += 5;
+        console.log(`🟠 VOLUME Z-SCORE SHORT: Partial z=${volZScore.toFixed(2)} (+5 pts)`);
       }
     }
 
-    // NORMALIZE SCORES TO 100%
-    const bullishConfidence = Math.round((bullishScore / MAX_RAW_SCORE) * 100);
-    const bearishConfidence = Math.round((bearishScore / MAX_RAW_SCORE) * 100);
-    const confidence = Math.max(bullishConfidence, bearishConfidence);
-    const signalDifference = Math.abs(bullishConfidence - bearishConfidence);
-
-    console.log(`🤖 AI ${tradingPair} - Bullish: ${bullishScore} raw (${bullishConfidence}%), Bearish: ${bearishScore} raw (${bearishConfidence}%), Confidence: ${confidence}%`);
-
-    // Calculate volatility for context
-    const recentCandles = candleData.slice(-20);
-    const volatility = calculateVolatility(recentCandles);
-
-    // Single confidence threshold for all trading styles (50%)
-    // Trading style only determines timeframes, not confidence requirements
-    const appliedThreshold = 50; // Consistent 50% threshold across all styles
-    let minSignalDifference = 5; // Minimum separation between bullish/bearish
-
-    // Adjust min signal difference for extreme volatility only
-    if (volatility > 4.0) {
-      minSignalDifference = 4;
-      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Slightly relaxed signal difference requirement`);
+    // 7. HTF CONFIRMATION (20 pts) - Check higher timeframe alignment
+    let htfScore = 0;
+    if (timeframes.length > 1) {
+      const htfTimeframe = timeframes[1];
+      const htfData = await bitgetAPI.getCandlestickData(tradingPair, htfTimeframe, 100);
+      
+      if (htfData && htfData.length >= 50) {
+        const htfCloses = htfData.map(c => parseFloat(c.close));
+        const htfEma20 = calculateEMA(htfCloses, 20);
+        const htfEma50 = calculateEMA(htfCloses, 50);
+        const htfRsi = calculateRSI(htfCloses, 14);
+        
+        if (htfEma20 && htfEma50 && htfRsi) {
+          const htfEma20Val = htfEma20[htfEma20.length - 1];
+          const htfEma50Val = htfEma50[htfEma50.length - 1];
+          
+          // LONG HTF: EMA20 > EMA50 and RSI > 50
+          if (htfEma20Val > htfEma50Val && htfRsi > 50) {
+            longScore += 20;
+            console.log(`🟢 HTF CONFIRMATION LONG: Full alignment (+20 pts)`);
+          } else if (htfEma20Val > htfEma50Val) {
+            longScore += 10;
+            console.log(`🟡 HTF CONFIRMATION LONG: Partial (+10 pts)`);
+          }
+          
+          // SHORT HTF: EMA20 < EMA50 and RSI < 50
+          if (htfEma20Val < htfEma50Val && htfRsi < 50) {
+            shortScore += 20;
+            console.log(`🔴 HTF CONFIRMATION SHORT: Full alignment (+20 pts)`);
+          } else if (htfEma20Val < htfEma50Val) {
+            shortScore += 10;
+            console.log(`🟠 HTF CONFIRMATION SHORT: Partial (+10 pts)`);
+          }
+        }
+      }
     }
 
-    // Signal strength requirements
+    // 8. VWAP (7 pts) - Price position relative to VWAP
+    const vwap = calculateVWAP(highs, lows, closes, volumes);
+    if (vwap) {
+      indicators.vwap = vwap;
+      
+      // LONG: Price > VWAP
+      if (currentPrice > vwap) {
+        longScore += 7;
+        console.log(`🟢 VWAP LONG: Price above VWAP (+7 pts)`);
+      }
+      
+      // SHORT: Price < VWAP
+      if (currentPrice < vwap) {
+        shortScore += 7;
+        console.log(`🔴 VWAP SHORT: Price below VWAP (+7 pts)`);
+      }
+    }
+
+    // 9. SUPERTREND (5 pts) - Trend direction
+    const supertrend = calculateSupertrend(highs, lows, closes, 10, 3);
+    if (supertrend) {
+      indicators.supertrend = supertrend;
+      
+      // LONG: Supertrend bullish
+      if (supertrend.direction === 'bullish') {
+        longScore += 5;
+        console.log(`🟢 SUPERTREND LONG: Bullish (+5 pts)`);
+      }
+      
+      // SHORT: Supertrend bearish
+      if (supertrend.direction === 'bearish') {
+        shortScore += 5;
+        console.log(`🔴 SUPERTREND SHORT: Bearish (+5 pts)`);
+      }
+    }
+
+    // Calculate final confidence scores
+    const longConfidence = longScore; // Already out of 100
+    const shortConfidence = shortScore;
+    const confidence = Math.max(longConfidence, shortConfidence);
+    const signalDifference = Math.abs(longConfidence - shortConfidence);
+
+    console.log(`🤖 ${tradingPair} FINAL SCORES - Long: ${longScore}/100, Short: ${shortScore}/100, Best: ${confidence}%`);
+
+    // Threshold and signal requirements
+    const appliedThreshold = 50; // 50% minimum
+    const minSignalDifference = 10; // Require clear directional bias
+
     if (signalDifference < minSignalDifference) {
       console.log(`❌ Signal too weak: ${signalDifference}% difference < ${minSignalDifference}% required`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
 
-    // Safety checks
-    const isExtremelyOverbought = indicators.rsi > 85 && bullishConfidence > bearishConfidence; 
-    const isExtremelyOversold = indicators.rsi < 15 && bearishConfidence > bullishConfidence;
-
-    if (isExtremelyOverbought || isExtremelyOversold) {
-      console.log(`❌ BLOCKED extreme RSI entry: RSI ${indicators.rsi}`);
-      return { hasSignal: false, direction: null, confidence, indicators };
-    }
-
-    // Quality signal requirements
-    if (signalDifference >= minSignalDifference && confidence >= appliedThreshold) {
-      console.log(`🎯 QUALITY SIGNAL: ${signalDifference}% diff, ${confidence}% confidence - threshold ${appliedThreshold}%`);
+    if (confidence >= appliedThreshold) {
+      console.log(`🎯 QUALITY SIGNAL: ${signalDifference}% diff, ${confidence}% confidence`);
       
-      if (bullishConfidence > bearishConfidence) {
-        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
-        return { hasSignal: true, direction: 'long', confidence, indicators };
+      if (longConfidence > shortConfidence) {
+        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${longConfidence}%`);
+        return { hasSignal: true, direction: 'long', confidence: longConfidence, indicators };
       } else {
-        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
-        return { hasSignal: true, direction: 'short', confidence, indicators };
+        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${shortConfidence}%`);
+        return { hasSignal: true, direction: 'short', confidence: shortConfidence, indicators };
       }
     }
 
-    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < ${appliedThreshold}%)`);
+    console.log(`⏸️ ${tradingPair} - No signal (confidence ${confidence}% < ${appliedThreshold}%)`);
     return { hasSignal: false, direction: null, confidence, indicators };
 
   } catch (error) {
@@ -1439,6 +1532,174 @@ function calculateWilliamsR(highs: number[], lows: number[], closes: number[], p
 
   console.log(`✅ Williams %R calculated: period ${period}, Williams %R ${williamsR.toFixed(2)}`);
   return williamsR;
+}
+
+// Helper function to calculate ADX (Average Directional Index) and DI (Directional Indicator)
+function calculateADX(highs: number[], lows: number[], closes: number[], period: number = 14): { adx: number, plusDI: number, minusDI: number } | null {
+  if (highs.length < period + 14 || lows.length < period + 14 || closes.length < period + 14) {
+    console.log(`❌ ADX: Not enough data. Need ${period + 14}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  const tr: number[] = [];
+  const plusDM: number[] = [];
+  const minusDM: number[] = [];
+
+  // Calculate True Range and Directional Movement
+  for (let i = 1; i < highs.length; i++) {
+    const high = highs[i];
+    const low = lows[i];
+    const prevHigh = highs[i - 1];
+    const prevLow = lows[i - 1];
+    const prevClose = closes[i - 1];
+
+    // True Range
+    const tr1 = high - low;
+    const tr2 = Math.abs(high - prevClose);
+    const tr3 = Math.abs(low - prevClose);
+    tr.push(Math.max(tr1, tr2, tr3));
+
+    // Directional Movement
+    const upMove = high - prevHigh;
+    const downMove = prevLow - low;
+
+    plusDM.push(upMove > downMove && upMove > 0 ? upMove : 0);
+    minusDM.push(downMove > upMove && downMove > 0 ? downMove : 0);
+  }
+
+  // Calculate smoothed values using EMA
+  const smoothTR = calculateEMA(tr, period);
+  const smoothPlusDM = calculateEMA(plusDM, period);
+  const smoothMinusDM = calculateEMA(minusDM, period);
+
+  if (!smoothTR || !smoothPlusDM || !smoothMinusDM || smoothTR.length === 0) {
+    return null;
+  }
+
+  // Calculate +DI and -DI
+  const currentTR = smoothTR[smoothTR.length - 1];
+  const currentPlusDM = smoothPlusDM[smoothPlusDM.length - 1];
+  const currentMinusDM = smoothMinusDM[smoothMinusDM.length - 1];
+
+  if (currentTR === 0) {
+    return { adx: 0, plusDI: 0, minusDI: 0 };
+  }
+
+  const plusDI = (currentPlusDM / currentTR) * 100;
+  const minusDI = (currentMinusDM / currentTR) * 100;
+
+  // Calculate DX
+  const dx: number[] = [];
+  for (let i = 0; i < smoothTR.length; i++) {
+    const tr = smoothTR[i];
+    const pDM = smoothPlusDM[i];
+    const mDM = smoothMinusDM[i];
+
+    if (tr === 0) {
+      dx.push(0);
+      continue;
+    }
+
+    const pDI = (pDM / tr) * 100;
+    const mDI = (mDM / tr) * 100;
+    const diDiff = Math.abs(pDI - mDI);
+    const diSum = pDI + mDI;
+
+    dx.push(diSum === 0 ? 0 : (diDiff / diSum) * 100);
+  }
+
+  // Calculate ADX (smoothed DX)
+  const adxValues = calculateEMA(dx, period);
+  const adx = adxValues && adxValues.length > 0 ? adxValues[adxValues.length - 1] : 0;
+
+  console.log(`✅ ADX calculated: period ${period}, ADX ${adx.toFixed(2)}, +DI ${plusDI.toFixed(2)}, -DI ${minusDI.toFixed(2)}`);
+  return { adx, plusDI, minusDI };
+}
+
+// Helper function to calculate Volume Z-Score
+function calculateVolumeZScore(volumes: number[]): number | null {
+  if (volumes.length < 20) {
+    console.log(`❌ Volume Z-Score: Not enough data. Need 20, have ${volumes.length}`);
+    return null;
+  }
+
+  const recentVolumes = volumes.slice(-20);
+  const currentVolume = volumes[volumes.length - 1];
+
+  // Calculate mean
+  const mean = recentVolumes.reduce((sum, vol) => sum + vol, 0) / recentVolumes.length;
+
+  // Calculate standard deviation
+  const variance = recentVolumes.reduce((sum, vol) => sum + Math.pow(vol - mean, 2), 0) / recentVolumes.length;
+  const stdDev = Math.sqrt(variance);
+
+  if (stdDev === 0) {
+    return 0; // No variation in volume
+  }
+
+  // Calculate Z-Score
+  const zScore = (currentVolume - mean) / stdDev;
+
+  console.log(`✅ Volume Z-Score calculated: ${zScore.toFixed(2)} (Vol: ${currentVolume.toFixed(0)}, Mean: ${mean.toFixed(0)})`);
+  return zScore;
+}
+
+// Helper function to calculate VWAP (Volume Weighted Average Price)
+function calculateVWAP(highs: number[], lows: number[], closes: number[], volumes: number[]): number | null {
+  if (highs.length < 1 || lows.length < 1 || closes.length < 1 || volumes.length < 1) {
+    console.log(`❌ VWAP: Not enough data`);
+    return null;
+  }
+
+  let cumulativeTPV = 0; // Typical Price * Volume
+  let cumulativeVolume = 0;
+
+  for (let i = 0; i < closes.length; i++) {
+    const typicalPrice = (highs[i] + lows[i] + closes[i]) / 3;
+    const volume = volumes[i];
+
+    cumulativeTPV += typicalPrice * volume;
+    cumulativeVolume += volume;
+  }
+
+  if (cumulativeVolume === 0) {
+    return closes[closes.length - 1]; // Fallback to current price
+  }
+
+  const vwap = cumulativeTPV / cumulativeVolume;
+
+  console.log(`✅ VWAP calculated: ${vwap.toFixed(6)}`);
+  return vwap;
+}
+
+// Helper function to calculate Supertrend Indicator
+function calculateSupertrend(highs: number[], lows: number[], closes: number[], period: number = 10, multiplier: number = 3): { supertrend: number, direction: 'bullish' | 'bearish' } | null {
+  if (highs.length < period + 14 || lows.length < period + 14 || closes.length < period + 14) {
+    console.log(`❌ Supertrend: Not enough data. Need ${period + 14}, have ${Math.min(highs.length, lows.length, closes.length)}`);
+    return null;
+  }
+
+  // Calculate ATR
+  const atr = calculateATR(highs, lows, closes, period);
+  if (atr === null) {
+    return null;
+  }
+
+  // Calculate basic bands
+  const currentHigh = highs[highs.length - 1];
+  const currentLow = lows[lows.length - 1];
+  const currentClose = closes[closes.length - 1];
+  const hl2 = (currentHigh + currentLow) / 2;
+
+  const basicUpperBand = hl2 + (multiplier * atr);
+  const basicLowerBand = hl2 - (multiplier * atr);
+
+  // Determine trend direction
+  const direction: 'bullish' | 'bearish' = currentClose > basicUpperBand ? 'bullish' : currentClose < basicLowerBand ? 'bearish' : 'bullish';
+  const supertrend = direction === 'bullish' ? basicLowerBand : basicUpperBand;
+
+  console.log(`✅ Supertrend calculated: ${supertrend.toFixed(6)}, Direction: ${direction}`);
+  return { supertrend, direction };
 }
 
 // Evaluate Bollinger Bands condition
