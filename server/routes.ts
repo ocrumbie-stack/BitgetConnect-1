@@ -4414,9 +4414,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // DISABLED: Skip automatic bot creation for legacy positions to prevent endless recreation
-      // Only create bots through manual deployment, not for every existing position
-      console.log(`⚠️ Skipping automatic bot creation for ${positions.length} positions to prevent recreation issues`);
+      // Add positions without matching bots to the display (don't create database records, just show them)
+      for (const position of positions) {
+        const hasBot = allBots.find(bot => bot.tradingPair === position.symbol);
+        
+        if (!hasBot) {
+          console.log(`📊 Found position without bot record: ${position.symbol}`);
+          
+          // Calculate basic metrics for this position
+          const entryPrice = parseFloat(position.openPriceAvg || '0');
+          const markPrice = parseFloat(position.markPrice || '0');
+          const leverage = parseFloat(position.leverage || '10');
+          const unrealizedPL = parseFloat(position.unrealizedPL || '0');
+          const totalCapital = parseFloat(position.marginSize || '0');
+          
+          let roiPercent = 0;
+          if (totalCapital > 0) {
+            roiPercent = (unrealizedPL / totalCapital) * 100;
+          }
+          
+          // Add to display list
+          allBots.push({
+            id: `position-${position.symbol}`,
+            userId: userId,
+            strategyId: null,
+            tradingPair: position.symbol,
+            status: 'active',
+            capital: position.marginSize || '0',
+            leverage: position.leverage || '10',
+            profit: position.unrealizedPL || '0',
+            trades: '1',
+            cycles: 0,
+            cycleTime: '0m',
+            winRate: unrealizedPL > 0 ? '100' : '0',
+            roi: roiPercent.toFixed(2),
+            runtime: '0m',
+            deploymentType: 'manual',
+            botName: `${position.symbol}`,
+            riskLevel: 'Medium',
+            folderName: null,
+            startedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            exitCriteria: null,
+            exitTriggered: false,
+            exitReason: null,
+            positionData: {
+              unrealizedPL: position.unrealizedPL,
+              holdSide: position.holdSide,
+              total: position.total,
+              openPriceAvg: position.openPriceAvg,
+              markPrice: position.markPrice
+            }
+          });
+        }
+      }
 
       // Check for positions that need to be closed and execute exits
       const exitPendingBots = allBots.filter(bot => bot.exitTriggered);
