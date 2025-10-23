@@ -147,93 +147,87 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
 
     const currentPrice = closes[closes.length - 1];
 
-    // Initialize scoring system
+    // Initialize scoring system - NORMALIZED TO 100%
+    // Maximum possible raw score: MACD(40) + RSI(25) + BB(20) + Volume(20) + MA(15) + SR(25) = 145
+    const MAX_RAW_SCORE = 145;
     let bullishScore = 0;
     let bearishScore = 0;
     const indicators: any = { primaryTimeframe, allTimeframes: timeframes };
 
-    // 1. MACD Analysis (Weight: 40% - Most Important)
+    // 1. MACD Analysis (Weight: 40 points = 27.6% of total)
     const macdAnalysis = await calculateMACD(closes);
     if (macdAnalysis) {
       indicators.macd = macdAnalysis;
       // Only trade strong crossovers - ignore weak momentum
       if (macdAnalysis.bullishCrossover) {
         bullishScore += 40;
-        console.log(`🎯 MACD: STRONG BULLISH crossover (+40)`);
+        console.log(`🎯 MACD: STRONG BULLISH crossover (+40 raw, 27.6%)`);
       } else if (macdAnalysis.bearishCrossover) {
         bearishScore += 40;
-        console.log(`🎯 MACD: STRONG BEARISH crossover (+40)`);
+        console.log(`🎯 MACD: STRONG BEARISH crossover (+40 raw, 27.6%)`);
       }
-      // Ignore weak momentum signals that cause false entries
     }
 
-    // 2. RSI Analysis (Weight: 25% - Second Most Important)  
+    // 2. RSI Analysis (Weight: 25 points = 17.2% of total)
     const rsiAnalysis = calculateRSI(closes, 14);
     if (rsiAnalysis) {
       indicators.rsi = rsiAnalysis;
       // ONLY trade extreme RSI levels - avoid the middle zone
       if (rsiAnalysis < 25) {
-        bullishScore += 25; // Very oversold -> Strong buy signal
-        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.toFixed(1)} (+25)`);
+        bullishScore += 25;
+        console.log(`🎯 RSI: EXTREMELY OVERSOLD ${rsiAnalysis.toFixed(1)} (+25 raw, 17.2%)`);
       } else if (rsiAnalysis > 75) {
-        bearishScore += 25; // Very overbought -> Strong sell signal
-        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.toFixed(1)} (+25)`);
+        bearishScore += 25;
+        console.log(`🎯 RSI: EXTREMELY OVERBOUGHT ${rsiAnalysis.toFixed(1)} (+25 raw, 17.2%)`);
       }
-      // Skip weak RSI signals in 30-70 range that cause bad entries
     }
 
-    // 3. Bollinger Bands Analysis (Weight: 20% - High Quality Signals Only)
+    // 3. Bollinger Bands Analysis (Weight: 20 points = 13.8% of total)
     const bbAnalysis = calculateBollingerBands(closes, 20, 2);
     if (bbAnalysis) {
       indicators.bollingerBands = bbAnalysis;
       const { upper, lower } = bbAnalysis;
 
-      // Only trade extreme band touches - avoid weak signals
-      if (currentPrice <= lower * 0.995) { // Must be BELOW lower band, not just touching
+      if (currentPrice <= lower * 0.995) {
         bullishScore += 20;
-        console.log(`🎯 BB: EXTREME LOWER BAND breach (+20)`);
-      } else if (currentPrice >= upper * 1.005) { // Must be ABOVE upper band
+        console.log(`🎯 BB: EXTREME LOWER BAND breach (+20 raw, 13.8%)`);
+      } else if (currentPrice >= upper * 1.005) {
         bearishScore += 20;
-        console.log(`🎯 BB: EXTREME UPPER BAND breach (+20)`);
+        console.log(`🎯 BB: EXTREME UPPER BAND breach (+20 raw, 13.8%)`);
       }
-      // Skip weak squeeze breakouts that often fail
     }
 
-    // 4. Volume Analysis (Weight: 20% - Critical for Confirmation)
+    // 4. Volume Analysis (Weight: 20 points = 13.8% of total)
     const volumeAnalysis = calculateVolumeAnalysis(volumes, closes);
     if (volumeAnalysis) {
       indicators.volume = volumeAnalysis;
       const { trend, strength, priceVolumeAlignment } = volumeAnalysis;
 
-      // ONLY trade with VERY high volume confirmation
       if (priceVolumeAlignment === 'bullish' && strength > 2.0) {
-        bullishScore += 20; // Extremely high volume + price up
-        console.log(`🎯 VOLUME: STRONG BULLISH alignment (+20)`);
+        bullishScore += 20;
+        console.log(`🎯 VOLUME: STRONG BULLISH alignment (+20 raw, 13.8%)`);
       } else if (priceVolumeAlignment === 'bearish' && strength > 2.0) {
-        bearishScore += 20; // Extremely high volume + price down
-        console.log(`🎯 VOLUME: STRONG BEARISH alignment (+20)`);
+        bearishScore += 20;
+        console.log(`🎯 VOLUME: STRONG BEARISH alignment (+20 raw, 13.8%)`);
       }
-      // Skip weak volume signals that don't provide confirmation
     }
 
-    // 5. Moving Average Analysis (Weight: 15% - Trend Confirmation Only)
+    // 5. Moving Average Analysis (Weight: 15 points = 10.3% of total)
     const maAnalysis = calculateMovingAverageAnalysis(closes);
     if (maAnalysis) {
       indicators.movingAverages = maAnalysis;
       const { ema20, ema50, crossover, trend } = maAnalysis;
 
-      // ONLY trade confirmed crossovers with strong price action
       if (crossover === 'golden' && currentPrice > ema20 * 1.01) {
-        bullishScore += 15; // Golden cross with strong bullish confirmation
-        console.log(`🎯 MA: CONFIRMED GOLDEN CROSS (+15)`);
+        bullishScore += 15;
+        console.log(`🎯 MA: CONFIRMED GOLDEN CROSS (+15 raw, 10.3%)`);
       } else if (crossover === 'death' && currentPrice < ema20 * 0.99) {
-        bearishScore += 15; // Death cross with strong bearish confirmation
-        console.log(`🎯 MA: CONFIRMED DEATH CROSS (+15)`);
+        bearishScore += 15;
+        console.log(`🎯 MA: CONFIRMED DEATH CROSS (+15 raw, 10.3%)`);
       }
-      // Skip weak trend following that doesn't add value
     }
 
-    // 6. Enhanced Support/Resistance Analysis (Weight: 15%)
+    // 6. Support/Resistance Analysis (Weight: up to 25 points = 17.2% of total)
     const srAnalysis = calculateAdvancedSupportResistance(highs, lows, closes, volumes, currentPrice);
     if (srAnalysis) {
       indicators.supportResistance = srAnalysis;
@@ -243,90 +237,90 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
         volumeConfirmation, multiTouchSupport, multiTouchResistance
       } = srAnalysis;
 
-      // Strong bounce from confirmed multi-touch support
       if (nearSupport && supportStrength > 0.8 && bounceConfirmed && multiTouchSupport) {
-        bullishScore += 18; // Enhanced for multi-touch confirmation
-        console.log(`🎯 S/R: MULTI-TOUCH SUPPORT bounce confirmed (+18)`);
+        bullishScore += 18;
+        console.log(`🎯 S/R: MULTI-TOUCH SUPPORT bounce (+18 raw, 12.4%)`);
       } 
-      // Strong rejection at confirmed multi-touch resistance  
       else if (nearResistance && resistanceStrength > 0.8 && rejectionConfirmed && multiTouchResistance) {
-        bearishScore += 18; // Enhanced for multi-touch confirmation
-        console.log(`🎯 S/R: MULTI-TOUCH RESISTANCE rejection confirmed (+18)`);
+        bearishScore += 18;
+        console.log(`🎯 S/R: MULTI-TOUCH RESISTANCE rejection (+18 raw, 12.4%)`);
       }
-      // Volume-confirmed breakouts (high probability setups)
       else if (breakoutBullish && volumeConfirmation && supportStrength > 0.7) {
-        bullishScore += 25; // Strong breakout signal
-        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKOUT (+25)`);
+        bullishScore += 25;
+        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKOUT (+25 raw, 17.2%)`);
       }
       else if (breakdownBearish && volumeConfirmation && resistanceStrength > 0.7) {
-        bearishScore += 25; // Strong breakdown signal
-        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKDOWN (+25)`);
+        bearishScore += 25;
+        console.log(`🎯 S/R: VOLUME-CONFIRMED BREAKDOWN (+25 raw, 17.2%)`);
       }
-      // Regular support/resistance (lower weight without confirmation)
       else if (nearSupport && supportStrength > 0.6) {
-        bullishScore += 8; // Reduced weight for unconfirmed
-        console.log(`🎯 S/R: SUPPORT area (+8)`);
+        bullishScore += 8;
+        console.log(`🎯 S/R: SUPPORT area (+8 raw, 5.5%)`);
       } else if (nearResistance && resistanceStrength > 0.6) {
-        bearishScore += 8; // Reduced weight for unconfirmed
-        console.log(`🎯 S/R: RESISTANCE area (+8)`);
+        bearishScore += 8;
+        console.log(`🎯 S/R: RESISTANCE area (+8 raw, 5.5%)`);
       }
     }
 
-    // Calculate confidence and final decision with STRICT REQUIREMENTS
-    const totalScore = Math.max(bullishScore, bearishScore);
-    const signalDifference = Math.abs(bullishScore - bearishScore);
-    const confidence = Math.min(95, totalScore);
+    // NORMALIZE SCORES TO 100%
+    const bullishConfidence = Math.round((bullishScore / MAX_RAW_SCORE) * 100);
+    const bearishConfidence = Math.round((bearishScore / MAX_RAW_SCORE) * 100);
+    const confidence = Math.max(bullishConfidence, bearishConfidence);
+    const signalDifference = Math.abs(bullishConfidence - bearishConfidence);
 
-    console.log(`🤖 AI ${tradingPair} - Bullish Score: ${bullishScore}, Bearish Score: ${bearishScore}, Confidence: ${confidence}%`);
+    console.log(`🤖 AI ${tradingPair} - Bullish: ${bullishScore} raw (${bullishConfidence}%), Bearish: ${bearishScore} raw (${bearishConfidence}%), Confidence: ${confidence}%`);
 
-    // STRICT ENTRY REQUIREMENTS - Only trade high-probability setups
+    // Calculate volatility for context
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
 
-    // REALISTIC confidence thresholds for actual market conditions
-    let confidenceThreshold = 30; // More achievable base threshold
-    let minSignalDifference = 8; // Realistic signal separation for quality pairs
+    // BUCKET-BASED CONFIDENCE THRESHOLDS (determined by trading style/timeframe)
+    // These will be applied in the bucket classification logic
+    const bucketThresholds = {
+      aggressive: 65,   // 1m/5m timeframes - High volatility, quick scalping
+      balanced: 60,     // 15m/1H timeframes - Medium-term swing trades
+      conservative: 50  // 4H/1D timeframes - Long-term position trades
+    };
 
-    // Adjust thresholds based on volatility for high-volume pairs
+    // For general scanner (non-bucket-specific), use a dynamic threshold
+    let confidenceThreshold = 50; // Base threshold for normalized 100% scale
+    let minSignalDifference = 5; // Minimum separation between bullish/bearish
+
+    // Adjust for volatility context
     if (volatility > 4.0) {
-      confidenceThreshold = 25; // Lower for extremely volatile high-volume pairs
-      minSignalDifference = 6;
-      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Focused threshold: ${confidenceThreshold}%`);
+      confidenceThreshold = 45;
+      minSignalDifference = 4;
+      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     } else if (volatility > 3.0) {
-      confidenceThreshold = 27; 
-      minSignalDifference = 7;
+      confidenceThreshold = 47;
+      minSignalDifference = 4;
       console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
     }
 
-    // STRICT signal strength requirements
+    // Signal strength requirements
     if (signalDifference < minSignalDifference) {
-      console.log(`❌ Signal too weak: ${signalDifference} point difference < ${minSignalDifference} required`);
+      console.log(`❌ Signal too weak: ${signalDifference}% difference < ${minSignalDifference}% required`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
 
-    // BASIC safety checks - Only block extremely dangerous entries
-    const isExtremelyOverbought = indicators.rsi > 85 && bullishScore > bearishScore; 
-    const isExtremelyOversold = indicators.rsi < 15 && bearishScore > bullishScore;
+    // Safety checks
+    const isExtremelyOverbought = indicators.rsi > 85 && bullishConfidence > bearishConfidence; 
+    const isExtremelyOversold = indicators.rsi < 15 && bearishConfidence > bullishConfidence;
 
     if (isExtremelyOverbought || isExtremelyOversold) {
       console.log(`❌ BLOCKED extreme RSI entry: RSI ${indicators.rsi}`);
       return { hasSignal: false, direction: null, confidence, indicators };
     }
 
-    // REALISTIC requirements for actual trading signals
-    if (signalDifference >= minSignalDifference && totalScore >= 15) {
-      console.log(`🎯 QUALITY SIGNAL: ${signalDifference} diff, ${totalScore} total - threshold ${confidenceThreshold}%`);
-    } else {
-      console.log(`❌ INSUFFICIENT QUALITY: ${signalDifference} diff, ${totalScore} total (need ${minSignalDifference}+ diff, 15+ total for quality signals)`);
-      return { hasSignal: false, direction: null, confidence, indicators };
-    }
-
-    if (confidence >= confidenceThreshold) {
-      if (bullishScore > bearishScore) {
-        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}% (threshold: ${confidenceThreshold}%)`);
+    // Quality signal requirements
+    if (signalDifference >= minSignalDifference && confidence >= confidenceThreshold) {
+      console.log(`🎯 QUALITY SIGNAL: ${signalDifference}% diff, ${confidence}% confidence - threshold ${confidenceThreshold}%`);
+      
+      if (bullishConfidence > bearishConfidence) {
+        console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
         return { hasSignal: true, direction: 'long', confidence, indicators };
       } else {
-        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}% (threshold: ${confidenceThreshold}%)`);
+        console.log(`🎯🎯🎯 SHORT SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
         return { hasSignal: true, direction: 'short', confidence, indicators };
       }
     }
@@ -5668,35 +5662,45 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
 
   const entryOpportunities = [];
 
-  // Entry rules configuration based on provided document
+  // Entry rules configuration - BUCKET-SPECIFIC THRESHOLDS (Normalized to 100%)
   const entryRules = {
     balanced: {
       timeframes: { signal_tf: '1h', trigger_tf: '15m' },
-      minConfidence: 75,
+      minConfidence: 60,  // 60% threshold for Balanced bucket (15m/1H timeframes)
       volumeMultiple: 1.5
     },
     aggressive: {
       timeframes: { signal_tf: '5m', trigger_tf: '1m' },
-      minConfidence: 85,
+      minConfidence: 65,  // 65% threshold for Aggressive bucket (1m/5m timeframes)
       volumeMultiple: 2.0
+    },
+    conservative: {
+      timeframes: { signal_tf: '1d', trigger_tf: '4h' },
+      minConfidence: 50,  // 50% threshold for Conservative bucket (4H/1D timeframes)
+      volumeMultiple: 1.2
     }
   };
 
-  // Process Balanced bucket with 1H/15M strategy
+  // Process Balanced bucket with unified scoring system (60% threshold on 15m/1H)
   if (bucketResults.Balanced && bucketResults.Balanced.length > 0) {
-    console.log(`🔍 ENTRY: Analyzing ${bucketResults.Balanced.length} Balanced pairs with 1H/15M strategy`);
+    console.log(`🔍 ENTRY: Analyzing ${bucketResults.Balanced.length} Balanced pairs with unified scoring (60% threshold)`);
 
     for (const pair of bucketResults.Balanced.slice(0, 5)) {
       try {
-        const entryAnalysis = await evaluateBalancedEntry(pair);
-        if (entryAnalysis.confidence >= entryRules.balanced.minConfidence) {
+        // Use unified scoring system with Balanced timeframes
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['15m', '1H'], 150);
+        if (entryAnalysis.confidence >= entryRules.balanced.minConfidence && entryAnalysis.hasSignal) {
           entryOpportunities.push({
-            ...entryAnalysis,
+            symbol: pair.symbol,
+            confidence: entryAnalysis.confidence,
+            direction: entryAnalysis.direction?.toUpperCase(),
             bucket: 'Balanced',
-            strategy: '1H/15M Balanced Entry',
-            timeframes: entryRules.balanced.timeframes
+            strategy: 'Unified Scoring - Balanced (15m/1H)',
+            timeframes: entryRules.balanced.timeframes,
+            indicators: entryAnalysis.indicators,
+            safetyScore: 100 // Default safety score
           });
-          console.log(`✅ BALANCED ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}%`);
+          console.log(`✅ BALANCED ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}% (threshold: 60%)`);
         }
       } catch (error) {
         console.log(`❌ BALANCED ERROR: ${pair.symbol} - ${error.message}`);
@@ -5704,21 +5708,26 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
     }
   }
 
-  // Process Aggressive bucket with 5M/1M strategy
+  // Process Aggressive bucket with unified scoring system (65% threshold on 1m/5m)
   if (bucketResults.Aggressive && bucketResults.Aggressive.length > 0) {
-    console.log(`🔍 ENTRY: Analyzing ${bucketResults.Aggressive.length} Aggressive pairs with 5M/1M strategy`);
+    console.log(`🔍 ENTRY: Analyzing ${bucketResults.Aggressive.length} Aggressive pairs with unified scoring (65% threshold)`);
 
     for (const pair of bucketResults.Aggressive.slice(0, 3)) {
       try {
-        const entryAnalysis = await evaluateAggressiveEntry(pair);
-        if (entryAnalysis.confidence >= entryRules.aggressive.minConfidence) {
+        // Use unified scoring system with Aggressive timeframes
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['1m', '5m'], 200);
+        if (entryAnalysis.confidence >= entryRules.aggressive.minConfidence && entryAnalysis.hasSignal) {
           entryOpportunities.push({
-            ...entryAnalysis,
+            symbol: pair.symbol,
+            confidence: entryAnalysis.confidence,
+            direction: entryAnalysis.direction?.toUpperCase(),
             bucket: 'Aggressive',
-            strategy: '5M/1M Aggressive Scalping',
-            timeframes: entryRules.aggressive.timeframes
+            strategy: 'Unified Scoring - Aggressive (1m/5m)',
+            timeframes: entryRules.aggressive.timeframes,
+            indicators: entryAnalysis.indicators,
+            safetyScore: 100 // Default safety score
           });
-          console.log(`✅ AGGRESSIVE ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}%`);
+          console.log(`✅ AGGRESSIVE ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}% (threshold: 65%)`);
         }
       } catch (error) {
         console.log(`❌ AGGRESSIVE ERROR: ${pair.symbol} - ${error.message}`);
@@ -5726,21 +5735,26 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
     }
   }
 
-  // Process Conservative bucket with similar logic
+  // Process Conservative bucket with unified scoring system (50% threshold on 4H/1D)
   if (bucketResults.ConservativeBiasOnly && bucketResults.ConservativeBiasOnly.length > 0) {
-    console.log(`🔍 ENTRY: Analyzing ${bucketResults.ConservativeBiasOnly.length} Conservative pairs`);
+    console.log(`🔍 ENTRY: Analyzing ${bucketResults.ConservativeBiasOnly.length} Conservative pairs with unified scoring (50% threshold)`);
 
     for (const pair of bucketResults.ConservativeBiasOnly.slice(0, 3)) {
       try {
-        const entryAnalysis = await evaluateConservativeEntry(pair);
-        if (entryAnalysis.confidence >= 70) {
+        // Use unified scoring system with Conservative timeframes
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['4H', '1D'], 100);
+        if (entryAnalysis.confidence >= entryRules.conservative.minConfidence && entryAnalysis.hasSignal) {
           entryOpportunities.push({
-            ...entryAnalysis,
+            symbol: pair.symbol,
+            confidence: entryAnalysis.confidence,
+            direction: entryAnalysis.direction?.toUpperCase(),
             bucket: 'Conservative',
-            strategy: 'Conservative Bias Entry',
-            timeframes: { signal_tf: '1d', trigger_tf: '4h' }
+            strategy: 'Unified Scoring - Conservative (4H/1D)',
+            timeframes: entryRules.conservative.timeframes,
+            indicators: entryAnalysis.indicators,
+            safetyScore: 100 // Default safety score
           });
-          console.log(`✅ CONSERVATIVE ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}%`);
+          console.log(`✅ CONSERVATIVE ENTRY: ${pair.symbol} - ${entryAnalysis.direction} ${entryAnalysis.confidence}% (threshold: 50%)`);
         }
       } catch (error) {
         console.log(`❌ CONSERVATIVE ERROR: ${pair.symbol} - ${error.message}`);
