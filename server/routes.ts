@@ -153,7 +153,7 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
 
     // ============= LONG ENTRY SCORING =============
 
-    // 1. EMA TREND (20 pts) - EMA20 > EMA50 and EMA20 slope > 0
+    // 1. EMA TREND (18 pts) - EMA20 > EMA50 and EMA20 slope > 0
     const ema20Values = calculateEMA(closes, 20);
     const ema50Values = calculateEMA(closes, 50);
     if (ema20Values && ema50Values && ema20Values.length >= 2 && ema50Values.length >= 1) {
@@ -167,68 +167,68 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       
       // LONG: EMA20 > EMA50 and slope > 0
       if (ema20 > ema50 && ema20Slope > 0) {
-        longScore += 20; // Full points
-        console.log(`🟢 EMA TREND LONG: Full (+20 pts)`);
+        longScore += 18; // Full points
+        console.log(`🟢 EMA TREND LONG: Full (+18 pts)`);
       } else if (ema20 > ema50) {
-        longScore += 10; // Crossover only
-        console.log(`🟡 EMA TREND LONG: Crossover only (+10 pts)`);
+        longScore += 9; // Crossover only
+        console.log(`🟡 EMA TREND LONG: Crossover only (+9 pts)`);
       }
       
       // SHORT: EMA20 < EMA50 and slope < 0
       if (ema20 < ema50 && ema20Slope < 0) {
-        shortScore += 20;
-        console.log(`🔴 EMA TREND SHORT: Full (+20 pts)`);
+        shortScore += 18;
+        console.log(`🔴 EMA TREND SHORT: Full (+18 pts)`);
       } else if (ema20 < ema50) {
-        shortScore += 10;
-        console.log(`🟠 EMA TREND SHORT: Crossover only (+10 pts)`);
+        shortScore += 9;
+        console.log(`🟠 EMA TREND SHORT: Crossover only (+9 pts)`);
       }
     }
 
-    // 2. RSI (15 pts) - RSI(14) > 55 and < 75 for long
+    // 2. RSI (13 pts) - RSI(14) > 55 and < 75 for long
     const rsi = calculateRSI(closes, 14);
     if (rsi) {
       indicators.rsi = rsi;
       
       // LONG: RSI > 60 full, RSI > 55 partial
       if (rsi > 60 && rsi < 75) {
-        longScore += 15;
-        console.log(`🟢 RSI LONG: Full ${rsi.toFixed(1)} (+15 pts)`);
+        longScore += 13;
+        console.log(`🟢 RSI LONG: Full ${rsi.toFixed(1)} (+13 pts)`);
       } else if (rsi > 55 && rsi < 75) {
-        longScore += 7;
-        console.log(`🟡 RSI LONG: Partial ${rsi.toFixed(1)} (+7 pts)`);
+        longScore += 6;
+        console.log(`🟡 RSI LONG: Partial ${rsi.toFixed(1)} (+6 pts)`);
       }
       
       // SHORT: RSI < 40 full, RSI < 45 partial
       if (rsi < 40 && rsi > 25) {
-        shortScore += 15;
-        console.log(`🔴 RSI SHORT: Full ${rsi.toFixed(1)} (+15 pts)`);
+        shortScore += 13;
+        console.log(`🔴 RSI SHORT: Full ${rsi.toFixed(1)} (+13 pts)`);
       } else if (rsi < 45 && rsi > 25) {
-        shortScore += 7;
-        console.log(`🟠 RSI SHORT: Partial ${rsi.toFixed(1)} (+7 pts)`);
+        shortScore += 6;
+        console.log(`🟠 RSI SHORT: Partial ${rsi.toFixed(1)} (+6 pts)`);
       }
     }
 
-    // 3. MACD (15 pts) - MACD > Signal and Hist > 0
+    // 3. MACD (13 pts) - MACD > Signal and Hist > 0
     const macdData = await calculateMACD(closes);
     if (macdData) {
       indicators.macd = macdData;
       
       // LONG: MACD > Signal and Hist > 0
-      if (macdData.macdLine > macdData.signalLine && macdData.histogram > 0) {
-        longScore += 15;
-        console.log(`🟢 MACD LONG: Full (+15 pts)`);
-      } else if (macdData.macdLine > macdData.signalLine) {
-        longScore += 7;
-        console.log(`🟡 MACD LONG: Early cross (+7 pts)`);
+      if (macdData.macd > macdData.signal && macdData.histogram > 0) {
+        longScore += 13;
+        console.log(`🟢 MACD LONG: Full (+13 pts)`);
+      } else if (macdData.macd > macdData.signal) {
+        longScore += 6;
+        console.log(`🟡 MACD LONG: Early cross (+6 pts)`);
       }
       
       // SHORT: MACD < Signal and Hist < 0
-      if (macdData.macdLine < macdData.signalLine && macdData.histogram < 0) {
-        shortScore += 15;
-        console.log(`🔴 MACD SHORT: Full (+15 pts)`);
-      } else if (macdData.macdLine < macdData.signalLine) {
-        shortScore += 7;
-        console.log(`🟠 MACD SHORT: Early cross (+7 pts)`);
+      if (macdData.macd < macdData.signal && macdData.histogram < 0) {
+        shortScore += 13;
+        console.log(`🔴 MACD SHORT: Full (+13 pts)`);
+      } else if (macdData.macd < macdData.signal) {
+        shortScore += 6;
+        console.log(`🟠 MACD SHORT: Early cross (+6 pts)`);
       }
     }
 
@@ -256,31 +256,31 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       }
     }
 
-    // 5. STOCHASTIC (10 pts) - %K > %D and %K > 30 (< 80)
+    // 5. STOCHASTIC (8 pts) - %K > %D and %K > 30 (< 80)
     const stoch = calculateStochastic(highs, lows, closes, 14, 3, 3);
     if (stoch) {
       indicators.stochastic = stoch;
       
       // LONG: %K > %D and %K > 30 (< 80)
       if (stoch.k > stoch.d && stoch.k > 30 && stoch.k < 80) {
-        longScore += 10;
-        console.log(`🟢 STOCHASTIC LONG: Full %K ${stoch.k.toFixed(1)} (+10 pts)`);
+        longScore += 8;
+        console.log(`🟢 STOCHASTIC LONG: Full %K ${stoch.k.toFixed(1)} (+8 pts)`);
       } else if (stoch.k > stoch.d && stoch.k < 50) {
-        longScore += 5;
-        console.log(`🟡 STOCHASTIC LONG: Cross below 50 (+5 pts)`);
+        longScore += 4;
+        console.log(`🟡 STOCHASTIC LONG: Cross below 50 (+4 pts)`);
       }
       
       // SHORT: %K < %D and %K < 70 (> 20)
       if (stoch.k < stoch.d && stoch.k < 70 && stoch.k > 20) {
-        shortScore += 10;
-        console.log(`🔴 STOCHASTIC SHORT: Full %K ${stoch.k.toFixed(1)} (+10 pts)`);
+        shortScore += 8;
+        console.log(`🔴 STOCHASTIC SHORT: Full %K ${stoch.k.toFixed(1)} (+8 pts)`);
       } else if (stoch.k < stoch.d && stoch.k > 50) {
-        shortScore += 5;
-        console.log(`🟠 STOCHASTIC SHORT: Cross above 50 (+5 pts)`);
+        shortScore += 4;
+        console.log(`🟠 STOCHASTIC SHORT: Cross above 50 (+4 pts)`);
       }
     }
 
-    // 6. VOLUME Z-SCORE (10 pts) - z > +0.5 and price > EMA20
+    // 6. VOLUME Z-SCORE (8 pts) - z > +0.5 and price > EMA20
     const volZScore = calculateVolumeZScore(volumes);
     if (volZScore !== null && ema20Values) {
       const ema20 = ema20Values[ema20Values.length - 1];
@@ -288,24 +288,24 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       
       // LONG: z > +0.5 and price > EMA20
       if (volZScore > 1.0 && currentPrice > ema20) {
-        longScore += 10;
-        console.log(`🟢 VOLUME Z-SCORE LONG: Full z=${volZScore.toFixed(2)} (+10 pts)`);
+        longScore += 8;
+        console.log(`🟢 VOLUME Z-SCORE LONG: Full z=${volZScore.toFixed(2)} (+8 pts)`);
       } else if (volZScore > 0.5 && currentPrice > ema20) {
-        longScore += 5;
-        console.log(`🟡 VOLUME Z-SCORE LONG: Partial z=${volZScore.toFixed(2)} (+5 pts)`);
+        longScore += 4;
+        console.log(`🟡 VOLUME Z-SCORE LONG: Partial z=${volZScore.toFixed(2)} (+4 pts)`);
       }
       
       // SHORT: z < -0.5 and price < EMA20
       if (volZScore < -1.0 && currentPrice < ema20) {
-        shortScore += 10;
-        console.log(`🔴 VOLUME Z-SCORE SHORT: Full z=${volZScore.toFixed(2)} (+10 pts)`);
+        shortScore += 8;
+        console.log(`🔴 VOLUME Z-SCORE SHORT: Full z=${volZScore.toFixed(2)} (+8 pts)`);
       } else if (volZScore < -0.5 && currentPrice < ema20) {
-        shortScore += 5;
-        console.log(`🟠 VOLUME Z-SCORE SHORT: Partial z=${volZScore.toFixed(2)} (+5 pts)`);
+        shortScore += 4;
+        console.log(`🟠 VOLUME Z-SCORE SHORT: Partial z=${volZScore.toFixed(2)} (+4 pts)`);
       }
     }
 
-    // 7. HTF CONFIRMATION (20 pts) - Check higher timeframe alignment
+    // 7. HTF CONFIRMATION (18 pts) - Check higher timeframe alignment
     let htfScore = 0;
     if (timeframes.length > 1) {
       const htfTimeframe = timeframes[1];
@@ -323,20 +323,20 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
           
           // LONG HTF: EMA20 > EMA50 and RSI > 50
           if (htfEma20Val > htfEma50Val && htfRsi > 50) {
-            longScore += 20;
-            console.log(`🟢 HTF CONFIRMATION LONG: Full alignment (+20 pts)`);
+            longScore += 18;
+            console.log(`🟢 HTF CONFIRMATION LONG: Full alignment (+18 pts)`);
           } else if (htfEma20Val > htfEma50Val) {
-            longScore += 10;
-            console.log(`🟡 HTF CONFIRMATION LONG: Partial (+10 pts)`);
+            longScore += 9;
+            console.log(`🟡 HTF CONFIRMATION LONG: Partial (+9 pts)`);
           }
           
           // SHORT HTF: EMA20 < EMA50 and RSI < 50
           if (htfEma20Val < htfEma50Val && htfRsi < 50) {
-            shortScore += 20;
-            console.log(`🔴 HTF CONFIRMATION SHORT: Full alignment (+20 pts)`);
+            shortScore += 18;
+            console.log(`🔴 HTF CONFIRMATION SHORT: Full alignment (+18 pts)`);
           } else if (htfEma20Val < htfEma50Val) {
-            shortScore += 10;
-            console.log(`🟠 HTF CONFIRMATION SHORT: Partial (+10 pts)`);
+            shortScore += 9;
+            console.log(`🟠 HTF CONFIRMATION SHORT: Partial (+9 pts)`);
           }
         }
       }
