@@ -102,8 +102,8 @@ function getDeploymentColor(deploymentType: string): string {
 
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
-// confidenceThreshold: If provided, applies specific threshold; otherwise uses dynamic threshold based on volatility
-async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200, confidenceThreshold?: number): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
+// Uses 50% confidence threshold consistently across all trading styles/timeframes
+async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -275,30 +275,15 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
 
-    // Determine confidence threshold to use
-    // If caller provided a specific threshold, use it (for bucket-specific analysis)
-    // Otherwise, use dynamic threshold based on volatility (for general scanner)
-    let appliedThreshold: number;
+    // Single confidence threshold for all trading styles (50%)
+    // Trading style only determines timeframes, not confidence requirements
+    const appliedThreshold = 50; // Consistent 50% threshold across all styles
     let minSignalDifference = 5; // Minimum separation between bullish/bearish
 
-    if (confidenceThreshold !== undefined) {
-      // Bucket-specific threshold provided by caller
-      appliedThreshold = confidenceThreshold;
-      console.log(`🎯 Using caller-specified threshold: ${appliedThreshold}%`);
-    } else {
-      // Dynamic threshold for general scanner based on volatility
-      appliedThreshold = 50; // Base threshold for normalized 100% scale
-      
-      // Adjust for volatility context
-      if (volatility > 4.0) {
-        appliedThreshold = 45;
-        minSignalDifference = 4;
-        console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${appliedThreshold}%`);
-      } else if (volatility > 3.0) {
-        appliedThreshold = 47;
-        minSignalDifference = 4;
-        console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${appliedThreshold}%`);
-      }
+    // Adjust min signal difference for extreme volatility only
+    if (volatility > 4.0) {
+      minSignalDifference = 4;
+      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Slightly relaxed signal difference requirement`);
     }
 
     // Signal strength requirements
@@ -5119,178 +5104,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // MULTI-BUCKET ANALYSIS - Categorize pairs by volatility and trading style
-      console.log(`📊 MULTI-BUCKET ANALYSIS: Categorizing pairs by volatility and timeframes...`);
-      const bucketResults = {
-        Aggressive: [],
-        Balanced: [],
-        ConservativeBiasOnly: []
-      };
-
-      let bucketAnalyzedCount = 0;
-      let bucketSkippedData = 0;
-
-      for (const ticker of usdtPairs.slice(0, 30)) { // Analyze top 30 for bucket classification
-        try {
-          const change24h = parseFloat(ticker.change24h || '0');
-          const volume24h = parseFloat(ticker.quoteVolume || '0');
-          const currentPrice = parseFloat(ticker.lastPr || '0');
-
-          // No volume filtering needed - already scanning top 50 volume pairs
-
-          // Get minimal data for basic bucket analysis
-          let h1Data, dailyData;
-          try {
-            h1Data = await bitgetAPI.getCandlestickData(ticker.symbol, '1H', 25);
-            dailyData = await bitgetAPI.getCandlestickData(ticker.symbol, '1D', 10);
-          } catch (error) {
-            bucketSkippedData++;
-            continue;
-          }
-
-          if (!h1Data || !dailyData || h1Data.length < 5 || dailyData.length < 2) {
-            bucketSkippedData++;
-            continue;
-          }
-
-          // Calculate daily range percentage (volatility measure) with null safety
-          const dailyOHLC = dailyData[dailyData.length - 1];
-          const dailyHigh = parseFloat(dailyOHLC?.high || '0');
-          const dailyLow = parseFloat(dailyOHLC?.low || '0');
-          const dailyRangePct = currentPrice > 0 ? ((dailyHigh - dailyLow) / currentPrice) * 100 : 0;
-
-          // Technical indicators for classification
-          const h1Closes = h1Data.map(c => parseFloat(c.close));
-          const dailyCloses = dailyData.map(c => parseFloat(c.close));
-          const h1Volumes = h1Data.map(c => parseFloat(c.volume));
-
-          // Simplified EMA calculations with null safety
-          const ema100_1h = h1Closes.length >= 20 ? calculateEMA(h1Closes, 20) : currentPrice;
-          const ema200_1d = dailyCloses.length >= 10 ? calculateEMA(dailyCloses, 10) : currentPrice;
-          const ema100Diff = ema100_1h ? ((currentPrice - ema100_1h) / ema100_1h) * 100 : 0;
-          const ema200Diff = ema200_1d ? ((currentPrice - ema200_1d) / ema200_1d) * 100 : 0;
-
-          // Basic RSI only (skip complex MACD)
-          const rsi = h1Closes.length >= 14 ? calculateRSI(h1Closes, 14) : null;
-          const macd = null; // Skip for simplified analysis
-
-          // Volume spike detection
-          const avgVolume = h1Volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
-          const currentVolume = h1Volumes[h1Volumes.length - 1];
-          const volumeSpikeMultiple = currentVolume / avgVolume;
-
-          // Simplified Bollinger Bands position  
-          const bb = h1Closes.length >= 20 ? calculateBollingerBands(h1Closes, 20, 2) : null;
-          let bbPosition = 'middle';
-          if (bb) {
-            if (currentPrice <= bb.lower) bbPosition = 'below_lower';
-            else if (currentPrice >= bb.upper) bbPosition = 'above_upper';
-            else if (currentPrice <= bb.lower * 1.05) bbPosition = 'near_lower';
-            else if (currentPrice >= bb.upper * 0.95) bbPosition = 'near_upper';
-          }
-
-          // BUCKET CLASSIFICATION LOGIC - Adjusted for practical market conditions
-          let bucket = 'ConservativeBiasOnly';
-          let evalTimeframe = '1D';
-
-          // Aggressive bucket conditions (high volatility scalping)
-          const rsiExtreme = rsi && (rsi.value <= 25 || rsi.value >= 75);
-          const bbBreak = bbPosition === 'below_lower' || bbPosition === 'above_upper';
-          const highVol = dailyRangePct >= 5.0;
-          const volumeSpike = volumeSpikeMultiple >= 1.5;
-
-          if ((rsiExtreme || bbBreak) && (highVol || volumeSpike)) {
-            bucket = 'Aggressive';
-            evalTimeframe = '1m/5m';
-          }
-          // Balanced bucket conditions (medium volatility trading)
-          else if (dailyRangePct >= 2.0 && dailyRangePct <= 6.0) {
-            const emaInRange = Math.abs(ema100Diff) <= 3.0;
-            const rsiNearBand = rsi && (rsi.value <= 40 || rsi.value >= 60);
-
-            if (emaInRange || rsiNearBand) {
-              bucket = 'Balanced';
-              evalTimeframe = '15m/1h';
-            }
-          }
-          // Conservative bucket for stable pairs
-          else if (dailyRangePct < 3.0){
-            bucket = 'ConservativeBiasOnly';
-            evalTimeframe = '4h/1d';
-          }
-
-          // Direction bias from EMA200 on daily
-          let bias = 'neutral';
-          if (ema200Diff > 1) bias = 'bullish';
-          else if (ema200Diff < -1) bias = 'bearish';
-
-          const bucketEntry = {
-            symbol: ticker.symbol,
-            bucket,
-            evalTimeframe,
-            dailyRangePct: (dailyRangePct || 0).toFixed(2),
-            ema100DiffPct1h: (ema100Diff || 0).toFixed(2),
-            ema200DiffPct1d: (ema200Diff || 0).toFixed(2),
-            rsi: rsi?.value?.toFixed(1) || 'N/A',
-            macdLine: 'N/A',
-            macdSignal: 'N/A', 
-            macdHist: 'N/A',
-            bbPosition,
-            volumeSpikeMultiple: (volumeSpikeMultiple || 0).toFixed(1),
-            bias,
-            price: currentPrice,
-            volume24h,
-            change24h
-          };
-
-          bucketResults[bucket].push(bucketEntry);
-          bucketAnalyzedCount++;
-          console.log(`📋 BUCKET: ${ticker.symbol} -> ${bucket} (Vol: ${(dailyRangePct || 0).toFixed(1)}%, RSI: ${rsi?.value?.toFixed(1) || 'N/A'}, Bias: ${bias})`);
-
-        } catch (error) {
-          console.log(`⚠️ Bucket analysis error for ${ticker.symbol}:`, error.message);
-        }
-      }
-
-      console.log(`📊 Bucket Analysis Summary: Processed ${bucketAnalyzedCount} pairs, Skipped ${bucketSkippedData} (data), Found ${bucketResults.Aggressive.length} Aggressive, ${bucketResults.Balanced.length} Balanced, ${bucketResults.ConservativeBiasOnly.length} Conservative`);
-
-      // Sort each bucket by priority metrics
-      bucketResults.Aggressive.sort((a, b) => parseFloat(b.volumeSpikeMultiple) - parseFloat(a.volumeSpikeMultiple));
-      bucketResults.Balanced.sort((a, b) => parseFloat(b.dailyRangePct) - parseFloat(a.dailyRangePct));
-      bucketResults.ConservativeBiasOnly.sort((a, b) => Math.abs(parseFloat(b.ema200DiffPct1d)) - Math.abs(parseFloat(a.ema200DiffPct1d)));
-
-      const totalBucketPairs = bucketResults.Aggressive.length + bucketResults.Balanced.length + bucketResults.ConservativeBiasOnly.length;
-
+      // No bucket classification - scanner uses selected trading style's timeframes only
+      console.log(`✅ Scan complete using ${tradingStyle.toUpperCase()} timeframes: ${config.timeframes.join(' + ')}`);
+      
       // Sort by confidence score and select top opportunities
       analysisResults.sort((a, b) => b.confidence - a.confidence);
       const topOpportunities = analysisResults.slice(0, maxBots);
 
-      console.log(`🎯 Found ${topOpportunities.length} high-confidence trading opportunities and ${totalBucketPairs} bucket-classified pairs`);
+      console.log(`🎯 Found ${topOpportunities.length} trading opportunities with ${tradingStyle} style (${config.timeframes.join(' + ')} timeframes)`);
 
-      // ENTRY POINT ANALYSIS - Find best entries from bucket results based on sophisticated rules
-      const entryOpportunities = await analyzeEntryPoints(bucketResults, tradingStyle);
-
-      // SCAN ONLY - Just return the opportunities found
+      // SCAN ONLY - Return the opportunities found
       res.json({
         success: true,
-        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities, ${totalBucketPairs} bucket-classified pairs, and ${entryOpportunities.length} sophisticated entry points`,
+        message: `Market scan complete: Found ${topOpportunities.length} trading opportunities using ${tradingStyle} timeframes (${config.timeframes.join(' + ')})`,
         opportunities: topOpportunities,
-        entryOpportunities,
-        bucketResults: {
-          Aggressive: bucketResults.Aggressive.slice(0, 10),
-          Balanced: bucketResults.Balanced.slice(0, 10), 
-          ConservativeBiasOnly: bucketResults.ConservativeBiasOnly.slice(0, 10)
-        },
         scanResults: {
           totalPairsAnalyzed: analyzedCount,
           validSignalsFound: validSignalCount,
           highConfidenceOpportunities: topOpportunities.length,
-          bucketClassified: {
-            Aggressive: bucketResults.Aggressive.length,
-            Balanced: bucketResults.Balanced.length,
-            ConservativeBiasOnly: bucketResults.ConservativeBiasOnly.length,
-            total: totalBucketPairs
-          },
+          tradingStyle: tradingStyle,
+          timeframes: config.timeframes,
           minConfidenceUsed: minConfidence,
           maxBotsRequested: maxBots
         },
@@ -5302,6 +5135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: error.message });
     }
   });
+
 
   // Auto Scanner - DEPLOY selected opportunities
   app.post('/api/auto-scanner/deploy', async (req, res) => {
