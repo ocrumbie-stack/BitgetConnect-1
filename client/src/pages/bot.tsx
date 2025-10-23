@@ -580,9 +580,10 @@ export default function BotPage() {
       tradingStyle = (userPrefs as any).tradingStyle || 'balanced';
     }
 
-    // Use a single good confidence level for all trading styles
-    // The trading style only determines the timeframe for analysis
-    const minConfidence = 65;
+    // Confidence threshold for auto scanner (normalized to 100% scale)
+    // Backend applies bucket-specific thresholds: Aggressive ≥65%, Balanced ≥60%, Conservative ≥50%
+    // General scanner uses base threshold of 50% with volatility adjustments
+    const minConfidence = 50;
 
     setIsScanning(true);
     setScannerResults(null);
@@ -2326,6 +2327,7 @@ export default function BotPage() {
                                     <div>• &gt;8% daily volatility</div>
                                     <div>• RSI extremes, BB breaks</div>
                                     <div>• Volume spikes &gt;2x</div>
+                                    <div>• <strong>≥65% confidence</strong></div>
                                   </div>
                                 </div>
                                 
@@ -2343,6 +2345,7 @@ export default function BotPage() {
                                     <div>• 3-8% daily volatility</div>
                                     <div>• EMA trend alignment</div>
                                     <div>• MACD/RSI confirmation</div>
+                                    <div>• <strong>≥60% confidence</strong></div>
                                   </div>
                                 </div>
                                 
@@ -2360,6 +2363,7 @@ export default function BotPage() {
                                     <div>• &lt;3% daily volatility</div>
                                     <div>• EMA200 bias filter</div>
                                     <div>• Position trading</div>
+                                    <div>• <strong>≥50% confidence</strong></div>
                                   </div>
                                 </div>
                               </div>
@@ -2392,7 +2396,7 @@ export default function BotPage() {
                       <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold mx-auto">2</div>
                       <div className="font-medium">Opportunity Selection</div>
                       <div className="text-muted-foreground">
-                        Ranks opportunities by confidence score and selects top pairs meeting your criteria
+                        Ranks opportunities by confidence score (0-100%). Bucket-specific thresholds: Aggressive ≥65%, Balanced ≥60%, Conservative ≥50%
                       </div>
                     </div>
                     <div className="space-y-2">
