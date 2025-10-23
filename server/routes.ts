@@ -102,7 +102,8 @@ function getDeploymentColor(deploymentType: string): string {
 
 // Manual strategy evaluation functions
 // AI Bot Entry Evaluation - Multi-Indicator Analysis
-async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
+// confidenceThreshold: If provided, applies specific threshold; otherwise uses dynamic threshold based on volatility
+async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200, confidenceThreshold?: number): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
     return { hasSignal: false, direction: null, confidence: 0, indicators: {} };
@@ -274,27 +275,30 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     const recentCandles = candleData.slice(-20);
     const volatility = calculateVolatility(recentCandles);
 
-    // BUCKET-BASED CONFIDENCE THRESHOLDS (determined by trading style/timeframe)
-    // These will be applied in the bucket classification logic
-    const bucketThresholds = {
-      aggressive: 65,   // 1m/5m timeframes - High volatility, quick scalping
-      balanced: 60,     // 15m/1H timeframes - Medium-term swing trades
-      conservative: 50  // 4H/1D timeframes - Long-term position trades
-    };
-
-    // For general scanner (non-bucket-specific), use a dynamic threshold
-    let confidenceThreshold = 50; // Base threshold for normalized 100% scale
+    // Determine confidence threshold to use
+    // If caller provided a specific threshold, use it (for bucket-specific analysis)
+    // Otherwise, use dynamic threshold based on volatility (for general scanner)
+    let appliedThreshold: number;
     let minSignalDifference = 5; // Minimum separation between bullish/bearish
 
-    // Adjust for volatility context
-    if (volatility > 4.0) {
-      confidenceThreshold = 45;
-      minSignalDifference = 4;
-      console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
-    } else if (volatility > 3.0) {
-      confidenceThreshold = 47;
-      minSignalDifference = 4;
-      console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${confidenceThreshold}%`);
+    if (confidenceThreshold !== undefined) {
+      // Bucket-specific threshold provided by caller
+      appliedThreshold = confidenceThreshold;
+      console.log(`🎯 Using caller-specified threshold: ${appliedThreshold}%`);
+    } else {
+      // Dynamic threshold for general scanner based on volatility
+      appliedThreshold = 50; // Base threshold for normalized 100% scale
+      
+      // Adjust for volatility context
+      if (volatility > 4.0) {
+        appliedThreshold = 45;
+        minSignalDifference = 4;
+        console.log(`🔥 EXTREME VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${appliedThreshold}%`);
+      } else if (volatility > 3.0) {
+        appliedThreshold = 47;
+        minSignalDifference = 4;
+        console.log(`📈 HIGH VOLATILITY (${volatility.toFixed(2)}%) - Threshold: ${appliedThreshold}%`);
+      }
     }
 
     // Signal strength requirements
@@ -313,8 +317,8 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
     }
 
     // Quality signal requirements
-    if (signalDifference >= minSignalDifference && confidence >= confidenceThreshold) {
-      console.log(`🎯 QUALITY SIGNAL: ${signalDifference}% diff, ${confidence}% confidence - threshold ${confidenceThreshold}%`);
+    if (signalDifference >= minSignalDifference && confidence >= appliedThreshold) {
+      console.log(`🎯 QUALITY SIGNAL: ${signalDifference}% diff, ${confidence}% confidence - threshold ${appliedThreshold}%`);
       
       if (bullishConfidence > bearishConfidence) {
         console.log(`🎯🎯🎯 LONG SIGNAL TRIGGERED FOR ${tradingPair}! Confidence: ${confidence}%`);
@@ -325,7 +329,7 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       }
     }
 
-    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < ${confidenceThreshold}%)`);
+    console.log(`⏸️ AI ${tradingPair} - No signal (confidence ${confidence}% < ${appliedThreshold}%)`);
     return { hasSignal: false, direction: null, confidence, indicators };
 
   } catch (error) {
@@ -5687,9 +5691,9 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
 
     for (const pair of bucketResults.Balanced.slice(0, 5)) {
       try {
-        // Use unified scoring system with Balanced timeframes
-        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['15m', '1H'], 150);
-        if (entryAnalysis.confidence >= entryRules.balanced.minConfidence && entryAnalysis.hasSignal) {
+        // Use unified scoring system with Balanced timeframes and 60% threshold
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['15m', '1H'], 150, entryRules.balanced.minConfidence);
+        if (entryAnalysis.hasSignal) {
           entryOpportunities.push({
             symbol: pair.symbol,
             confidence: entryAnalysis.confidence,
@@ -5714,9 +5718,9 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
 
     for (const pair of bucketResults.Aggressive.slice(0, 3)) {
       try {
-        // Use unified scoring system with Aggressive timeframes
-        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['1m', '5m'], 200);
-        if (entryAnalysis.confidence >= entryRules.aggressive.minConfidence && entryAnalysis.hasSignal) {
+        // Use unified scoring system with Aggressive timeframes and 65% threshold
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['1m', '5m'], 200, entryRules.aggressive.minConfidence);
+        if (entryAnalysis.hasSignal) {
           entryOpportunities.push({
             symbol: pair.symbol,
             confidence: entryAnalysis.confidence,
@@ -5741,9 +5745,9 @@ async function analyzeEntryPoints(bucketResults: any, tradingStyle: string) {
 
     for (const pair of bucketResults.ConservativeBiasOnly.slice(0, 3)) {
       try {
-        // Use unified scoring system with Conservative timeframes
-        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['4H', '1D'], 100);
-        if (entryAnalysis.confidence >= entryRules.conservative.minConfidence && entryAnalysis.hasSignal) {
+        // Use unified scoring system with Conservative timeframes and 50% threshold
+        const entryAnalysis = await evaluateAIBotEntry(pair.symbol, ['4H', '1D'], 100, entryRules.conservative.minConfidence);
+        if (entryAnalysis.hasSignal) {
           entryOpportunities.push({
             symbol: pair.symbol,
             confidence: entryAnalysis.confidence,
