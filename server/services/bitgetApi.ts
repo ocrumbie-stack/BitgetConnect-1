@@ -248,24 +248,43 @@ export class BitgetAPI {
       const regularOrders = Array.isArray(regularOrdersList) ? regularOrdersList : [];
       console.log(`📋 Found ${regularOrders.length} regular orders`);
       
-      // Now try to fetch both TP/SL and trailing stop plan orders
+      // Now try to fetch TP/SL and trailing stop plan orders
       let planOrders: any[] = [];
       
+      // Fetch Take Profit orders
       try {
-        console.log('🔍 Fetching TP/SL plan orders...');
-        const tpslOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+        console.log('🔍 Fetching Take Profit plan orders...');
+        const tpOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
           params: { 
             productType: 'USDT-FUTURES',
-            planType: 'profit_loss'  // Required parameter for TP/SL orders
+            planType: 'profit_plan'  // Take Profit orders
           }
         });
         
-        const tpslOrdersList = tpslOrdersResponse.data.data?.entrustedList || [];
-        const tpslOrders = Array.isArray(tpslOrdersList) ? tpslOrdersList : [];
-        console.log(`📋 Found ${tpslOrders.length} TP/SL plan orders`);
-        planOrders = [...tpslOrders];
-      } catch (tpslError) {
-        console.log('⚠️ Could not fetch TP/SL plan orders:', (tpslError as any).response?.data?.msg || (tpslError as any).message);
+        const tpOrdersList = tpOrdersResponse.data.data?.entrustedList || [];
+        const tpOrders = Array.isArray(tpOrdersList) ? tpOrdersList : [];
+        console.log(`📋 Found ${tpOrders.length} Take Profit orders`);
+        planOrders = [...tpOrders];
+      } catch (tpError) {
+        console.log('⚠️ Could not fetch Take Profit orders:', (tpError as any).response?.data?.msg || (tpError as any).message);
+      }
+      
+      // Fetch Stop Loss orders
+      try {
+        console.log('🔍 Fetching Stop Loss plan orders...');
+        const slOrdersResponse = await this.client.get('/api/v2/mix/order/orders-plan-pending', {
+          params: { 
+            productType: 'USDT-FUTURES',
+            planType: 'loss_plan'  // Stop Loss orders
+          }
+        });
+        
+        const slOrdersList = slOrdersResponse.data.data?.entrustedList || [];
+        const slOrders = Array.isArray(slOrdersList) ? slOrdersList : [];
+        console.log(`📋 Found ${slOrders.length} Stop Loss orders`);
+        planOrders = [...planOrders, ...slOrders];
+      } catch (slError) {
+        console.log('⚠️ Could not fetch Stop Loss orders:', (slError as any).response?.data?.msg || (slError as any).message);
       }
       
       try {
@@ -360,6 +379,9 @@ export class BitgetAPI {
     stopLoss?: string;
     trailingStop?: string;
   }): Promise<any> {
+    // Map side for position guard (needs to be accessible in catch block)
+    const mappedSide: Side = orderParams.side === 'buy' ? 'long' : 'short';
+    
     try {
       // Set leverage BEFORE placing order if specified
       if (orderParams.leverage) {
@@ -390,7 +412,6 @@ export class BitgetAPI {
       const formattedSize = parseFloat(orderParams.size).toFixed(sizePrecision);
 
       // ---------- ONE-POSITION GUARD START ----------
-      const mappedSide: Side = orderParams.side === 'buy' ? 'long' : 'short';
       // 0) Fast de-dupe & ping-pong protection
       if (!positionGuard.canEnter(orderParams.symbol, mappedSide)) {
         console.log('⛔ blocked_by_guard (cooldown or active)');
@@ -421,23 +442,71 @@ export class BitgetAPI {
         tradeSide: 'open', // Always 'open' for new positions
         orderType: orderParams.orderType || 'market',
         size: formattedSize,
-        ...(orderParams.price && { price: orderParams.price }),
-        // Take Profit / Stop Loss preset parameters (using correct Bitget API parameter names)
-        ...(orderParams.takeProfit && { 
-          presetStopSurplusPrice: orderParams.takeProfit // Correct name for TP
-          // Note: Don't include executePrice for market execution
-        }),
-        ...(orderParams.stopLoss && { 
-          presetStopLossPrice: orderParams.stopLoss // Correct name for SL  
-          // Note: Don't include executePrice for market execution
-        })
+        ...(orderParams.price && { price: orderParams.price })
       };
 
       console.log('🔧 Main order data for Bitget:', JSON.stringify(orderData, null, 2));
       const mainOrderResponse = await this.client.post('/api/v2/mix/order/place-order', orderData);
       console.log('✅ Main order placed successfully:', JSON.stringify(mainOrderResponse.data, null, 2));
 
-      // STEP 2: If trailing stop is requested, place a separate trailing stop plan order
+      // Track additional orders placed
+      const additionalOrders: any = {};
+
+      // STEP 2: Place Take Profit order as separate TPSL order (visible in order list)
+      if (orderParams.takeProfit) {
+        console.log('💰 Placing Take Profit order...');
+        try {
+          const tpOrderData = {
+            symbol: orderParams.symbol,
+            productType: 'USDT-FUTURES',
+            marginCoin: 'USDT',
+            marginMode: 'isolated',
+            planType: 'profit_plan', // Take Profit type
+            triggerPrice: orderParams.takeProfit,
+            triggerType: 'mark_price', // Use mark price to avoid manipulation
+            holdSide: orderParams.side === 'buy' ? 'long' : 'short',
+            size: formattedSize,
+            rangeRate: '' // Empty for standard TP/SL
+          };
+          
+          console.log('🔧 Take Profit order data:', JSON.stringify(tpOrderData, null, 2));
+          const tpResponse = await this.client.post('/api/v2/mix/order/place-tpsl-order', tpOrderData);
+          console.log('✅ Take Profit order placed successfully:', JSON.stringify(tpResponse.data, null, 2));
+          additionalOrders.takeProfitOrderId = tpResponse.data.data?.orderId;
+        } catch (tpError: any) {
+          console.log('⚠️ Take Profit order failed:', tpError.response?.data?.msg || tpError.message);
+          additionalOrders.takeProfitWarning = tpError.response?.data?.msg || tpError.message;
+        }
+      }
+
+      // STEP 3: Place Stop Loss order as separate TPSL order (visible in order list)
+      if (orderParams.stopLoss) {
+        console.log('🛡️ Placing Stop Loss order...');
+        try {
+          const slOrderData = {
+            symbol: orderParams.symbol,
+            productType: 'USDT-FUTURES',
+            marginCoin: 'USDT',
+            marginMode: 'isolated',
+            planType: 'loss_plan', // Stop Loss type
+            triggerPrice: orderParams.stopLoss,
+            triggerType: 'mark_price', // Use mark price to avoid manipulation
+            holdSide: orderParams.side === 'buy' ? 'long' : 'short',
+            size: formattedSize,
+            rangeRate: '' // Empty for standard TP/SL
+          };
+          
+          console.log('🔧 Stop Loss order data:', JSON.stringify(slOrderData, null, 2));
+          const slResponse = await this.client.post('/api/v2/mix/order/place-tpsl-order', slOrderData);
+          console.log('✅ Stop Loss order placed successfully:', JSON.stringify(slResponse.data, null, 2));
+          additionalOrders.stopLossOrderId = slResponse.data.data?.orderId;
+        } catch (slError: any) {
+          console.log('⚠️ Stop Loss order failed:', slError.response?.data?.msg || slError.message);
+          additionalOrders.stopLossWarning = slError.response?.data?.msg || slError.message;
+        }
+      }
+
+      // STEP 4: If trailing stop is requested, place a separate trailing stop plan order
       if (orderParams.trailingStop) {
         console.log('🎯 Adding trailing stop plan order...');
         
@@ -447,9 +516,9 @@ export class BitgetAPI {
         
         if (!symbolTicker) {
           console.log('⚠️ Could not find current price for trailing stop, skipping...');
-          const __main = mainOrderResponse.data;
+          const __main = { ...mainOrderResponse.data, ...additionalOrders };
       positionGuard.end(orderParams.symbol, mappedSide, 7000);
-      return __main; // Return main order success
+      return __main; // Return main order success with TP/SL info
         }
         
         const currentPrice = parseFloat(symbolTicker.lastPr);
@@ -485,9 +554,10 @@ export class BitgetAPI {
           const trailingStopResponse = await this.client.post('/api/v2/mix/order/place-plan-order', trailingStopData);
           console.log('✅ Trailing stop plan order placed successfully:', JSON.stringify(trailingStopResponse.data, null, 2));
           
-          // Return combined response indicating both orders were placed
+          // Return combined response indicating all orders were placed
           const __result = {
             ...mainOrderResponse.data,
+            ...additionalOrders,
             trailingStopAdded: true,
             trailingStopOrderId: trailingStopResponse.data.data?.orderId
           };
@@ -495,14 +565,12 @@ export class BitgetAPI {
           return __result;
         } catch (trailingError: any) {
           console.log('⚠️ Trailing stop plan order failed, but main order succeeded:', trailingError.response?.data?.msg || trailingError.message);
-          return {
-            ...mainOrderResponse.data,
-            trailingStopWarning: 'Main order placed successfully, but trailing stop failed: ' + (trailingError.response?.data?.msg || trailingError.message)
-          };
+          additionalOrders.trailingStopWarning = 'Trailing stop failed: ' + (trailingError.response?.data?.msg || trailingError.message);
         }
       }
 
-      const __main = mainOrderResponse.data;
+      // Return main order with all additional order info
+      const __main = { ...mainOrderResponse.data, ...additionalOrders };
       positionGuard.end(orderParams.symbol, mappedSide, 7000);
       return __main;
     } catch (error: any) {
