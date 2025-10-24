@@ -2310,82 +2310,30 @@ export default function BotPage() {
                           
                           {/* High-Confidence Trading Opportunities */}
                           {scannerResults.opportunities?.length > 0 && (
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               <div className="text-sm font-medium text-muted-foreground">High-Confidence Opportunities:</div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {scannerResults.opportunities.map((opp: any, index: number) => {
-                                  const leverage = parseFloat(scannerLeverage) || 1;
-                                  const tpPercent = parseFloat(scannerTakeProfit) || opp.takeProfit || 0;
-                                  const slPercent = parseFloat(scannerStopLoss) || opp.stopLoss || 0;
-                                  const entryPrice = parseFloat(opp.entryPrice) || 0;
-                                  
-                                  const tpLeverageMove = tpPercent * leverage;
-                                  const slLeverageMove = slPercent * leverage;
-                                  
-                                  const tpPrice = opp.direction === 'long' 
-                                    ? entryPrice * (1 + tpPercent / 100)
-                                    : entryPrice * (1 - tpPercent / 100);
-                                  const slPrice = opp.direction === 'long'
-                                    ? entryPrice * (1 - slPercent / 100)
-                                    : entryPrice * (1 + slPercent / 100);
-                                  
-                                  return (
-                                    <div 
-                                      key={index}
-                                      className="p-3 bg-white dark:bg-gray-800 border rounded-lg"
-                                    >
-                                      <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium text-base">{opp.symbol}</span>
-                                          <span className={`text-xs px-2 py-0.5 rounded ${
-                                            opp.direction === 'long' 
-                                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                                              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                          }`}>
-                                            {opp.direction?.toUpperCase()}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
-                                          {opp.timeframes && (
-                                            <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                                              {opp.timeframes.join('+')}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="grid grid-cols-2 gap-2 text-xs">
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
-                                          <div className="text-muted-foreground mb-1">Entry Price</div>
-                                          <div className="font-medium">${entryPrice.toFixed(entryPrice < 1 ? 6 : 2)}</div>
-                                        </div>
-                                        <div className="p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
-                                          <div className="text-muted-foreground mb-1">Leverage</div>
-                                          <div className="font-medium">{leverage}x</div>
-                                        </div>
-                                        <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded border border-green-200 dark:border-green-800">
-                                          <div className="text-green-700 dark:text-green-300 mb-1 font-medium">Take Profit</div>
-                                          <div className="font-bold text-green-600 dark:text-green-400">
-                                            +{tpLeverageMove.toFixed(1)}% (${tpPrice.toFixed(tpPrice < 1 ? 6 : 2)})
-                                          </div>
-                                          <div className="text-green-600 dark:text-green-400 text-[10px] mt-0.5">
-                                            {tpPercent.toFixed(1)}% × {leverage}x leverage
-                                          </div>
-                                        </div>
-                                        <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded border border-red-200 dark:border-red-800">
-                                          <div className="text-red-700 dark:text-red-300 mb-1 font-medium">Stop Loss</div>
-                                          <div className="font-bold text-red-600 dark:text-red-400">
-                                            -{slLeverageMove.toFixed(1)}% (${slPrice.toFixed(slPrice < 1 ? 6 : 2)})
-                                          </div>
-                                          <div className="text-red-600 dark:text-red-400 text-[10px] mt-0.5">
-                                            {slPercent.toFixed(1)}% × {leverage}x leverage
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                              <div className="flex flex-wrap gap-2">
+                                {scannerResults.opportunities.map((opp: any, index: number) => (
+                                  <div 
+                                    key={index}
+                                    className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-800 border rounded-lg text-sm"
+                                  >
+                                    <span className="font-medium">{opp.symbol}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded ${
+                                      opp.direction === 'long' 
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                    }`}>
+                                      {opp.direction?.toUpperCase()}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">{opp.confidence}%</span>
+                                    {opp.timeframes && (
+                                      <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                        {opp.timeframes.join('+')}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
@@ -2860,65 +2808,23 @@ export default function BotPage() {
                                             </div>
                                             
                                             {/* Row 3: Exit Levels (if active) */}
-                                            {execution.status === 'active' && (() => {
-                                              const leverage = parseFloat(execution.leverage) || 1;
-                                              const tpPercent = parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit || '0');
-                                              const slPercent = parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss || '0');
-                                              const entryPrice = parseFloat(execution.positionData?.openPriceAvg || execution.entryPrice || '0');
-                                              const positionSide = execution.positionData?.holdSide || execution.positionDirection || 'long';
-                                              
-                                              const tpLeverageMove = tpPercent * leverage;
-                                              const slLeverageMove = Math.abs(slPercent) * leverage;
-                                              
-                                              const tpPrice = positionSide === 'long' 
-                                                ? entryPrice * (1 + tpPercent / 100)
-                                                : entryPrice * (1 - tpPercent / 100);
-                                              const slPrice = positionSide === 'long'
-                                                ? entryPrice * (1 + slPercent / 100)
-                                                : entryPrice * (1 - slPercent / 100);
-                                              
-                                              return (
-                                                <div className="mt-2 pt-2 border-t border-gray-600/30">
-                                                  <div className="grid grid-cols-2 gap-2 text-xs">
-                                                    <div className="p-2 bg-red-900/30 rounded border border-red-800">
-                                                      <div className="text-red-300 mb-1 font-medium">Stop Loss</div>
-                                                      {slPercent !== 0 && entryPrice > 0 ? (
-                                                        <>
-                                                          <div className="font-bold text-red-400">
-                                                            {slPercent.toFixed(1)}% → {slLeverageMove.toFixed(1)}%
-                                                          </div>
-                                                          <div className="text-red-400 text-[10px] mt-0.5">
-                                                            Price: ${slPrice.toFixed(slPrice < 1 ? 6 : 4)}
-                                                          </div>
-                                                        </>
-                                                      ) : (
-                                                        <div className="text-red-400">N/A</div>
-                                                      )}
-                                                    </div>
-                                                    <div className="p-2 bg-green-900/30 rounded border border-green-800">
-                                                      <div className="text-green-300 mb-1 font-medium">Take Profit</div>
-                                                      {tpPercent !== 0 && entryPrice > 0 ? (
-                                                        <>
-                                                          <div className="font-bold text-green-400">
-                                                            +{tpPercent.toFixed(1)}% → +{tpLeverageMove.toFixed(1)}%
-                                                          </div>
-                                                          <div className="text-green-400 text-[10px] mt-0.5">
-                                                            Price: ${tpPrice.toFixed(tpPrice < 1 ? 6 : 4)}
-                                                          </div>
-                                                        </>
-                                                      ) : (
-                                                        <div className="text-green-400">N/A</div>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                  {execution.confidence && (
-                                                    <div className="text-purple-400 text-xs mt-2">
-                                                      Confidence: {execution.confidence}%
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              );
-                                            })()}
+                                            {execution.status === 'active' && (
+                                              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-600/30 text-xs">
+                                                <span className="text-red-400">
+                                                  SL: {execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss ? 
+                                                    `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss).toFixed(1)}%` : 'N/A'}
+                                                </span>
+                                                <span className="text-green-400">
+                                                  TP: {execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit ? 
+                                                    `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit).toFixed(1)}%` : 'N/A'}
+                                                </span>
+                                                {execution.confidence && (
+                                                  <span className="text-purple-400">
+                                                    Confidence: {execution.confidence}%
+                                                  </span>
+                                                )}
+                                              </div>
+                                            )}
                                           </div>
                                           
                                           {/* Right Column - Action Buttons */}
@@ -3090,65 +2996,23 @@ export default function BotPage() {
                                           </div>
                                           
                                           {/* Row 3: Exit Levels (if active) */}
-                                          {execution.status === 'active' && (() => {
-                                            const leverage = parseFloat(execution.leverage) || 1;
-                                            const tpPercent = parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit || '0');
-                                            const slPercent = parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss || '0');
-                                            const entryPrice = parseFloat(execution.positionData?.openPriceAvg || execution.entryPrice || '0');
-                                            const positionSide = execution.positionData?.holdSide || execution.positionDirection || 'long';
-                                            
-                                            const tpLeverageMove = tpPercent * leverage;
-                                            const slLeverageMove = Math.abs(slPercent) * leverage;
-                                            
-                                            const tpPrice = positionSide === 'long' 
-                                              ? entryPrice * (1 + tpPercent / 100)
-                                              : entryPrice * (1 - tpPercent / 100);
-                                            const slPrice = positionSide === 'long'
-                                              ? entryPrice * (1 + slPercent / 100)
-                                              : entryPrice * (1 - slPercent / 100);
-                                            
-                                            return (
-                                              <div className="mt-2 pt-2 border-t border-gray-600/30">
-                                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                                  <div className="p-2 bg-red-900/30 rounded border border-red-800">
-                                                    <div className="text-red-300 mb-1 font-medium">Stop Loss</div>
-                                                    {slPercent !== 0 && entryPrice > 0 ? (
-                                                      <>
-                                                        <div className="font-bold text-red-400">
-                                                          {slPercent.toFixed(1)}% → {slLeverageMove.toFixed(1)}%
-                                                        </div>
-                                                        <div className="text-red-400 text-[10px] mt-0.5">
-                                                          Price: ${slPrice.toFixed(slPrice < 1 ? 6 : 4)}
-                                                        </div>
-                                                      </>
-                                                    ) : (
-                                                      <div className="text-red-400">N/A</div>
-                                                    )}
-                                                  </div>
-                                                  <div className="p-2 bg-green-900/30 rounded border border-green-800">
-                                                    <div className="text-green-300 mb-1 font-medium">Take Profit</div>
-                                                    {tpPercent !== 0 && entryPrice > 0 ? (
-                                                      <>
-                                                        <div className="font-bold text-green-400">
-                                                          +{tpPercent.toFixed(1)}% → +{tpLeverageMove.toFixed(1)}%
-                                                        </div>
-                                                        <div className="text-green-400 text-[10px] mt-0.5">
-                                                          Price: ${tpPrice.toFixed(tpPrice < 1 ? 6 : 4)}
-                                                        </div>
-                                                      </>
-                                                    ) : (
-                                                      <div className="text-green-400">N/A</div>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                                {execution.confidence && (
-                                                  <div className="text-purple-400 text-xs mt-2">
-                                                    Confidence: {execution.confidence}%
-                                                  </div>
-                                                )}
-                                              </div>
-                                            );
-                                          })()}
+                                          {execution.status === 'active' && (
+                                            <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-600/30 text-xs">
+                                              <span className="text-red-400">
+                                                SL: {execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss ? 
+                                                  `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss).toFixed(1)}%` : 'N/A'}
+                                              </span>
+                                              <span className="text-green-400">
+                                                TP: {execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit ? 
+                                                  `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit).toFixed(1)}%` : 'N/A'}
+                                              </span>
+                                              {execution.confidence && (
+                                                <span className="text-purple-400">
+                                                  Confidence: {execution.confidence}%
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                         
                                         {/* Right Column - Action Buttons */}

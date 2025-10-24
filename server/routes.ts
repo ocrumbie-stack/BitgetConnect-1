@@ -101,8 +101,8 @@ function getDeploymentColor(deploymentType: string): string {
 }
 
 // Manual strategy evaluation functions
-// AI Bot Entry Evaluation - COMPREHENSIVE INDICATOR SYSTEM (14 Indicators = 100%)
-// EMA (12%) + HTF (12%) + Ichimoku (10%) + RSI (8%) + MACD (8%) + ADX (8%) + MFI (7%) + OBV (7%) + Stochastic (6%) + Volume Z-Score (6%) + Fibonacci (6%) + VWAP (5%) + Parabolic SAR (3%) + Supertrend (2%) = 100%
+// AI Bot Entry Evaluation - NEW ADVANCED INDICATOR SYSTEM
+// EMA Trend (18%) + HTF Confirmation (18%) + RSI (13%) + MACD (13%) + ADX/DI (10%) + Stochastic (8%) + Volume Z-Score (8%) + VWAP (7%) + Supertrend (5%) = 100%
 async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['5m'], dataPoints: number = 200): Promise<{ hasSignal: boolean, direction: 'long' | 'short' | null, confidence: number, indicators: any }> {
   if (!bitgetAPI) {
     console.log('❌ Bitget API not available for AI bot evaluation');
@@ -153,10 +153,10 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
 
     // ============= LONG ENTRY SCORING =============
 
-    // 1. EMA TREND (12 pts) - EMA20 > EMA50 and EMA20 slope > 0
+    // 1. EMA TREND (18 pts) - EMA20 > EMA50 and EMA20 slope > 0
     const ema20Values = calculateEMA(closes, 20);
     const ema50Values = calculateEMA(closes, 50);
-    if (ema20Values && ema20Values.length >= 2 && ema50Values && ema50Values.length >= 1) {
+    if (ema20Values && ema50Values && ema20Values.length >= 2 && ema50Values.length >= 1) {
       const ema20 = ema20Values[ema20Values.length - 1];
       const ema50 = ema50Values[ema50Values.length - 1];
       const ema20Prev = ema20Values[ema20Values.length - 2];
@@ -167,120 +167,120 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       
       // LONG: EMA20 > EMA50 and slope > 0
       if (ema20 > ema50 && ema20Slope > 0) {
-        longScore += 12;
-        console.log(`🟢 EMA TREND LONG: Full (+12 pts)`);
+        longScore += 18; // Full points
+        console.log(`🟢 EMA TREND LONG: Full (+18 pts)`);
       } else if (ema20 > ema50) {
-        longScore += 6;
-        console.log(`🟡 EMA TREND LONG: Crossover only (+6 pts)`);
+        longScore += 9; // Crossover only
+        console.log(`🟡 EMA TREND LONG: Crossover only (+9 pts)`);
       }
       
       // SHORT: EMA20 < EMA50 and slope < 0
       if (ema20 < ema50 && ema20Slope < 0) {
-        shortScore += 12;
-        console.log(`🔴 EMA TREND SHORT: Full (+12 pts)`);
+        shortScore += 18;
+        console.log(`🔴 EMA TREND SHORT: Full (+18 pts)`);
       } else if (ema20 < ema50) {
-        shortScore += 6;
-        console.log(`🟠 EMA TREND SHORT: Crossover only (+6 pts)`);
+        shortScore += 9;
+        console.log(`🟠 EMA TREND SHORT: Crossover only (+9 pts)`);
       }
     }
 
-    // 2. RSI (8 pts) - RSI(14) > 55 and < 75 for long
+    // 2. RSI (13 pts) - RSI(14) > 55 and < 75 for long
     const rsi = calculateRSI(closes, 14);
     if (rsi) {
       indicators.rsi = rsi;
       
       // LONG: RSI > 60 full, RSI > 55 partial
       if (rsi > 60 && rsi < 75) {
-        longScore += 8;
-        console.log(`🟢 RSI LONG: Full ${rsi.toFixed(1)} (+8 pts)`);
+        longScore += 13;
+        console.log(`🟢 RSI LONG: Full ${rsi.toFixed(1)} (+13 pts)`);
       } else if (rsi > 55 && rsi < 75) {
-        longScore += 4;
-        console.log(`🟡 RSI LONG: Partial ${rsi.toFixed(1)} (+4 pts)`);
+        longScore += 6;
+        console.log(`🟡 RSI LONG: Partial ${rsi.toFixed(1)} (+6 pts)`);
       }
       
       // SHORT: RSI < 40 full, RSI < 45 partial
       if (rsi < 40 && rsi > 25) {
-        shortScore += 8;
-        console.log(`🔴 RSI SHORT: Full ${rsi.toFixed(1)} (+8 pts)`);
+        shortScore += 13;
+        console.log(`🔴 RSI SHORT: Full ${rsi.toFixed(1)} (+13 pts)`);
       } else if (rsi < 45 && rsi > 25) {
-        shortScore += 4;
-        console.log(`🟠 RSI SHORT: Partial ${rsi.toFixed(1)} (+4 pts)`);
+        shortScore += 6;
+        console.log(`🟠 RSI SHORT: Partial ${rsi.toFixed(1)} (+6 pts)`);
       }
     }
 
-    // 3. MACD (8 pts) - MACD > Signal and Hist > 0
+    // 3. MACD (13 pts) - MACD > Signal and Hist > 0
     const macdData = await calculateMACD(closes);
     if (macdData) {
       indicators.macd = macdData;
       
       // LONG: MACD > Signal and Hist > 0
       if (macdData.macd > macdData.signal && macdData.histogram > 0) {
-        longScore += 8;
-        console.log(`🟢 MACD LONG: Full (+8 pts)`);
+        longScore += 13;
+        console.log(`🟢 MACD LONG: Full (+13 pts)`);
       } else if (macdData.macd > macdData.signal) {
-        longScore += 4;
-        console.log(`🟡 MACD LONG: Early cross (+4 pts)`);
+        longScore += 6;
+        console.log(`🟡 MACD LONG: Early cross (+6 pts)`);
       }
       
       // SHORT: MACD < Signal and Hist < 0
       if (macdData.macd < macdData.signal && macdData.histogram < 0) {
-        shortScore += 8;
-        console.log(`🔴 MACD SHORT: Full (+8 pts)`);
+        shortScore += 13;
+        console.log(`🔴 MACD SHORT: Full (+13 pts)`);
       } else if (macdData.macd < macdData.signal) {
-        shortScore += 4;
-        console.log(`🟠 MACD SHORT: Early cross (+4 pts)`);
+        shortScore += 6;
+        console.log(`🟠 MACD SHORT: Early cross (+6 pts)`);
       }
     }
 
-    // 4. ADX / DI (8 pts) - ADX > 20 and +DI > -DI
+    // 4. ADX / DI (10 pts) - ADX > 20 and +DI > -DI
     const adxData = calculateADX(highs, lows, closes, 14);
     if (adxData) {
       indicators.adx = adxData;
       
       // LONG: ADX > 20 and +DI > -DI
       if (adxData.adx > 20 && adxData.plusDI > adxData.minusDI) {
-        longScore += 8;
-        console.log(`🟢 ADX LONG: Full ADX ${adxData.adx.toFixed(1)} (+8 pts)`);
+        longScore += 10;
+        console.log(`🟢 ADX LONG: Full ADX ${adxData.adx.toFixed(1)} (+10 pts)`);
       } else if (adxData.plusDI > adxData.minusDI) {
-        longScore += 4;
-        console.log(`🟡 ADX LONG: Weak trend (+4 pts)`);
+        longScore += 5;
+        console.log(`🟡 ADX LONG: Weak trend (+5 pts)`);
       }
       
       // SHORT: ADX > 20 and -DI > +DI
       if (adxData.adx > 20 && adxData.minusDI > adxData.plusDI) {
-        shortScore += 8;
-        console.log(`🔴 ADX SHORT: Full ADX ${adxData.adx.toFixed(1)} (+8 pts)`);
+        shortScore += 10;
+        console.log(`🔴 ADX SHORT: Full ADX ${adxData.adx.toFixed(1)} (+10 pts)`);
       } else if (adxData.minusDI > adxData.plusDI) {
-        shortScore += 4;
-        console.log(`🟠 ADX SHORT: Weak trend (+4 pts)`);
+        shortScore += 5;
+        console.log(`🟠 ADX SHORT: Weak trend (+5 pts)`);
       }
     }
 
-    // 5. STOCHASTIC (6 pts) - %K > %D and %K > 30 (< 80)
+    // 5. STOCHASTIC (8 pts) - %K > %D and %K > 30 (< 80)
     const stoch = calculateStochastic(highs, lows, closes, 14, 3, 3);
     if (stoch) {
       indicators.stochastic = stoch;
       
       // LONG: %K > %D and %K > 30 (< 80)
       if (stoch.k > stoch.d && stoch.k > 30 && stoch.k < 80) {
-        longScore += 6;
-        console.log(`🟢 STOCHASTIC LONG: Full %K ${stoch.k.toFixed(1)} (+6 pts)`);
+        longScore += 8;
+        console.log(`🟢 STOCHASTIC LONG: Full %K ${stoch.k.toFixed(1)} (+8 pts)`);
       } else if (stoch.k > stoch.d && stoch.k < 50) {
-        longScore += 3;
-        console.log(`🟡 STOCHASTIC LONG: Cross below 50 (+3 pts)`);
+        longScore += 4;
+        console.log(`🟡 STOCHASTIC LONG: Cross below 50 (+4 pts)`);
       }
       
       // SHORT: %K < %D and %K < 70 (> 20)
       if (stoch.k < stoch.d && stoch.k < 70 && stoch.k > 20) {
-        shortScore += 6;
-        console.log(`🔴 STOCHASTIC SHORT: Full %K ${stoch.k.toFixed(1)} (+6 pts)`);
+        shortScore += 8;
+        console.log(`🔴 STOCHASTIC SHORT: Full %K ${stoch.k.toFixed(1)} (+8 pts)`);
       } else if (stoch.k < stoch.d && stoch.k > 50) {
-        shortScore += 3;
-        console.log(`🟠 STOCHASTIC SHORT: Cross above 50 (+3 pts)`);
+        shortScore += 4;
+        console.log(`🟠 STOCHASTIC SHORT: Cross above 50 (+4 pts)`);
       }
     }
 
-    // 6. VOLUME Z-SCORE (6 pts) - z > +0.5 and price > EMA20
+    // 6. VOLUME Z-SCORE (8 pts) - z > +0.5 and price > EMA20
     const volZScore = calculateVolumeZScore(volumes);
     if (volZScore !== null && ema20Values) {
       const ema20 = ema20Values[ema20Values.length - 1];
@@ -288,24 +288,25 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
       
       // LONG: z > +0.5 and price > EMA20
       if (volZScore > 1.0 && currentPrice > ema20) {
-        longScore += 6;
-        console.log(`🟢 VOLUME Z-SCORE LONG: Full z=${volZScore.toFixed(2)} (+6 pts)`);
+        longScore += 8;
+        console.log(`🟢 VOLUME Z-SCORE LONG: Full z=${volZScore.toFixed(2)} (+8 pts)`);
       } else if (volZScore > 0.5 && currentPrice > ema20) {
-        longScore += 3;
-        console.log(`🟡 VOLUME Z-SCORE LONG: Partial z=${volZScore.toFixed(2)} (+3 pts)`);
+        longScore += 4;
+        console.log(`🟡 VOLUME Z-SCORE LONG: Partial z=${volZScore.toFixed(2)} (+4 pts)`);
       }
       
       // SHORT: z < -0.5 and price < EMA20
       if (volZScore < -1.0 && currentPrice < ema20) {
-        shortScore += 6;
-        console.log(`🔴 VOLUME Z-SCORE SHORT: Full z=${volZScore.toFixed(2)} (+6 pts)`);
+        shortScore += 8;
+        console.log(`🔴 VOLUME Z-SCORE SHORT: Full z=${volZScore.toFixed(2)} (+8 pts)`);
       } else if (volZScore < -0.5 && currentPrice < ema20) {
-        shortScore += 3;
-        console.log(`🟠 VOLUME Z-SCORE SHORT: Partial z=${volZScore.toFixed(2)} (+3 pts)`);
+        shortScore += 4;
+        console.log(`🟠 VOLUME Z-SCORE SHORT: Partial z=${volZScore.toFixed(2)} (+4 pts)`);
       }
     }
 
-    // 7. HTF CONFIRMATION (12 pts) - Check higher timeframe alignment
+    // 7. HTF CONFIRMATION (18 pts) - Check higher timeframe alignment
+    let htfScore = 0;
     if (timeframes.length > 1) {
       const htfTimeframe = timeframes[1];
       const htfData = await bitgetAPI.getCandlestickData(tradingPair, htfTimeframe, 100);
@@ -322,181 +323,58 @@ async function evaluateAIBotEntry(tradingPair: string, timeframes: string[] = ['
           
           // LONG HTF: EMA20 > EMA50 and RSI > 50
           if (htfEma20Val > htfEma50Val && htfRsi > 50) {
-            longScore += 12;
-            console.log(`🟢 HTF CONFIRMATION LONG: Full alignment (+12 pts)`);
+            longScore += 18;
+            console.log(`🟢 HTF CONFIRMATION LONG: Full alignment (+18 pts)`);
           } else if (htfEma20Val > htfEma50Val) {
-            longScore += 6;
-            console.log(`🟡 HTF CONFIRMATION LONG: Partial (+6 pts)`);
+            longScore += 9;
+            console.log(`🟡 HTF CONFIRMATION LONG: Partial (+9 pts)`);
           }
           
           // SHORT HTF: EMA20 < EMA50 and RSI < 50
           if (htfEma20Val < htfEma50Val && htfRsi < 50) {
-            shortScore += 12;
-            console.log(`🔴 HTF CONFIRMATION SHORT: Full alignment (+12 pts)`);
+            shortScore += 18;
+            console.log(`🔴 HTF CONFIRMATION SHORT: Full alignment (+18 pts)`);
           } else if (htfEma20Val < htfEma50Val) {
-            shortScore += 6;
-            console.log(`🟠 HTF CONFIRMATION SHORT: Partial (+6 pts)`);
+            shortScore += 9;
+            console.log(`🟠 HTF CONFIRMATION SHORT: Partial (+9 pts)`);
           }
         }
       }
     }
 
-    // 8. ICHIMOKU CLOUD (10 pts) - Cloud position and TK cross
-    const ichimoku = calculateIchimoku(highs, lows, closes, 9, 26, 52);
-    if (ichimoku) {
-      indicators.ichimoku = ichimoku;
-      
-      // LONG: Price above cloud + TK bullish cross
-      if (ichimoku.cloudPosition === 'above' && ichimoku.tkCross === 'bullish') {
-        longScore += 10;
-        console.log(`🟢 ICHIMOKU LONG: Full (above cloud + TK cross) (+10 pts)`);
-      } else if (ichimoku.cloudPosition === 'above') {
-        longScore += 5;
-        console.log(`🟡 ICHIMOKU LONG: Above cloud only (+5 pts)`);
-      }
-      
-      // SHORT: Price below cloud + TK bearish cross
-      if (ichimoku.cloudPosition === 'below' && ichimoku.tkCross === 'bearish') {
-        shortScore += 10;
-        console.log(`🔴 ICHIMOKU SHORT: Full (below cloud + TK cross) (+10 pts)`);
-      } else if (ichimoku.cloudPosition === 'below') {
-        shortScore += 5;
-        console.log(`🟠 ICHIMOKU SHORT: Below cloud only (+5 pts)`);
-      }
-    }
-
-    // 9. MFI - Money Flow Index (7 pts) - Volume-weighted RSI
-    const mfi = calculateMFI(highs, lows, closes, volumes, 14);
-    if (mfi) {
-      indicators.mfi = mfi;
-      
-      // LONG: MFI > 50 and < 80
-      if (mfi > 60 && mfi < 80) {
-        longScore += 7;
-        console.log(`🟢 MFI LONG: Full ${mfi.toFixed(1)} (+7 pts)`);
-      } else if (mfi > 50 && mfi < 80) {
-        longScore += 3;
-        console.log(`🟡 MFI LONG: Partial ${mfi.toFixed(1)} (+3 pts)`);
-      }
-      
-      // SHORT: MFI < 50 and > 20
-      if (mfi < 40 && mfi > 20) {
-        shortScore += 7;
-        console.log(`🔴 MFI SHORT: Full ${mfi.toFixed(1)} (+7 pts)`);
-      } else if (mfi < 50 && mfi > 20) {
-        shortScore += 3;
-        console.log(`🟠 MFI SHORT: Partial ${mfi.toFixed(1)} (+3 pts)`);
-      }
-    }
-
-    // 10. OBV - On-Balance Volume (7 pts) - Volume flow confirmation
-    const obv = calculateOBV(closes, volumes);
-    if (obv && ema20Values) {
-      const ema20 = ema20Values[ema20Values.length - 1];
-      indicators.obv = obv;
-      
-      // LONG: OBV rising and price > EMA20
-      if (obv.trend === 'rising' && currentPrice > ema20) {
-        longScore += 7;
-        console.log(`🟢 OBV LONG: Rising volume flow (+7 pts)`);
-      } else if (obv.trend === 'rising') {
-        longScore += 3;
-        console.log(`🟡 OBV LONG: Rising but price weak (+3 pts)`);
-      }
-      
-      // SHORT: OBV falling and price < EMA20
-      if (obv.trend === 'falling' && currentPrice < ema20) {
-        shortScore += 7;
-        console.log(`🔴 OBV SHORT: Falling volume flow (+7 pts)`);
-      } else if (obv.trend === 'falling') {
-        shortScore += 3;
-        console.log(`🟠 OBV SHORT: Falling but price weak (+3 pts)`);
-      }
-    }
-
-    // 11. FIBONACCI LEVELS (6 pts) - Near key retracement levels
-    const fibonacci = calculateFibonacci(highs, lows, closes);
-    if (fibonacci) {
-      indicators.fibonacci = fibonacci;
-      
-      // LONG: Price near support levels (38.2%, 50%, 61.8%)
-      const supportLevels = ['61.8', '50.0', '38.2'];
-      if (supportLevels.includes(fibonacci.nearestLevel) && fibonacci.distance < 0.01) {
-        longScore += 6;
-        console.log(`🟢 FIBONACCI LONG: Near ${fibonacci.nearestLevel}% support (+6 pts)`);
-      } else if (supportLevels.includes(fibonacci.nearestLevel) && fibonacci.distance < 0.02) {
-        longScore += 3;
-        console.log(`🟡 FIBONACCI LONG: Approaching ${fibonacci.nearestLevel}% (+3 pts)`);
-      }
-      
-      // SHORT: Price near resistance levels (38.2%, 23.6%, 0%)
-      const resistanceLevels = ['38.2', '23.6', '0.0'];
-      if (resistanceLevels.includes(fibonacci.nearestLevel) && fibonacci.distance < 0.01) {
-        shortScore += 6;
-        console.log(`🔴 FIBONACCI SHORT: Near ${fibonacci.nearestLevel}% resistance (+6 pts)`);
-      } else if (resistanceLevels.includes(fibonacci.nearestLevel) && fibonacci.distance < 0.02) {
-        shortScore += 3;
-        console.log(`🟠 FIBONACCI SHORT: Approaching ${fibonacci.nearestLevel}% (+3 pts)`);
-      }
-    }
-
-    // 12. VWAP (5 pts) - Price position relative to VWAP
+    // 8. VWAP (7 pts) - Price position relative to VWAP
     const vwap = calculateVWAP(highs, lows, closes, volumes);
     if (vwap) {
       indicators.vwap = vwap;
       
       // LONG: Price > VWAP
       if (currentPrice > vwap) {
-        longScore += 5;
-        console.log(`🟢 VWAP LONG: Price above VWAP (+5 pts)`);
+        longScore += 7;
+        console.log(`🟢 VWAP LONG: Price above VWAP (+7 pts)`);
       }
       
       // SHORT: Price < VWAP
       if (currentPrice < vwap) {
-        shortScore += 5;
-        console.log(`🔴 VWAP SHORT: Price below VWAP (+5 pts)`);
+        shortScore += 7;
+        console.log(`🔴 VWAP SHORT: Price below VWAP (+7 pts)`);
       }
     }
 
-    // 13. PARABOLIC SAR (3 pts) - Trend direction and flips
-    const psar = calculateParabolicSAR(highs, lows, closes, 0.02, 0.2);
-    if (psar) {
-      indicators.parabolicSar = psar;
-      
-      // LONG: SAR bullish trend or fresh flip
-      if (psar.trend === 'bullish' && psar.isFlip) {
-        longScore += 3;
-        console.log(`🟢 PARABOLIC SAR LONG: Fresh bullish flip (+3 pts)`);
-      } else if (psar.trend === 'bullish') {
-        longScore += 1;
-        console.log(`🟡 PARABOLIC SAR LONG: Bullish continuation (+1 pt)`);
-      }
-      
-      // SHORT: SAR bearish trend or fresh flip
-      if (psar.trend === 'bearish' && psar.isFlip) {
-        shortScore += 3;
-        console.log(`🔴 PARABOLIC SAR SHORT: Fresh bearish flip (+3 pts)`);
-      } else if (psar.trend === 'bearish') {
-        shortScore += 1;
-        console.log(`🟠 PARABOLIC SAR SHORT: Bearish continuation (+1 pt)`);
-      }
-    }
-
-    // 14. SUPERTREND (2 pts) - Trend direction
+    // 9. SUPERTREND (5 pts) - Trend direction
     const supertrend = calculateSupertrend(highs, lows, closes, 10, 3);
     if (supertrend) {
       indicators.supertrend = supertrend;
       
       // LONG: Supertrend bullish
       if (supertrend.direction === 'bullish') {
-        longScore += 2;
-        console.log(`🟢 SUPERTREND LONG: Bullish (+2 pts)`);
+        longScore += 5;
+        console.log(`🟢 SUPERTREND LONG: Bullish (+5 pts)`);
       }
       
       // SHORT: Supertrend bearish
       if (supertrend.direction === 'bearish') {
-        shortScore += 2;
-        console.log(`🔴 SUPERTREND SHORT: Bearish (+2 pts)`);
+        shortScore += 5;
+        console.log(`🔴 SUPERTREND SHORT: Bearish (+5 pts)`);
       }
     }
 
@@ -1822,219 +1700,6 @@ function calculateSupertrend(highs: number[], lows: number[], closes: number[], 
 
   console.log(`✅ Supertrend calculated: ${supertrend.toFixed(6)}, Direction: ${direction}`);
   return { supertrend, direction };
-}
-
-// Helper function to calculate OBV (On-Balance Volume)
-function calculateOBV(closes: number[], volumes: number[]): { obv: number, trend: 'rising' | 'falling' | 'neutral', values: number[] } | null {
-  if (closes.length < 20 || volumes.length < 20 || closes.length !== volumes.length) {
-    console.log(`❌ OBV: Not enough data. Need 20, have ${Math.min(closes.length, volumes.length)}`);
-    return null;
-  }
-
-  const obvValues: number[] = [volumes[0]];
-  
-  for (let i = 1; i < closes.length; i++) {
-    const priceChange = closes[i] - closes[i - 1];
-    if (priceChange > 0) {
-      obvValues.push(obvValues[obvValues.length - 1] + volumes[i]);
-    } else if (priceChange < 0) {
-      obvValues.push(obvValues[obvValues.length - 1] - volumes[i]);
-    } else {
-      obvValues.push(obvValues[obvValues.length - 1]);
-    }
-  }
-
-  const currentOBV = obvValues[obvValues.length - 1];
-  const obvSMA = obvValues.slice(-10).reduce((sum, val) => sum + val, 0) / 10;
-  
-  let trend: 'rising' | 'falling' | 'neutral' = 'neutral';
-  if (currentOBV > obvSMA * 1.02) trend = 'rising';
-  else if (currentOBV < obvSMA * 0.98) trend = 'falling';
-
-  console.log(`✅ OBV calculated: ${currentOBV.toFixed(2)}, Trend: ${trend}`);
-  return { obv: currentOBV, trend, values: obvValues };
-}
-
-// Helper function to calculate Fibonacci Retracement Levels
-function calculateFibonacci(highs: number[], lows: number[], closes: number[]): { levels: { [key: string]: number }, nearestLevel: string, distance: number } | null {
-  if (highs.length < 50 || lows.length < 50) {
-    console.log(`❌ Fibonacci: Not enough data. Need 50, have ${Math.min(highs.length, lows.length)}`);
-    return null;
-  }
-
-  const recentData = 50;
-  const recentHighs = highs.slice(-recentData);
-  const recentLows = lows.slice(-recentData);
-  
-  const swingHigh = Math.max(...recentHighs);
-  const swingLow = Math.min(...recentLows);
-  const range = swingHigh - swingLow;
-  
-  const currentPrice = closes[closes.length - 1];
-  
-  const levels = {
-    '0.0': swingHigh,
-    '23.6': swingHigh - (range * 0.236),
-    '38.2': swingHigh - (range * 0.382),
-    '50.0': swingHigh - (range * 0.5),
-    '61.8': swingHigh - (range * 0.618),
-    '78.6': swingHigh - (range * 0.786),
-    '100.0': swingLow
-  };
-
-  let nearestLevel = '50.0';
-  let minDistance = Infinity;
-  
-  for (const [level, price] of Object.entries(levels)) {
-    const distance = Math.abs(currentPrice - price) / currentPrice;
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestLevel = level;
-    }
-  }
-
-  console.log(`✅ Fibonacci calculated: Nearest level ${nearestLevel} at ${levels[nearestLevel].toFixed(6)}, Distance: ${(minDistance * 100).toFixed(2)}%`);
-  return { levels, nearestLevel, distance: minDistance };
-}
-
-// Helper function to calculate Ichimoku Cloud
-function calculateIchimoku(highs: number[], lows: number[], closes: number[], conversionPeriod: number = 9, basePeriod: number = 26, spanBPeriod: number = 52): { 
-  tenkanSen: number, 
-  kijunSen: number, 
-  senkouSpanA: number, 
-  senkouSpanB: number, 
-  chikouSpan: number,
-  cloudPosition: 'above' | 'below' | 'in_cloud',
-  tkCross: 'bullish' | 'bearish' | 'none'
-} | null {
-  if (highs.length < spanBPeriod + 26 || lows.length < spanBPeriod + 26 || closes.length < spanBPeriod + 26) {
-    console.log(`❌ Ichimoku: Not enough data. Need ${spanBPeriod + 26}, have ${Math.min(highs.length, lows.length, closes.length)}`);
-    return null;
-  }
-
-  const getMiddle = (arr: number[], period: number, offset: number = 0) => {
-    const slice = arr.slice(-(period + offset), arr.length - offset || undefined);
-    return (Math.max(...slice) + Math.min(...slice)) / 2;
-  };
-
-  const tenkanSen = getMiddle(highs, conversionPeriod);
-  const kijunSen = getMiddle(highs, basePeriod);
-  const senkouSpanA = (tenkanSen + kijunSen) / 2;
-  const senkouSpanB = getMiddle(highs, spanBPeriod, 26);
-  const chikouSpan = closes[closes.length - 26] || closes[0];
-  
-  const currentPrice = closes[closes.length - 1];
-  const cloudTop = Math.max(senkouSpanA, senkouSpanB);
-  const cloudBottom = Math.min(senkouSpanA, senkouSpanB);
-  
-  let cloudPosition: 'above' | 'below' | 'in_cloud';
-  if (currentPrice > cloudTop) cloudPosition = 'above';
-  else if (currentPrice < cloudBottom) cloudPosition = 'below';
-  else cloudPosition = 'in_cloud';
-
-  const prevTenkan = getMiddle(highs.slice(0, -1), conversionPeriod);
-  const prevKijun = getMiddle(highs.slice(0, -1), basePeriod);
-  
-  let tkCross: 'bullish' | 'bearish' | 'none' = 'none';
-  if (prevTenkan <= prevKijun && tenkanSen > kijunSen) tkCross = 'bullish';
-  else if (prevTenkan >= prevKijun && tenkanSen < kijunSen) tkCross = 'bearish';
-
-  console.log(`✅ Ichimoku calculated: Cloud position ${cloudPosition}, TK Cross: ${tkCross}`);
-  return { tenkanSen, kijunSen, senkouSpanA, senkouSpanB, chikouSpan, cloudPosition, tkCross };
-}
-
-// Helper function to calculate MFI (Money Flow Index)
-function calculateMFI(highs: number[], lows: number[], closes: number[], volumes: number[], period: number = 14): number | null {
-  if (highs.length < period + 1 || volumes.length < period + 1) {
-    console.log(`❌ MFI: Not enough data. Need ${period + 1}, have ${Math.min(highs.length, volumes.length)}`);
-    return null;
-  }
-
-  const typicalPrices: number[] = [];
-  const moneyFlow: number[] = [];
-  
-  for (let i = 0; i < closes.length; i++) {
-    const tp = (highs[i] + lows[i] + closes[i]) / 3;
-    typicalPrices.push(tp);
-    moneyFlow.push(tp * volumes[i]);
-  }
-
-  let positiveFlow = 0;
-  let negativeFlow = 0;
-  
-  for (let i = typicalPrices.length - period; i < typicalPrices.length; i++) {
-    if (i === 0) continue;
-    
-    if (typicalPrices[i] > typicalPrices[i - 1]) {
-      positiveFlow += moneyFlow[i];
-    } else if (typicalPrices[i] < typicalPrices[i - 1]) {
-      negativeFlow += moneyFlow[i];
-    }
-  }
-
-  if (negativeFlow === 0) return 100;
-  
-  const moneyFlowRatio = positiveFlow / negativeFlow;
-  const mfi = 100 - (100 / (1 + moneyFlowRatio));
-
-  console.log(`✅ MFI calculated: period ${period}, MFI ${mfi.toFixed(2)}`);
-  return mfi;
-}
-
-// Helper function to calculate Parabolic SAR
-function calculateParabolicSAR(highs: number[], lows: number[], closes: number[], acceleration: number = 0.02, maximum: number = 0.2): { 
-  sar: number, 
-  trend: 'bullish' | 'bearish',
-  isFlip: boolean
-} | null {
-  if (highs.length < 5 || lows.length < 5 || closes.length < 5) {
-    console.log(`❌ Parabolic SAR: Not enough data. Need 5, have ${Math.min(highs.length, lows.length, closes.length)}`);
-    return null;
-  }
-
-  let isLong = closes[0] < closes[1];
-  let sar = isLong ? Math.min(...lows.slice(0, 2)) : Math.max(...highs.slice(0, 2));
-  let ep = isLong ? Math.max(...highs.slice(0, 2)) : Math.min(...lows.slice(0, 2));
-  let af = acceleration;
-  let prevTrend = isLong ? 'bullish' : 'bearish';
-
-  for (let i = 2; i < closes.length; i++) {
-    sar = sar + af * (ep - sar);
-    
-    if (isLong) {
-      sar = Math.min(sar, lows[i - 1], lows[i - 2]);
-      if (closes[i] < sar) {
-        isLong = false;
-        sar = ep;
-        ep = lows[i];
-        af = acceleration;
-      } else {
-        if (highs[i] > ep) {
-          ep = highs[i];
-          af = Math.min(af + acceleration, maximum);
-        }
-      }
-    } else {
-      sar = Math.max(sar, highs[i - 1], highs[i - 2]);
-      if (closes[i] > sar) {
-        isLong = true;
-        sar = ep;
-        ep = highs[i];
-        af = acceleration;
-      } else {
-        if (lows[i] < ep) {
-          ep = lows[i];
-          af = Math.min(af + acceleration, maximum);
-        }
-      }
-    }
-  }
-
-  const currentTrend = isLong ? 'bullish' : 'bearish';
-  const isFlip = currentTrend !== prevTrend;
-
-  console.log(`✅ Parabolic SAR calculated: ${sar.toFixed(6)}, Trend: ${currentTrend}, Flip: ${isFlip}`);
-  return { sar, trend: currentTrend, isFlip };
 }
 
 // Evaluate Bollinger Bands condition
