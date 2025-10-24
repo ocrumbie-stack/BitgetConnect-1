@@ -2229,7 +2229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *   totalCapital: number,
    *   leverage: number, // sizing only
    *   scannerName?: string,
-   *   customTPSL?: { takeProfit?: number; stopLoss?: number }, // percents, e.g., 2
+   *   customTPSL: { takeProfit: number; stopLoss: number }, // REQUIRED: percents, e.g., 2 (means 2%)
    *   folderName?: string
    * }
    */
@@ -2250,6 +2250,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (totalCapital <= 0) {
         return res.status(400).json({ success: false, message: "Invalid totalCapital." });
+      }
+      if (!customTPSL || customTPSL.takeProfit == null || customTPSL.stopLoss == null) {
+        return res.status(400).json({ success: false, message: "Take Profit and Stop Loss are required." });
+      }
+      if (customTPSL.takeProfit <= 0 || customTPSL.stopLoss <= 0) {
+        return res.status(400).json({ success: false, message: "Take Profit and Stop Loss must be greater than 0." });
       }
 
       const capitalPerBot = totalCapital / opportunities.length;
@@ -2308,8 +2314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // 4) Compute absolute TP/SL as EXACT % move from entry
-            const tpPct = Number(customTPSL?.takeProfit ?? 2) / 100; // default 2%
-            const slPct = Number(customTPSL?.stopLoss ?? 2) / 100;
+            const tpPct = Number(customTPSL.takeProfit) / 100;
+            const slPct = Number(customTPSL.stopLoss) / 100;
 
             const rawTp = direction === "long" ? entryPrice * (1 + tpPct) : entryPrice * (1 - tpPct);
             const rawSl = direction === "long" ? entryPrice * (1 - slPct) : entryPrice * (1 + slPct);

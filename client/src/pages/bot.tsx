@@ -113,10 +113,9 @@ export default function BotPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannerResults, setScannerResults] = useState<any>(null);
   
-  // Custom TP/SL state for auto scanner
-  const [scannerStopLoss, setScannerStopLoss] = useState('3.0');
-  const [scannerTakeProfit, setScannerTakeProfit] = useState('6.0');
-  const [useCustomTPSL, setUseCustomTPSL] = useState(false);
+  // TP/SL state for auto scanner (required)
+  const [scannerStopLoss, setScannerStopLoss] = useState('');
+  const [scannerTakeProfit, setScannerTakeProfit] = useState('');
 
   // Continuous scanner state
   const [isContinuousActive, setIsContinuousActive] = useState(false);
@@ -588,15 +587,25 @@ export default function BotPage() {
     setIsScanning(true);
     setScannerResults(null);
     
+    // Validate TP/SL are provided
+    if (!scannerStopLoss || !scannerTakeProfit) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please enter both Stop Loss and Take Profit percentages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const scannerData = {
       userId: 'default-user',
       maxBots: parseInt(scannerMaxBots),
       minConfidence: minConfidence,
       tradingStyle: tradingStyle,
-      customTPSL: useCustomTPSL ? {
+      customTPSL: {
         stopLoss: parseFloat(scannerStopLoss),
         takeProfit: parseFloat(scannerTakeProfit)
-      } : null
+      }
     };
 
     await autoScannerMutation.mutateAsync(scannerData);
@@ -632,16 +641,26 @@ export default function BotPage() {
       return;
     }
 
+    // Validate TP/SL are provided
+    if (!scannerStopLoss || !scannerTakeProfit) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please enter both Stop Loss and Take Profit percentages before deploying.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const deployData = {
       userId: 'default-user',
       opportunities: scannerResults.opportunities,
       totalCapital: parseFloat(scannerCapital),
       leverage: parseInt(scannerLeverage),
       scannerName: scannerName.trim() || `Auto Scanner - ${new Date().toLocaleDateString()}`,
-      customTPSL: useCustomTPSL ? {
+      customTPSL: {
         stopLoss: parseFloat(scannerStopLoss),
         takeProfit: parseFloat(scannerTakeProfit)
-      } : null
+      }
     };
 
     await autoDeployMutation.mutateAsync(deployData);
@@ -2065,56 +2084,52 @@ export default function BotPage() {
                     </p>
                   </div>
 
-                  {/* Custom TP/SL Configuration */}
+                  {/* TP/SL Configuration - Required */}
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={useCustomTPSL}
-                        onCheckedChange={setUseCustomTPSL}
-                        data-testid="switch-custom-tpsl"
-                      />
-                      <Label className="text-sm font-medium">Use Custom TP/SL</Label>
+                      <Label className="text-sm font-medium">Take Profit / Stop Loss (Required)</Label>
+                      <Badge variant="destructive" className="text-xs">Required</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Override default TP/SL calculations with your own values
+                      Set your risk management parameters for all deployed bots
                     </p>
                     
-                    {useCustomTPSL && (
-                      <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Stop Loss (%)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            value={scannerStopLoss}
-                            onChange={(e) => setScannerStopLoss(e.target.value)}
-                            placeholder="3.0"
-                            min="0.1"
-                            max="20"
-                            data-testid="input-custom-stop-loss"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Pair percentage loss to exit
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Take Profit (%)</Label>
-                          <Input
-                            type="number" 
-                            step="0.1"
-                            value={scannerTakeProfit}
-                            onChange={(e) => setScannerTakeProfit(e.target.value)}
-                            placeholder="6.0"
-                            min="0.1"
-                            max="50"
-                            data-testid="input-custom-take-profit"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Pair percentage gain to exit
-                          </p>
-                        </div>
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Stop Loss (%) *</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={scannerStopLoss}
+                          onChange={(e) => setScannerStopLoss(e.target.value)}
+                          placeholder="e.g., 3.0"
+                          min="0.1"
+                          max="20"
+                          required
+                          data-testid="input-stop-loss"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Percentage loss to exit (0.1-20%)
+                        </p>
                       </div>
-                    )}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Take Profit (%) *</Label>
+                        <Input
+                          type="number" 
+                          step="0.1"
+                          value={scannerTakeProfit}
+                          onChange={(e) => setScannerTakeProfit(e.target.value)}
+                          placeholder="e.g., 6.0"
+                          min="0.1"
+                          max="50"
+                          required
+                          data-testid="input-take-profit"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Percentage gain to exit (0.1-50%)
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Start/Stop Scanner Button */}
