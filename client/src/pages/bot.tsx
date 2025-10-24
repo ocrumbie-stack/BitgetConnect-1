@@ -2420,7 +2420,7 @@ export default function BotPage() {
                       <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white font-bold mx-auto">1</div>
                       <div className="font-medium">Market Analysis</div>
                       <div className="text-muted-foreground">
-                        Scans 100+ trading pairs using multi-indicator analysis (MACD, RSI, Bollinger Bands, Volume, etc.)
+                        Scans 100+ trading pairs using 14 advanced indicators: EMA Trend, HTF Confirmation, RSI, MACD, ADX, Stochastic, Volume Z-Score, VWAP, Supertrend, Ichimoku Cloud, MFI, OBV, Fibonacci, and Parabolic SAR
                       </div>
                     </div>
                     <div className="space-y-2">
