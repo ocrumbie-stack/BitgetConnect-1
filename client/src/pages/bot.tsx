@@ -2795,12 +2795,12 @@ export default function BotPage() {
                                             {execution.status === 'active' && (
                                               <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-600/30 text-xs">
                                                 <span className="text-red-400">
-                                                  SL: {execution.exitCriteria?.stopLoss || execution.stopLoss ? 
-                                                    `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss).toFixed(1)}%` : '-6.0%'}
+                                                  SL: {execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss ? 
+                                                    `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss).toFixed(1)}%` : 'N/A'}
                                                 </span>
                                                 <span className="text-green-400">
-                                                  TP: {execution.exitCriteria?.takeProfit || execution.takeProfit ? 
-                                                    `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit).toFixed(1)}%` : '+10.0%'}
+                                                  TP: {execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit ? 
+                                                    `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit).toFixed(1)}%` : 'N/A'}
                                                 </span>
                                                 {execution.confidence && (
                                                   <span className="text-purple-400">
@@ -2983,12 +2983,12 @@ export default function BotPage() {
                                           {execution.status === 'active' && (
                                             <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-600/30 text-xs">
                                               <span className="text-red-400">
-                                                SL: {execution.exitCriteria?.stopLoss || execution.stopLoss ? 
-                                                  `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss).toFixed(1)}%` : '-6.0%'}
+                                                SL: {execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss ? 
+                                                  `${parseFloat(execution.exitCriteria?.stopLoss || execution.stopLoss || execution.customStopLoss).toFixed(1)}%` : 'N/A'}
                                               </span>
                                               <span className="text-green-400">
-                                                TP: {execution.exitCriteria?.takeProfit || execution.takeProfit ? 
-                                                  `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit).toFixed(1)}%` : '+10.0%'}
+                                                TP: {execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit ? 
+                                                  `${parseFloat(execution.exitCriteria?.takeProfit || execution.takeProfit || execution.customTakeProfit).toFixed(1)}%` : 'N/A'}
                                               </span>
                                               {execution.confidence && (
                                                 <span className="text-purple-400">
