@@ -908,6 +908,14 @@ export default function BotPage() {
 
     // Auto scanner mode doesn't need pair/folder validation - it selects automatically
 
+    // Extract TP/SL from strategy's risk management config
+    const customStopLoss = strategy?.config?.riskManagement?.stopLoss 
+      ? String(parseFloat(strategy.config.riskManagement.stopLoss)) 
+      : undefined;
+    const customTakeProfit = strategy?.config?.riskManagement?.takeProfit 
+      ? String(parseFloat(strategy.config.riskManagement.takeProfit)) 
+      : undefined;
+
     try {
       if (deploymentMode === 'auto_scanner') {
         // Deploy AI bot using Auto Market Scanner - use virtual strategy ID
@@ -920,7 +928,9 @@ export default function BotPage() {
           status: 'waiting_entry',
           deploymentType: 'auto_scanner',
           botName: `Auto AI - ${strategy.name}`,
-          isAIBot: true // Mark as AI bot to prevent strategy record creation
+          isAIBot: true, // Mark as AI bot to prevent strategy record creation
+          ...(customStopLoss && { customStopLoss }),
+          ...(customTakeProfit && { customTakeProfit })
         };
         
         await runStrategyMutation.mutateAsync(executionData);
@@ -938,7 +948,9 @@ export default function BotPage() {
           leverage: continuousLeverage,
           maxPositions: continuousMaxPositions,
           scanInterval: continuousScanInterval,
-          isAIBot: true // Mark as AI bot
+          isAIBot: true, // Mark as AI bot
+          ...(customStopLoss && { customStopLoss }),
+          ...(customTakeProfit && { customTakeProfit })
         };
 
         await continuousScannerMutation.mutateAsync(continuousData);
@@ -979,7 +991,9 @@ export default function BotPage() {
             folderId: selectedFolder,
             botName: `${folder.name} - ${strategy.name}`, // Use folder name as bot name
             folderName: folder.name, // Also store folder name for compatibility
-            isAIBot: strategy.isAI // Mark AI bots to prevent strategy creation
+            isAIBot: strategy.isAI, // Mark AI bots to prevent strategy creation
+            ...(customStopLoss && { customStopLoss }),
+            ...(customTakeProfit && { customTakeProfit })
           };
           
           await runStrategyMutation.mutateAsync(executionData);
@@ -1013,7 +1027,9 @@ export default function BotPage() {
           status: 'active',
           deploymentType: strategy.isAI ? 'ai_bot' : 'manual',
           botName: strategy.name, // Always use the strategy name for bot naming
-          isAIBot: strategy.isAI // Mark AI bots to prevent strategy creation
+          isAIBot: strategy.isAI, // Mark AI bots to prevent strategy creation
+          ...(customStopLoss && { customStopLoss }),
+          ...(customTakeProfit && { customTakeProfit })
         };
         
         await runStrategyMutation.mutateAsync(executionData);
