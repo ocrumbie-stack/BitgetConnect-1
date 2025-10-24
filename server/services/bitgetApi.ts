@@ -680,4 +680,116 @@ export class BitgetAPI {
       throw error;
     }
   }
+
+  async setPositionTPSL(params: { 
+    symbol: string; 
+    takeProfit?: string; 
+    stopLoss?: string;
+  }): Promise<any> {
+    try {
+      const { symbol, takeProfit, stopLoss } = params;
+      console.log(`🎯 Setting TP/SL for ${symbol}: TP=${takeProfit}, SL=${stopLoss}`);
+
+      // Get current position to determine side and size
+      const positions = await this.getPositions();
+      const position = positions.find((p: any) => p.symbol === symbol && Number(p.total) > 0);
+      
+      if (!position || !position.total || parseFloat(position.total) === 0) {
+        throw new Error(`No active position found for ${symbol}`);
+      }
+
+      const holdSide = position.holdSide; // 'long' or 'short'
+      const positionSize = position.total;
+      
+      console.log(`📊 Position details: side=${holdSide}, size=${positionSize}`);
+
+      const results: any = { success: true, takeProfit: null, stopLoss: null };
+
+      // Get size precision for the symbol
+      let sizePrecision = 6;
+      try {
+        const contractConfigs = await this.getContractConfig(symbol);
+        const symbolConfig = contractConfigs.find((config: any) => config.symbol === symbol);
+        if (symbolConfig && symbolConfig.volumePlace) {
+          sizePrecision = parseInt(symbolConfig.volumePlace);
+        }
+      } catch (error) {
+        console.log(`⚠️ Could not fetch contract config, using default precision: ${sizePrecision}`);
+      }
+
+      const formattedSize = parseFloat(positionSize).toFixed(sizePrecision);
+
+      // Place Take Profit plan order
+      if (takeProfit) {
+        try {
+          const tpOrderData = {
+            planType: 'profit_loss',
+            symbol: symbol,
+            productType: 'USDT-FUTURES',
+            marginMode: 'isolated',
+            marginCoin: 'USDT',
+            side: holdSide === 'long' ? 'sell' : 'buy', // Opposite side to close
+            tradeSide: 'close',
+            orderType: 'market',
+            size: formattedSize,
+            triggerPrice: takeProfit,
+            triggerType: 'mark_price',
+            executePrice: '0', // Market execution
+            reduceOnly: 'YES',
+            holdSide: holdSide,
+            clientOid: `tp_${Date.now()}`
+          };
+
+          console.log(`🎯 Take Profit plan order:`, JSON.stringify(tpOrderData, null, 2));
+          const tpResponse = await this.client.post('/api/v2/mix/order/place-plan-order', tpOrderData);
+          console.log(`✅ Take Profit order placed:`, JSON.stringify(tpResponse.data, null, 2));
+          results.takeProfit = tpResponse.data;
+        } catch (tpError: any) {
+          console.error(`❌ Failed to place Take Profit:`, tpError.response?.data || tpError.message);
+          results.takeProfitError = tpError.response?.data?.msg || tpError.message;
+        }
+      }
+
+      // Place Stop Loss plan order
+      if (stopLoss) {
+        try {
+          const slOrderData = {
+            planType: 'profit_loss',
+            symbol: symbol,
+            productType: 'USDT-FUTURES',
+            marginMode: 'isolated',
+            marginCoin: 'USDT',
+            side: holdSide === 'long' ? 'sell' : 'buy', // Opposite side to close
+            tradeSide: 'close',
+            orderType: 'market',
+            size: formattedSize,
+            triggerPrice: stopLoss,
+            triggerType: 'mark_price',
+            executePrice: '0', // Market execution
+            reduceOnly: 'YES',
+            holdSide: holdSide,
+            clientOid: `sl_${Date.now()}`
+          };
+
+          console.log(`🛑 Stop Loss plan order:`, JSON.stringify(slOrderData, null, 2));
+          const slResponse = await this.client.post('/api/v2/mix/order/place-plan-order', slOrderData);
+          console.log(`✅ Stop Loss order placed:`, JSON.stringify(slResponse.data, null, 2));
+          results.stopLoss = slResponse.data;
+        } catch (slError: any) {
+          console.error(`❌ Failed to place Stop Loss:`, slError.response?.data || slError.message);
+          results.stopLossError = slError.response?.data?.msg || slError.message;
+        }
+      }
+
+      // Return success if at least one order was placed
+      if ((takeProfit && results.takeProfit) || (stopLoss && results.stopLoss)) {
+        return results;
+      } else {
+        throw new Error('Failed to place TP/SL orders');
+      }
+    } catch (error: any) {
+      console.error('❌ Error setting TP/SL:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 }
