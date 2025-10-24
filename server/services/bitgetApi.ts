@@ -324,6 +324,31 @@ export class BitgetAPI {
     }
   }
 
+  async setLeverage(symbol: string, leverage: number, marginMode: 'isolated' | 'crossed' = 'isolated'): Promise<any> {
+    try {
+      const leverageData = {
+        symbol,
+        productType: 'USDT-FUTURES',
+        marginCoin: 'USDT',
+        leverage: leverage.toString(),
+        holdSide: 'long' // Set leverage for both long and short positions
+      };
+
+      console.log(`⚙️ Setting leverage for ${symbol}: ${leverage}x (${marginMode})`);
+      const response = await this.client.post('/api/v2/mix/account/set-leverage', leverageData);
+      
+      // Also set for short side
+      const leverageDataShort = { ...leverageData, holdSide: 'short' };
+      await this.client.post('/api/v2/mix/account/set-leverage', leverageDataShort);
+      
+      console.log(`✅ Leverage set successfully for ${symbol}: ${leverage}x`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ Failed to set leverage for ${symbol}:`, error.response?.data || error.message);
+      throw error;
+    }
+  }
+
   async placeOrder(orderParams: {
     symbol: string;
     side: 'buy' | 'sell';
@@ -336,6 +361,18 @@ export class BitgetAPI {
     trailingStop?: string;
   }): Promise<any> {
     try {
+      // Set leverage BEFORE placing order if specified
+      if (orderParams.leverage) {
+        console.log(`🔧 Setting leverage to ${orderParams.leverage}x before placing order`);
+        try {
+          await this.setLeverage(orderParams.symbol, orderParams.leverage);
+        } catch (leverageError) {
+          console.log(`⚠️ Leverage setting failed (may already be set):`, leverageError);
+          // Continue with order placement even if leverage setting fails
+          // (it might already be set correctly)
+        }
+      }
+
       // Get contract config for proper formatting (needed for all orders)
       let sizePrecision = 6; // Default fallback
       try {
