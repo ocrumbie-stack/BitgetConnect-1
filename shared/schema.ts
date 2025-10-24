@@ -105,6 +105,12 @@ export const botStrategies = pgTable("bot_strategies", {
       atr?: { period: number; };
       cci?: { period: number; };
       momentum?: { period: number; };
+      adx?: { period: number; };
+      obv?: { enabled: boolean; };
+      fibonacci?: { enabled: boolean; };
+      ichimoku?: { conversionPeriod: number; basePeriod: number; spanBPeriod: number; };
+      mfi?: { period: number; };
+      parabolicSar?: { acceleration: number; maximum: number; };
     };
     riskManagement: {
       stopLoss?: number; // percentage
@@ -291,6 +297,35 @@ export const screeners = pgTable("screeners", {
       period: number;
       operator: 'above' | 'below' | 'positive' | 'negative';
       value?: number;
+    };
+    adx?: {
+      period: number;
+      operator: 'above' | 'below';
+      value: number;
+    };
+    obv?: {
+      operator: 'rising' | 'falling' | 'divergence_bullish' | 'divergence_bearish';
+    };
+    fibonacci?: {
+      operator: 'near_support' | 'near_resistance' | 'at_level';
+      level?: number;
+    };
+    ichimoku?: {
+      conversionPeriod: number;
+      basePeriod: number;
+      spanBPeriod: number;
+      operator: 'above_cloud' | 'below_cloud' | 'in_cloud' | 'tk_cross_bullish' | 'tk_cross_bearish';
+    };
+    mfi?: {
+      period: number;
+      operator: 'above' | 'below' | 'between' | 'oversold' | 'overbought';
+      value: number;
+      valueMax?: number;
+    };
+    parabolicSar?: {
+      acceleration: number;
+      maximum: number;
+      operator: 'bullish' | 'bearish' | 'flip_bullish' | 'flip_bearish';
     };
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
