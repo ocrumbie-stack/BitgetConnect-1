@@ -4287,7 +4287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate ROI percentage based on profit vs total capital invested
           const entryPrice = parseFloat(position.openPriceAvg || '0');
           const markPrice = parseFloat(position.markPrice || '0');
-          const leverage = parseFloat(position.leverage || '10');
+          const leverage = parseFloat(deployedBot.leverage || position.leverage || '1');
           const totalCapital = parseFloat(deployedBot.capital || '0');
           const unrealizedPL = parseFloat(position.unrealizedPL || '0');
 
@@ -4334,7 +4334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tradingPair: deployedBot.tradingPair,
             status: exitTriggered ? 'exit_pending' : 'active',
             capital: deployedBot.capital,
-            leverage: position.leverage || deployedBot.leverage,
+            leverage: deployedBot.leverage || position.leverage || '1',
             profit: position.unrealizedPL || position.pnl || '0',
             trades: cyclesCompleted.toString(),
             cycles: cyclesCompleted,
@@ -4430,7 +4430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Calculate basic metrics for this position
           const entryPrice = parseFloat(position.openPriceAvg || '0');
           const markPrice = parseFloat(position.markPrice || '0');
-          const leverage = parseFloat(position.leverage || '10');
+          const leverage = parseFloat(position.leverage || '1');
           const unrealizedPL = parseFloat(position.unrealizedPL || '0');
           const totalCapital = parseFloat(position.marginSize || '0');
           
@@ -4447,7 +4447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tradingPair: position.symbol,
             status: 'active',
             capital: position.marginSize || '0',
-            leverage: position.leverage || '10',
+            leverage: position.leverage || '1',
             profit: position.unrealizedPL || '0',
             trades: '1',
             cycles: 0,
